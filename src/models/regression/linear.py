@@ -13,7 +13,7 @@ class Linear(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray, 
+    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
                  regularization_type: Literal[None, 'l1', 'l2'] = None, 
                  hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
@@ -24,8 +24,9 @@ class Linear(BaseRegression):
         Parameters
         ----------
         - X : np.ndarray ~ (n_samples, n_regressors).
-            Matrix of predictor variables. 
+            Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
+            Default: None. Dependent variable vector. 
         - regularization_type : [None, 'l1', 'l2']. 
             Default: None.
         - hyperparam_search_method : str. 
@@ -52,7 +53,8 @@ class Linear(BaseRegression):
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self.estimator,
-                method=hyperparam_grid_specification
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification
             )
         elif regularization_type == 'l1':
             self.estimator = Lasso()

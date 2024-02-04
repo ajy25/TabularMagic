@@ -7,66 +7,11 @@ from sklearn.model_selection import (
 )
 from skopt import BayesSearchCV
 from ...metrics import RegressionScorer
+from ..base_model import BaseModel, HyperparameterSearcher
 
 
 
-
-class HyperparameterSearcher():
-    """A wrapper for common hyperparameter search methods.
-    """
-
-    def __init__(self, estimator: BaseEstimator, 
-                 method: Literal['grid', 'random'], 
-                 grid: Mapping[str, Iterable], **kwargs):
-        """Initializes a HyperparameterSearch object.
-        
-        Parameters
-        ----------
-        - estimator : sklearn.base.BaseEstimator
-        - method : str. 
-            Must be an element in ['grid', 'random']. 
-        - grid : dict.
-            Specification of the set/distribution of hypeparameters to 
-            search through. 
-        - kwargs. 
-            Key word arguments are passed directly into the intialization of the 
-            hyperparameter search method. 
-        
-        Returns
-        -------
-        - None
-        """
-        self.best_estimator = None
-        if method == 'grid':
-            self._searcher = GridSearchCV(estimator, grid, **kwargs)
-        elif method == 'random':
-            self._searcher = RandomizedSearchCV(estimator, grid, **kwargs)
-        elif method == 'bayes':
-            self._searcher = BayesSearchCV(estimator, grid, **kwargs)
-
-    def fit(self, X: np.ndarray, y: np.ndarray):
-        """Cross validation search of optimal hyperparameters. Idenfities 
-        best estimator. 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
-        - y : np.ndarray ~ (n_samples).
-
-        Returns
-        -------
-        - best_estimator : BaseEstimator. 
-        """
-        self._searcher.fit(X, y)
-        self.best_estimator = self._searcher.best_estimator_
-        return self.best_estimator
-
-
-
-
-
-
-class BaseRegression():
+class BaseRegression(BaseModel):
     """A class that provides the framework upon which all regression 
     objects are built. 
 
@@ -75,23 +20,24 @@ class BaseRegression():
     model selection processes. 
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray):
+    def __init__(self, X: np.ndarray = None, y: np.ndarray = None):
         """Initializes a BaseRegression object. Creates copies of the inputs. 
 
         Parameters
         ----------
         - X : np.ndarray ~ (n_samples, n_regressors).
-            Matrix of predictor variables. 
+            Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
-
+            Default: None. Dependent variable vector. 
         Returns
         -------
         - None
         """
-        self._X = X.copy()
-        self._y = y.copy()
-        self._n_samples = X.shape[0]
-        self._n_regressors = X.shape[1]
+        if (X is not None) and (y is not None):
+            self._X = X.copy()
+            self._y = y.copy()
+            self._n_samples = X.shape[0]
+            self._n_regressors = X.shape[1]
         self._hyperparam_searcher: HyperparameterSearcher = None
         self.estimator: BaseEstimator = None
 
@@ -109,12 +55,15 @@ class BaseRegression():
         -------
         - None
         """
-        self._verify_Xy_input_validity(X, y)
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
             self._n_samples = X.shape[0]
             self._n_regressors = X.shape[1]
+        if (self._X is None) or (self._y is None):
+            raise ValueError(f'Invalid input: X, y.',
+                             'X and y both must not be None.')
+        self._verify_Xy_input_validity(self._X, self._y)
         self._hyperparam_searcher.fit(self._X, self._y)
         self.estimator = self._hyperparam_searcher.best_estimator
         
@@ -153,7 +102,8 @@ class BaseRegression():
             X_test = self._X
             y_test = self._y
         self._verify_Xy_input_validity(X_test, y_test)
-        return RegressionScorer(self.predict(X_test), y_test)
+        return RegressionScorer(self.predict(X_test), y_test, 
+            n_regressors=self._n_regressors)
     
     def _verify_Xy_input_validity(self, X: np.ndarray, y: np.ndarray):
         """Verifies that the inputs X and y are valid. If invalid, raises 

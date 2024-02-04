@@ -19,7 +19,8 @@ class Tree(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray, random_state: int = 42, 
+    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
+                 random_state: int = 42, 
                  hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  **kwargs):
@@ -29,8 +30,9 @@ class Tree(BaseRegression):
         Parameters
         ----------
         - X : np.ndarray ~ (n_samples, n_regressors).
-            Matrix of predictor variables. 
+            Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
+            Default: None. Dependent variable vector. 
         - random_state : int. 
             Default: 42.
         - hyperparam_search_method : str. 
@@ -76,8 +78,9 @@ class TreeEnsemble(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray, y: np.ndarray, ensemble_type: \
-                 Literal['random_forest', 'gradient_boosting', 'bagging'], 
+    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
+                 ensemble_type: Literal['random_forest', 'gradient_boosting', 
+                                        'bagging'] = 'random_forest', 
                  random_state: int = 42, hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  **kwargs):
@@ -87,8 +90,9 @@ class TreeEnsemble(BaseRegression):
         Parameters
         ----------
         - X : np.ndarray ~ (n_samples, n_regressors).
-            Matrix of predictor variables. 
+            Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
+            Default: None. Dependent variable vector. 
         - random_state : int. 
             Default: 42.
         - hyperparam_search_method : str. 

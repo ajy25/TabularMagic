@@ -171,7 +171,11 @@ class TreeEnsemble(BaseRegression):
             )
 
     def __str__(self):
-        return f'TreeEnsemble({self.ensemble_type})'
-
+        if self.ensemble_type == 'random_forest':
+            return 'RandomForest'
+        elif self.ensemble_type == 'bagging':
+            return 'Bagging'
+        elif self.ensemble_type == 'gradient_boosting':
+            return 'GradientBoosting'
 
 

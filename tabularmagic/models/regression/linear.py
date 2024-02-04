@@ -91,4 +91,11 @@ class Linear(BaseRegression):
             )
 
     def __str__(self):
-        return f'Linear({self.regularization_type})'
+        if self.regularization_type is None:
+            return f'Linear'
+        elif self.regularization_type == 'l1':
+            return f'Lasso'
+        elif self.regularization_type == 'l2':
+            return f'Ridge'
+
+

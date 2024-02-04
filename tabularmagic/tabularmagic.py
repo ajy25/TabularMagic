@@ -2,6 +2,7 @@ import pandas as pd
 from typing import Iterable
 from sklearn.model_selection import train_test_split
 from .models import *
+from .visualization import ComprehensiveRegressionReport
 
 class TabularMagic():
     """TabularMagic: Automatic statistical and machine learning analysis of 
@@ -44,6 +45,7 @@ class TabularMagic():
 
         Returns
         -------
+        - report : ComprehensiveRegressionReport.
         - train_metrics : pd.DataFrame. 
             Output provides statistics for each model on the train dataset. 
         - test_metrics : pd.DataFrame. 
@@ -63,21 +65,15 @@ class TabularMagic():
         self._y_train_df = pd.DataFrame(y_train, columns=y_var)
         self._y_test_df = pd.DataFrame(y_test, columns=y_var)
 
-        train_metrics = []
-        test_metrics = []
         for i, model in enumerate(models):
             print(f'Task {i+1} of {len(models)}. \t Training {model}.')
             model.fit(self._X_train_df.to_numpy(), 
                       self._y_train_df.to_numpy().flatten())
-            train_metrics.append(model.score().to_df())
-            test_metrics.append(model.score(
-                self._X_test_df.to_numpy(), 
-                self._y_test_df.to_numpy().flatten()
-            ).to_df())
-        train_metrics = pd.concat(train_metrics, axis=1)
-        test_metrics = pd.concat(test_metrics, axis=1)
 
-        return train_metrics, test_metrics
+        train_report = ComprehensiveRegressionReport(models, X_train, y_train)
+        test_report = ComprehensiveRegressionReport(models, X_test, y_test)
+
+        return train_report, test_report
 
 
         

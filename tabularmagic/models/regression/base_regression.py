@@ -76,7 +76,7 @@ class BaseRegression(BaseModel):
 
         Returns
         -------
-        - None
+        - np.ndarray ~ (n_test_samples)
         """
         self._verify_X_input_validity(X)
         return self.estimator.predict(X)

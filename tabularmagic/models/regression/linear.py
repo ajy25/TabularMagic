@@ -58,7 +58,7 @@ class Linear(BaseRegression):
                 grid=hyperparam_grid_specification
             )
         elif regularization_type == 'l1':
-            self.estimator = Lasso()
+            self.estimator = Lasso(random_state=42)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'bayes'
@@ -74,7 +74,7 @@ class Linear(BaseRegression):
                 **kwargs
             )
         elif regularization_type == 'l2':
-            self.estimator = Ridge()
+            self.estimator = Ridge(random_state=42)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'bayes'

@@ -82,7 +82,7 @@ class BaseRegression(BaseModel):
         return self.estimator.predict(X)
 
     def score(self, X_test: np.ndarray = None, y_test: np.ndarray = None) -> \
-        RegressionScorer:
+            RegressionScorer:
         """Returns the MSE, MAD, Pearson Correlation, and Spearman Correlation 
         of the true and predicted y values. Also, returns the R-squared and 
         adjusted R-squared 

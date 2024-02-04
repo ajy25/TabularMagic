@@ -103,7 +103,7 @@ class BaseRegression(BaseModel):
             y_test = self._y
         self._verify_Xy_input_validity(X_test, y_test)
         return RegressionScorer(self.predict(X_test), y_test, 
-            n_regressors=self._n_regressors)
+            n_regressors=self._n_regressors, model_id_str=str(self))
     
     def _verify_Xy_input_validity(self, X: np.ndarray, y: np.ndarray):
         """Verifies that the inputs X and y are valid. If invalid, raises 
@@ -149,5 +149,6 @@ class BaseRegression(BaseModel):
                              'length in the second dimension as the dataset',
                              'upon which the estimator has been trained.')
 
-
+    def __str__(self):
+        return 'BaseRegression'
 

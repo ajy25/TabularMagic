@@ -43,6 +43,7 @@ class Linear(BaseRegression):
         - None
         """
         super().__init__(X, y)
+        self.regularization_type = regularization_type
         if regularization_type is None:
             self.estimator = LinearRegression()
             if (hyperparam_search_method is None) or \
@@ -89,4 +90,5 @@ class Linear(BaseRegression):
                 **kwargs
             )
 
-
+    def __str__(self):
+        return f'Linear({self.regularization_type})'

@@ -44,8 +44,10 @@ class TabularMagic():
 
         Returns
         -------
-        - pd.DataFrame. 
-            Output provides statistics for each model on the testing dataset. 
+        - train_metrics : pd.DataFrame. 
+            Output provides statistics for each model on the train dataset. 
+        - test_metrics : pd.DataFrame. 
+            Output provides statistics for each model on the test dataset. 
         """
         self._X_vars = X_vars
         self._y_var = y_var
@@ -61,13 +63,21 @@ class TabularMagic():
         self._y_train_df = pd.DataFrame(y_train, columns=y_var)
         self._y_test_df = pd.DataFrame(y_test, columns=y_var)
 
-        scores = []
-        for model in models:
+        train_metrics = []
+        test_metrics = []
+        for i, model in enumerate(models):
+            print(f'Task {i+1} of {len(models)}. \t Training {model}.')
             model.fit(self._X_train_df.to_numpy(), 
                       self._y_train_df.to_numpy().flatten())
-            scores.append(model.score().to_df())
-        scores = pd.concat(scores, axis=1)
-        return scores
+            train_metrics.append(model.score().to_df())
+            test_metrics.append(model.score(
+                self._X_test_df.to_numpy(), 
+                self._y_test_df.to_numpy().flatten()
+            ).to_df())
+        train_metrics = pd.concat(train_metrics, axis=1)
+        test_metrics = pd.concat(test_metrics, axis=1)
+
+        return train_metrics, test_metrics
 
 
         

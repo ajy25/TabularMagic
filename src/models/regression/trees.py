@@ -66,7 +66,8 @@ class Tree(BaseRegression):
             **kwargs
         )
 
-
+    def __str__(self):
+        return 'Tree'
 
 
 class TreeEnsemble(BaseRegression):
@@ -110,6 +111,7 @@ class TreeEnsemble(BaseRegression):
         """
         super().__init__(X, y)
         self.random_state = random_state
+        self.ensemble_type = ensemble_type
         if ensemble_type == 'random_forest':
             self.estimator = RandomForestRegressor(
                 random_state=self.random_state)
@@ -168,6 +170,8 @@ class TreeEnsemble(BaseRegression):
                 **kwargs
             )
 
+    def __str__(self):
+        return f'TreeEnsemble({self.ensemble_type})'
 
 
 

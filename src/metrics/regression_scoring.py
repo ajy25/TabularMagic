@@ -24,7 +24,7 @@ class RegressionScorer():
     """
 
     def __init__(self, y_pred: np.ndarray, y_true: np.ndarray, 
-                 n_regressors: int = None):
+                 n_regressors: int = None, model_id_str: str = None):
         """
         Initializes a RegressionScorer object. 
 
@@ -37,6 +37,10 @@ class RegressionScorer():
         -------
         - None
         """
+        if model_id_str is None:
+            self._model_id_str = 'Model'
+        else:
+            self._model_id_str = model_id_str
         self._y_pred = y_pred.copy()
         self._y_true = y_true.copy()
         self._pearsonr = pearsonr(self._y_pred, self._y_true)[0]
@@ -49,8 +53,9 @@ class RegressionScorer():
         if n_regressors is None:
             self._adjustedrsquared = np.NaN
         else: 
-            self._adjustedrsquared = 1 - ((1 - self._rsquared * (self.n_samples\
-                - 1)) / (self.n_samples - self.n_regressors - 1))
+            self._adjustedrsquared = 1 - (((1 - self._rsquared) * \
+                (self.n_samples - 1)) / (self.n_samples - self.n_regressors \
+                - 1))
         self._dict_indexable_by_str = {
             'mse': self._mse,
             'mad': self._mad,
@@ -109,6 +114,6 @@ class RegressionScorer():
         - pd.DataFrame.
         """
         return pd.DataFrame(list(self._dict_indexable_by_str.items()), 
-            columns=['Statistic', 'Value']).set_index('Statistic')
+            columns=['Statistic', self._model_id_str]).set_index('Statistic')
 
     

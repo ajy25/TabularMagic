@@ -6,18 +6,26 @@ class TabularMagic():
     datasets in tabular form.
     """
 
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame, models: list[]):
         """Initializes a TabularMagic object.
 
         Parameters
         ----------
-        - df : pd.DataFrame
+        - df : pd.DataFrame ~ (n_samples, n_variables)
 
         Returns
         -------
-        - 
+        - None
         """
         self.original_df = df.copy()
+        self.shape = self.original_df.shape
+        self._X_vars = []
+        self._y_var = []
+
+    def set_models():
+        """
+        
+        """
         
 
 

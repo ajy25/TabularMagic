@@ -1,19 +1,82 @@
 import numpy as np
-from ...metrics import RegressionScorer
+from typing import Literal, Mapping, Iterable
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import (
     GridSearchCV, 
     RandomizedSearchCV
 )
+from skopt import BayesSearchCV
+from ...metrics import RegressionScorer
+
+
+
+
+class HyperparameterSearcher():
+    """A wrapper for common hyperparameter search methods.
+    """
+
+    def __init__(self, estimator: BaseEstimator, 
+                 method: Literal['grid', 'random'], 
+                 grid: Mapping[str, Iterable], **kwargs):
+        """Initializes a HyperparameterSearch object.
+        
+        Parameters
+        ----------
+        - estimator : sklearn.base.BaseEstimator
+        - method : str. 
+            Must be an element in ['grid', 'random']. 
+        - grid : dict.
+            Specification of the set/distribution of hypeparameters to 
+            search through. 
+        - kwargs. 
+            Key word arguments are passed directly into the intialization of the 
+            hyperparameter search method. 
+        
+        Returns
+        -------
+        - None
+        """
+        self.best_estimator = None
+        if method == 'grid':
+            self._searcher = GridSearchCV(estimator, grid, **kwargs)
+        elif method == 'random':
+            self._searcher = RandomizedSearchCV(estimator, grid, **kwargs)
+        elif method == 'bayes':
+            self._searcher = BayesSearchCV(estimator, grid, **kwargs)
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """Cross validation search of optimal hyperparameters. Idenfities 
+        best estimator. 
+
+        Parameters
+        ----------
+        - X : np.ndarray ~ (n_samples, n_regressors).
+        - y : np.ndarray ~ (n_samples).
+
+        Returns
+        -------
+        - best_estimator : BaseEstimator. 
+        """
+        self._searcher.fit(X, y)
+        self.best_estimator = self._searcher.best_estimator_
+        return self.best_estimator
+
+
+
+
 
 
 class BaseRegression():
-    """BaseRegression : Class that provides the framework upon which all 
-    regression objects are built. 
+    """A class that provides the framework upon which all regression 
+    objects are built. 
+
+    BaseRegression wraps sklearn methods. 
+    The primary purpose of BaseRegression is to automate the scoring and 
+    model selection processes. 
     """
 
     def __init__(self, X: np.ndarray, y: np.ndarray):
-        """
-        Initializes a BaseRegression object. Creates copies of the inputs. 
+        """Initializes a BaseRegression object. Creates copies of the inputs. 
 
         Parameters
         ----------
@@ -29,8 +92,8 @@ class BaseRegression():
         self._y = y.copy()
         self._n_samples = X.shape[0]
         self._n_regressors = X.shape[1]
-        self._hyperparam_selector = None
-        self._best_estimator = None
+        self._hyperparam_searcher: HyperparameterSearcher = None
+        self.estimator: BaseEstimator = None
 
     def fit(self, X: np.ndarray = None, y: np.ndarray = None):
         """Fits the model. 
@@ -52,7 +115,9 @@ class BaseRegression():
             self._y = y.copy()
             self._n_samples = X.shape[0]
             self._n_regressors = X.shape[1]
-    
+        self._hyperparam_searcher.fit(self._X, self._y)
+        self.estimator = self._hyperparam_searcher.best_estimator
+        
     def predict(self, X: np.ndarray):
         """Returns y_pred.
         
@@ -65,6 +130,7 @@ class BaseRegression():
         - None
         """
         self._verify_X_input_validity(X)
+        return self.estimator.predict(X)
 
     def score(self, X_test: np.ndarray = None, y_test: np.ndarray = None) -> \
         RegressionScorer:
@@ -83,6 +149,9 @@ class BaseRegression():
         -------
         - RegressionScorer. 
         """
+        if X_test is None or y_test is None:
+            X_test = self._X
+            y_test = self._y
         self._verify_Xy_input_validity(X_test, y_test)
         return RegressionScorer(self.predict(X_test), y_test)
     
@@ -130,10 +199,5 @@ class BaseRegression():
                              'length in the second dimension as the dataset',
                              'upon which the estimator has been trained.')
 
-
-
-class HyperparameterSearchWrapper():
-    """A wrapper for common hyperparameter search methods.
-    """
 
 

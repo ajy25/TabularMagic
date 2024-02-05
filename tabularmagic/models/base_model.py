@@ -6,7 +6,8 @@ from sklearn.model_selection import (
 from skopt import BayesSearchCV
 from typing import Literal, Mapping, Iterable
 from sklearn.base import BaseEstimator
-
+from sklearn.utils._testing import ignore_warnings
+from sklearn.exceptions import ConvergenceWarning
 
 
 class BaseModel():
@@ -51,6 +52,9 @@ class BaseModel():
         """
         pass
 
+    def __str__(self):
+        return 'BaseModel'
+
 
 class HyperparameterSearcher():
     """A wrapper for common hyperparameter search methods.
@@ -85,6 +89,7 @@ class HyperparameterSearcher():
         elif method == 'bayes':
             self._searcher = BayesSearchCV(estimator, grid, **kwargs)
 
+    @ignore_warnings(category=ConvergenceWarning)
     def fit(self, X: np.ndarray, y: np.ndarray):
         """Cross validation search of optimal hyperparameters. Idenfities 
         best estimator. 

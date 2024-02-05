@@ -9,8 +9,6 @@ from typing import Mapping, Literal, Iterable
 from .base_regression import BaseRegression, HyperparameterSearcher
 
 
-
-
 class Tree(BaseRegression):
     """A simple decision tree regressor. 
     
@@ -23,7 +21,7 @@ class Tree(BaseRegression):
                  random_state: int = 42, 
                  hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 **kwargs):
+                 nickname: str = None, **kwargs):
         """
         Initializes a TreeRegression object. 
 
@@ -41,6 +39,9 @@ class Tree(BaseRegression):
         - hyperparam_grid_specification : Mapping[str, Iterable]. 
             Default: None. If None, a Tree-specific default hyperparameter 
             search is conducted. 
+        - nickname : str. 
+            Default: None. Determines how the model shows up in the reports. 
+            If None, the nickname is set to be the class name.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the hyperparameter search method. 
 
@@ -49,6 +50,12 @@ class Tree(BaseRegression):
         - None
         """
         super().__init__(X, y)
+
+        if nickname is None:
+            self.nickname = 'Tree'
+        else:
+            self.nickname = nickname
+
         self.random_state = random_state
         self.estimator = DecisionTreeRegressor(random_state=self.random_state)
         if (hyperparam_search_method is None) or \
@@ -67,7 +74,7 @@ class Tree(BaseRegression):
         )
 
     def __str__(self):
-        return 'Tree'
+        return self.nickname
 
 
 class TreeEnsemble(BaseRegression):
@@ -84,7 +91,7 @@ class TreeEnsemble(BaseRegression):
                                         'bagging'] = 'random_forest', 
                  random_state: int = 42, hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 **kwargs):
+                 nickname: str = None, **kwargs):
         """
         Initializes a TreeRegression object. 
 
@@ -102,6 +109,9 @@ class TreeEnsemble(BaseRegression):
         - hyperparam_grid_specification : Mapping[str, Iterable]. 
             Default: None. If None, a Tree-specific default hyperparameter 
             search is conducted. 
+        - nickname : str. 
+            Default: None. Determines how the model shows up in the reports. 
+            If None, the nickname is set to be the class name.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the hyperparameter search method. 
 
@@ -112,6 +122,12 @@ class TreeEnsemble(BaseRegression):
         super().__init__(X, y)
         self.random_state = random_state
         self.ensemble_type = ensemble_type
+
+        if nickname is None:
+            self.nickname = f'TreeEnsemble({ensemble_type})'
+        else:
+            self.nickname = nickname
+
         if ensemble_type == 'random_forest':
             self.estimator = RandomForestRegressor(
                 random_state=self.random_state)
@@ -171,11 +187,5 @@ class TreeEnsemble(BaseRegression):
             )
 
     def __str__(self):
-        if self.ensemble_type == 'random_forest':
-            return 'RandomForest'
-        elif self.ensemble_type == 'bagging':
-            return 'Bagging'
-        elif self.ensemble_type == 'gradient_boosting':
-            return 'GradientBoosting'
-
+        return self.nickname
 

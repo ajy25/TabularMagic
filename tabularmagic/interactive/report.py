@@ -8,7 +8,7 @@ from ..models import *
 
 
 class RegressionReport():
-    """An object that generates regression-relevant plots and tables for a 
+    """RegressionReport: generates regression-relevant plots and tables for a 
     single model. 
     """
 
@@ -35,7 +35,7 @@ class RegressionReport():
         self.scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
             n_regressors=self.model._n_regressors, model_id_str=str(self.model))
         
-    def pred_vs_true_plot(self):
+    def plot_pred_vs_true(self):
         """Returns a figure that is a scatter plot of the true and predicted y 
         values. 
 

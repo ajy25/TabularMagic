@@ -1,8 +1,8 @@
 import pandas as pd
-from typing import Iterable
+from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
 from .models import *
-from .visualization import ComprehensiveRegressionReport
+from .interactive import ComprehensiveRegressionReport, ComprehensiveEDA
 from .preprocessing import DataPreprocessor
 
 
@@ -35,27 +35,31 @@ class TabularMagic():
         -------
         - None
         """
-        self.original_df = df.copy()
         if df_test is not None:
-            self.original_df_train = self.original_df
+            self.original_df_train = df.copy()
             self.original_df_test = df_test.copy()
+            self.original_df = pd.concat((self.original_df_train, 
+                                          self.original_df_test), axis=0)
         else:
+            self.original_df = df.copy()
             temp_train, temp_test = train_test_split(self.original_df, 
                 test_size=test_size, shuffle=True, random_state=random_state)
             self.original_df_train = pd.DataFrame(temp_train, 
                 columns=df.columns)
             self.original_df_test = pd.DataFrame(temp_test, columns=df.columns)
+        
+        # Exploratory Data Analysis on raw input data
+        self.train_eda = ComprehensiveEDA(self.original_df_train)
+        self.test_eda = ComprehensiveEDA(self.original_df_train)
+        self.eda = ComprehensiveEDA(self.original_df_train)
+
         self.working_df_train = self.original_df_train.copy()
         self.working_df_test = self.original_df_test.copy()
 
-
-    def comprehensive_eda(self): 
+    def preprocess_data(self, onehot_vars: list[str] = None,
+                        standardize_vars: list[str] = None, 
+                        minmax_vars: list[str] = []):
         pass
-
-
-    def preprocess_data(self, ):
-        pass
-
 
     def comprehensive_model_benchmarking(self, X_vars: list[str], y_var: str, 
                                    models: Iterable[BaseModel]):
@@ -86,7 +90,7 @@ class TabularMagic():
         y_train_np = local_y_train_df.to_numpy().flatten()
 
         for i, model in enumerate(models):
-            print(f'Task {i+1} of {len(models)}. \t Training {model}.')
+            print(f'Task {i+1} of {len(models)}.\tTraining {model}.')
             model.fit(X_train_np, y_train_np)
 
         train_report = ComprehensiveRegressionReport(

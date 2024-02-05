@@ -1,18 +1,18 @@
 import pandas as pd
 import numpy as np
-import warnings
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
+
 class DataPreprocessor():
-    """Automatic handling of one-hot-encoding, scaling, and missing data 
-    imputation. 
+    """Automatic handling of one-hot-encoding, scaling, feature selection, 
+    and missing data imputation. 
     """
 
     def __init__(self, df: pd.DataFrame,
                  onehot_vars: list[str] = [],
                  standard_scale_vars: list[str] = [],
                  minmax_scale_vars: list[str] = [], 
-                 _dropfirst_onehot: bool = False):
+                 dropfirst_onehot: bool = False):
         """Initializes a DataPreprocessor object. 
 
         Parameters
@@ -21,20 +21,21 @@ class DataPreprocessor():
         - onehot_vars : list[str]. 
         - standard_scale_vars : list[str].
         - minmax_scale_vars : list[str].
-        - _dropfirst_onehot : bool. 
+        - dropfirst_onehot : bool. 
         
         Returns
         -------
-        - None
+        - pd.DataFrame
         """
         self.orig_df = df.copy()
         self._onehot_vars = onehot_vars.copy()
-        self._dropfirst_onehot = _dropfirst_onehot
+        self._dropfirst_onehot = dropfirst_onehot
         self._onehot_encoded_vars = []
         self._standard_scale_vars = standard_scale_vars.copy()
         self._standard_scaler = StandardScaler()
         self._minmax_scale_vars = minmax_scale_vars.copy()
         self._minmax_scaler = MinMaxScaler()
+        return self.forward()
 
     def forward(self, df: pd.DataFrame = None) -> pd.DataFrame:
         """Outputs a preprocessed version of the input DataFrame.

@@ -1,10 +1,10 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 plt.ioff()
 from typing import Iterable
 from ..metrics.regression_scoring import RegressionScorer
 from ..models import *
-from .viz import plot_predicted_vs_true_scatter
 
 
 class RegressionReport():
@@ -47,8 +47,16 @@ class RegressionReport():
         -------
         - plt.Figure
         """
-        fig = plot_predicted_vs_true_scatter(self._y_pred, self._y_true)
-        fig.suptitle(f'{self._y_test_df.columns.to_list()[0]}: ' + \
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        ax.scatter(self._y_true, self._y_pred, s=2, color='black')
+        min_val = np.min(np.hstack((self._y_pred, self._y_true)))
+        max_val = np.max(np.hstack((self._y_pred, self._y_true)))
+        ax.set_xlim(min_val, max_val)
+        ax.set_ylim(min_val, max_val)
+        ax.set_xlabel('True Values')
+        ax.set_ylabel('Predicted Values')
+        ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
+        ax.set_title(f'{self._y_test_df.columns.to_list()[0]}: ' + \
                      f'Predicted vs True | ' + \
                      f'Pearson R = {round(self.scorer["pearsonr"], 3)}')
         fig.tight_layout()

@@ -53,17 +53,36 @@ class TabularMagic():
             else:
                 self.original_df_train = self.original_df
                 self.original_df_test = self.original_df
-        
         self._verify_input_dfs()
-
-        # Exploratory Data Analysis on raw input data
-        self.train_eda = ComprehensiveEDA(self.original_df_train)
-        self.test_eda = ComprehensiveEDA(self.original_df_test)
-
+        self._dp = None
+        self._df_checkpoint_name_to_df = {}
         self.working_df_train = self.original_df_train.copy()
         self.working_df_test = self.original_df_test.copy()
+        self.categorical_columns = []
+        self.continuous_columns = []
+        self._reset_categorical_continuous_vars()
 
-        self._dp = None
+
+    def eda(self, dataset: Literal['train', 'test'] = 'train') \
+        -> ComprehensiveEDA:
+        """Constructs a ComprehensiveEDA object for either the working train 
+        or the working test dataset. 
+
+        Parameters
+        ----------
+        - dataset: Literal['train', 'test'].
+            Default: 'train'.
+
+        Returns
+        -------
+        - ComprehensiveEDA
+        """
+        if dataset == 'train':
+            return ComprehensiveEDA(self.working_df_train)
+        elif dataset == 'test':
+            return ComprehensiveEDA(self.working_df_test)
+        else:
+            raise ValueError(f'Invalid input: dataset = {dataset}.')
 
 
     def preprocess_data(self, onehot_vars: list[str] = [],
@@ -73,7 +92,9 @@ class TabularMagic():
                         'median', '5nn', '10nn'] = None, 
                         dropfirst_onehot: bool = False):
         """Fits a DataPreprocessor object on the training dataset. Then, 
-        preprocesses both the training and testing datasets. 
+        preprocesses both the train and test datasets. 
+
+        Note: The working train and test datasets will be modified. 
         
         Parameters
         ----------
@@ -83,6 +104,9 @@ class TabularMagic():
         - imputation_strategy: Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
         - dropfirst_onehot : bool. 
+            Default: False. 
+            All binary variables will automatically drop first, 
+            regardless of the value of  dropfirst_onehot
 
         Returns
         -------
@@ -109,8 +133,8 @@ class TabularMagic():
         """Supervised feature selection via methods voting based on
         training dataset. 
         Also returns a FeatureSelectionReport object. 
-        Can automatically updates the working test/train 
-        DataFrames so that only the selected features remain if 
+        Can automatically updates the working train and working test
+        datasets so that only the selected features remain if 
         update_working_dfs is True.
         
         Parameters
@@ -186,21 +210,82 @@ class TabularMagic():
         return train_report, test_report
 
 
-    def reset_working_dfs(self):
-        """The working DataFrames are reset to the DataFrames given at object 
-        initialization.
-        """
-        self.working_df_test = self.original_df_test.copy()
-        self.working_df_train = self.original_df_train.copy()
+    def reset_working_dfs(self, checkpoint: str = None):
+        """The working train and working test datasets are reset to the 
+        input datasets given at object initialization.
 
+        Parameters
+        ----------
+        - checkpoint : str. 
+            Default: None. If None, sets the working datasets to the original 
+            datasets given at object initialization. 
+
+        Returns
+        _______
+        - None
+        """
+        if checkpoint is None:
+            self.working_df_test = self.original_df_test.copy()
+            self.working_df_train = self.original_df_train.copy()
+        else:
+            self.working_df_train =\
+                self._df_checkpoint_name_to_df[checkpoint][0].copy()
+            self.working_df_test =\
+                self._df_checkpoint_name_to_df[checkpoint][1].copy()
+
+
+
+    def set_working_df_checkpoint(self, checkpoint: str):
+        """Saves the current state of the working train and test datasets. 
+        The state may be returned to by calling reset_working_dfs(checkpoint).
+
+        Parameters
+        ----------
+        - checkpoint : str. 
+
+        Returns
+        -------
+        - None
+        """
+        self._df_checkpoint_name_to_df[checkpoint] = (
+            self.working_df_train.copy(),
+            self.working_df_test.copy()
+        )
+
+    
+    def remove_working_df_checkpoint(self, checkpoint: str):
+        """Removes a saved checkpoint to conserve memory.
+
+        Parameters
+        ----------
+        - checkpoint : str. 
+
+        Returns
+        -------
+        - None
+        """
+        self._df_checkpoint_name_to_df.pop(checkpoint)
+
+
+    def head(self, n = 5):
+        """Returns self.working_df_train.head()."""
+        return self.working_df_train.head(n)
 
     
     def _verify_input_dfs(self):
         l1 = set(self.original_df_test.columns.to_list())
         l2 = set(self.original_df_train.columns.to_list())
         if len(l1.union(l2)) != len(l1):
-            raise RuntimeWarning('The train DataFrame and test DataFrame' + \
+            raise RuntimeWarning('The train dataset and test dataset' + \
                 ' do not have the same variables.')
+
+
+    def _reset_categorical_continuous_vars(self):
+        self.categorical_columns = self.working_df_train.select_dtypes(
+            include=['object', 'category']).columns.to_list()
+        self.continuous_columns = self.working_df_train.select_dtypes(
+            exclude=['object', 'category']).columns.to_list()
+
 
 
 

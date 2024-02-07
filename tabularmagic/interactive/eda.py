@@ -149,11 +149,11 @@ class ComprehensiveEDA():
         -------
         - None
         """
-        self.df = df
+        self.df = df.copy()
         self.categorical_columns = df.select_dtypes(
-            include=['object', 'category']).columns
+            include=['object', 'category']).columns.to_list()
         self.continuous_columns = df.select_dtypes(
-            exclude=['object', 'category']).columns
+            exclude=['object', 'category']).columns.to_list()
         self._categorical_eda_dict = {
             var: CategoricalEDA(self.df[var]) \
                 for var in self.categorical_columns

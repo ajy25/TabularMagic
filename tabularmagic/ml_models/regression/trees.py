@@ -7,6 +7,7 @@ from sklearn.ensemble import (
 )
 from typing import Mapping, Literal, Iterable
 from .base_regression import BaseRegression, HyperparameterSearcher
+import xgboost as xgb
 
 
 class Tree(BaseRegression):
@@ -88,7 +89,7 @@ class TreeEnsemble(BaseRegression):
 
     def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
                  ensemble_type: Literal['random_forest', 'gradient_boosting', 
-                                        'bagging'] = 'random_forest', 
+                    'bagging', 'xgboost'] = 'random_forest', 
                  random_state: int = 42, hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
@@ -101,6 +102,8 @@ class TreeEnsemble(BaseRegression):
             Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
             Default: None. Dependent variable vector. 
+        - ensemble_type: Literal['random_forest', 'gradient_boosting', 
+                    'bagging', 'xgboost']
         - random_state : int. 
             Default: 42.
         - hyperparam_search_method : str. 
@@ -185,6 +188,28 @@ class TreeEnsemble(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
+        elif ensemble_type == 'xgboost':
+            self.estimator = xgb.XGBRegressor()
+            if (hyperparam_search_method is None) or \
+                (hyperparam_grid_specification is None):
+                hyperparam_search_method = 'grid'
+                hyperparam_grid_specification = {
+                    'learning_rate': [0.01, 0.1],
+                    'n_estimators': [50, 100, 200],
+                    'max_depth': [2, 4, 6],
+                    'max_leaves': [0, 5, 10],
+                    'reg_lambda': [0, 0.1, 1]
+                }
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self.estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs
+            )
+        else:
+            raise ValueError(f'Invalid input: ensemble_type = ' + \
+                             '"{ensemble_type}".')
+
 
     def __str__(self):
         return self.nickname

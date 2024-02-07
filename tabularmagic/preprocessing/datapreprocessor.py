@@ -237,7 +237,7 @@ class DataPreprocessor():
         """
         for var in self._onehot_vars:
             dropfirst = self._dropfirst_onehot
-            if len(df[var].unique()) == 2:
+            if len(df[~df[var].isna()][var].unique()) == 2:
                 # always drop first if binary
                 dropfirst = True
             temp_encoded = pd.get_dummies(df[[var]], 

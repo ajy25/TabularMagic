@@ -2,10 +2,9 @@ import pandas as pd
 
 # Creating a DataFrame with an 'object' column
 data = {
-    'Name': ['Alice', 'Bob', 'Charlie'],
-    'Age': [25, 30, 35],
-    'City': ['New York', 'San Francisco', 'Los Angeles'],
-    'Category': ['A', 'B', 'A']
+    'New York': [1, 0, 0],
+    'San Francisco': [0, 1, 0],
+    'Los Angeles': [0, 0, 1]
 }
 
 df = pd.DataFrame(data)
@@ -15,5 +14,7 @@ print("DataFrame:")
 print(df)
 
 # Display data types of each column
-print("\nData Types:")
-print(df.dtypes)
+print(df.idxmax(axis=1))
+
+
+

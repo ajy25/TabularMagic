@@ -162,10 +162,12 @@ class ComprehensiveEDA():
             var: ContinuousEDA(self.df[var]) \
                 for var in self.continuous_columns
         }
-        self.categorical_summary_statistics = pd.concat([eda.summary_statistics\
-            for eda in self._categorical_eda_dict.values()], axis=1)
-        self.continuous_summary_statistics = pd.concat([eda.summary_statistics\
-            for eda in self._continuous_eda_dict.values()], axis=1)
+        if len(self.categorical_columns) > 0:
+            self.categorical_summary_statistics = pd.concat([eda.summary_statistics\
+                for eda in self._categorical_eda_dict.values()], axis=1)
+        if len(self.continuous_columns) > 0:
+            self.continuous_summary_statistics = pd.concat([eda.summary_statistics\
+                for eda in self._continuous_eda_dict.values()], axis=1) 
 
     def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:
         """Indexes into ComprehensiveRegressionReport. 

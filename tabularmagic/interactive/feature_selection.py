@@ -27,11 +27,12 @@ class FeatureSelectionReport():
             self._selector_to_support[str(selector)] = support
         self.votes_df = pd.DataFrame.from_dict(self._selector_to_support, 
             orient='index', columns=X_vars)
-        self.vote_counts_series = self.votes_df.sum(axis=0)
+        self._vote_counts_series = self.votes_df.sum(axis=0)
+        
         self._selector_dict_indexable_by_str = {
             str(selector): selector for selector in selectors
         }
-        self.top_features = self.vote_counts_series.\
+        self.top_features = self._vote_counts_series.\
             sort_values(ascending=False).index.to_list()[:n_target_features]
 
 

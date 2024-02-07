@@ -33,13 +33,14 @@ class BaseRegression(BaseModel):
         -------
         - None
         """
+        self._hyperparam_searcher: HyperparameterSearcher = None
+        self.estimator: BaseEstimator = None
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
             self._n_samples = X.shape[0]
             self._n_regressors = X.shape[1]
-        self._hyperparam_searcher: HyperparameterSearcher = None
-        self.estimator: BaseEstimator = None
+
 
     def fit(self, X: np.ndarray = None, y: np.ndarray = None):
         """Fits the model. 

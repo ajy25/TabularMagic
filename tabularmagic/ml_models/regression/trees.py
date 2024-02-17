@@ -24,7 +24,7 @@ class Tree(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes a TreeRegression object. 
+        Initializes a Tree object. 
 
         Parameters
         ----------
@@ -194,11 +194,13 @@ class TreeEnsemble(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'learning_rate': [0.01, 0.1],
+                    'learning_rate': [0.01, 0.001],
                     'n_estimators': [50, 100, 200],
                     'max_depth': [2, 4, 6],
                     'max_leaves': [0, 5, 10],
-                    'reg_lambda': [0, 0.1, 1]
+                    'reg_lambda': [0, 0.1, 1],
+                    'reg_alpha': [0, 0.1, 1],
+                    'colsample_bytree': [1, 0.8, 0.5]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self.estimator,

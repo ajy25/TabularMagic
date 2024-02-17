@@ -19,7 +19,7 @@ class Linear(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes a TreeRegression object. 
+        Initializes a Linear object. 
 
         Parameters
         ----------
@@ -68,12 +68,12 @@ class Linear(BaseRegression):
                 **kwargs
             )
         elif regularization_type == 'l1':
-            self.estimator = Lasso(random_state=42)
+            self.estimator = Lasso(random_state=42, max_iter=2000)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'bayes'
                 hyperparam_grid_specification = {
-                    'alpha': (1e-6, 1e+6, 'log-uniform')
+                    'alpha': (1e-6, 1e+2, 'log-uniform')
                 }
             if 'n_iter' not in kwargs:
                 kwargs['n_iter'] = 32
@@ -84,12 +84,12 @@ class Linear(BaseRegression):
                 **kwargs
             )
         elif regularization_type == 'l2':
-            self.estimator = Ridge(random_state=42)
+            self.estimator = Ridge(random_state=42, max_iter=2000)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'bayes'
                 hyperparam_grid_specification = {
-                    'alpha': (1e-6, 1e+6, 'log-uniform')
+                    'alpha': (1e-6, 1e+2, 'log-uniform')
                 }
             if 'n_iter' not in kwargs:
                 kwargs['n_iter'] = 32

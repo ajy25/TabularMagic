@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Literal
+from typing import Literal, Callable
 from sklearn.impute import KNNImputer, SimpleImputer
 
 
@@ -62,7 +62,38 @@ class StandardizeSingleVar(BaseSingleVarScaler):
 
     def inverse_transform(self, x_scaled: np.ndarray):
         return self.sigma * x_scaled + self.mu
+    
 
+class CustomFunctionSingleVar(BaseSingleVarScaler):
+    """Custom scaling of a single variable"""
+
+    def __init__(self, var_name: str, x: np.ndarray, f: Callable, 
+                 f_inv: Callable):
+        """
+        Parameters
+        ----------
+        - var_name : str.
+        - x : np.ndarray ~ (n_examples,).
+        - f : function. 
+        f must have one argument, an 1d np.ndarray, and return an np.ndarray 
+        of the same size. 
+        - f_inv : function. 
+        Inverse function of f. 
+        """
+        self.var_name = var_name
+        self.x = x[~np.isnan(x)]
+        self.f = f
+        self.f_inv = f_inv
+        self.fit()
+
+    def fit(self):
+        pass
+
+    def transform(self, x: np.ndarray):
+        return self.f(x)
+    
+    def inverse_transform(self, x_scaled: np.ndarray):
+        return self.f_inv(x_scaled)
 
 
 class DataPreprocessor():
@@ -79,6 +110,7 @@ class DataPreprocessor():
                  minmax_vars: list[str] = [], 
                  imputation_strategy: Literal[None, 'drop', 'mean', 
                         'median', '5nn', '10nn'] = None,
+                 impute_vars_to_skip: list[str] = [],
                  dropfirst_onehot: bool = False):
         """Initializes a DataPreprocessor object. 
 
@@ -90,6 +122,7 @@ class DataPreprocessor():
         - minmax_scale_vars : list[str].
         - imputation_strategy: Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
+        - impute_vars_to_skip: list[str].
         - dropfirst_onehot : bool. 
         
         Returns
@@ -119,6 +152,7 @@ class DataPreprocessor():
         
         # missing data metadata
         self._imputation_strategy = imputation_strategy
+        self._impute_vars_to_skip = impute_vars_to_skip
         self._imputer = None
         
 
@@ -216,6 +250,17 @@ class DataPreprocessor():
         
 
     def get_single_var_scaler(self, var_name: str) -> BaseSingleVarScaler:
+        """Returns the BaseSingleVarScaler object corresponding to 
+        var_name.
+        
+        Parameters
+        ----------
+        - var_name : str.
+
+       Returns
+        -------
+        - BaseSingleVarScaler.
+        """
         if var_name in self._minmax_scale_vars:
             return self._minmax_scale_var_to_scaler[var_name]
         elif var_name in self._standard_scale_vars:
@@ -247,7 +292,6 @@ class DataPreprocessor():
             df = pd.concat((df, temp_encoded), axis=1)
         self._transformed_vars = df.columns.to_list()
         return df
-    
 
     def _onehot_backward(self, df: pd.DataFrame) -> pd.DataFrame:
         """Inverse one hot encodes subset of DataFrame. 
@@ -267,7 +311,6 @@ class DataPreprocessor():
             df.drop(columns=encoded_vars)
             df = pd.concat((df, temp_decoded))
         return df[self.orig_df.columns]
-
 
     def _standardize_forward(self, df: pd.DataFrame) -> pd.DataFrame:
         """Standardizes subset of the DataFrame. 
@@ -344,6 +387,9 @@ class DataPreprocessor():
         -------
         - pd.DataFrame.
         """
+        # orig_var_order = df.columns.to_list()
+        # memory = df[self._impute_vars_to_skip]
+        # df = df.drop(columns=self._impute_vars_to_skip, axis=1)
         if self._imputation_strategy == '5nn':
             self._imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
             orig_n_vars = len(df.columns)
@@ -382,13 +428,18 @@ class DataPreprocessor():
             orig_len = len(df)
             df = df.dropna(axis=0)
             if len(df) < orig_len / 2:
-                raise RuntimeWarning('Over half of all entries dropped.' + \
+                print(f'{orig_len - len(df)} entries ' + \
+                      f'(over half of all {orig_len} entries) dropped.' + \
                     ' Please consider selecting a subset of features before' + \
                     ' handling missing data.')
         elif self._imputation_strategy is None:
             pass
         else:
             raise ValueError(f'Invalid imputation strategy.')
+        
+        # df = pd.concat((df, memory), axis=1)
+        # df = df[orig_var_order]
+
         return df
 
 

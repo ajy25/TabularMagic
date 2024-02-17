@@ -2,8 +2,9 @@ import pandas as pd
 from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
 from .ml_models import *
-from .interactive import (MLRegressionReport, ComprehensiveEDA, 
-    FeatureSelectionReport)
+from .linear_models import *
+from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
+    FeatureSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
 
 
@@ -63,6 +64,12 @@ class TabularMagic():
         self._reset_categorical_continuous_vars()
 
 
+
+
+    # --------------------------------------------------------------------------
+    # EDA + FEATURE SELECTION + OLS
+    # --------------------------------------------------------------------------
+        
     def eda(self, dataset: Literal['train', 'test'] = 'train') \
         -> ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for either the working train 
@@ -84,12 +91,12 @@ class TabularMagic():
         else:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 
-
     def preprocess_data(self, onehot_vars: list[str] = [],
                         standardize_vars: list[str] = [], 
                         minmax_vars: list[str] = [], 
                         imputation_strategy: Literal[None, 'drop', 'mean', 
                         'median', '5nn', '10nn'] = None, 
+                        impute_vars_to_skip: list[str] = [],
                         dropfirst_onehot: bool = False):
         """Fits a DataPreprocessor object on the training dataset. Then, 
         preprocesses both the train and test datasets. 
@@ -103,6 +110,7 @@ class TabularMagic():
         - minmax_scale_vars : list[str].
         - imputation_strategy: Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
+        - impute_vars_to_skip: list[str].
         - dropfirst_onehot : bool. 
             Default: False. 
             All binary variables will automatically drop first, 
@@ -118,13 +126,14 @@ class TabularMagic():
             standardize_vars=standardize_vars,
             minmax_vars=minmax_vars,
             imputation_strategy=imputation_strategy,
+            impute_vars_to_skip=impute_vars_to_skip,
             dropfirst_onehot=dropfirst_onehot
         )
         self.working_df_train = self._dp.forward(
             self.working_df_train)
         self.working_df_test = self._dp.forward(
             self.working_df_test)
-
+        self._reset_categorical_continuous_vars()
 
     def voting_selection(self, X_vars: list[str], y_var: str, 
                          selectors: Iterable[RegressionBaseSelector], 
@@ -156,15 +165,51 @@ class TabularMagic():
         """
         report = FeatureSelectionReport(self.working_df_train, 
             X_vars, y_var, selectors, n_target_features)
-        
         if update_working_dfs:
             self.working_df_test = self.working_df_test[report.top_features]
             self.working_df_train = self.working_df_train[report.top_features]
-
+            self._reset_categorical_continuous_vars()
         return report
 
+    def ols(self, X_vars: list[str], y_var: str, 
+            regularization_type: Literal[None, 'l1', 'l2'] = None, 
+            alpha: float = 0.0):
+        """Conducts a simple OLS regression analysis exercise. 
+
+        Parameters
+        ----------
+        - X_vars : list[str]. 
+        - y_var : str. 
+        - regularization_type : [None, 'l1', 'l2']. 
+            Default: None.
+        - alpha : float.
+            Default: 0.
+        
+        Returns
+        -------
+        - train_report : LinearRegressionReport.
+        - test_report : LinearRegressionReport.
+        """
+        local_X_train_df = self.working_df_train[X_vars]
+        local_X_test_df = self.working_df_test[X_vars]
+        local_y_train_series = self.working_df_train[y_var]
+        local_y_test_series = self.working_df_test[y_var]
+        model = OrdinaryLeastSquares(X=local_X_train_df, y=local_y_train_series,
+                                     regularization_type=regularization_type,
+                                     alpha=alpha)
+        model.fit()
+        return (
+            LinearRegressionReport(model, X_test=local_X_train_df, 
+                                   y_test=local_y_train_series),
+            LinearRegressionReport(model, X_test=local_X_test_df,
+                                   y_test=local_y_test_series),
+        )
 
 
+
+    # --------------------------------------------------------------------------
+    # MACHINE LEARNING
+    # --------------------------------------------------------------------------
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
                                    models: Iterable[BaseModel]):
         """Conducts a comprehensive regression benchmarking exercise. 
@@ -181,34 +226,48 @@ class TabularMagic():
         - train_report : MLRegressionReport.
         - test_report : MLRegressionReport.
         """
-        self._X_vars = X_vars
-        self._y_var = y_var
-        self._models = models
-
         local_X_train_df = self.working_df_train[X_vars]
         local_X_test_df = self.working_df_test[X_vars]
-        local_y_train_df = self.working_df_train[y_var]
-        local_y_test_df = self.working_df_test[y_var]
-
+        local_y_train_series = self.working_df_train[y_var]
+        local_y_test_series = self.working_df_test[y_var]
         X_train_np = local_X_train_df.to_numpy()
-        y_train_np = local_y_train_df.to_numpy().flatten()
-
+        y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
-            print(f'Task {i+1} of {len(models)}.\tTraining {model}.')
+            print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
+            # fit each model
             model.fit(X_train_np, y_train_np)
-
-
         y_var_scaler = None
         if self._dp is not None:
             y_var_scaler = self._dp.get_single_var_scaler(y_var)
-
-        train_report = MLRegressionReport(
-            models, local_X_train_df, local_y_train_df, y_var_scaler)
-        test_report = MLRegressionReport(
-            models, local_X_test_df, local_y_test_df, y_var_scaler)
-
+        train_report = ComprehensiveMLRegressionReport(
+            models, local_X_train_df, local_y_train_series, y_var_scaler)
+        test_report = ComprehensiveMLRegressionReport(
+            models, local_X_test_df, local_y_test_series, y_var_scaler)
         return train_report, test_report
+    
 
+
+
+
+    # --------------------------------------------------------------------------
+    # DATAFRAME MANIPULATION + INDEXING
+    # --------------------------------------------------------------------------
+    def set_working_df_checkpoint(self, checkpoint: str):
+        """Saves the current state of the working train and test datasets. 
+        The state may be returned to by calling reset_working_dfs(checkpoint).
+
+        Parameters
+        ----------
+        - checkpoint : str. 
+
+        Returns
+        -------
+        - None
+        """
+        self._df_checkpoint_name_to_df[checkpoint] = (
+            self.working_df_train.copy(),
+            self.working_df_test.copy()
+        )
 
     def reset_working_dfs(self, checkpoint: str = None):
         """The working train and working test datasets are reset to the 
@@ -232,27 +291,8 @@ class TabularMagic():
                 self._df_checkpoint_name_to_df[checkpoint][0].copy()
             self.working_df_test =\
                 self._df_checkpoint_name_to_df[checkpoint][1].copy()
+        self._reset_categorical_continuous_vars()
 
-
-
-    def set_working_df_checkpoint(self, checkpoint: str):
-        """Saves the current state of the working train and test datasets. 
-        The state may be returned to by calling reset_working_dfs(checkpoint).
-
-        Parameters
-        ----------
-        - checkpoint : str. 
-
-        Returns
-        -------
-        - None
-        """
-        self._df_checkpoint_name_to_df[checkpoint] = (
-            self.working_df_train.copy(),
-            self.working_df_test.copy()
-        )
-
-    
     def remove_working_df_checkpoint(self, checkpoint: str):
         """Removes a saved checkpoint to conserve memory.
 
@@ -266,25 +306,53 @@ class TabularMagic():
         """
         self._df_checkpoint_name_to_df.pop(checkpoint)
 
-
     def head(self, n = 5):
-        """Returns self.working_df_train.head()."""
+        """Same as self.working_df_train.head()."""
         return self.working_df_train.head(n)
-
     
+    def select_vars(self, vars: list[str]):
+        """Selects subset of (column) variables in-place on the working 
+        train and test datasets. 
+
+        Parameters
+        ----------
+        - vars : list[str]
+        """
+        self.working_df_train = self.working_df_train[vars]
+        self.working_df_test = self.working_df_test[vars]
+        self._reset_categorical_continuous_vars()
+
+    def drop_vars(self, vars: list[str]):
+        """Drops subset of (column) variables in-place on the working 
+        train and test datasets. 
+
+        Parameters
+        ----------
+        - vars : list[str]
+        """
+        self.working_df_train = self.working_df_train.drop(vars)
+        self.working_df_test = self.working_df_test.drop(vars)
+        self._reset_categorical_continuous_vars()
+
+
+    # --------------------------------------------------------------------------
+    # HELPERS
+    # --------------------------------------------------------------------------
     def _verify_input_dfs(self):
+        """Ensures that the original train and test datasets have the 
+        same variables. 
+        """
         l1 = set(self.original_df_test.columns.to_list())
         l2 = set(self.original_df_train.columns.to_list())
         if len(l1.union(l2)) != len(l1):
             raise RuntimeWarning('The train dataset and test dataset' + \
                 ' do not have the same variables.')
 
-
     def _reset_categorical_continuous_vars(self):
         self.categorical_columns = self.working_df_train.select_dtypes(
-            include=['object', 'category']).columns.to_list()
+            include=['object', 'category', 'bool']).columns.to_list()
         self.continuous_columns = self.working_df_train.select_dtypes(
-            exclude=['object', 'category']).columns.to_list()
+            exclude=['object', 'category', 'bool']).columns.to_list()
 
 
 

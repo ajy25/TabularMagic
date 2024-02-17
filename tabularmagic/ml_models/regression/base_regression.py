@@ -61,7 +61,8 @@ class BaseRegression(BaseModel):
             self._y = y.copy()
             self._n_samples = X.shape[0]
             self._n_regressors = X.shape[1]
-        if (self._X is None) or (self._y is None):
+        if ((self._X is None) or (self._y is None)) and \
+            (not ((self._X is None) and (self._y is None))):
             raise ValueError(f'Invalid input: X, y.',
                              'X and y both must not be None.')
         self._verify_Xy_input_validity(self._X, self._y)
@@ -132,7 +133,7 @@ class BaseRegression(BaseModel):
                              'length in the first dimension.')
 
     def _verify_X_input_validity(self, X: np.ndarray):
-        """Verifies that the input X is. If invalid, raises 
+        """Verifies that the input X is valid. If invalid, raises 
         the appropriate error with the appropriate error message. 
 
         Parameters

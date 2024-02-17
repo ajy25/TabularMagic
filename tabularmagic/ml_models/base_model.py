@@ -48,7 +48,7 @@ class BaseModel():
 
         Returns
         -------
-        - RegressionScorer. 
+        - Scoring object. 
         """
         pass
 

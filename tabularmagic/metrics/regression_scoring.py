@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    mean_squared_error, mean_absolute_error, r2_score
+    mean_squared_error, mean_absolute_error, r2_score, 
 )
 from scipy.stats import (
     pearsonr, spearmanr
@@ -43,11 +43,11 @@ class RegressionScorer():
             self._model_id_str = model_id_str
         self._y_pred = y_pred.copy()
         self._y_true = y_true.copy()
-        self._pearsonr = pearsonr(self._y_pred, self._y_true)[0]
-        self._spearmanr = spearmanr(self._y_pred, self._y_true)[0]
-        self._mse = mean_squared_error(self._y_pred, self._y_true)
-        self._mad = mean_absolute_error(self._y_pred, self._y_true)
-        self._rsquared = r2_score(self._y_pred, self._y_true)
+        self._pearsonr = pearsonr(self._y_true, self._y_pred)[0]
+        self._spearmanr = spearmanr(self._y_true, self._y_pred)[0]
+        self._mse = mean_squared_error(self._y_true, self._y_pred)
+        self._mad = mean_absolute_error(self._y_true, self._y_pred)
+        self._rsquared = r2_score(self._y_true, self._y_pred)
         self.n_regressors = n_regressors
         self.n_samples = self._y_pred.shape[0]
         if n_regressors is None:

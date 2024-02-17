@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.stats import kurtosis, skew
-from typing import Literal
+from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
 
 
@@ -38,20 +38,20 @@ class CategoricalEDA():
             columns=['Statistic', self.variable_name]
         ).set_index('Statistic')
 
-    def plot_distribution(self):
+    def plot_distribution(self, figsize: Iterable = (5, 5)):
         """Returns a figure that is a bar plot of the relative frequencies
         of the data.
         
         Parameters 
         ----------
-        - None
+        - figsize: Iterable
 
         Returns
         -------
         - plt.Figure
         """
         value_freqs = self._var_series.value_counts(normalize=True)
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax.bar(value_freqs.index, value_freqs.values, color='black')
         ax.set_title(f'Distrubution of {self.variable_name}')
         ax.set_xlabel('Categories')
@@ -96,12 +96,14 @@ class ContinuousEDA():
             columns=['Statistic', self.variable_name]
         ).set_index('Statistic')
 
-    def plot_distribution(self, hypothetical_transform: Literal[None, 'minmax', 
-            'standardize', 'log1p'] = None):
+    def plot_distribution(self, figsize: Iterable = (5, 5),
+            hypothetical_transform: Literal[None, 'minmax', 
+                                            'standardize', 'log1p'] = None):
         """Returns a figure that is a histogram.
         
         Parameters 
         ----------
+        - figsize : Iterable
         - hypothetical_transform : Literal[None, 'minmax', 
             'standardize', 'log1p']
             Default: None. 
@@ -122,7 +124,7 @@ class ContinuousEDA():
         else:
             raise ValueError(f'Invalid input: {hypothetical_transform}.')
 
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax.hist(values, bins='auto', color='black', 
                  edgecolor='black', density=True)
         ax.set_title(f'Distribution of {self.variable_name}')
@@ -151,9 +153,9 @@ class ComprehensiveEDA():
         """
         self.df = df.copy()
         self.categorical_columns = df.select_dtypes(
-            include=['object', 'category']).columns.to_list()
+            include=['object', 'category', 'bool']).columns.to_list()
         self.continuous_columns = df.select_dtypes(
-            exclude=['object', 'category']).columns.to_list()
+            exclude=['object', 'category', 'bool']).columns.to_list()
         self._categorical_eda_dict = {
             var: CategoricalEDA(self.df[var]) \
                 for var in self.categorical_columns

@@ -1,8 +1,8 @@
 import pandas as pd
 from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
-from .ml_models import *
-from .linear_models import *
+from .ml_models import BaseRegression
+from .linear_models import OrdinaryLeastSquares
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     FeatureSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
@@ -211,20 +211,20 @@ class TabularMagic():
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
-                                   models: Iterable[BaseModel]):
+                                   models: Iterable[BaseRegression]):
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
         ----------
         - X_vars : list[str]. 
         - y_var : str. 
-        - models : Iterable[BaseModel]. 
+        - models : Iterable[BaseRegression]. 
             Testing performance of all models will be evaluated. 
 
         Returns
         -------
-        - train_report : MLRegressionReport.
-        - test_report : MLRegressionReport.
+        - train_report : ComprehensiveMLRegressionReport.
+        - test_report : ComprehensiveMLRegressionReport.
         """
         local_X_train_df = self.working_df_train[X_vars]
         local_X_test_df = self.working_df_test[X_vars]
@@ -335,6 +335,31 @@ class TabularMagic():
         self._reset_categorical_continuous_vars()
 
 
+
+
+    # --------------------------------------------------------------------------
+    # GETTERS
+    # --------------------------------------------------------------------------
+    def shape(self):
+        """Returns a dictionary containing shape information for the 
+        TabularMagic datasets
+        
+        Returns
+        -------
+        - dict
+        """
+        return {
+            'working_df_train': self.working_df_train.shape,
+            'working_df_test': self.working_df_test.shape
+        }
+
+    def __len__(self):
+        """Returns the number of examples in working_df_train.
+        """
+        return len(self.working_df_train)
+
+
+
     # --------------------------------------------------------------------------
     # HELPERS
     # --------------------------------------------------------------------------
@@ -353,6 +378,7 @@ class TabularMagic():
             include=['object', 'category', 'bool']).columns.to_list()
         self.continuous_columns = self.working_df_train.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
+        
 
 
 

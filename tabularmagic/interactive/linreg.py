@@ -68,12 +68,14 @@ class LinearRegressionReport():
         max_val = np.max(np.hstack((self._y_pred, self._y_true)))
         ax.set_xlim(min_val, max_val)
         ax.set_ylim(min_val, max_val)
-        ax.set_xlabel('True Values')
-        ax.set_ylabel('Predicted Values')
+        ax.set_xlabel('True')
+        ax.set_ylabel('Predicted')
         ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
         ax.set_title(f'{self._y_test_df.columns.to_list()[0]} | ' + \
                      f'ρ = {round(self.scorer["pearsonr"], 3)}')
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
         fig.tight_layout()
+        plt.close()
         return fig
 
 

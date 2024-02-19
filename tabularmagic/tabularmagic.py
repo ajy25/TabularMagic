@@ -1,11 +1,14 @@
 import pandas as pd
 from typing import Iterable, Literal
+import matplotlib.pyplot as plt
+plt.ioff()
 from sklearn.model_selection import train_test_split
 from .ml import BaseRegression
 from .linear import OrdinaryLeastSquares
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     FeatureSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
+
 
 
 class TabularMagic():
@@ -201,11 +204,16 @@ class TabularMagic():
                                      regularization_type=regularization_type,
                                      alpha=alpha)
         model.fit()
+        y_var_scaler = None
+        if self._dp is not None:
+            y_var_scaler = self._dp.get_single_var_scaler(y_var)
         return (
             LinearRegressionReport(model, X_test=local_X_train_df, 
-                                   y_test=local_y_train_series),
+                                   y_test=local_y_train_series,
+                                   y_scaler=y_var_scaler),
             LinearRegressionReport(model, X_test=local_X_test_df,
-                                   y_test=local_y_test_series),
+                                   y_test=local_y_test_series,
+                                   y_scaler=y_var_scaler),
         )
 
 

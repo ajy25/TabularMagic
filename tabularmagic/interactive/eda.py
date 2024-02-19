@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
+import seaborn as sns
 import pandas as pd
 import numpy as np
 from scipy.stats import kurtosis, skew
@@ -38,25 +40,32 @@ class CategoricalEDA():
             columns=['Statistic', self.variable_name]
         ).set_index('Statistic')
 
-    def plot_distribution(self, figsize: Iterable = (5, 5)):
+    def plot_distribution(self, figsize: Iterable = (5, 5), 
+                          density: bool = False):
         """Returns a figure that is a bar plot of the relative frequencies
         of the data.
         
         Parameters 
         ----------
-        - figsize: Iterable
+        - figsize : Iterable
+        - density : bool
 
         Returns
         -------
         - plt.Figure
         """
-        value_freqs = self._var_series.value_counts(normalize=True)
+        value_freqs = self._var_series.value_counts(normalize=density)
         fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax.bar(value_freqs.index, value_freqs.values, color='black')
         ax.set_title(f'Distrubution of {self.variable_name}')
         ax.set_xlabel('Categories')
-        ax.set_ylabel('Density')
+        if density:
+            ax.set_ylabel('Density')
+        else:
+            ax.set_ylabel('Frequency')
+        ax.ticklabel_format(style='sci', axis='y', scilimits=(-2, 2))
         fig.tight_layout()
+        plt.close(fig)
         return fig
 
 
@@ -97,8 +106,9 @@ class ContinuousEDA():
         ).set_index('Statistic')
 
     def plot_distribution(self, figsize: Iterable = (5, 5),
-            hypothetical_transform: Literal[None, 'minmax', 
-                                            'standardize', 'log1p'] = None):
+            hypothetical_transform: \
+                Literal[None, 'minmax', 'standardize', 'log1p'] = None,
+            density: bool = False):
         """Returns a figure that is a histogram.
         
         Parameters 
@@ -107,11 +117,18 @@ class ContinuousEDA():
         - hypothetical_transform : Literal[None, 'minmax', 
             'standardize', 'log1p']
             Default: None. 
+        - density : bool.
+            
         Returns
         -------
         - plt.Figure
         """
         values = self._var_series.to_numpy()
+
+        if density:
+            stat = 'density'
+        else:
+            stat = 'count'
 
         if hypothetical_transform is None:
             pass
@@ -125,12 +142,17 @@ class ContinuousEDA():
             raise ValueError(f'Invalid input: {hypothetical_transform}.')
 
         fig, ax = plt.subplots(1, 1, figsize=figsize)
-        ax.hist(values, bins='auto', color='black', 
-                 edgecolor='black', density=True)
+        sns.histplot(values, bins='auto', color='black', edgecolor='black', 
+                     stat=stat, ax=ax, kde=True)
         ax.set_title(f'Distribution of {self.variable_name}')
         ax.set_xlabel('Values')
-        ax.set_ylabel('Density')
+        if density:
+            ax.set_ylabel('Density')
+        else:
+            ax.set_ylabel('Frequency')
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
         fig.tight_layout()
+        plt.close(fig)
         return fig
 
 
@@ -172,6 +194,66 @@ class ComprehensiveEDA():
             self.continuous_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._continuous_eda_dict.values()], axis=1) 
+            
+
+    def plot_continuous_pairs(self, continuous_vars: list[str] = None, 
+                                    stratify_by_var: str = None, 
+                                    figsize: Iterable = (5, 5)):
+        """
+        Plots pairwise relationships between continuous variables. 
+
+        Parameters
+        ----------
+        - continuous_vars : list[str]. 
+            A list of continuous variables. Default: None. 
+            If None, all continuous variables are considered.
+        - stratify_by_var : str.
+            Categorical var name. 
+
+        Returns
+        -------
+        - plt.Figure
+        """
+        if continuous_vars is None:
+            continuous_vars = self.continuous_columns
+        if len(continuous_vars) > 5:
+            raise ValueError('No more than 5 continuous variables may be ' + \
+                             'plotted at the same time.')
+        if stratify_by_var is None: 
+            grid = sns.PairGrid(self.df[continuous_vars])
+            right_adjust = None
+        else:
+            grid = sns.PairGrid(self.df[continuous_vars + [stratify_by_var]], 
+                                hue=stratify_by_var)
+            right_adjust = 0.85
+        grid.map_diag(sns.histplot, color='black', edgecolor=None, kde=True)
+        grid.map_offdiag(sns.scatterplot, s=2, color='black')
+        grid.add_legend()
+        formatter = ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True)
+        formatter.set_powerlimits((-2, 2))
+        for ax in grid.axes.flat:
+            ax.tick_params(axis='both', which='both', 
+                           labelsize=5)
+            ax.xaxis.offsetText.set_fontsize(5)
+            ax.yaxis.offsetText.set_fontsize(5)
+            ax.xaxis.set_major_formatter(formatter)
+            ax.yaxis.set_major_formatter(formatter)
+            ax.set_xlabel(ax.get_xlabel(), fontsize=5)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=5)
+        fig = grid.figure
+        fig.set_size_inches(*figsize)
+        fig.subplots_adjust(wspace=0.2, hspace=0.2, right=right_adjust)
+
+        if stratify_by_var is not None: 
+            legend = fig.legends[0]
+            legend.set_title(legend.get_title().get_text(), \
+                             prop={'size': 7})
+            # TODO: Fix label spacing
+            for text in legend.get_texts():
+                text.set_fontsize(6)
+        plt.close(fig)
+        return fig
     
 
     def mean_test(self, continuous_var: str, stratify_by_var: str):
@@ -182,7 +264,9 @@ class ComprehensiveEDA():
         Parameters
         ----------
         - continuous_var : str. 
-            Variable name to be stratified and compared. 
+            Continuous var name to be stratified and compared. 
+        - stratify_by_var : str.
+            Categorical var name. 
 
         Returns
         -------

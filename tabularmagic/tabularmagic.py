@@ -1,8 +1,8 @@
 import pandas as pd
 from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
-from .ml_models import BaseRegression
-from .linear_models import OrdinaryLeastSquares
+from .ml import BaseRegression
+from .linear import OrdinaryLeastSquares
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     FeatureSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
@@ -14,7 +14,7 @@ class TabularMagic():
     """
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
-                test_size: float = 0.2, random_state: int = 42):
+                test_size: float = 0.0, random_state: int = 42):
         """Initializes a TabularMagic object. 
         
         Note: DataFrame indices are not guaranteed to be correctly preserved. 
@@ -26,7 +26,7 @@ class TabularMagic():
             Default: None. If not None, then treats df as the train 
             dataset. 
         - test_size : float. 
-            Default: 0.2. Proportion of the dataset to withhold for 
+            Default: 0. Proportion of the dataset to withhold for 
             testing. If test_size = 0, then the train dataset and the 
             test dataset will both be the same as the input df. 
             If df_test is provided, then test_size is ignored. 
@@ -138,7 +138,8 @@ class TabularMagic():
     def voting_selection(self, X_vars: list[str], y_var: str, 
                          selectors: Iterable[RegressionBaseSelector], 
                          n_target_features: int, 
-                         update_working_dfs: bool = False):
+                         update_working_dfs: bool = False,
+                         verbose: bool = True):
         """Supervised feature selection via methods voting based on
         training dataset. 
         Also returns a FeatureSelectionReport object. 
@@ -158,13 +159,15 @@ class TabularMagic():
             Number of desired features, < len(X_vars).
         - update_working_dfs : bool.
             Default: False.
+        - verbose : bool.
+            Default: True
 
         Returns
         -------
         - FeatureSelectionReport
         """
         report = FeatureSelectionReport(self.working_df_train, 
-            X_vars, y_var, selectors, n_target_features)
+            X_vars, y_var, selectors, n_target_features, verbose=verbose)
         if update_working_dfs:
             self.working_df_test = self.working_df_test[report.top_features]
             self.working_df_train = self.working_df_train[report.top_features]
@@ -211,7 +214,8 @@ class TabularMagic():
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
-                                   models: Iterable[BaseRegression]):
+                                   models: Iterable[BaseRegression], 
+                                   verbose: bool = True):
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
@@ -220,7 +224,10 @@ class TabularMagic():
         - y_var : str. 
         - models : Iterable[BaseRegression]. 
             Testing performance of all models will be evaluated. 
-
+        - verbose : bool. 
+            Default: True. If True, prints progress of tasks (a task is 
+            defined as the CV training of one model)
+        
         Returns
         -------
         - train_report : ComprehensiveMLRegressionReport.
@@ -233,8 +240,8 @@ class TabularMagic():
         X_train_np = local_X_train_df.to_numpy()
         y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
-            print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
-            # fit each model
+            if verbose:
+                print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
             model.fit(X_train_np, y_train_np)
         y_var_scaler = None
         if self._dp is not None:
@@ -244,8 +251,6 @@ class TabularMagic():
         test_report = ComprehensiveMLRegressionReport(
             models, local_X_test_df, local_y_test_series, y_var_scaler)
         return train_report, test_report
-    
-
 
 
 
@@ -305,10 +310,6 @@ class TabularMagic():
         - None
         """
         self._df_checkpoint_name_to_df.pop(checkpoint)
-
-    def head(self, n = 5):
-        """Same as self.working_df_train.head()."""
-        return self.working_df_train.head(n)
     
     def select_vars(self, vars: list[str]):
         """Selects subset of (column) variables in-place on the working 
@@ -330,19 +331,17 @@ class TabularMagic():
         ----------
         - vars : list[str]
         """
-        self.working_df_train = self.working_df_train.drop(vars)
-        self.working_df_test = self.working_df_test.drop(vars)
+        self.working_df_train = self.working_df_train.drop(vars, axis='columns')
+        self.working_df_test = self.working_df_test.drop(vars, axis='columns')
         self._reset_categorical_continuous_vars()
-
-
 
 
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def shape(self):
+    def shapes(self):
         """Returns a dictionary containing shape information for the 
-        TabularMagic datasets
+        TabularMagic (working) datasets
         
         Returns
         -------
@@ -352,6 +351,21 @@ class TabularMagic():
             'working_df_train': self.working_df_train.shape,
             'working_df_test': self.working_df_test.shape
         }
+
+    def retrieve_dfs(self):
+        """Returns a tuple (working_df_train, working_df_test). 
+        Note that the dataframes are copied before being returned. 
+        
+        Returns
+        -------
+        - working_df_train : pd.DataFrame
+        - working_df_test : pd.DataFrame
+        """
+        return self.working_df_train.copy(), self.working_df_test.copy()
+    
+    def head(self, n = 5):
+        """Same as self.working_df_train.head()."""
+        return self.working_df_train.head(n)
 
     def __len__(self):
         """Returns the number of examples in working_df_train.

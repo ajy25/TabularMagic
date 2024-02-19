@@ -89,6 +89,7 @@ class HyperparameterSearcher():
         elif method == 'bayes':
             self._searcher = BayesSearchCV(estimator, grid, **kwargs)
 
+
     @ignore_warnings(category=ConvergenceWarning)
     def fit(self, X: np.ndarray, y: np.ndarray):
         """Cross validation search of optimal hyperparameters. Idenfities 

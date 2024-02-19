@@ -165,11 +165,41 @@ class ComprehensiveEDA():
                 for var in self.continuous_columns
         }
         if len(self.categorical_columns) > 0:
-            self.categorical_summary_statistics = pd.concat([eda.summary_statistics\
+            self.categorical_summary_statistics = pd.concat(
+                [eda.summary_statistics\
                 for eda in self._categorical_eda_dict.values()], axis=1)
         if len(self.continuous_columns) > 0:
-            self.continuous_summary_statistics = pd.concat([eda.summary_statistics\
+            self.continuous_summary_statistics = pd.concat(
+                [eda.summary_statistics\
                 for eda in self._continuous_eda_dict.values()], axis=1) 
+    
+
+    def mean_test(self, continuous_var: str, stratify_by_var: str):
+        """Conducts the appropriate statistical test. 
+
+        Null hypothesis: the means of all groups are the same.
+
+        Parameters
+        ----------
+        - continuous_var : str. 
+            Variable name to be stratified and compared. 
+
+        Returns
+        -------
+        - 
+        """
+        if continuous_var not in self.continuous_columns:
+            raise ValueError(
+                f'Invalid input: {continuous_var}. ' + \
+                'Must be a known continuous variable.'
+            )
+        if stratify_by_var not in self.categorical_columns:
+            raise ValueError(
+                f'Invalid input: {stratify_by_var}. ' + \
+                'Must be a known categorical variable.'
+            )
+        
+        
 
     def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:
         """Indexes into ComprehensiveRegressionReport. 

@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Iterable
 from ..metrics.regression_scoring import RegressionScorer
-from ..linear_models import *
+from ..linear import *
 from ..preprocessing.datapreprocessor import BaseSingleVarScaler
 
 

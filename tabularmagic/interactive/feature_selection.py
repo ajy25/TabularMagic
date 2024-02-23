@@ -2,17 +2,17 @@ import pandas as pd
 from ..preprocessing.regression_feature_selection import RegressionBaseSelector
 from typing import Iterable
 
-class FeatureSelectionReport():
+class VotingSelectionReport():
     """
-    FeatureSelectionReport: generates feature selection-relevant tables.
+    VotingSelectionReport: generates feature selection-relevant tables.
     """
 
     def __init__(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
                  selectors: Iterable[RegressionBaseSelector], 
                  n_target_features: int, verbose: bool = True):
         """
-        Initializes a FeatureSelectionReport object. 
-        FeatureSelectionReport selects features via voting selection.
+        Initializes a VotingSelectionReport object. 
+        VotingSelectionReport selects features via voting selection.
 
         - df : pd.DataFrame.
         - X_vars : list[str].

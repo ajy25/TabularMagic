@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from .ml import BaseRegression
 from .linear import OrdinaryLeastSquares
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
-    FeatureSelectionReport, LinearRegressionReport)
+    VotingSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
 
 
@@ -167,9 +167,9 @@ class TabularMagic():
 
         Returns
         -------
-        - FeatureSelectionReport
+        - VotingSelectionReport
         """
-        report = FeatureSelectionReport(self.working_df_train, 
+        report = VotingSelectionReport(self.working_df_train, 
             X_vars, y_var, selectors, n_target_features, verbose=verbose)
         if update_working_dfs:
             self.working_df_test = self.working_df_test[report.top_features]
@@ -221,6 +221,7 @@ class TabularMagic():
     # --------------------------------------------------------------------------
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
+
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
                                    models: Iterable[BaseRegression], 
                                    verbose: bool = True):
@@ -265,6 +266,7 @@ class TabularMagic():
     # --------------------------------------------------------------------------
     # DATAFRAME MANIPULATION + INDEXING
     # --------------------------------------------------------------------------
+    
     def set_working_df_checkpoint(self, checkpoint: str):
         """Saves the current state of the working train and test datasets. 
         The state may be returned to by calling reset_working_dfs(checkpoint).

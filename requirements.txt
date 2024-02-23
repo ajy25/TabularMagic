@@ -7,3 +7,4 @@ seaborn>=0.13.2
 skopt>=0.8.1
 xgboost>=2.0.3
 statsmodels>=0.14.0
+

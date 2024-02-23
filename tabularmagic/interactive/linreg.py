@@ -56,7 +56,7 @@ class LinearRegressionReport():
 
         Parameters 
         ----------
-        - figsize: Iterable
+        - figsize : Iterable. 
 
         Returns
         -------
@@ -77,6 +77,36 @@ class LinearRegressionReport():
         fig.tight_layout()
         plt.close()
         return fig
+    
+    
+    
+    def plot_qq(self, figsize: Iterable = (5, 5)):
+        """Returns a quantile-quantile plot.
+        
+        Parameters 
+        ----------
+        - figsize : Iterable.
+
+        Returns
+        -------
+        - plt.Figure
+        """
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+
+    
+    def plot_pp(self, figsize: Iterable = (5, 5)):
+        """Returns a probability-probability plot.
+        
+        Parameters 
+        ----------
+        - figsize : Iterable.
+
+        Returns
+        -------
+        - plt.Figure
+        """
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
 
 
 

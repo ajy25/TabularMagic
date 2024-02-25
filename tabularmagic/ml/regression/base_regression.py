@@ -1,11 +1,6 @@
 import numpy as np
-from typing import Literal, Mapping, Iterable
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import (
-    GridSearchCV, 
-    RandomizedSearchCV
-)
-from skopt import BayesSearchCV
+from sklearn.model_selection import KFold, BaseCrossValidator
 from ...metrics import RegressionScorer
 from ..base_model import BaseModel, HyperparameterSearcher
 
@@ -29,6 +24,7 @@ class BaseRegression(BaseModel):
             Default: None. Matrix of predictor variables. 
         - y : np.ndarray ~ (n_samples).
             Default: None. Dependent variable vector. 
+
         Returns
         -------
         - None
@@ -42,8 +38,11 @@ class BaseRegression(BaseModel):
             self._n_regressors = X.shape[1]
 
 
-    def fit(self, X: np.ndarray = None, y: np.ndarray = None):
-        """Fits the model. 
+    def fit(self, X: np.ndarray = None, y: np.ndarray = None, 
+            outer_cv: int | BaseCrossValidator | None = None,
+            outer_random_state: int = 42):
+        """Fits the model. Records training metrics, which can be done via 
+        nested cross validation.
 
         Parameters
         ----------
@@ -51,6 +50,12 @@ class BaseRegression(BaseModel):
             Default: None.
         - y : np.ndarray ~ (n_samples).
             Default: None.
+        - outer_cv : int | BaseCrossValidator | None. 
+            Default: None. If None, does not conduct nested cross validaiton. 
+            In this case, the train scores are computed over the entire training
+            dataset, over which the model has been fitted. 
+        - outer_random_state : int.
+            Random state of the outer cross validator.
 
         Returns
         -------
@@ -66,8 +71,39 @@ class BaseRegression(BaseModel):
             raise ValueError(f'Invalid input: X, y.',
                              'X and y both must not be None.')
         self._verify_Xy_input_validity(self._X, self._y)
-        self._hyperparam_searcher.fit(self._X, self._y)
-        self.estimator = self._hyperparam_searcher.best_estimator
+
+        if outer_cv is None:
+            self._hyperparam_searcher.fit(self._X, self._y)
+            self.estimator = self._hyperparam_searcher.best_estimator
+            self.train_scorer = RegressionScorer(
+                y_pred=self._y,
+                y_true=self.estimator.predict(self._X),
+                n_regressors=self._n_regressors,
+                model_id_str=str(self)
+            )
+        else:
+            if isinstance(outer_cv, int):
+                cv = KFold(n_splits=outer_cv,
+                           shuffle=True, random_state=outer_random_state)
+            elif isinstance(outer_cv, BaseCrossValidator):
+                cv = outer_cv
+            y_preds = []
+            y_trues = []
+            for train_index, test_index in cv.split(X):
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+                self._hyperparam_searcher.fit(X_train, y_train)
+                fold_estimator = self._hyperparam_searcher.best_estimator
+                y_preds.append(fold_estimator.predict(X_test))
+                y_trues.append(y_test)
+            self.train_scorer = RegressionScorer(
+                y_pred=y_preds,
+                y_true=y_trues,
+                n_regressors=self._n_regressors,
+                model_id_str=str(self)
+            )
+            self._hyperparam_searcher.fit(self._X, self._y)
+            self.estimator = self._hyperparam_searcher.best_estimator
         
     def predict(self, X: np.ndarray):
         """Returns y_pred.
@@ -83,7 +119,8 @@ class BaseRegression(BaseModel):
         self._verify_X_input_validity(X)
         return self.estimator.predict(X)
 
-    def score(self, X_test: np.ndarray = None, y_test: np.ndarray = None) -> \
+
+    def score(self, X: np.ndarray = None, y: np.ndarray = None) -> \
             RegressionScorer:
         """Returns the MSE, MAD, Pearson Correlation, and Spearman Correlation 
         of the true and predicted y values. Also, returns the R-squared and 
@@ -100,11 +137,10 @@ class BaseRegression(BaseModel):
         -------
         - RegressionScorer. 
         """
-        if X_test is None or y_test is None:
-            X_test = self._X
-            y_test = self._y
-        self._verify_Xy_input_validity(X_test, y_test)
-        return RegressionScorer(self.predict(X_test), y_test, 
+        if X is None or y is None:
+            return self.train_scorer
+        self._verify_Xy_input_validity(X, y)
+        return RegressionScorer(self.predict(X), y, 
             n_regressors=self._n_regressors, model_id_str=str(self))
     
     def _verify_Xy_input_validity(self, X: np.ndarray, y: np.ndarray):

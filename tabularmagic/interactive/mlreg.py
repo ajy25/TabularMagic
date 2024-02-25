@@ -12,17 +12,20 @@ class MLRegressionReport():
     for a single machine learning model. 
     """
 
-    def __init__(self, model: BaseRegression, X_test: pd.DataFrame, 
-                 y_test: pd.DataFrame, y_scaler: BaseSingleVarScaler = None):
+    def __init__(self, model: BaseRegression, X_test: pd.DataFrame = None, 
+                 y_test: pd.DataFrame = None, 
+                 y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a RegressionReport object. 
 
-        Parameters x
+        Parameters
         ----------
         - model : BaseRegression.
             The model must already be trained.
         - X_test : pd.DataFrame.
+            Default: None. If None, uses the model training results directly. 
         - y_test : pd.DataFrame.
+            Default: None. If None, uses the model training results directly. 
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
             and on y_test before computing statistics.
@@ -31,20 +34,40 @@ class MLRegressionReport():
         -------
         - None
         """
-        if not isinstance(y_test, pd.DataFrame):
-            y_test = y_test.to_frame()
         self.model = model
-        self._X_test_df = X_test
-        self._y_test_df = y_test
-        self._y_pred = model.predict(self._X_test_df.to_numpy())
-        self._y_true = self._y_test_df.to_numpy().flatten()
-
+        if X_test is not None and y_test is not None:
+            self._y_pred = model.predict(X_test.to_numpy())
+            self._y_true = y_test.to_numpy().flatten()
+            self.scorer = RegressionScorer(y_pred=self._y_pred, 
+                y_true=self._y_true, n_regressors=model._n_regressors, 
+                model_id_str=str(model))
+        else:
+            self._y_pred = model._y
+            self._y_true = model.predict(model._X)
+            self.scorer = model.train_scorer
         if y_scaler is not None:
+            self.scorer.rescale(y_scaler)
+            self.rescale(y_scaler)
+
+
+    def rescale(self, y_scaler: BaseSingleVarScaler):
+        """
+        Inverse scales y values.
+
+        Parameters
+        ----------
+        - y_scaler: BaseSingleVarScaler.
+            Calls inverse transform on the outputs 
+            and on y_test before computing statistics.
+        """
+        if isinstance(self._y_true, np.ndarray):
             self._y_pred = y_scaler.inverse_transform(self._y_pred)
             self._y_true = y_scaler.inverse_transform(self._y_true)
+        elif isinstance(self._y_true, list):
+            for i in range(len(self._y_true)):
+                self._y_true[i] = y_scaler.inverse_transform(self._y_true[i])
+                self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
 
-        self.scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
-            n_regressors=model._n_regressors, model_id_str=str(model))
         
     def plot_pred_vs_true(self, figsize: Iterable = (5, 5)):
         """Returns a figure that is a scatter plot of the true and predicted y 
@@ -67,7 +90,7 @@ class MLRegressionReport():
         ax.set_xlabel('True')
         ax.set_ylabel('Predicted')
         ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
-        ax.set_title(f'{self._y_test_df.columns.to_list()[0]} | ' + \
+        ax.set_title(f'Predicted vs True | ' + \
                      f'ρ = {round(self.scorer["pearsonr"], 3)}')
         ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
         fig.tight_layout()
@@ -81,8 +104,10 @@ class ComprehensiveMLRegressionReport():
     set of models. Indexable. 
     """
 
-    def __init__(self, models: Iterable[BaseRegression], X_test: pd.DataFrame, 
-                 y_test: pd.DataFrame, y_scaler: BaseSingleVarScaler = None):
+    def __init__(self, models: Iterable[BaseRegression], 
+                 X_test: pd.DataFrame = None, 
+                 y_test: pd.DataFrame = None, 
+                 y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a MLRegressionReport object. 
 
@@ -91,7 +116,9 @@ class ComprehensiveMLRegressionReport():
         - models : Iterable[BaseRegression].
             The BaseRegression models must already be trained. 
         - X_test : pd.DataFrame.
+            Default: None. If None, reports on the training data.
         - y_test : pd.DataFrame.
+            Default: None. If None, reports on the training data.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
             and on y_test before computing statistics.
@@ -100,15 +127,17 @@ class ComprehensiveMLRegressionReport():
         -------
         - None
         """
-
-        if not isinstance(y_test, pd.DataFrame):
-            y_test = y_test.to_frame()
         self.models = models
-        self._X_test = X_test
-        self._y_test = y_test
-        self._report_dict_indexable_by_int = {
-            i: MLRegressionReport(model, X_test, y_test, y_scaler) \
-                for i, model in enumerate(self.models)}
+        if X_test is None and y_test is None:
+            self._report_dict_indexable_by_int = {
+                i: MLRegressionReport(model=model, y_scaler=y_scaler) \
+                    for i, model in enumerate(self.models)}
+        else:
+            if not isinstance(y_test, pd.DataFrame):
+                y_test = y_test.to_frame()
+            self._report_dict_indexable_by_int = {
+                i: MLRegressionReport(model, X_test, y_test, y_scaler) \
+                    for i, model in enumerate(self.models)}
         self._report_dict_indexable_by_str = {
             str(report.model): report for report in \
                 self._report_dict_indexable_by_int.values()

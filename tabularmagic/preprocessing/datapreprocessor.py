@@ -289,7 +289,7 @@ class DataPreprocessor():
                 drop_first=dropfirst)
             self._onehot_var_to_encoded[var] = temp_encoded.columns.to_list()
             df.drop(columns=var, inplace=True)
-            df = pd.concat((df, temp_encoded), axis=1)
+            df = pd.concat((df, temp_encoded.astype(int)), axis=1)
         self._transformed_vars = df.columns.to_list()
         return df
 

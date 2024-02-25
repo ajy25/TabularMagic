@@ -15,7 +15,8 @@ class Linear(BaseRegression):
 
     def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
                  regularization_type: Literal[None, 'l1', 'l2'] = None, 
-                 hyperparam_search_method: str = None, 
+                 hyperparam_search_method: \
+                    Literal[None, 'grid', 'random', 'bayes'] = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
@@ -71,12 +72,10 @@ class Linear(BaseRegression):
             self.estimator = Lasso(random_state=42, max_iter=2000)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'bayes'
+                hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'alpha': (1e-6, 1e+2, 'log-uniform')
+                    'alpha': np.logspace(-5, 1, 100)
                 }
-            if 'n_iter' not in kwargs:
-                kwargs['n_iter'] = 32
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self.estimator,
                 method=hyperparam_search_method,
@@ -87,12 +86,10 @@ class Linear(BaseRegression):
             self.estimator = Ridge(random_state=42, max_iter=2000)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'bayes'
+                hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'alpha': (1e-6, 1e+2, 'log-uniform')
+                    'alpha': np.logspace(-5, 1, 100)
                 }
-            if 'n_iter' not in kwargs:
-                kwargs['n_iter'] = 32
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self.estimator,
                 method=hyperparam_search_method,

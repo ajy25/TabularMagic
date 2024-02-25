@@ -41,6 +41,7 @@ class TabularMagic():
         -------
         - None
         """
+        self.random_state = random_state
         if df_test is not None:
             self.original_df_train = df.copy()
             self.original_df_test = df_test.copy()
@@ -50,10 +51,12 @@ class TabularMagic():
             self.original_df = df.copy()
             if test_size > 0:
                 temp_train, temp_test = train_test_split(self.original_df, 
-                    test_size=test_size, shuffle=True, random_state=random_state)
+                    test_size=test_size, shuffle=True, 
+                    random_state=random_state)
                 self.original_df_train = pd.DataFrame(temp_train, 
                     columns=df.columns)
-                self.original_df_test = pd.DataFrame(temp_test, columns=df.columns)
+                self.original_df_test = pd.DataFrame(temp_test, 
+                                                     columns=df.columns)
             else:
                 self.original_df_train = self.original_df
                 self.original_df_test = self.original_df
@@ -224,6 +227,8 @@ class TabularMagic():
 
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
                                    models: Iterable[BaseRegression], 
+                                   outer_cv: int | None = None,
+                                   outer_random_state: int = 42, 
                                    verbose: bool = True):
         """Conducts a comprehensive regression benchmarking exercise. 
 
@@ -233,6 +238,10 @@ class TabularMagic():
         - y_var : str. 
         - models : Iterable[BaseRegression]. 
             Testing performance of all models will be evaluated. 
+        - outer_cv : int.
+            If not None, reports training scores via nested k-fold CV.
+        - outer_random_state : int.
+            The random seed for the outer cross validation loop.
         - verbose : bool. 
             Default: True. If True, prints progress of tasks (a task is 
             defined as the CV training of one model)
@@ -251,12 +260,13 @@ class TabularMagic():
         for i, model in enumerate(models):
             if verbose:
                 print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
-            model.fit(X_train_np, y_train_np)
+            model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
+                      outer_random_state=outer_random_state)
         y_var_scaler = None
         if self._dp is not None:
             y_var_scaler = self._dp.get_single_var_scaler(y_var)
         train_report = ComprehensiveMLRegressionReport(
-            models, local_X_train_df, local_y_train_series, y_var_scaler)
+            models=models, y_scaler=y_var_scaler)
         test_report = ComprehensiveMLRegressionReport(
             models, local_X_test_df, local_y_test_series, y_var_scaler)
         return train_report, test_report

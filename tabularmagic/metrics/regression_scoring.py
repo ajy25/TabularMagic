@@ -7,11 +7,14 @@ from scipy.stats import (
     pearsonr, spearmanr
 )
 from typing import Literal
+from ..preprocessing.datapreprocessor import BaseSingleVarScaler
 
 
 
 class RegressionScorer():
     """RegressionScorer : Class built for simple scoring of regression fits.
+    Only inputs are predicted and true values.
+    Capable of scoring cross validation outputs.
 
     RegressionScorer is indexable by integers in the following order: 
         (MSE, MAD, Pearson Correlation, Spearman Correlation, R Squared, 
@@ -23,15 +26,17 @@ class RegressionScorer():
         'adjr2': Adjusted R Squared}. 
     """
 
-    def __init__(self, y_pred: np.ndarray, y_true: np.ndarray, 
+    def __init__(self, y_pred: np.ndarray | list, y_true: np.ndarray | list, 
                  n_regressors: int = None, model_id_str: str = None):
         """
         Initializes a RegressionScorer object. 
 
         Parameters
         ----------
-        - y_pred : np.ndarray ~ (n_samples).
-        - y_true : np.ndarray ~ (n_samples).
+        - y_pred : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
+        - y_true : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
+        - n_regressors : int.
+        - model_id_str : str.
 
         Returns
         -------
@@ -41,37 +46,97 @@ class RegressionScorer():
             self._model_id_str = 'Model'
         else:
             self._model_id_str = model_id_str
-        self._y_pred = y_pred.copy()
-        self._y_true = y_true.copy()
-        self._pearsonr = pearsonr(self._y_true, self._y_pred)[0]
-        self._spearmanr = spearmanr(self._y_true, self._y_pred)[0]
-        self._mse = mean_squared_error(self._y_true, self._y_pred)
-        self._mad = mean_absolute_error(self._y_true, self._y_pred)
-        self._rsquared = r2_score(self._y_true, self._y_pred)
         self.n_regressors = n_regressors
-        self.n_samples = self._y_pred.shape[0]
-        if n_regressors is None:
-            self._adjustedrsquared = np.NaN
-        else: 
-            self._adjustedrsquared = 1 - (((1 - self._rsquared) * \
-                (self.n_samples - 1)) / (self.n_samples - self.n_regressors \
-                - 1))
-        self._dict_indexable_by_str = {
-            'mse': self._mse,
-            'mad': self._mad,
-            'pearsonr': self._pearsonr,
-            'spearmanr': self._spearmanr,
-            'r2': self._rsquared,
-            'adjr2': self._adjustedrsquared
+        self._y_pred = y_pred
+        self._y_true = y_true
+        self._dict_indexable_by_str = self._compute_stats_dict(y_pred, y_true)
+        self._dict_indexable_by_int = {i: value for i, (_, value) in \
+            enumerate(self._dict_indexable_by_str.items())}
+
+
+    def _compute_stats_dict(self, y_pred: np.ndarray | list, 
+                            y_true: np.ndarray | list):
+        """
+        Returns a statistics dictionary given y_pred and y_true. If y_pred and
+        y_true are lists, then the elements are treated as cross 
+        validation folds, and the statistics are averaged across all 
+        folds.
+
+        Parameters
+        ----------
+        - y_pred : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
+        - y_true : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
+
+        Returns
+        -------
+        - dict ~ {statistic (str) : value (float)}
+        """
+        output = {
+            'mse': 0.0,
+            'mad': 0.0,
+            'pearsonr': 0.0,
+            'spearmanr': 0.0,
+            'r2': 0.0,
+            'adjr2': 0.0
         }
-        self._dict_indexable_by_int = {
-            0: self._mse,
-            1: self._mad,
-            2: self._pearsonr,
-            3: self._spearmanr,
-            4: self._rsquared,
-            5: self._adjustedrsquared
-        }
+        if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
+            n_samples = len(y_pred)
+            output['pearsonr'] = pearsonr(y_true, y_pred)[0]
+            output['spearmanr'] = spearmanr(y_true, y_pred)[0]
+            output['mse'] = mean_squared_error(y_true, y_pred)
+            output['mad'] = mean_absolute_error(y_true, y_pred)
+            output['r2'] = r2_score(y_true, y_pred)
+            if self.n_regressors is None:
+                output['adjr2'] = np.NaN
+            else: 
+                output['adjr2'] = 1 - (((1 - output['r2']) * \
+                    (n_samples - 1)) / (n_samples - \
+                    self.n_regressors - 1))
+        elif isinstance(y_pred, list) and isinstance(y_true, list):
+            assert len(y_pred) == len(y_true)
+            n_folds = len(y_pred)
+            for y_pred_elem, y_true_elem in zip(y_pred, y_true):
+                n_samples = len(y_pred_elem)
+                output['pearsonr'] += pearsonr(y_true_elem, y_pred_elem)[0]
+                output['spearmanr'] += spearmanr(y_true_elem, y_pred_elem)[0]
+                output['mse'] += mean_squared_error(y_true_elem, y_pred_elem)
+                output['mad'] += mean_absolute_error(y_true_elem, y_pred_elem)
+                output['r2'] += r2_score(y_true_elem, y_pred_elem)
+                if self.n_regressors is None:
+                    output['adjr2'] = np.NaN
+                else: 
+                    output['adjr2'] += 1 - (((1 - output['r2']) * \
+                        (n_samples - 1)) / (n_samples - \
+                        self.n_regressors - 1))
+            for key in output:
+                output[key] = output[key] / n_folds
+        else:
+            raise ValueError('Input types for y_pred and y_true are invalid.')
+        return output
+    
+
+    def rescale(self, y_scaler: BaseSingleVarScaler):
+        """
+        Inverse scales y values, then recomputes fit statistics.
+
+        Parameters
+        ----------
+        - y_scaler: BaseSingleVarScaler.
+            Calls inverse transform on the outputs 
+            and on y_test before computing statistics.
+        """
+        if isinstance(self._y_true, np.ndarray):
+            self._y_pred = y_scaler.inverse_transform(self._y_pred)
+            self._y_true = y_scaler.inverse_transform(self._y_true)
+        elif isinstance(self._y_true, list):
+            for i in range(len(self._y_true)):
+                self._y_true[i] = y_scaler.inverse_transform(self._y_true[i])
+                self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
+        self._dict_indexable_by_str = self._compute_stats_dict(self._y_pred, 
+                                                               self._y_true)
+        self._dict_indexable_by_int = {i: value for i, (_, value) in \
+            enumerate(self._dict_indexable_by_str.items())}
+    
 
     def __getitem__(self, index: Literal[0, 1, 2, 3, 4, 5] | \
             Literal['mse', 'mad', 'pearsonr', 'spearmanr', 'r2', 'adjr2']):

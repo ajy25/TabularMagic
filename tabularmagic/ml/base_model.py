@@ -1,13 +1,14 @@
 import numpy as np
 from sklearn.model_selection import (
     GridSearchCV, 
-    RandomizedSearchCV
+    RandomizedSearchCV,
+    KFold,
+    BaseCrossValidator
 )
 from skopt import BayesSearchCV
 from typing import Literal, Mapping, Iterable
 from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
-from sklearn.exceptions import ConvergenceWarning
 
 
 class BaseModel():
@@ -62,17 +63,23 @@ class HyperparameterSearcher():
 
     def __init__(self, estimator: BaseEstimator, 
                  method: Literal['grid', 'random'], 
-                 grid: Mapping[str, Iterable], **kwargs):
+                 grid: Mapping[str, Iterable], 
+                 inner_cv: int | BaseCrossValidator = 5,
+                 inner_random_state: int = 42,
+                 **kwargs):
         """Initializes a HyperparameterSearch object.
         
         Parameters
         ----------
         - estimator : sklearn.base.BaseEstimator
         - method : str. 
-            Must be an element in ['grid', 'random']. 
+            Must be an element in ['grid', 'random', 'bayes']. 
         - grid : dict.
             Specification of the set/distribution of hypeparameters to 
             search through. 
+        - cv : int | BaseCrossValidator.
+            Default: 5-fold cross validation.
+        - inner_random_state : int.
         - kwargs. 
             Key word arguments are passed directly into the intialization of the 
             hyperparameter search method. 
@@ -82,15 +89,23 @@ class HyperparameterSearcher():
         - None
         """
         self.best_estimator = None
+        if isinstance(inner_cv, int):
+            self.inner_cv = KFold(n_splits=inner_cv, 
+                                  random_state=inner_random_state, 
+                                  shuffle=True)
+        elif isinstance(inner_cv, BaseCrossValidator):
+            self.inner_cv = inner_cv
         if method == 'grid':
-            self._searcher = GridSearchCV(estimator, grid, **kwargs)
+            self._searcher = GridSearchCV(estimator, grid, cv=self.inner_cv, 
+                                          **kwargs)
         elif method == 'random':
-            self._searcher = RandomizedSearchCV(estimator, grid, **kwargs)
+            self._searcher = RandomizedSearchCV(estimator, grid, 
+                                                cv=self.inner_cv, **kwargs)
         elif method == 'bayes':
-            self._searcher = BayesSearchCV(estimator, grid, **kwargs)
+            self._searcher = BayesSearchCV(estimator, grid, 
+                                           cv=self.inner_cv, **kwargs)
 
 
-    @ignore_warnings(category=ConvergenceWarning)
     def fit(self, X: np.ndarray, y: np.ndarray):
         """Cross validation search of optimal hyperparameters. Idenfities 
         best estimator. 
@@ -104,8 +119,9 @@ class HyperparameterSearcher():
         -------
         - best_estimator : BaseEstimator. 
         """
-        self._searcher.fit(X, y)
+        ignore_warnings(self._searcher.fit)(X, y)
         self.best_estimator = self._searcher.best_estimator_
+        self.best_params = self._searcher.best_params_
         return self.best_estimator
 
 

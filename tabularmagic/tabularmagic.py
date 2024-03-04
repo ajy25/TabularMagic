@@ -139,7 +139,9 @@ class TabularMagic():
             self.working_df_train)
         self.working_df_test = self._dp.forward(
             self.working_df_test)
+        self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
+
 
     def voting_selection(self, X_vars: list[str], y_var: str, 
                          selectors: Iterable[RegressionBaseSelector], 
@@ -179,6 +181,7 @@ class TabularMagic():
             self.working_df_train = self.working_df_train[report.top_features]
             self._reset_categorical_continuous_vars()
         return report
+    
 
     def ols(self, X_vars: list[str], y_var: str, 
             regularization_type: Literal[None, 'l1', 'l2'] = None, 
@@ -270,6 +273,7 @@ class TabularMagic():
         test_report = ComprehensiveMLRegressionReport(
             models, local_X_test_df, local_y_test_series, y_var_scaler)
         return train_report, test_report
+
 
 
 
@@ -408,10 +412,27 @@ class TabularMagic():
                 ' do not have the same variables.')
 
     def _reset_categorical_continuous_vars(self):
+        """Resets the categorical and continuous column values."""
         self.categorical_columns = self.working_df_train.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
         self.continuous_columns = self.working_df_train.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
+        
+    def _working_train_test_var_agreement(self):
+        missing_columns = list(set(self.working_df_train.columns) -\
+            set(self.working_df_test.columns))
+        extra_columns = list(set(self.working_df_test.columns) -\
+            set(self.working_df_train.columns))
+        if len(extra_columns) > 0:
+            self.working_df_test.drop(columns=extra_columns, axis=1, 
+                                      inplace=True)
+        if len(missing_columns) > 0:
+            for col in missing_columns:
+                self.working_df_test[col] = 0
+        
+
+
+
         
 
 

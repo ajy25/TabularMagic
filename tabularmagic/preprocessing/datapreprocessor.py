@@ -44,7 +44,6 @@ class MinMaxSingleVar(BaseSingleVarScaler):
         return (self.max - self.min) * x_scaled + self.min
     
 
-
 class StandardizeSingleVar(BaseSingleVarScaler):
     """Standard scaling of a single variable"""
 
@@ -169,35 +168,11 @@ class DataPreprocessor():
         -------
         - pd.DataFrame. 
         """
-        # print('begin forward')
         df_temp = df.copy()
-        # print('finished copy')
         df_temp = self._onehot_forward(df_temp)
-        # print('finished onehot')
         df_temp = self._standardize_forward(df_temp)
-        # print('finished standardize')
         df_temp = self._minmax_forward(df_temp)
-        # print('finished minmax')
         df_temp = self._handle_missing_values(df_temp)
-        # print('finished missing')
-        return df_temp
-    
-
-    def backward(self,  df: pd.DataFrame) -> pd.DataFrame:
-        """Backward transformation on an entire DataFrame. 
-        
-        Parameters
-        ----------
-        - df : pd.DataFrame.
-
-        Returns
-        -------
-        - pd.DataFrame. 
-        """
-        df_temp = df.copy()
-        df_temp = self._minmax_backward(df_temp)
-        df_temp = self._standardize_backward(df_temp)
-        df_temp = self._onehot_backward(df_temp)
         return df_temp
     
 
@@ -268,6 +243,7 @@ class DataPreprocessor():
         else:
             return None
 
+
     def _onehot_forward(self, df: pd.DataFrame) -> pd.DataFrame:
         """One hot transforms subset of DataFrame. If the variable is binary, 
         then nothing will be done. 
@@ -293,24 +269,8 @@ class DataPreprocessor():
         self._transformed_vars = df.columns.to_list()
         return df
 
-    def _onehot_backward(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Inverse one hot encodes subset of DataFrame. 
-        If the variable is binary, then nothing will be done. 
-        
-        Parameters
-        ----------
-        - df : pd.DataFrame.
 
-        Returns
-        -------
-        - pd.DataFrame.
-        """
-        for var in self._onehot_vars:
-            encoded_vars = self._onehot_var_to_encoded[var]
-            temp_decoded = df[encoded_vars].idxmax(axis=1)
-            df.drop(columns=encoded_vars)
-            df = pd.concat((df, temp_decoded))
-        return df[self.orig_df.columns]
+
 
     def _standardize_forward(self, df: pd.DataFrame) -> pd.DataFrame:
         """Standardizes subset of the DataFrame. 
@@ -328,21 +288,6 @@ class DataPreprocessor():
                 df[var].to_numpy())
         return df
     
-    def _standardize_backward(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Inverse standardizes subset of the DataFrame. 
-        
-        Parameters 
-        ----------
-        - df : pd.DataFrame
-
-        Returns
-        -------
-        - pd.DataFrame
-        """
-        for var in self._standard_scale_vars:
-            df[var] = self._standard_scale_var_to_scaler[var].inverse_transform(
-                df[var].to_numpy())
-        return df
 
     def _minmax_forward(self, df: pd.DataFrame) -> pd.DataFrame:
         """Min max scales subset of the DataFrame. 
@@ -360,21 +305,7 @@ class DataPreprocessor():
                 df[var].to_numpy())
         return df
     
-    def _minmax_backward(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Inverse min max scales subset of the DataFrame. 
-        
-        Parameters 
-        ----------
-        - df : pd.DataFrame.
 
-        Returns
-        -------
-        - pd.DataFrame.
-        """
-        for var in self._minmax_scale_vars:
-            df[var] = self._minmax_scale_var_to_scaler[var].inverse_transform(
-                df[var].to_numpy())
-        return df
     
     def _handle_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Handles missing values.
@@ -387,9 +318,6 @@ class DataPreprocessor():
         -------
         - pd.DataFrame.
         """
-        # orig_var_order = df.columns.to_list()
-        # memory = df[self._impute_vars_to_skip]
-        # df = df.drop(columns=self._impute_vars_to_skip, axis=1)
         if self._imputation_strategy == '5nn':
             self._imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
             orig_n_vars = len(df.columns)
@@ -436,9 +364,6 @@ class DataPreprocessor():
             pass
         else:
             raise ValueError(f'Invalid imputation strategy.')
-        
-        # df = pd.concat((df, memory), axis=1)
-        # df = df[orig_var_order]
 
         return df
 

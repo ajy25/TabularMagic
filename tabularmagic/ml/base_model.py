@@ -88,6 +88,7 @@ class HyperparameterSearcher():
         -------
         - None
         """
+        
         self.best_estimator = None
         if isinstance(inner_cv, int):
             self.inner_cv = KFold(n_splits=inner_cv, 

@@ -3,7 +3,7 @@ from matplotlib.ticker import ScalarFormatter
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from scipy.stats import kurtosis, skew
+from scipy.stats import kurtosis, skew, pearsonr
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
 
@@ -216,31 +216,40 @@ class ComprehensiveEDA():
         """
         if continuous_vars is None:
             continuous_vars = self.continuous_columns
-        if len(continuous_vars) > 5:
-            raise ValueError('No more than 5 continuous variables may be ' + \
+        if len(continuous_vars) > 6:
+            raise ValueError('No more than 6 continuous variables may be ' + \
                              'plotted at the same time.')
         if stratify_by_var is None: 
-            grid = sns.PairGrid(self.df[continuous_vars])
+            grid = sns.PairGrid(self.df[continuous_vars].dropna())
             right_adjust = None
         else:
-            grid = sns.PairGrid(self.df[continuous_vars + [stratify_by_var]], 
-                                hue=stratify_by_var)
+            grid = sns.PairGrid(
+                self.df[continuous_vars + [stratify_by_var]].dropna(), 
+                hue=stratify_by_var)
             right_adjust = 0.85
+
+
         grid.map_diag(sns.histplot, color='black', edgecolor=None, kde=True)
-        grid.map_offdiag(sns.scatterplot, s=2, color='black')
+        if stratify_by_var is None:
+            grid.map_upper(lambda x, y, **kwargs: plt.text(0.5, 0.5,
+                f'ρ = {round(pearsonr(x, y)[0], 3)}\n' + \
+                f'p = {round(pearsonr(x, y)[1], 5)}', 
+                ha='center', va='center', transform=plt.gca().transAxes,
+                fontsize=8))
+        else:
+            grid.map_upper(sns.scatterplot, s=2, color='black')
+        grid.map_lower(sns.scatterplot, s=2, color='black')
+
         grid.add_legend()
-        formatter = ScalarFormatter(useMathText=True)
-        formatter.set_scientific(True)
-        formatter.set_powerlimits((-2, 2))
         for ax in grid.axes.flat:
             ax.tick_params(axis='both', which='both', 
                            labelsize=5)
+            ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
             ax.xaxis.offsetText.set_fontsize(5)
             ax.yaxis.offsetText.set_fontsize(5)
-            ax.xaxis.set_major_formatter(formatter)
-            ax.yaxis.set_major_formatter(formatter)
-            ax.set_xlabel(ax.get_xlabel(), fontsize=5)
-            ax.set_ylabel(ax.get_ylabel(), fontsize=5)
+            ax.set_xlabel(ax.get_xlabel(), fontsize=6)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=6)
+
         fig = grid.figure
         fig.set_size_inches(*figsize)
         fig.subplots_adjust(wspace=0.2, hspace=0.2, right=right_adjust)
@@ -306,5 +315,10 @@ class ComprehensiveEDA():
                                  'variable name in the input df.')
         else:
             raise ValueError(f'Invalid input: {index}. Index must be a string.')
+
+
+
+
+
 
 

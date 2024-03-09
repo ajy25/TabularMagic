@@ -5,6 +5,7 @@ from typing import Iterable
 from ..metrics.regression_scoring import RegressionScorer
 from ..linear import *
 from ..preprocessing.datapreprocessor import BaseSingleVarScaler
+from .visualization import plot_pred_vs_true
 
 
 class LinearRegressionReport():
@@ -44,11 +45,13 @@ class LinearRegressionReport():
         self.scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
             n_regressors=model._n_regressors, model_id_str=str(model))
         
+        
     def statsmodels_summary(self):
         try:
             return self.model.estimator.summary()
         except:
             raise RuntimeError('Error occured in statsmodels_summary call.')
+
 
     def plot_pred_vs_true(self, figsize: Iterable = (5, 5)):
         """Returns a figure that is a scatter plot of the true and predicted y 
@@ -62,22 +65,7 @@ class LinearRegressionReport():
         -------
         - plt.Figure
         """
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
-        ax.scatter(self._y_true, self._y_pred, s=2, color='black')
-        min_val = np.min(np.hstack((self._y_pred, self._y_true)))
-        max_val = np.max(np.hstack((self._y_pred, self._y_true)))
-        ax.set_xlim(min_val, max_val)
-        ax.set_ylim(min_val, max_val)
-        ax.set_xlabel('True')
-        ax.set_ylabel('Predicted')
-        ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
-        ax.set_title(f'{self._y_test_df.columns.to_list()[0]} | ' + \
-                     f'ρ = {round(self.scorer["pearsonr"], 3)}')
-        ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
-        fig.tight_layout()
-        plt.close()
-        return fig
-    
+        return plot_pred_vs_true(self._y_pred, self._y_true, figsize)
     
     
     def plot_qq(self, figsize: Iterable = (5, 5)):

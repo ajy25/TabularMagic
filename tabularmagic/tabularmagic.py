@@ -419,16 +419,31 @@ class TabularMagic():
             exclude=['object', 'category', 'bool']).columns.to_list()
         
     def _working_train_test_var_agreement(self):
-        missing_columns = list(set(self.working_df_train.columns) -\
+        missing_test_columns = list(set(self.working_df_train.columns) -\
             set(self.working_df_test.columns))
-        extra_columns = list(set(self.working_df_test.columns) -\
+        extra_test_columns = list(set(self.working_df_test.columns) -\
             set(self.working_df_train.columns))
-        if len(extra_columns) > 0:
-            self.working_df_test.drop(columns=extra_columns, axis=1, 
+        if len(extra_test_columns) > 0:
+            self.working_df_test.drop(columns=extra_test_columns, axis=1, 
                                       inplace=True)
-        if len(missing_columns) > 0:
-            for col in missing_columns:
+        if len(missing_test_columns) > 0:
+            for col in missing_test_columns:
                 self.working_df_test[col] = 0
+        assert len(self.working_df_test.columns) == \
+            len(self.working_df_train.columns)
+
+        # ensure that the train and test dfs have the same order
+        # (for nicer exploration)
+        self.working_df_test = self.working_df_test[\
+            self.working_df_train.columns]
+
+        for a, b in zip(self.working_df_test.columns, 
+                        self.working_df_train.columns):
+            assert a == b
+            
+        
+
+        
         
 
 

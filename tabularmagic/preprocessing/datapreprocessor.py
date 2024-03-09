@@ -7,7 +7,9 @@ from sklearn.impute import KNNImputer, SimpleImputer
 class BaseSingleVarScaler():
 
     def __init__(self, var_name: str, x: np.ndarray):
-        pass
+        self.var_name = var_name
+        self.x = x[~np.isnan(x)]
+        self.fit()
 
     def fit(self):
         pass
@@ -29,9 +31,7 @@ class MinMaxSingleVar(BaseSingleVarScaler):
     """Min max scaling of a single variable"""
 
     def __init__(self, var_name: str, x: np.ndarray):
-        self.var_name = var_name
-        self.x = x[~np.isnan(x)]
-        self.fit()
+        super().__init__(var_name, x)
 
     def fit(self):
         self.min = self.x.min()
@@ -48,9 +48,7 @@ class StandardizeSingleVar(BaseSingleVarScaler):
     """Standard scaling of a single variable"""
 
     def __init__(self, var_name: str, x: np.ndarray):
-        self.var_name = var_name
-        self.x = x[~np.isnan(x)]
-        self.fit()
+        super().__init__(var_name, x)
 
     def fit(self):
         self.sigma = self.x.std()
@@ -61,6 +59,39 @@ class StandardizeSingleVar(BaseSingleVarScaler):
 
     def inverse_transform(self, x_scaled: np.ndarray):
         return self.sigma * x_scaled + self.mu
+    
+
+class LogTransformSingleVar(BaseSingleVarScaler):
+    """Log (base e) transform scaling of a single variable"""
+
+    def __init__(self, var_name: str, x: np.ndarray):
+        super().__init__(var_name, x)
+
+    def fit(self):
+        pass
+
+    def transform(self, x: np.ndarray):
+        return np.log(x)
+
+    def inverse_transform(self, x_scaled: np.ndarray):
+        return np.exp(x_scaled)
+
+
+class Log1PTransformSingleVar(BaseSingleVarScaler):
+    """Log1p transform scaling of a single variable"""
+
+    def __init__(self, var_name: str, x: np.ndarray):
+        super().__init__(var_name, x)
+
+    def fit(self):
+        pass
+
+    def transform(self, x: np.ndarray):
+        return np.log1p(x)
+
+    def inverse_transform(self, x_scaled: np.ndarray):
+        return np.expm1(x_scaled)
+
     
 
 class CustomFunctionSingleVar(BaseSingleVarScaler):
@@ -169,9 +200,9 @@ class DataPreprocessor():
         - pd.DataFrame. 
         """
         df_temp = df.copy()
-        df_temp = self._onehot_forward(df_temp)
         df_temp = self._standardize_forward(df_temp)
         df_temp = self._minmax_forward(df_temp)
+        df_temp = self._onehot_forward(df_temp)
         df_temp = self._handle_missing_values(df_temp)
         return df_temp
     

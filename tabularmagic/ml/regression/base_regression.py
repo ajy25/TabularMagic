@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold, BaseCrossValidator
+from sklearn.utils._testing import ignore_warnings
 from ...metrics import RegressionScorer
 from ..base_model import BaseModel, HyperparameterSearcher
 
@@ -73,11 +74,11 @@ class BaseRegression(BaseModel):
         self._verify_Xy_input_validity(self._X, self._y)
 
         if outer_cv is None:
-            self._hyperparam_searcher.fit(self._X, self._y)
+            ignore_warnings(self._hyperparam_searcher.fit)(self._X, self._y)
             self.estimator = self._hyperparam_searcher.best_estimator
             self.train_scorer = RegressionScorer(
-                y_pred=self._y,
-                y_true=self.estimator.predict(self._X),
+                y_pred=self.estimator.predict(self._X),
+                y_true=self._y,
                 n_regressors=self._n_regressors,
                 model_id_str=str(self)
             )
@@ -92,7 +93,7 @@ class BaseRegression(BaseModel):
             for train_index, test_index in cv.split(X):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
-                self._hyperparam_searcher.fit(X_train, y_train)
+                ignore_warnings(self._hyperparam_searcher.fit)(X_train, y_train)
                 fold_estimator = self._hyperparam_searcher.best_estimator
                 y_preds.append(fold_estimator.predict(X_test))
                 y_trues.append(y_test)

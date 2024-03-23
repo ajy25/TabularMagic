@@ -20,12 +20,6 @@ class BaseSingleVarScaler():
     def inverse_transform(self, x_scaled: np.ndarray):
         pass
 
-    def fit_transform(self, x: np.ndarray = None):
-        if x is not None:
-            self.x = x[~np.isnan(x)]
-        self.fit(self)
-        self.transform(x)
-
 
 class MinMaxSingleVar(BaseSingleVarScaler):
     """Min max scaling of a single variable"""

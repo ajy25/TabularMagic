@@ -50,15 +50,24 @@ class SVM(BaseRegression):
             self.nickname = nickname
 
         self.estimator = SVR(kernel=kernel)
+
+
         if (hyperparam_search_method is None) or \
             (hyperparam_grid_specification is None):
-            hyperparam_search_method = 'bayes'
-            hyperparam_grid_specification = {
-                'C': (1e-6, 1e6, 'log-uniform'),
-                'gamma': (1e-6, 1e1, 'log-uniform'),
-            }
-        if 'n_iter' not in kwargs:
-            kwargs['n_iter'] = 32
+            hyperparam_search_method = 'grid'
+
+            if kernel == 'linear':
+                # TODO: fill out a good guess
+                pass
+            elif kernel == 'poly':
+                # TODO: fill out a good guess
+                pass
+            elif kernel == 'rbf':
+                hyperparam_grid_specification = {
+                    'C': np.logspace(-4, 2, 10),
+                    'gamma': np.logspace(-4, 2, 10),
+                }
+
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self.estimator,
             method=hyperparam_search_method,
@@ -66,7 +75,6 @@ class SVM(BaseRegression):
             **kwargs
         )
 
-    def __str__(self):
-        return self.nickname
+
         
 

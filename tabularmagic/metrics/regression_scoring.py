@@ -52,6 +52,7 @@ class RegressionScorer():
         self._dict_indexable_by_str = self._compute_stats_dict(y_pred, y_true)
         self._dict_indexable_by_int = {i: value for i, (_, value) in \
             enumerate(self._dict_indexable_by_str.items())}
+        self.cv_metrics = None
 
 
     def _compute_stats_dict(self, y_pred: np.ndarray | list, 
@@ -69,47 +70,58 @@ class RegressionScorer():
 
         Returns
         -------
-        - dict ~ {statistic (str) : value (float)}
+        - dict ~ {statistic (str) : value (float)} | 
+            [{statistic (str) : value (float)}]
         """
-        output = {
-            'mse': 0.0,
-            'mad': 0.0,
-            'pearsonr': 0.0,
-            'spearmanr': 0.0,
-            'r2': 0.0,
-            'adjr2': 0.0
-        }
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
-            n_samples = len(y_pred)
-            output['pearsonr'] = pearsonr(y_true, y_pred)[0]
-            output['spearmanr'] = spearmanr(y_true, y_pred)[0]
-            output['mse'] = mean_squared_error(y_true, y_pred)
-            output['mad'] = mean_absolute_error(y_true, y_pred)
-            output['r2'] = r2_score(y_true, y_pred)
+            n = len(y_pred)
+            metrics_dict = dict()
+            metrics_dict['mse'] = mean_squared_error(y_true, y_pred)
+            metrics_dict['mad'] = mean_absolute_error(y_true, y_pred)
+            metrics_dict['pearsonr'] = pearsonr(y_true, y_pred)[0]
+            metrics_dict['spearmanr'] = spearmanr(y_true, y_pred)[0]
+            metrics_dict['r2'] = r2_score(y_true, y_pred)
             if self.n_regressors is None:
-                output['adjr2'] = np.NaN
+                metrics_dict['adjr2'] = np.NaN
             else: 
-                output['adjr2'] = 1 - (((1 - output['r2']) * \
-                    (n_samples - 1)) / (n_samples - \
+                metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
+                    (n - 1)) / (n - \
                     self.n_regressors - 1))
+            metrics_dict['n'] = len(y_true)
+            output = metrics_dict
         elif isinstance(y_pred, list) and isinstance(y_true, list):
             assert len(y_pred) == len(y_true)
-            n_folds = len(y_pred)
+            n_folds = len(y_true)
+            folds_metrics = []
             for y_pred_elem, y_true_elem in zip(y_pred, y_true):
-                n_samples = len(y_pred_elem)
-                output['pearsonr'] += pearsonr(y_true_elem, y_pred_elem)[0]
-                output['spearmanr'] += spearmanr(y_true_elem, y_pred_elem)[0]
-                output['mse'] += mean_squared_error(y_true_elem, y_pred_elem)
-                output['mad'] += mean_absolute_error(y_true_elem, y_pred_elem)
-                output['r2'] += r2_score(y_true_elem, y_pred_elem)
+                n = len(y_pred_elem)
+                metrics_dict = dict()
+                metrics_dict['pearsonr'] =\
+                    pearsonr(y_true_elem, y_pred_elem)[0]
+                metrics_dict['spearmanr'] =\
+                    spearmanr(y_true_elem, y_pred_elem)[0]
+                metrics_dict['mse'] =\
+                    mean_squared_error(y_true_elem, y_pred_elem)
+                metrics_dict['mad'] =\
+                    mean_absolute_error(y_true_elem, y_pred_elem)
+                metrics_dict['r2'] = r2_score(y_true_elem, y_pred_elem)
                 if self.n_regressors is None:
-                    output['adjr2'] = np.NaN
+                    metrics_dict['adjr2'] = np.NaN
                 else: 
-                    output['adjr2'] += 1 - (((1 - output['r2']) * \
-                        (n_samples - 1)) / (n_samples - \
+                    metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
+                        (n - 1)) / (n - \
                         self.n_regressors - 1))
-            for key in output:
-                output[key] = output[key] / n_folds
+                metrics_dict['n'] = n
+                folds_metrics.append(metrics_dict)
+            self.cv_metrics = metrics_dict
+
+            output = dict()
+            for fold in folds_metrics:
+                for key in fold.keys():
+                    if key not in output:
+                        output[key] = fold[key] / n_folds
+                    else:
+                        output[key] += fold[key] / n_folds
         else:
             raise ValueError('Input types for y_pred and y_true are invalid.')
         return output

@@ -13,8 +13,8 @@ class MLRegressionReport():
     for a single machine learning model. 
     """
 
-    def __init__(self, model: BaseRegression, X_test: pd.DataFrame = None, 
-                 y_test: pd.DataFrame = None, 
+    def __init__(self, model: BaseRegression, X_eval: pd.DataFrame = None, 
+                 y_eval: pd.DataFrame = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a RegressionReport object. 
@@ -23,22 +23,22 @@ class MLRegressionReport():
         ----------
         - model : BaseRegression.
             The model must already be trained.
-        - X_test : pd.DataFrame.
+        - X_eval : pd.DataFrame.
             Default: None. If None, uses the model training results directly. 
-        - y_test : pd.DataFrame.
+        - y_eval : pd.DataFrame.
             Default: None. If None, uses the model training results directly. 
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
+            and on y_eval before computing statistics.
 
         Returns
         -------
         - None
         """
         self.model = model
-        if X_test is not None and y_test is not None:
-            self._y_pred = model.predict(X_test.to_numpy())
-            self._y_true = y_test.to_numpy().flatten()
+        if X_eval is not None and y_eval is not None:
+            self._y_pred = model.predict(X_eval.to_numpy())
+            self._y_true = y_eval.to_numpy().flatten()
             self.scorer = RegressionScorer(y_pred=self._y_pred, 
                 y_true=self._y_true, n_regressors=model._n_regressors, 
                 model_id_str=str(model))
@@ -61,7 +61,7 @@ class MLRegressionReport():
         ----------
         - y_scaler: BaseSingleVarScaler.
             Calls inverse transform on the outputs 
-            and on y_test before computing statistics.
+            and on y_eval before computing statistics.
         """
         if isinstance(self._y_true, np.ndarray):
             self._y_pred = y_scaler.inverse_transform(self._y_pred)
@@ -95,8 +95,8 @@ class ComprehensiveMLRegressionReport():
     """
 
     def __init__(self, models: Iterable[BaseRegression], 
-                 X_test: pd.DataFrame = None, 
-                 y_test: pd.DataFrame = None, 
+                 X_eval: pd.DataFrame = None, 
+                 y_eval: pd.DataFrame = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a MLRegressionReport object. 
@@ -105,28 +105,28 @@ class ComprehensiveMLRegressionReport():
         ----------
         - models : Iterable[BaseRegression].
             The BaseRegression models must already be trained. 
-        - X_test : pd.DataFrame.
+        - X_eval : pd.DataFrame.
             Default: None. If None, reports on the training data.
-        - y_test : pd.DataFrame.
+        - y_eval : pd.DataFrame.
             Default: None. If None, reports on the training data.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
+            and on y_eval before computing statistics.
 
         Returns
         -------
         - None
         """
         self.models = models
-        if X_test is None and y_test is None:
+        if X_eval is None and y_eval is None:
             self._report_dict_indexable_by_int = {
                 i: MLRegressionReport(model=model, y_scaler=y_scaler) \
                     for i, model in enumerate(self.models)}
         else:
-            if not isinstance(y_test, pd.DataFrame):
-                y_test = y_test.to_frame()
+            if not isinstance(y_eval, pd.DataFrame):
+                y_eval = y_eval.to_frame()
             self._report_dict_indexable_by_int = {
-                i: MLRegressionReport(model, X_test, y_test, y_scaler) \
+                i: MLRegressionReport(model, X_eval, y_eval, y_scaler) \
                     for i, model in enumerate(self.models)}
         self._report_dict_indexable_by_str = {
             str(report.model): report for report in \

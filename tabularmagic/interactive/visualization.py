@@ -30,7 +30,7 @@ def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray,
     ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
     ax.set_title(f'Predicted vs True | ' + \
                     f'ρ = {round(pearsonr(y_pred, y_true)[0], 3)}')
-    ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
+    ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
     fig.tight_layout()
     plt.close()
     return fig

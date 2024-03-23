@@ -98,7 +98,5 @@ class Linear(BaseRegression):
                 **kwargs
             )
 
-    def __str__(self):
-        return self.nickname
 
 

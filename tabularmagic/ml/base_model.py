@@ -5,7 +5,6 @@ from sklearn.model_selection import (
     KFold,
     BaseCrossValidator
 )
-from skopt import BayesSearchCV
 from typing import Literal, Mapping, Iterable
 from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
@@ -65,7 +64,7 @@ class HyperparameterSearcher():
                  method: Literal['grid', 'random'], 
                  grid: Mapping[str, Iterable], 
                  inner_cv: int | BaseCrossValidator = 5,
-                 inner_random_state: int = 42,
+                 inner_cv_seed: int = 42,
                  **kwargs):
         """Initializes a HyperparameterSearch object.
         
@@ -79,7 +78,7 @@ class HyperparameterSearcher():
             search through. 
         - cv : int | BaseCrossValidator.
             Default: 5-fold cross validation.
-        - inner_random_state : int.
+        - inner_cv_seed : int.
         - kwargs. 
             Key word arguments are passed directly into the intialization of the 
             hyperparameter search method. 
@@ -92,7 +91,7 @@ class HyperparameterSearcher():
         self.best_estimator = None
         if isinstance(inner_cv, int):
             self.inner_cv = KFold(n_splits=inner_cv, 
-                                  random_state=inner_random_state, 
+                                  random_state=inner_cv_seed, 
                                   shuffle=True)
         elif isinstance(inner_cv, BaseCrossValidator):
             self.inner_cv = inner_cv
@@ -102,9 +101,8 @@ class HyperparameterSearcher():
         elif method == 'random':
             self._searcher = RandomizedSearchCV(estimator, grid, 
                                                 cv=self.inner_cv, **kwargs)
-        elif method == 'bayes':
-            self._searcher = BayesSearchCV(estimator, grid, 
-                                           cv=self.inner_cv, **kwargs)
+        else:
+            raise ValueError('Invalid input: method.')
 
 
     def fit(self, X: np.ndarray, y: np.ndarray):

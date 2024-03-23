@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold, BaseCrossValidator
-from sklearn.utils._testing import ignore_warnings
 from ...metrics import RegressionScorer
 from ..base_model import BaseModel, HyperparameterSearcher
 
@@ -37,11 +36,12 @@ class BaseRegression(BaseModel):
             self._y = y.copy()
             self._n_samples = X.shape[0]
             self._n_regressors = X.shape[1]
+        self.nickname = 'BaseRegression'
 
 
     def fit(self, X: np.ndarray = None, y: np.ndarray = None, 
             outer_cv: int | BaseCrossValidator | None = None,
-            outer_random_state: int = 42):
+            outer_cv_seed: int = 42):
         """Fits the model. Records training metrics, which can be done via 
         nested cross validation.
 
@@ -55,7 +55,7 @@ class BaseRegression(BaseModel):
             Default: None. If None, does not conduct nested cross validaiton. 
             In this case, the train scores are computed over the entire training
             dataset, over which the model has been fitted. 
-        - outer_random_state : int.
+        - outer_cv_seed : int.
             Random state of the outer cross validator.
 
         Returns
@@ -74,7 +74,7 @@ class BaseRegression(BaseModel):
         self._verify_Xy_input_validity(self._X, self._y)
 
         if outer_cv is None:
-            ignore_warnings(self._hyperparam_searcher.fit)(self._X, self._y)
+            self._hyperparam_searcher.fit(self._X, self._y)
             self.estimator = self._hyperparam_searcher.best_estimator
             self.train_scorer = RegressionScorer(
                 y_pred=self.estimator.predict(self._X),
@@ -85,7 +85,7 @@ class BaseRegression(BaseModel):
         else:
             if isinstance(outer_cv, int):
                 cv = KFold(n_splits=outer_cv,
-                           shuffle=True, random_state=outer_random_state)
+                           shuffle=True, random_state=outer_cv_seed)
             elif isinstance(outer_cv, BaseCrossValidator):
                 cv = outer_cv
             y_preds = []
@@ -93,7 +93,7 @@ class BaseRegression(BaseModel):
             for train_index, test_index in cv.split(X):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
-                ignore_warnings(self._hyperparam_searcher.fit)(X_train, y_train)
+                self._hyperparam_searcher.fit(X_train, y_train)
                 fold_estimator = self._hyperparam_searcher.best_estimator
                 y_preds.append(fold_estimator.predict(X_test))
                 y_trues.append(y_test)
@@ -189,5 +189,5 @@ class BaseRegression(BaseModel):
                              'upon which the estimator has been trained.')
 
     def __str__(self):
-        return 'BaseRegression'
+        return self.nickname
 

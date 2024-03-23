@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 from sklearn.model_selection import train_test_split
 from .ml import BaseRegression
-from .linear import OrdinaryLeastSquares
+from .linear import OrdinaryLeastSquares, parse_and_transform_rlike
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     VotingSelectionReport, LinearRegressionReport)
 from .preprocessing import DataPreprocessor, RegressionBaseSelector
@@ -17,7 +17,7 @@ class TabularMagic():
     """
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
-                test_size: float = 0.0, random_state: int = 42):
+                test_size: float = 0.0, split_seed: int = 42):
         """Initializes a TabularMagic object. 
         
         Note: DataFrame indices are not guaranteed to be correctly preserved. 
@@ -33,15 +33,14 @@ class TabularMagic():
             testing. If test_size = 0, then the train dataset and the 
             test dataset will both be the same as the input df. 
             If df_test is provided, then test_size is ignored. 
-        - random_state : int.
-            Default: 42. Used for train test split. 
-            If df_test is provided, then random_state is ignored. 
+        - split_seed : int.
+            Default: 42. Used only for the train test split. 
+            If df_test is provided, then split_seed is ignored. 
 
         Returns
         -------
         - None
         """
-        self.random_state = random_state
         if df_test is not None:
             self.original_df_train = df.copy()
             self.original_df_test = df_test.copy()
@@ -52,7 +51,7 @@ class TabularMagic():
             if test_size > 0:
                 temp_train, temp_test = train_test_split(self.original_df, 
                     test_size=test_size, shuffle=True, 
-                    random_state=random_state)
+                    random_state=split_seed)
                 self.original_df_train = pd.DataFrame(temp_train, 
                     columns=df.columns)
                 self.original_df_test = pd.DataFrame(temp_test, 
@@ -67,15 +66,15 @@ class TabularMagic():
         self.working_df_test = self.original_df_test.copy()
         self.categorical_columns = []
         self.continuous_columns = []
+        self._remove_spaces_varnames()
         self._reset_categorical_continuous_vars()
 
 
 
 
     # --------------------------------------------------------------------------
-    # EDA + FEATURE SELECTION + OLS
+    # EDA + FEATURE SELECTION + LINEAR
     # --------------------------------------------------------------------------
-        
     def eda(self, dataset: Literal['train', 'test'] = 'train') \
         -> ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for either the working train 
@@ -183,9 +182,9 @@ class TabularMagic():
         return report
     
 
-    def ols(self, X_vars: list[str], y_var: str, 
-            regularization_type: Literal[None, 'l1', 'l2'] = None, 
-            alpha: float = 0.0):
+    def lm(self, X_vars: list[str], y_var: str, 
+           regularization_type: Literal[None, 'l1', 'l2'] = None, 
+           alpha: float = 0.0, inverse_scale_y: bool = True):
         """Conducts a simple OLS regression analysis exercise. 
 
         Parameters
@@ -196,7 +195,10 @@ class TabularMagic():
             Default: None.
         - alpha : float.
             Default: 0.
-        
+        - inverse_scale_y : bool.
+            If true, inverse scales the y_true and y_pred values to their 
+            original scales. Default: 0.
+            
         Returns
         -------
         - train_report : LinearRegressionReport.
@@ -211,16 +213,53 @@ class TabularMagic():
                                      alpha=alpha)
         model.fit()
         y_var_scaler = None
-        if self._dp is not None:
+        if self._dp is not None and inverse_scale_y:
             y_var_scaler = self._dp.get_single_var_scaler(y_var)
         return (
-            LinearRegressionReport(model, X_test=local_X_train_df, 
-                                   y_test=local_y_train_series,
+            LinearRegressionReport(model, X_eval=local_X_train_df, 
+                                   y_eval=local_y_train_series,
                                    y_scaler=y_var_scaler),
-            LinearRegressionReport(model, X_test=local_X_test_df,
-                                   y_test=local_y_test_series,
+            LinearRegressionReport(model, X_eval=local_X_test_df,
+                                   y_eval=local_y_test_series,
                                    y_scaler=y_var_scaler),
         )
+    
+
+    def lm_rlike(self, formula: str, inverse_scale_y: bool = True):
+        """Performs an R-like regression analysis. Unlike lm(), uses the 
+        originally-inputted data. That is, all preprocessing must be specified 
+        in the formula; categorical variables are automatically detected 
+        and dealt with. Examples with missing data will be dropped.
+
+        Parameters
+        ----------
+        - formula : str. 
+            An R-like formula, e.g. y ~ x1 + log(x2) + poly(x3)
+
+        Returns
+        -------
+        - train_report : LinearRegressionReport.
+        - test_report : LinearRegressionReport.
+        """
+        # y_var,  =\
+        #     parse_and_transform_rlike(formula)
+
+
+        # model = OrdinaryLeastSquares(X=local_X_train_df, y=local_y_train_series)
+        # model.fit()
+        # y_var_scaler = None
+
+
+
+        # return (
+        #     LinearRegressionReport(model, X_eval=local_X_train_df, 
+        #                            y_eval=local_y_train_series,
+        #                            y_scaler=y_var_scaler),
+        #     LinearRegressionReport(model, X_eval=local_X_test_df,
+        #                            y_eval=local_y_test_series,
+        #                            y_scaler=y_var_scaler),
+        # )
+        pass
 
 
 
@@ -231,8 +270,9 @@ class TabularMagic():
     def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
                                    models: Iterable[BaseRegression], 
                                    outer_cv: int | None = None,
-                                   outer_random_state: int = 42, 
-                                   verbose: bool = True):
+                                   outer_cv_seed: int = 42, 
+                                   verbose: bool = True, 
+                                   inverse_scale_y: bool = True):
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
@@ -243,11 +283,14 @@ class TabularMagic():
             Testing performance of all models will be evaluated. 
         - outer_cv : int.
             If not None, reports training scores via nested k-fold CV.
-        - outer_random_state : int.
+        - outer_cv_seed : int.
             The random seed for the outer cross validation loop.
         - verbose : bool. 
             Default: True. If True, prints progress of tasks (a task is 
             defined as the CV training of one model)
+        - inverse_scale_y : bool.
+            If true, inverse scales the y_true and y_pred values to their 
+            original scales. Default: 0.
         
         Returns
         -------
@@ -264,9 +307,9 @@ class TabularMagic():
             if verbose:
                 print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
             model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
-                      outer_random_state=outer_random_state)
+                      outer_cv_seed=outer_cv_seed)
         y_var_scaler = None
-        if self._dp is not None:
+        if self._dp is not None and inverse_scale_y:
             y_var_scaler = self._dp.get_single_var_scaler(y_var)
         train_report = ComprehensiveMLRegressionReport(
             models=models, y_scaler=y_var_scaler)
@@ -440,6 +483,18 @@ class TabularMagic():
         for a, b in zip(self.working_df_test.columns, 
                         self.working_df_train.columns):
             assert a == b
+
+    def _remove_spaces_varnames(self):
+        """Removes spaces from variable names. Necessary for R-like lm()
+        calls.
+        """
+        new_columns = self.working_df_train.columns.to_list()
+        for i, var in enumerate(vars):
+            vars[i] = ''.join(var.split(' '))
+        self.working_df_train.columns = new_columns
+        self.working_df_test.columns = new_columns
+
+
             
         
 

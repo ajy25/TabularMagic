@@ -241,6 +241,7 @@ class TreeEnsemble(BaseRegression):
                              '"{ensemble_type}".')
 
 
-    def __str__(self):
-        return self.nickname
+
+
+
 

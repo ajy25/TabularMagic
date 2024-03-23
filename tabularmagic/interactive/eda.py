@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.ticker import ScalarFormatter
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -56,14 +55,15 @@ class CategoricalEDA():
         """
         value_freqs = self._var_series.value_counts(normalize=density)
         fig, ax = plt.subplots(1, 1, figsize=figsize)
-        ax.bar(value_freqs.index, value_freqs.values, color='black')
+        ax.bar(value_freqs.index, value_freqs.values, color='black', 
+               edgecolor='black')
         ax.set_title(f'Distrubution of {self.variable_name}')
         ax.set_xlabel('Categories')
         if density:
             ax.set_ylabel('Density')
         else:
             ax.set_ylabel('Frequency')
-        ax.ticklabel_format(style='sci', axis='y', scilimits=(-2, 2))
+        ax.ticklabel_format(style='sci', axis='y', scilimits=(-3, 3))
         fig.tight_layout()
         plt.close(fig)
         return fig
@@ -97,8 +97,8 @@ class ContinuousEDA():
             'q1': self._var_series.quantile(q=0.25),
             'median': self._var_series.median(),
             'q3': self._var_series.quantile(q=0.75),
-            'n_missing_samples': self._var_series.isna().sum(),
-            'n_samples': len(self._var_series)
+            'n_missing': self._var_series.isna().sum(),
+            'n': len(self._var_series)
         }
         self.summary_statistics = pd.DataFrame(
             list(self._summary_statistics_dict.items()), 
@@ -150,7 +150,7 @@ class ContinuousEDA():
             ax.set_ylabel('Density')
         else:
             ax.set_ylabel('Frequency')
-        ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
         fig.tight_layout()
         plt.close(fig)
         return fig
@@ -244,7 +244,7 @@ class ComprehensiveEDA():
         for ax in grid.axes.flat:
             ax.tick_params(axis='both', which='both', 
                            labelsize=5)
-            ax.ticklabel_format(style='sci', axis='both', scilimits=(-2, 2))
+            ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
             ax.xaxis.offsetText.set_fontsize(5)
             ax.yaxis.offsetText.set_fontsize(5)
             ax.set_xlabel(ax.get_xlabel(), fontsize=6)

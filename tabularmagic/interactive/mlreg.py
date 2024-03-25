@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.axes as axes
 from typing import Iterable
 from ..metrics.regression_scoring import RegressionScorer
 from ..ml import *
@@ -72,19 +72,21 @@ class MLRegressionReport():
                 self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
 
         
-    def plot_pred_vs_true(self, figsize: Iterable = (5, 5)):
+    def plot_pred_vs_true(self, figsize: Iterable = (5, 5), 
+                          ax: axes.Axes = None):
         """Returns a figure that is a scatter plot of the true and predicted y 
         values. 
 
         Parameters 
         ----------
-        - figsize: Iterable
+        - figsize : Iterable.
+        - ax : axes.Axes. 
 
         Returns
         -------
         - plt.Figure
         """
-        return plot_pred_vs_true(self._y_pred, self._y_true, figsize)
+        return plot_pred_vs_true(self._y_pred, self._y_true, figsize, ax)
 
 
 

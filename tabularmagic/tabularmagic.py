@@ -489,8 +489,8 @@ class TabularMagic():
         calls.
         """
         new_columns = self.working_df_train.columns.to_list()
-        for i, var in enumerate(vars):
-            vars[i] = ''.join(var.split(' '))
+        for i, var in enumerate(new_columns):
+            new_columns[i] = ''.join(var.split(' '))
         self.working_df_train.columns = new_columns
         self.working_df_test.columns = new_columns
 

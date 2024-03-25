@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
+import matplotlib.axes as axes
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from scipy.stats import kurtosis, skew, pearsonr
+from scipy.stats import kurtosis, skew, pearsonr, ttest_ind
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
+from sklearn.decomposition import PCA
 
 
 class CategoricalEDA():
@@ -39,22 +41,29 @@ class CategoricalEDA():
             columns=['Statistic', self.variable_name]
         ).set_index('Statistic')
 
-    def plot_distribution(self, figsize: Iterable = (5, 5), 
-                          density: bool = False):
+    def plot_distribution(self, density: bool = False, 
+                          figsize: Iterable = (5, 5), 
+                          ax: axes.Axes = None):
         """Returns a figure that is a bar plot of the relative frequencies
         of the data.
         
         Parameters 
         ----------
-        - figsize : Iterable
         - density : bool
+        - figsize : Iterable
+        - ax : 
 
         Returns
         -------
         - plt.Figure
         """
         value_freqs = self._var_series.value_counts(normalize=density)
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+
         ax.bar(value_freqs.index, value_freqs.values, color='black', 
                edgecolor='black')
         ax.set_title(f'Distrubution of {self.variable_name}')
@@ -64,8 +73,10 @@ class CategoricalEDA():
         else:
             ax.set_ylabel('Frequency')
         ax.ticklabel_format(style='sci', axis='y', scilimits=(-3, 3))
-        fig.tight_layout()
-        plt.close(fig)
+
+        if fig is not None:
+            fig.tight_layout()
+            plt.close()
         return fig
 
 
@@ -105,19 +116,23 @@ class ContinuousEDA():
             columns=['Statistic', self.variable_name]
         ).set_index('Statistic')
 
-    def plot_distribution(self, figsize: Iterable = (5, 5),
+
+    def plot_distribution(self,
             hypothetical_transform: \
-                Literal[None, 'minmax', 'standardize', 'log1p'] = None,
-            density: bool = False):
+                Literal[None, 'minmax', 'standardize', 'log', 'log1p'] = None,
+            density: bool = False, 
+            figsize: Iterable = (5, 5), 
+            ax: axes.Axes = None):
         """Returns a figure that is a histogram.
         
         Parameters 
         ----------
-        - figsize : Iterable
         - hypothetical_transform : Literal[None, 'minmax', 
             'standardize', 'log1p']
             Default: None. 
         - density : bool.
+        - figsize : Iterable.
+        - ax : axes.Axes.
             
         Returns
         -------
@@ -138,10 +153,15 @@ class ContinuousEDA():
             values = scale(values)
         elif hypothetical_transform == 'log1p':
             values = np.log1p(values)
+        elif hypothetical_transform == 'log':
+            values = np.log(values)
         else:
             raise ValueError(f'Invalid input: {hypothetical_transform}.')
 
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+
         sns.histplot(values, bins='auto', color='black', edgecolor='black', 
                      stat=stat, ax=ax, kde=True)
         ax.set_title(f'Distribution of {self.variable_name}')
@@ -151,8 +171,10 @@ class ContinuousEDA():
         else:
             ax.set_ylabel('Frequency')
         ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
-        fig.tight_layout()
-        plt.close(fig)
+
+        if fig is not None:
+            fig.tight_layout()
+            plt.close()
         return fig
 
 
@@ -209,6 +231,7 @@ class ComprehensiveEDA():
             If None, all continuous variables are considered.
         - stratify_by_var : str.
             Categorical var name. 
+        - figsize : Iterable.
 
         Returns
         -------
@@ -223,6 +246,11 @@ class ComprehensiveEDA():
             grid = sns.PairGrid(self.df[continuous_vars].dropna())
             right_adjust = None
         else:
+            if stratify_by_var not in self.categorical_columns:
+                raise ValueError(
+                    f'Invalid input: {stratify_by_var}. ' + \
+                    'Must be a known categorical variable.'
+                )
             grid = sns.PairGrid(
                 self.df[continuous_vars + [stratify_by_var]].dropna(), 
                 hue=stratify_by_var)
@@ -265,34 +293,136 @@ class ComprehensiveEDA():
         return fig
     
 
-    def mean_test(self, continuous_var: str, stratify_by_var: str):
-        """Conducts the appropriate statistical test. 
+    def plot_pca(self, continuous_vars: list[str], stratify_by_var: str = None, 
+                 standardize: bool = True, whiten: bool = False,
+                 three_components: bool = False, figsize: Iterable = (5, 5), 
+                 ax: axes.Axes = None):
+        """Plots the first two (or three) principle components, 
+        optionally stratified by an additional variable. 
+        
+        Parameters
+        ----------
+        - continuous_vars : list[str]. List of continuous variables across 
+            which the PCA will be performed
+        - stratify_by_var : str. 
+        - standardize : bool. If True, centers and scales each feature to have 
+            0 mean and unit variance. 
+        - whiten : bool. If True, performs whitening on the data during PCA. 
+        - three_components : If True, returns a 3D plot. Otherwise plots the 
+            first two components only. 
+        - figsize : Iterable.
+        - ax : axes.Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input axes.Axes. 
 
-        Null hypothesis: the means of all groups are the same.
+        Returns
+        -------
+        - plt.Figure
+        """
+        fig = None
+        if ax is None:
+            if three_components:
+                fig = plt.figure(figsize=figsize)
+                ax = fig.add_subplot(111, projection='3d')
+            else:
+                fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        if three_components:
+            pca = PCA(n_components=3, whiten=whiten)
+        else:
+            pca = PCA(n_components=2, whiten=whiten)
+        
+        X = self.df[continuous_vars].to_numpy()
+        if standardize:
+            X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+        components = pca.fit_transform(X)
+
+        if stratify_by_var is not None:
+            categories = self.df[stratify_by_var].to_numpy()
+            for category in np.unique(categories):
+                mask = categories == category
+                if three_components:
+                    ax.scatter(components[mask, 0], components[mask, 1], 
+                        components[mask, 2], label=category, s=2)
+                    ax.set_xlabel('Principle Component 1')
+                    ax.set_ylabel('Principle Component 2')
+                    ax.set_zlabel('Principle Component 3')
+                else:
+                    ax.scatter(components[mask, 0], components[mask, 1], 
+                        label=category, s=2)
+                    ax.set_xlabel('Principle Component 1')
+                    ax.set_ylabel('Principle Component 2')
+            ax.legend()
+        else:
+            if three_components:
+                ax.scatter(components[:, 0], components[:, 1], 
+                        components[:, 2], color='black')
+                ax.set_xlabel('Principle Component 1')
+                ax.set_ylabel('Principle Component 2')
+                ax.set_zlabel('Principle Component 3')
+            else:
+                ax.scatter(components[:, 0], components[:, 1], color='black', 
+                    s=2)
+                ax.set_xlabel('Principle Component 1')
+                ax.set_ylabel('Principle Component 2')
+
+        ax.set_title('Principle Component Analysis')
+        
+        if fig is not None:
+            fig.tight_layout()
+            plt.close()
+        return fig
+    
+
+    def test_difference_in_means(self, continuous_var: str, 
+                                 stratify_by_var: str):
+        """Conducts the appropriate statistical test between two groups. 
+        The parameter stratify_by_var must be the name of a binary variable. 
+
+        Null hypothesis: mu_1 = mu_2.
 
         Parameters
         ----------
         - continuous_var : str. 
             Continuous var name to be stratified and compared. 
         - stratify_by_var : str.
-            Categorical var name. 
+            Categorical var name. Must be binary. 
 
         Returns
         -------
-        - 
+        - t-statistic : float
+        - p-value : float
+        - degfree : int. Degrees of freedom.
         """
         if continuous_var not in self.continuous_columns:
             raise ValueError(
                 f'Invalid input: {continuous_var}. ' + \
                 'Must be a known continuous variable.'
             )
-        if stratify_by_var not in self.categorical_columns:
+        if (stratify_by_var not in self.categorical_columns) or \
+            (stratify_by_var not in self.continuous_columns):
             raise ValueError(
                 f'Invalid input: {stratify_by_var}. ' + \
-                'Must be a known categorical variable.'
+                'Must be a known binary variable.'
+            )
+        elif len(np.unique(self.df[stratify_by_var].to_numpy())) != 2:
+            raise ValueError(
+                f'Invalid stratify_by_var: {stratify_by_var}. ' + \
+                'Must be a known binary variable.'
             )
         
-        
+        categories = np.unique(self.df[stratify_by_var].to_numpy())
+        group_1 =\
+            self.df.loc[self.df[stratify_by_var] == categories[0], 
+                        continuous_var].to_numpy()
+        group_2 =\
+            self.df.loc[self.df[stratify_by_var] == categories[1], 
+                        continuous_var].to_numpy()
+
+        ttest_result = ttest_ind(group_1, group_2)
+
+        return ttest_result.statistic, ttest_result.pvalue, ttest_result.df
+
+
 
     def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:
         """Indexes into ComprehensiveRegressionReport. 

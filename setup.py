@@ -14,7 +14,7 @@ def parse_requirements(file_path):
 setup(
     name='tabularmagic',
     version='0.0.0',
-    packages=find_packages(),
+    packages=find_packages(where=directory_path),
     author='Andrew Jianhua Yang',
     license=pathlib.Path('LICENSE').read_text(),
     description='''TabularMagic is a wrapper of scikit-learn and statsmodels 

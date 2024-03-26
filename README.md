@@ -5,19 +5,20 @@ Currently under development.
 
 ## Installation
 
-TabularMagic can be installed via pip. The scripts below handle 
+TabularMagic can be installed via pip. The Python scripts below handle 
 package setup and pip installation. 
 
 To install TabularMagic: 
 ```
 git clone https://github.com/ajy25/TabularMagic.git
-python tm-install.py
+python tm-install.py install
 ```
 
 To uninstall TabularMagic:
 ```
-python tm-uninstall.py
+python tm-install.py uninstall
 ```
+
 
 ## Getting started
 

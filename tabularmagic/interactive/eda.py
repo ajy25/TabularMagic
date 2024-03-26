@@ -298,7 +298,8 @@ class ComprehensiveEDA():
                  three_components: bool = False, figsize: Iterable = (5, 5), 
                  ax: axes.Axes = None):
         """Plots the first two (or three) principle components, 
-        optionally stratified by an additional variable. 
+        optionally stratified by an additional variable. Drops examples 
+        with missing values across the given variables of interest.
         
         Parameters
         ----------
@@ -330,14 +331,15 @@ class ComprehensiveEDA():
             pca = PCA(n_components=3, whiten=whiten)
         else:
             pca = PCA(n_components=2, whiten=whiten)
-        
-        X = self.df[continuous_vars].to_numpy()
-        if standardize:
-            X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
-        components = pca.fit_transform(X)
 
         if stratify_by_var is not None:
-            categories = self.df[stratify_by_var].to_numpy()
+            X_y = self.df[continuous_vars].join(
+                self.df[stratify_by_var]).dropna()
+            X = X_y[continuous_vars].to_numpy()
+            if standardize:
+                X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            components = pca.fit_transform(X)
+            categories = X_y[stratify_by_var].to_numpy()
             for category in np.unique(categories):
                 mask = categories == category
                 if three_components:
@@ -351,8 +353,13 @@ class ComprehensiveEDA():
                         label=category, s=2)
                     ax.set_xlabel('Principle Component 1')
                     ax.set_ylabel('Principle Component 2')
-            ax.legend()
+            legend = ax.legend()
+            legend.set_title(stratify_by_var)
         else:
+            X = self.df[continuous_vars].dropna().to_numpy()
+            if standardize:
+                X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            components = pca.fit_transform(X)
             if three_components:
                 ax.scatter(components[:, 0], components[:, 1], 
                         components[:, 2], color='black')
@@ -365,7 +372,8 @@ class ComprehensiveEDA():
                 ax.set_xlabel('Principle Component 1')
                 ax.set_ylabel('Principle Component 2')
 
-        ax.set_title('Principle Component Analysis')
+        title_str = ', '.join(continuous_vars)
+        ax.set_title(f'PCA({title_str})', wrap=True)
         
         if fig is not None:
             fig.tight_layout()

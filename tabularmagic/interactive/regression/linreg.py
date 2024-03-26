@@ -5,10 +5,10 @@ import matplotlib.axes as axes
 import seaborn as sns
 from scipy import stats
 from typing import Iterable
-from ..metrics.regression_scoring import RegressionScorer
-from ..linear import *
-from ..preprocessing.datapreprocessor import BaseSingleVarScaler
-from .visualization import *
+from ...metrics.regression_scoring import RegressionScorer
+from ...linear import *
+from ...preprocessing.datapreprocessor import BaseSingleVarScaler
+from ..visualization import *
 
 
 

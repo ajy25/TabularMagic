@@ -1,7 +1,7 @@
 from .eda import ComprehensiveEDA
-from .feature_selection import VotingSelectionReport
-from .mlreg import ComprehensiveMLRegressionReport
-from .linreg import LinearRegressionReport
+from .regression.feature_selection import VotingSelectionReport
+from .regression.mlreg import ComprehensiveMLRegressionReport
+from .regression.linreg import LinearRegressionReport
 
 
 

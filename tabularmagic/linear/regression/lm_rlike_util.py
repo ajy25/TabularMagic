@@ -48,15 +48,7 @@ def check_all_parentheses(list_of_text):
     for text in list_of_text:
         if not check:
             return check
-        stack = []
-        for char in text:
-            if char == '(':
-                stack.append(char)
-            elif char == ')':
-                if not stack:
-                    return False
-                stack.pop()
-        check = check and (len(stack) == 0)
+        check = check and check_parentheses(text)
     return check
 
 def check_parentheses(text):
@@ -86,6 +78,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
     - pd.DataFrame.
     """
 
+    # efficient multiplication checker for most cases
     if '*' in expression and check_all_parentheses(expression.split('*')):
         expression_split = expression.split('*')
         dfs_to_multiply = []
@@ -108,7 +101,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
             output = pd.DataFrame(output_temp, index=df.index)
         return output
 
-    if expression[:3] == 'log' and check_parentheses(expression[4:-1]):
+    elif expression[:4] == 'log(' and check_parentheses(expression[4:-1]):
         output_df: pd.DataFrame =\
             recursive_expression_transformer(expression[4:-1], df)
         new_col_names = []
@@ -118,7 +111,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
         output_df.columns = new_col_names
         return output_df
     
-    elif expression[:3] == 'exp' and check_parentheses(expression[4:-1]):
+    elif expression[:4] == 'exp(' and check_parentheses(expression[4:-1]):
         output_df: pd.DataFrame =\
             recursive_expression_transformer(expression[4:-1], df)
         new_col_names = []
@@ -128,7 +121,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
         output_df.columns = new_col_names
         return output_df
     
-    elif expression[:4] == 'poly' and check_parentheses(expression[5:-1]):
+    elif expression[:5] == 'poly(' and check_parentheses(expression[5:-1]):
         within_paren = expression[5:-1]
         within_paren_split = within_paren.split(',')
         subexpression = ','.join(within_paren_split[:-1])
@@ -154,23 +147,29 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
             )
         return pd.concat(output_dfs, axis=1)
     
-    # a slightly more inefficient multiplication-handling scheme, only reaches 
-    # this point if a transformation is being applied to first term
-    elif '*' in expression and check_parentheses(expression.split('*')[0]):
+    # a less efficient multiplication-handling scheme for edge cases, only  
+    # reaches this point if a transformation is being applied to first term
+    elif '*' in expression:
         expression_split = expression.split('*')
-        first_subexpression = expression_split[0]
-        remaining_subexpression = '*'.join(expression_split[1:])
-        first_df: pd.DataFrame =\
-            recursive_expression_transformer(first_subexpression, df)
-        last_df: pd.DataFrame =\
-            recursive_expression_transformer(remaining_subexpression, df)
-        cartesian_product = list(itertools.product(first_df.columns.to_list(), 
-                                              last_df.columns.to_list()))
-        output = dict()
-        for var_a, var_b in cartesian_product:
-            output[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
-                last_df[var_b].to_numpy()
-        return pd.DataFrame(output, index=df.index)
+        for right_cutoff in range(1, len(expression_split)):
+            left_subexpression = '*'.join(expression_split[:right_cutoff])
+            right_subexpression = '*'.join(expression_split[right_cutoff:])
+            if not check_all_parentheses(
+                [left_subexpression, right_subexpression]):
+                continue
+            first_df: pd.DataFrame =\
+                recursive_expression_transformer(left_subexpression, df)
+            last_df: pd.DataFrame =\
+                recursive_expression_transformer(right_subexpression, df)
+            cartesian_product = list(
+                itertools.product(first_df.columns.to_list(), 
+                                  last_df.columns.to_list()))
+            output = dict()
+            for var_a, var_b in cartesian_product:
+                output[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
+                    last_df[var_b].to_numpy()
+            return pd.DataFrame(output, index=df.index)
+        raise ValueError('Error in formula when parsing poly().')
 
     else:
         if is_continuous(expression, df):

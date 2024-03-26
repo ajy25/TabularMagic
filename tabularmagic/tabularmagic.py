@@ -383,6 +383,7 @@ class TabularMagic():
                 self._df_checkpoint_name_to_df[checkpoint][1].copy()
         self._reset_categorical_continuous_vars()
 
+
     def remove_working_df_checkpoint(self, checkpoint: str):
         """Removes a saved checkpoint to conserve memory.
 
@@ -396,6 +397,7 @@ class TabularMagic():
         """
         self._df_checkpoint_name_to_df.pop(checkpoint)
     
+
     def select_vars(self, vars: list[str]):
         """Selects subset of (column) variables in-place on the working 
         train and test datasets. 
@@ -407,6 +409,7 @@ class TabularMagic():
         self.working_df_train = self.working_df_train[vars]
         self.working_df_test = self.working_df_test[vars]
         self._reset_categorical_continuous_vars()
+
 
     def drop_vars(self, vars: list[str]):
         """Drops subset of (column) variables in-place on the working 
@@ -430,14 +433,18 @@ class TabularMagic():
         
         Returns
         -------
-        - dict
+        - {
+            'train': self.working_df_train.shape,
+            'test': self.working_df_test.shape
+        }
         """
         return {
-            'working_df_train': self.working_df_train.shape,
-            'working_df_test': self.working_df_test.shape
+            'train': self.working_df_train.shape,
+            'test': self.working_df_test.shape
         }
 
-    def retrieve_dfs(self):
+
+    def retrieve_working_dfs(self):
         """Returns a tuple (working_df_train, working_df_test). 
         Note that the dataframes are copied before being returned. 
         
@@ -448,9 +455,11 @@ class TabularMagic():
         """
         return self.working_df_train.copy(), self.working_df_test.copy()
     
+
     def head(self, n = 5):
-        """Same as self.working_df_train.head()."""
+        """Same as calling self.working_df_train.head(n)."""
         return self.working_df_train.head(n)
+
 
     def __len__(self):
         """Returns the number of examples in working_df_train.
@@ -472,6 +481,7 @@ class TabularMagic():
             raise RuntimeWarning('The train dataset and test dataset' + \
                 ' do not have the same variables.')
 
+
     def _reset_categorical_continuous_vars(self):
         """Resets the categorical and continuous column values."""
         self.categorical_columns = self.working_df_train.select_dtypes(
@@ -479,6 +489,7 @@ class TabularMagic():
         self.continuous_columns = self.working_df_train.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
         
+
     def _working_train_test_var_agreement(self):
         missing_test_columns = list(set(self.working_df_train.columns) -\
             set(self.working_df_test.columns))
@@ -501,6 +512,7 @@ class TabularMagic():
         for a, b in zip(self.working_df_test.columns, 
                         self.working_df_train.columns):
             assert a == b
+
 
     def _train_test_var_agreement(self, df_train: pd.DataFrame, 
                                   df_test: pd.DataFrame):

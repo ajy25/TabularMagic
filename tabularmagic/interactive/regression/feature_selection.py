@@ -1,5 +1,5 @@
 import pandas as pd
-from ..preprocessing.regression_feature_selection import RegressionBaseSelector
+from ...preprocessing.regression_feature_selection import RegressionBaseSelector
 from typing import Iterable
 
 class VotingSelectionReport():

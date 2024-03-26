@@ -81,6 +81,25 @@ class LogTransformSingleVar(BaseSingleVarScaler):
         """Inverse transforms x_scaled. Robust to missing values in x_scaled.
         """
         return np.exp(x_scaled)
+    
+
+class ExpTransformSingleVar(BaseSingleVarScaler):
+    """Exp (base e) transform scaling of a single variable"""
+
+    def __init__(self, var_name: str, x: np.ndarray):
+        super().__init__(var_name, x)
+
+    def fit(self):
+        pass
+
+    def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
+        return np.exp(x)
+
+    def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
+        return np.log(x_scaled)
 
 
 class Log1PTransformSingleVar(BaseSingleVarScaler):

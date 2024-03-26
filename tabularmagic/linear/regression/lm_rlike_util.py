@@ -1,130 +1,231 @@
 import pandas as pd
 import numpy as np
-from ...preprocessing import CustomFunctionSingleVar
+import itertools
+from ...preprocessing import LogTransformSingleVar
 
 
-def parse_rlike_formula(formula: str):
-    """Parses the formula portion of an R-like lm() call.
+def is_continuous(var: str, df: pd.DataFrame):
+    """
+    Checks if a variable in a DataFrame is continuous.
     
     Parameters
     ----------
-    - formula : str. 
-        An example is "y ~ log(x1) + poly(x2, 2)
+    - var : str. The name of the column to be checked.
+    - df : pd.DataFrame. The DataFrame containing the variable.
+    
+    Returns
+    -------
+    - bool. True if the variable is continuous, False otherwise.
+    """
+    dtype = df[var].dtype
+    if pd.api.types.is_numeric_dtype(dtype):
+        if not pd.api.types.is_integer_dtype(dtype):
+            return True
+    return False
+
+def poly(x: np.ndarray, degree: int):
+    """Transforms x into orthogonal polynomials.
+    
+    Parameters
+    ----------
+    - x : np.ndarray ~ (n)
+    - degree : int
 
     Returns
     -------
-    - y_var : str
-    - y_transform : str
-    - X_vars : list[str]
-    - X_transforms_dict : {str : list[str]}
+    - x_transformed : np.ndarray ~ (n, degree)
     """
-    formula = ''.join(formula.split(' '))
-    y_var, X_formula = formula.split('~')
-    y_transform = 'none'
-    X_expressions = X_formula.split('+')
-    X_vars = []
-    X_transforms_dict = {
-        'none': [],
-    }
+    assert len(x.shape) == 1
+    x = np.array(x)
+    X = np.transpose(np.vstack([x**k for k in range(degree+1)]))
+    return np.linalg.qr(X)[0][:,1:]
 
-    for X_expression in X_expressions:
+def check_all_parentheses(list_of_text):
+    check = True
+    for text in list_of_text:
+        if not check:
+            return check
+        stack = []
+        for char in text:
+            if char == '(':
+                stack.append(char)
+            elif char == ')':
+                if not stack:
+                    return False
+                stack.pop()
+        check = check and (len(stack) == 0)
+    return check
 
-        # first check for log transform
-        if X_expression[:3] == 'log':
-            logvarname = X_expression[4:-1]
-            if 'log' not in X_transforms_dict:
-                X_transforms_dict['log'] = logvarname
-            else:
-                X_transforms_dict['log'].append(logvarname)
-            X_vars.append(logvarname)
-        
-        # next check for poly transform
-        elif X_expression[:4] == 'poly':
-            within_paren = X_expression[5:-1]
-            within_paren_split = within_paren.split(',')
-            if len(within_paren_split) == 1:
-                polyvarname = within_paren_split
-            else:
-                polyvarname, deg = within_paren_split
-            deg = int(deg)
-            if f'poly_{deg}' not in X_transforms_dict:
-                X_transforms_dict[f'poly_{deg}'] = polyvarname
-            else:
-                X_transforms_dict[f'poly_{deg}'].append(polyvarname)
-            X_vars.append(polyvarname)
+def check_parentheses(text):
+    stack = []
+    for char in text:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            if not stack:
+                return False
+            stack.pop()
+    return len(stack) == 0
 
-        # all others are not to be transformed
-        else:
-            X_transforms_dict['none'].append(X_expression)
-            X_vars.append(X_expression)
 
-    # repeat for y_var
-    if y_var[:3] == 'log':
-        logvarname = y_var[4:-1]
-        if 'log' not in X_transforms_dict:
-            X_transforms_dict['log'] = logvarname
-        else:
-            X_transforms_dict['log'].append(logvarname)
-        X_vars.append(logvarname)
+
+def recursive_expression_transformer(expression: str, df: pd.DataFrame):
+    """Handles a predictor expression. Handles interaction terms. Handles
+    log transforms. 
+
+    Parameters
+    ----------
+    - expression : str. 
+    - df : pd.DataFrame. 
+
+    Returns
+    -------
+    - pd.DataFrame.
+    """
+
+    if '*' in expression and check_all_parentheses(expression.split('*')):
+        expression_split = expression.split('*')
+        dfs_to_multiply = []
+        for subexpression in expression_split:
+            temp_df: pd.DataFrame =\
+                recursive_expression_transformer(subexpression, df)
+            dfs_to_multiply.append(
+                temp_df
+            )
+        output = dfs_to_multiply[0]
+        for i in range(1, len(dfs_to_multiply)):
+            first_df = output
+            last_df = dfs_to_multiply[i]
+            cartesian_product = list(itertools.product(
+                first_df.columns.to_list(), last_df.columns.to_list()))
+            output_temp = dict()
+            for var_a, var_b in cartesian_product:
+                output_temp[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
+                    last_df[var_b].to_numpy()
+            output = pd.DataFrame(output_temp)
+        return output
+
+    if expression[:3] == 'log' and check_parentheses(expression[4:-1]):
+        output_df: pd.DataFrame =\
+            recursive_expression_transformer(expression[4:-1], df)
+        new_col_names = []
+        for col in output_df.columns:
+            new_col_names.append(f'log({col})')
+            output_df[col] = np.log(output_df[col].to_numpy())
+        output_df.columns = new_col_names
+        return output_df
     
-    # next check for poly transform
-    elif X_expression[:4] == 'poly':
-        within_paren = X_expression[5:-1]
+    elif expression[:3] == 'exp' and check_parentheses(expression[4:-1]):
+        output_df: pd.DataFrame =\
+            recursive_expression_transformer(expression[4:-1], df)
+        new_col_names = []
+        for col in output_df.columns:
+            new_col_names.append(f'exp({col})')
+            output_df[col] = np.log(output_df[col].to_numpy())
+        output_df.columns = new_col_names
+        return output_df
+    
+    elif expression[:4] == 'poly' and check_parentheses(expression[5:-1]):
+        within_paren = expression[5:-1]
         within_paren_split = within_paren.split(',')
-        if len(within_paren_split) == 1:
-            polyvarname = within_paren_split
+        subexpression = ','.join(within_paren_split[:-1])
+        deg_info = within_paren_split[-1]
+        deg_info_split = deg_info.split('=')
+        if len(deg_info_split) == 2 and deg_info_split[0] == 'degree':
+            degree = int(deg_info_split[1])
+        elif len(deg_info_split) == 1:
+            degree = int(deg_info_split[0])
         else:
-            polyvarname, deg = within_paren_split
-        deg = int(deg)
-        if f'poly_{deg}' not in X_transforms_dict:
-            X_transforms_dict[f'poly_{deg}'] = polyvarname
-        else:
-            X_transforms_dict[f'poly_{deg}'].append(polyvarname)
-        X_vars.append(polyvarname)
+            raise ValueError('Error in formula when parsing poly().')
+        temp_df: pd.DataFrame =\
+            recursive_expression_transformer(subexpression, df)
+        output_dfs = []
+        for col in temp_df.columns:
+            output_dfs.append(
+                pd.DataFrame(poly(temp_df[col].to_numpy(), degree), 
+                    columns=[f'poly({col},{degree}){i+1}' \
+                            for i in range(degree)])
+            )
+        return pd.concat(output_dfs, axis=1)
+    
+    # a slightly more inefficient multiplication-handling scheme, only reaches 
+    # this point if a transformation is being applied to first term
+    elif '*' in expression and check_parentheses(expression.split('*')[0]):
+        expression_split = expression.split('*')
+        first_subexpression = expression_split[0]
+        remaining_subexpression = '*'.join(expression_split[1:])
+        first_df: pd.DataFrame =\
+            recursive_expression_transformer(first_subexpression, df)
+        last_df: pd.DataFrame =\
+            recursive_expression_transformer(remaining_subexpression, df)
+        cartesian_product = list(itertools.product(first_df.columns.to_list(), 
+                                              last_df.columns.to_list()))
+        output = dict()
+        for var_a, var_b in cartesian_product:
+            output[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
+                last_df[var_b].to_numpy()
+        return pd.DataFrame(output)
 
-    # all others are not to be transformed
     else:
-        X_transforms_dict['none'].append(X_expression)
-        X_vars.append(X_expression)
-
-    return y_var, y_transform, X_vars, X_transforms_dict
-
-
-
-
-
-def transform_rlike(df: pd.DataFrame, y_var, y_transform, X_vars, 
-                    X_transforms_dict):
-    """Given outputs from parse_rlike_formula(), automatically 
-
-    Parameters
-    ----------
-    - df : pd.DataFrame
-
-    Returns
-    -------
-    - y_series : pd.Series
-    - X_df : pd.DataFrame
-    """
-    pass
+        if is_continuous(expression, df):
+            return df[[expression]]
+        else:
+            return pd.get_dummies(df[[expression]], drop_first=True)
+        
 
 
 def parse_and_transform_rlike(formula: str, df: pd.DataFrame):
     """Transforms the data given a formula. Also one-hot-encodes categorical 
-    variables and drops examples that contain missing entries. 
+    predictor variables and drops examples that contain missing entries. 
+
+    Works for the following transformations:
+    1. log()
+    2. poly()
+    3. interactions
 
     Parameters
     ----------
-    - df : pd.DataFrame
+    - formula : str.
+    - df : pd.DataFrame.
 
     Returns
     -------
     - y_series : pd.Series
+    - y_scaler : None | LogTransformSingleVar
     - X_df : pd.DataFrame
     """
-    return transform_rlike(df, *parse_rlike_formula(formula))
+    # remove all spaces
+    formula = ''.join(formula.split(' '))
+
+    # identify the predictors and response portions of the formula
+    y_formula, X_formula = formula.split('~')
+
+    # y_var can only be log transformed
+    if y_formula[:3] == 'log':
+        y_var = y_formula[4:-1]
+        y_scaler = LogTransformSingleVar(var_name=y_var, x=df[y_var].to_numpy())
+        y_series = pd.Series(y_scaler.transform(df[y_var].to_numpy()), 
+                             name=y_var)
+    else:
+        y_var = y_formula
+        y_scaler = None
+        y_series = pd.Series(df[y_var].to_numpy(), name=y_var)
+
+    # for the predictors protion of the formula, split on plus signs
+    X_expressions = X_formula.split('+')
+    X_dfs = []
+    for X_expression in X_expressions:
+        # recursively parse each expression
+        X_dfs.append(recursive_expression_transformer(X_expression, df))
+
+    # convert the list of series to a dataframe
+    X_df = pd.concat(X_dfs, axis=1)
+    return y_series, y_scaler, X_df
+    
 
         
-        
+
+
+
 
 

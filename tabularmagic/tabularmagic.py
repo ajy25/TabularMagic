@@ -68,6 +68,8 @@ class TabularMagic():
         self.continuous_columns = []
         self._remove_spaces_varnames()
         self._reset_categorical_continuous_vars()
+        self._reset_original_df_indices()
+        self._reset_working_df_indices()
 
 
 
@@ -140,6 +142,8 @@ class TabularMagic():
             self.working_df_test)
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
+        self._reset_original_df_indices()
+        self._reset_working_df_indices()
 
 
     def voting_selection(self, X_vars: list[str], y_var: str, 
@@ -241,25 +245,39 @@ class TabularMagic():
         - train_report : LinearRegressionReport.
         - test_report : LinearRegressionReport.
         """
-        # y_var,  =\
-        #     parse_and_transform_rlike(formula)
+        y_series_train, y_scaler_train, X_df_train =\
+            parse_and_transform_rlike(formula, self.original_df_train)
+        y_series_test, y_scaler_test, X_df_test =\
+            parse_and_transform_rlike(formula, self.original_df_test)
+        
+        y_var = y_series_train.name
+        X_vars = X_df_train.columns
 
+        # ensure missing values are dropped
+        y_X_df_combined_train = pd.concat([y_series_train, X_df_train], axis=1)
+        y_X_df_combined_test = pd.concat([y_series_test, X_df_test], axis=1)
+        y_X_df_combined_train.dropna(inplace=True)
+        y_X_df_combined_test.dropna(inplace=True)
 
-        # model = OrdinaryLeastSquares(X=local_X_train_df, y=local_y_train_series)
-        # model.fit()
-        # y_var_scaler = None
+        y_series_train = y_X_df_combined_train[y_var]
+        X_df_train = y_X_df_combined_train[X_vars]
+        y_series_test = y_X_df_combined_test[y_var]
+        X_df_test = y_X_df_combined_test[X_vars]
 
+        model = OrdinaryLeastSquares(X=X_df_train, y=y_series_train)
+        model.fit()
 
-
-        # return (
-        #     LinearRegressionReport(model, X_eval=local_X_train_df, 
-        #                            y_eval=local_y_train_series,
-        #                            y_scaler=y_var_scaler),
-        #     LinearRegressionReport(model, X_eval=local_X_test_df,
-        #                            y_eval=local_y_test_series,
-        #                            y_scaler=y_var_scaler),
-        # )
-        pass
+        if not inverse_scale_y:
+            y_scaler_train = None
+            y_scaler_test = None
+        return (
+            LinearRegressionReport(model, X_eval=X_df_train, 
+                                   y_eval=y_series_train,
+                                   y_scaler=y_scaler_train),
+            LinearRegressionReport(model, X_eval=X_df_test,
+                                   y_eval=y_series_test,
+                                   y_scaler=y_scaler_test),
+        )
 
 
 
@@ -494,7 +512,17 @@ class TabularMagic():
         self.working_df_train.columns = new_columns
         self.working_df_test.columns = new_columns
 
+    def _reset_original_df_indices(self):
+        """Resets the orig df indices. Improves robustness of methods
+        that may rely on mathced indicies."""
+        self.original_df_train.reset_index(drop=True, inplace=True)
+        self.original_df_test.reset_index(drop=True, inplace=True)
 
+    def _reset_working_df_indices(self):
+        """Resets the working df indices. Improves robustness of methods
+        that may rely on mathced indicies."""
+        self.working_df_train.reset_index(drop=True, inplace=True)
+        self.working_df_test.reset_index(drop=True, inplace=True)
             
         
 

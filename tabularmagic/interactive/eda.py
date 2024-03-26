@@ -261,7 +261,7 @@ class ComprehensiveEDA():
         if stratify_by_var is None:
             grid.map_upper(lambda x, y, **kwargs: plt.text(0.5, 0.5,
                 f'ρ = {round(pearsonr(x, y)[0], 3)}\n' + \
-                f'p = {round(pearsonr(x, y)[1], 5)}', 
+                f'p-value = {round(pearsonr(x, y)[1], 5)}', 
                 ha='center', va='center', transform=plt.gca().transAxes,
                 fontsize=8))
         else:

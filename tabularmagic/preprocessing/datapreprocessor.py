@@ -15,9 +15,12 @@ class BaseSingleVarScaler():
         pass
 
     def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
         pass
 
     def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
         pass
 
 
@@ -32,9 +35,12 @@ class MinMaxSingleVar(BaseSingleVarScaler):
         self.max = self.x.max()
 
     def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
         return (x - self.min) / (self.max - self.min)
 
     def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
         return (self.max - self.min) * x_scaled + self.min
     
 
@@ -49,9 +55,12 @@ class StandardizeSingleVar(BaseSingleVarScaler):
         self.mu = self.x.mean()
 
     def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
         return (x - self.mu) / self.sigma
 
     def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
         return self.sigma * x_scaled + self.mu
     
 
@@ -65,9 +74,12 @@ class LogTransformSingleVar(BaseSingleVarScaler):
         pass
 
     def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
         return np.log(x)
 
     def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
         return np.exp(x_scaled)
 
 
@@ -81,9 +93,12 @@ class Log1PTransformSingleVar(BaseSingleVarScaler):
         pass
 
     def transform(self, x: np.ndarray):
+        """Transforms x. Robust to missing values in x."""
         return np.log1p(x)
 
     def inverse_transform(self, x_scaled: np.ndarray):
+        """Inverse transforms x_scaled. Robust to missing values in x_scaled.
+        """
         return np.expm1(x_scaled)
 
     
@@ -120,6 +135,9 @@ class CustomFunctionSingleVar(BaseSingleVarScaler):
         return self.f_inv(x_scaled)
 
 
+
+
+
 class DataPreprocessor():
     """Automatic handling of one-hot-encoding, scaling, feature selection, 
     and missing data imputation. 
@@ -132,21 +150,23 @@ class DataPreprocessor():
                  onehot_vars: list[str] = [],
                  standardize_vars: list[str] = [],
                  minmax_vars: list[str] = [], 
+                 log1p_vars: list[str] = [],
+                 log_vars: list[str] = [],
                  imputation_strategy: Literal[None, 'drop', 'mean', 
                         'median', '5nn', '10nn'] = None,
-                 impute_vars_to_skip: list[str] = [],
                  dropfirst_onehot: bool = False):
         """Initializes a DataPreprocessor object. 
 
         Parameters
         ----------
-        - df : pd.DataFrame
+        - df : pd.DataFrame.
         - onehot_vars : list[str]. 
         - standard_scale_vars : list[str].
         - minmax_scale_vars : list[str].
-        - imputation_strategy: Literal[None, 'drop', 'mean', 
+        - log1p_vars : list[str].
+        - log_vars : list[str]
+        - imputation_strategy : Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
-        - impute_vars_to_skip: list[str].
         - dropfirst_onehot : bool. 
         
         Returns
@@ -174,9 +194,20 @@ class DataPreprocessor():
             var_name=var, x=self.orig_df[var].to_numpy()) for \
             var in self._minmax_scale_vars}
         
+        # log1p scale metadata
+        self._log1p_scale_vars = log1p_vars.copy()
+        self._log1p_scale_var_to_scaler = {var: Log1PTransformSingleVar(
+            var_name=var, x=self.orig_df[var].to_numpy()) \
+                for var in self._log1p_scale_vars}
+        
+        # log scale metadata
+        self._log_scale_vars = log_vars.copy()
+        self._log_scale_var_to_scaler = {var: LogTransformSingleVar(
+            var_name=var, x=self.orig_df[var].to_numpy()) \
+                for var in self._log_scale_vars}
+        
         # missing data metadata
         self._imputation_strategy = imputation_strategy
-        self._impute_vars_to_skip = impute_vars_to_skip
         self._imputer = None
         
 
@@ -197,56 +228,10 @@ class DataPreprocessor():
         df_temp = self._standardize_forward(df_temp)
         df_temp = self._minmax_forward(df_temp)
         df_temp = self._onehot_forward(df_temp)
+        df_temp = self._log1p_forward(df_temp)
+        df_temp = self._log_forward(df_temp)
         df_temp = self._handle_missing_values(df_temp)
         return df_temp
-    
-
-    def forward_single_var(self, series: pd.Series) -> pd.Series:
-        """Forward transformation on a single Series. Only for continuous 
-        variable transformations. 
-        
-        Parameters
-        ----------
-        - series : pd.Series.
-
-        Returns
-        -------
-        - pd.Series. 
-        """
-        var_name = str(series.name)
-        if var_name in self._minmax_scale_vars:
-            return pd.Series(data=self._minmax_scale_var_to_scaler[var_name].\
-                transform(series.to_numpy()), index=series.index)
-        elif var_name in self._standard_scale_vars:
-            return pd.Series(data=self._standard_scale_var_to_scaler[var_name].\
-                transform(series.to_numpy()), index=series.index)
-        else:
-            raise ValueError(f'Invalid input: {series}. Name of series must' + \
-                ' be in standardized/min-maxed variable list.')
-        
-
-    def backward_single_var(self, series: pd.Series) -> pd.Series:
-        """Backward transformation on a single Series. Only for continuous 
-        variable transformations. 
-        
-        Parameters
-        ----------
-        - series : pd.Series.
-
-        Returns
-        -------
-        - pd.Series. 
-        """
-        var_name = str(series.name)
-        if var_name in self._minmax_scale_vars:
-            return pd.Series(data=self._minmax_scale_var_to_scaler[var_name].\
-                inverse_transform(series.to_numpy()), index=series.index)
-        elif var_name in self._standard_scale_vars:
-            return pd.Series(data=self._standard_scale_var_to_scaler[var_name].\
-                inverse_transform(series.to_numpy()), index=series.index)
-        else:
-            raise ValueError(f'Invalid input: {series}. Name of series must' + \
-                ' be in standardized/min-maxed variable list.')
         
 
     def get_single_var_scaler(self, var_name: str) -> BaseSingleVarScaler:
@@ -265,6 +250,10 @@ class DataPreprocessor():
             return self._minmax_scale_var_to_scaler[var_name]
         elif var_name in self._standard_scale_vars:
             return self._standard_scale_var_to_scaler[var_name]
+        elif var_name in self._log1p_scale_vars:
+            return self._log1p_scale_var_to_scaler[var_name]
+        elif var_name in self._log_scale_vars:
+            return self._log_scale_var_to_scaler[var_name]
         else:
             return None
 
@@ -330,6 +319,39 @@ class DataPreprocessor():
                 df[var].to_numpy())
         return df
     
+
+    def _log1p_forward(self, df: pd.DataFrame) -> pd.DataFrame:
+        """log1p scales subset of the DataFrame.
+        
+        Parameters
+        ----------
+        - df : pd.DataFrame.
+
+        Returns
+        -------
+        - pd.DataFrame.
+        """
+        for var in self._log1p_scale_vars:
+            df[var] = self._log1p_scale_var_to_scaler[var].transform(
+                df[var].to_numpy())
+        return df
+    
+
+    def _log_forward(self, df: pd.DataFrame) -> pd.DataFrame:
+        """log scales subset of the DataFrame.
+        
+        Parameters
+        ----------
+        - df : pd.DataFrame.
+
+        Returns
+        -------
+        - pd.DataFrame.
+        """
+        for var in self._log_scale_vars:
+            df[var] = self._log_scale_var_to_scaler[var].transform(
+                df[var].to_numpy())
+        return df
 
     
     def _handle_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:

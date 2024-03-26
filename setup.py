@@ -13,7 +13,7 @@ def parse_requirements(file_path):
 
 setup(
     name='tabularmagic',
-    version='1.0.0',
+    version='0.0.0',
     packages=find_packages(),
     author='Andrew Jianhua Yang',
     license=pathlib.Path('LICENSE').read_text(),

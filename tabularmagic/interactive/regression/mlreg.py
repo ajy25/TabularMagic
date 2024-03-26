@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.axes as axes
 from typing import Iterable
-from ..metrics.regression_scoring import RegressionScorer
-from ..ml import *
-from ..preprocessing.datapreprocessor import BaseSingleVarScaler
-from .visualization import plot_pred_vs_true
+from ...metrics.regression_scoring import RegressionScorer
+from ...ml import *
+from ...preprocessing.datapreprocessor import BaseSingleVarScaler
+from ..visualization import plot_pred_vs_true
 
 
 class MLRegressionReport():

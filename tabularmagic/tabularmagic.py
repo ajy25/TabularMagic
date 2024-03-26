@@ -68,10 +68,6 @@ class TabularMagic():
         self.continuous_columns = []
         self._remove_spaces_varnames()
         self._reset_categorical_continuous_vars()
-        self._reset_original_df_indices()
-        self._reset_working_df_indices()
-
-
 
 
     # --------------------------------------------------------------------------
@@ -245,6 +241,7 @@ class TabularMagic():
         - train_report : LinearRegressionReport.
         - test_report : LinearRegressionReport.
         """
+
         y_series_train, y_scaler_train, X_df_train =\
             parse_and_transform_rlike(formula, self.original_df_train)
         y_series_test, y_scaler_test, X_df_test =\
@@ -254,10 +251,13 @@ class TabularMagic():
         X_vars = X_df_train.columns
 
         # ensure missing values are dropped
-        y_X_df_combined_train = pd.concat([y_series_train, X_df_train], axis=1)
-        y_X_df_combined_test = pd.concat([y_series_test, X_df_test], axis=1)
+        y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
+        y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
         y_X_df_combined_train.dropna(inplace=True)
         y_X_df_combined_test.dropna(inplace=True)
+        y_X_df_combined_train, y_X_df_combined_test =\
+            self._train_test_var_agreement(y_X_df_combined_train, 
+                y_X_df_combined_test)
 
         y_series_train = y_X_df_combined_train[y_var]
         X_df_train = y_X_df_combined_train[X_vars]
@@ -502,6 +502,43 @@ class TabularMagic():
                         self.working_df_train.columns):
             assert a == b
 
+    def _train_test_var_agreement(self, df_train: pd.DataFrame, 
+                                  df_test: pd.DataFrame):
+        """Modifies df_test to have the same columns as df_train. This helps 
+        mitigate any problems that may arise from one-hot-encoding the test set.
+
+        Parameters
+        ----------
+        - df_train : pd.DataFrame.
+        - df_test : pd.DataFrane.
+
+        Returns
+        -------
+        - df_train : pd.DataFrame
+        - df_test : pd.DataFrame
+        """
+        missing_test_columns = list(set(df_train.columns) -\
+            set(df_test.columns))
+        extra_test_columns = list(set(df_test.columns) -\
+            set(df_train.columns))
+        if len(extra_test_columns) > 0:
+            self.working_df_test.drop(columns=extra_test_columns, axis=1, 
+                                      inplace=True)
+        if len(missing_test_columns) > 0:
+            for col in missing_test_columns:
+                df_test[col] = 0
+        assert len(df_test.columns) == \
+            len(df_train.columns)
+
+        # ensure that the train and test dfs have the same order
+        # (for nicer exploration)
+        df_test = df_test[df_train.columns]
+        for a, b in zip(df_test.columns, 
+                        df_train.columns):
+            assert a == b
+        return df_train, df_test
+
+
     def _remove_spaces_varnames(self):
         """Removes spaces from variable names. Necessary for R-like lm()
         calls.
@@ -512,17 +549,6 @@ class TabularMagic():
         self.working_df_train.columns = new_columns
         self.working_df_test.columns = new_columns
 
-    def _reset_original_df_indices(self):
-        """Resets the orig df indices. Improves robustness of methods
-        that may rely on mathced indicies."""
-        self.original_df_train.reset_index(drop=True, inplace=True)
-        self.original_df_test.reset_index(drop=True, inplace=True)
-
-    def _reset_working_df_indices(self):
-        """Resets the working df indices. Improves robustness of methods
-        that may rely on mathced indicies."""
-        self.working_df_train.reset_index(drop=True, inplace=True)
-        self.working_df_test.reset_index(drop=True, inplace=True)
             
         
 

@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
+from scipy import stats
 import itertools
-from ...preprocessing import LogTransformSingleVar
+from ...preprocessing import LogTransformSingleVar, CustomFunctionSingleVar
 
 
 def is_continuous(var: str, df: pd.DataFrame):
@@ -207,9 +208,21 @@ def parse_and_transform_rlike(formula: str, df: pd.DataFrame):
     y_formula, X_formula = formula.split('~')
 
     # y_var can only be log transformed
-    if y_formula[:3] == 'log':
+    if y_formula[:4] == 'log(':
         y_var = y_formula[4:-1]
         y_scaler = LogTransformSingleVar(var_name=y_var, x=df[y_var].to_numpy())
+        y_series = pd.Series(y_scaler.transform(df[y_var].to_numpy()), 
+                             name=y_var, index=df.index)
+    elif y_formula[:7] == 'boxcox(':
+        y_var = y_formula[7:-1]
+        y_vals = df[y_var].to_numpy()
+        _, lmda = stats.boxcox(y_vals)
+        if lmda != 0:
+            y_scaler = CustomFunctionSingleVar(var_name=y_var, x=y_vals, 
+                f=lambda x: (x ** lmda - 1) / lmda, 
+                f_inv=lambda x: (x * lmda + 1) ** (1 / lmda))
+        else:
+            y_scaler = LogTransformSingleVar(var_name=y_var, x=y_vals)
         y_series = pd.Series(y_scaler.transform(df[y_var].to_numpy()), 
                              name=y_var, index=df.index)
     else:

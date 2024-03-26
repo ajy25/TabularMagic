@@ -113,7 +113,6 @@ class TabularMagic():
         - minmax_scale_vars : list[str].
         - imputation_strategy: Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
-        - impute_vars_to_skip: list[str].
         - dropfirst_onehot : bool. 
             Default: False. 
             All binary variables will automatically drop first, 
@@ -129,7 +128,6 @@ class TabularMagic():
             standardize_vars=standardize_vars,
             minmax_vars=minmax_vars,
             imputation_strategy=imputation_strategy,
-            impute_vars_to_skip=impute_vars_to_skip,
             dropfirst_onehot=dropfirst_onehot
         )
         self.working_df_train = self._dp.forward(
@@ -138,8 +136,6 @@ class TabularMagic():
             self.working_df_test)
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
-        self._reset_original_df_indices()
-        self._reset_working_df_indices()
 
 
     def voting_selection(self, X_vars: list[str], y_var: str, 

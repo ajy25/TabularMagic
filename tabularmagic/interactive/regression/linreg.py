@@ -48,6 +48,7 @@ class LinearRegressionReport():
             self._y_true = y_scaler.inverse_transform(self._y_true)
         self.scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
             n_regressors=model._n_regressors, model_id_str=str(model))
+        self.fit_statistics = self.scorer.to_df()
         self._residuals = self._y_true - self._y_pred
         
         

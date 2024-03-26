@@ -10,13 +10,14 @@ Currently in development.
 To install TabularMagic: 
 
 ```
-python setup.py install
+git clone https://github.com/ajy25/TabularMagic.git
+python tm-install.py
 ```
 
 To uninstall TabularMagic:
 
 ```
-pip unstall tabularmagic
+python tm-uninstall.py
 ```
 
 ### Getting started

@@ -219,8 +219,7 @@ class ComprehensiveEDA():
             
 
     def plot_continuous_pairs(self, continuous_vars: list[str] = None, 
-                                    stratify_by_var: str = None, 
-                                    figsize: Iterable = (5, 5)):
+        stratify_by_var: str = None, figsize: Iterable = (5, 5)):
         """
         Plots pairwise relationships between continuous variables. 
 
@@ -246,11 +245,6 @@ class ComprehensiveEDA():
             grid = sns.PairGrid(self.df[continuous_vars].dropna())
             right_adjust = None
         else:
-            if stratify_by_var not in self.categorical_columns:
-                raise ValueError(
-                    f'Invalid input: {stratify_by_var}. ' + \
-                    'Must be a known categorical variable.'
-                )
             grid = sns.PairGrid(
                 self.df[continuous_vars + [stratify_by_var]].dropna(), 
                 hue=stratify_by_var)
@@ -292,6 +286,75 @@ class ComprehensiveEDA():
         plt.close(fig)
         return fig
     
+
+    def plot_distribution_stratified(self, continuous_var: str, 
+        stratify_by_var: str, include_hist: bool = False, 
+        figsize : Iterable = (5, 5), 
+        ax: axes.Axes = None):
+        """Plots the distributions (density) of a given continuous variable 
+        stratified by a categorical variable. Note that NaNs will be dropped, 
+        which may yield different ranges for different 
+        stratify_by_var inputs, depending on their levels of missingness. 
+        
+        Parameters
+        ----------
+        - continuous_var : str. Continuous variable of interest.
+        - stratify_by_var : str. 
+        - include_hist: bool. If True, includes the histograms in addition to 
+            the KDE plots. 
+        - figsize : Iterable.
+        - ax : axes.Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input axes.Axes. 
+
+        Returns
+        -------
+        - plt.Figure
+        """
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        local_df = self.df[[continuous_var, stratify_by_var]].dropna()
+
+        for i, category in enumerate(local_df[stratify_by_var].unique()):
+            subset = local_df[local_df[stratify_by_var] == category]
+            print(subset[continuous_var].to_numpy().max())
+            if include_hist:
+                sns.histplot(subset[continuous_var], bins='auto', kde=True, 
+                            label=category, alpha=0.2, stat='density', 
+                            ax=ax, color=sns.color_palette()[i], 
+                            edgecolor=sns.color_palette()[i])
+            else:
+                sns.kdeplot(subset[continuous_var], label=category, ax=ax)
+        legend = ax.legend()
+        legend.set_title(stratify_by_var)
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
+        ax.set_title(f'Distribution of {continuous_var}')
+
+        if fig is not None:
+            fig.tight_layout()
+            plt.close()
+        return fig
+    
+    def plot_distribution(self, var: str, density: bool = False,
+            figsize: Iterable = (5, 5), ax: axes.Axes = None):
+        """Plots the distribution of the variable.
+        
+        Parameters
+        ----------
+        - var : str.
+        - density : bool. If True, plots the density rather than the 
+            frequency.
+        - figsize : Iterable.
+        - ax : axes.Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input axes.Axes. 
+
+        Returns
+        -------
+        - plt.Figure
+        """
+        return self[var].plot_distribution(
+            density=density, figsize=figsize, ax=ax)
 
     def plot_pca(self, continuous_vars: list[str], stratify_by_var: str = None, 
                  standardize: bool = True, whiten: bool = False,
@@ -374,6 +437,7 @@ class ComprehensiveEDA():
 
         title_str = ', '.join(continuous_vars)
         ax.set_title(f'PCA({title_str})', wrap=True)
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
         
         if fig is not None:
             fig.tight_layout()

@@ -192,7 +192,7 @@ class TabularMagic():
         - alpha : float.
             Default: 0.
         - inverse_scale_y : bool.
-            If true, inverse scales the y_true and y_pred values to their 
+            If True, inverse scales the y_true and y_pred values to their 
             original scales. Default: 0.
             
         Returns
@@ -222,15 +222,19 @@ class TabularMagic():
     
 
     def lm_rlike(self, formula: str, inverse_scale_y: bool = True):
-        """Performs an R-like regression analysis. Unlike lm(), uses the 
-        originally-inputted data. That is, all preprocessing must be specified 
-        in the formula; categorical variables are automatically detected 
-        and dealt with. Examples with missing data will be dropped.
+        """Performs an R-like regression analysis. That is, 
+        all further preprocessing should be specified 
+        in the formula; any categorical variables are automatically 
+        detected and one-hot encoded. 
+        Examples with missing data will be dropped.
 
         Parameters
         ----------
         - formula : str. 
             An R-like formula, e.g. y ~ x1 + log(x2) + poly(x3)
+        - inverse_scale_y : bool.
+            If True, inverse scales the y_true and y_pred values to their 
+            original scales. Default: 0.
 
         Returns
         -------
@@ -239,9 +243,9 @@ class TabularMagic():
         """
 
         y_series_train, y_scaler_train, X_df_train =\
-            parse_and_transform_rlike(formula, self.original_df_train)
+            parse_and_transform_rlike(formula, self.working_df_train)
         y_series_test, y_scaler_test, X_df_test =\
-            parse_and_transform_rlike(formula, self.original_df_test)
+            parse_and_transform_rlike(formula, self.working_df_test)
         
         y_var = y_series_train.name
         X_vars = X_df_train.columns
@@ -408,16 +412,27 @@ class TabularMagic():
 
 
     def drop_vars(self, vars: list[str]):
-        """Drops subset of (column) variables in-place on the working 
+        """Drops subset of variables (columns) in-place on the working 
         train and test datasets. 
 
         Parameters
         ----------
         - vars : list[str]
         """
-        self.working_df_train = self.working_df_train.drop(vars, axis='columns')
-        self.working_df_test = self.working_df_test.drop(vars, axis='columns')
+        self.working_df_train.drop(vars, axis='columns', inplace=True)
+        self.working_df_test.drop(vars, axis='columns', inplace=True)
         self._reset_categorical_continuous_vars()
+
+
+    def drop_train_examples(self, indices: list):
+        """Drops subset of examples (rows) in-place on the working train 
+        dataset. 
+
+        Parameters
+        ----------
+        - indices : list.
+        """
+        self.working_df_train.drop(indices, axis='index', inplace=True)
 
 
     # --------------------------------------------------------------------------

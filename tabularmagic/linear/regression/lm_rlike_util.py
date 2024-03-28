@@ -118,7 +118,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
         new_col_names = []
         for col in output_df.columns:
             new_col_names.append(f'exp({col})')
-            output_df.loc[:, col] = np.log(output_df[col].to_numpy())
+            output_df.loc[:, col] = np.exp(output_df[col].to_numpy())
         output_df.columns = new_col_names
         return output_df
     

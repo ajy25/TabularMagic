@@ -25,14 +25,17 @@ def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray,
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-    ax.scatter(y_true, y_pred, s=2, color='black')
     min_val = np.min(np.hstack((y_pred, y_true)))
     max_val = np.max(np.hstack((y_pred, y_true)))
+    ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
+
+    ax.scatter(y_true, y_pred, s=2, color='black')
+
     ax.set_xlim(min_val, max_val)
     ax.set_ylim(min_val, max_val)
     ax.set_xlabel('True')
     ax.set_ylabel('Predicted')
-    ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
+    
     ax.set_title(f'Predicted vs True | ' + \
                     f'ρ = {round(pearsonr(y_pred, y_true)[0], 3)}')
     ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))

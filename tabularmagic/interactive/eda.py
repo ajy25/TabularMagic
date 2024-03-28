@@ -7,6 +7,7 @@ from scipy.stats import kurtosis, skew, pearsonr, ttest_ind
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
+from textwrap import fill
 
 
 class CategoricalEDA():
@@ -64,8 +65,8 @@ class CategoricalEDA():
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
 
-        ax.bar(value_freqs.index, value_freqs.values, color='black', 
-               edgecolor='black')
+        ax.bar(value_freqs.index, value_freqs.values, color='gray', 
+               edgecolor='none')
         ax.set_title(f'Distrubution of {self.variable_name}')
         ax.set_xlabel('Categories')
         if density:
@@ -162,8 +163,8 @@ class ContinuousEDA():
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        sns.histplot(values, bins='auto', color='black', edgecolor='black', 
-                     stat=stat, ax=ax, kde=True)
+        sns.histplot(values, bins='auto', color='black', edgecolor='none', 
+                     stat=stat, ax=ax, kde=True, alpha=0.2)
         ax.set_title(f'Distribution of {self.variable_name}')
         ax.set_xlabel('Values')
         if density:
@@ -241,25 +242,30 @@ class ComprehensiveEDA():
         if len(continuous_vars) > 6:
             raise ValueError('No more than 6 continuous variables may be ' + \
                              'plotted at the same time.')
+        
         if stratify_by_var is None: 
             grid = sns.PairGrid(self.df[continuous_vars].dropna())
             right_adjust = None
         else:
             grid = sns.PairGrid(
                 self.df[continuous_vars + [stratify_by_var]].dropna(), 
-                hue=stratify_by_var)
+                hue=stratify_by_var, palette=sns.color_palette()\
+                    [:len(self.df[stratify_by_var].unique())])
             right_adjust = 0.85
 
-
-        grid.map_diag(sns.histplot, color='black', edgecolor=None, kde=True)
+        grid.map_diag(sns.histplot, color='black', edgecolor='none', kde=True, 
+                      alpha=0.2)
+        
         if stratify_by_var is None:
             grid.map_upper(lambda x, y, **kwargs: plt.text(0.5, 0.5,
                 f'ρ = {round(pearsonr(x, y)[0], 3)}\n' + \
                 f'p-value = {round(pearsonr(x, y)[1], 5)}', 
-                ha='center', va='center', transform=plt.gca().transAxes,
+                ha='center', va='center', 
+                transform=plt.gca().transAxes,
                 fontsize=8))
         else:
             grid.map_upper(sns.scatterplot, s=2, color='black')
+
         grid.map_lower(sns.scatterplot, s=2, color='black')
 
         grid.add_legend()
@@ -282,6 +288,7 @@ class ComprehensiveEDA():
                              prop={'size': 7})
             # TODO: Fix label spacing
             for text in legend.get_texts():
+                text.set_text(fill(text.get_text(), 10))
                 text.set_fontsize(6)
         plt.close(fig)
         return fig
@@ -318,14 +325,14 @@ class ComprehensiveEDA():
 
         for i, category in enumerate(local_df[stratify_by_var].unique()):
             subset = local_df[local_df[stratify_by_var] == category]
-            print(subset[continuous_var].to_numpy().max())
             if include_hist:
                 sns.histplot(subset[continuous_var], bins='auto', kde=True, 
-                            label=category, alpha=0.2, stat='density', 
+                            label=str(category), alpha=0.2, stat='density', 
                             ax=ax, color=sns.color_palette()[i], 
-                            edgecolor=sns.color_palette()[i])
+                            edgecolor='none')
             else:
-                sns.kdeplot(subset[continuous_var], label=category, ax=ax)
+                sns.kdeplot(subset[continuous_var], label=str(category), ax=ax)
+
         legend = ax.legend()
         legend.set_title(stratify_by_var)
         ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    mean_squared_error, mean_absolute_error, r2_score, 
+    mean_squared_error, mean_absolute_error, r2_score
 )
 from scipy.stats import (
     pearsonr, spearmanr

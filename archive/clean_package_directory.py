@@ -13,5 +13,5 @@ def remove_pycache(directory_path: str):
         dirs[:] = [d for d in dirs if d != '__pycache__']
 
 if __name__ == '__main__':
-    remove_pycache('tabularmagic')
-    
+    remove_pycache('../tabularmagic')
+        

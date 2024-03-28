@@ -9,6 +9,7 @@ from ...metrics.regression_scoring import RegressionScorer
 from ...linear import *
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
 from ..visualization import *
+from adjustText import adjust_text
 
 
 
@@ -107,7 +108,7 @@ class LinearRegressionReport():
         return fig
     
 
-    def plot_residuals_vs_fitted(self, standardized: bool = True, 
+    def plot_residuals_vs_fitted(self, standardized: bool = False, 
                                  show_outliers: bool = True,
                                  figsize: Iterable = (5, 5), 
                                  ax: axes.Axes = None):
@@ -164,7 +165,7 @@ class LinearRegressionReport():
         return fig
 
 
-    def plot_residuals_vs_var(self, x_var: str, standardized: bool = True, 
+    def plot_residuals_vs_var(self, x_var: str, standardized: bool = False, 
                               show_outliers: bool = False,
                               figsize: Iterable = (5, 5), 
                               ax: axes.Axes = None):
@@ -386,12 +387,13 @@ class LinearRegressionReport():
     
 
     
-    def plot_qq(self, show_outliers: bool = False,
+    def plot_qq(self, standardized: bool = True, show_outliers: bool = False,
                 figsize: Iterable = (5, 5), ax: axes.Axes = None):
         """Returns a quantile-quantile plot.
         
         Parameters 
         ----------
+        - standardized : bool. If True, standardizes the residuals. 
         - show_outliers : bool. If True, plots the outliers in red.
         - figsize : Iterable.
         - ax : axes.Axes. 
@@ -404,34 +406,74 @@ class LinearRegressionReport():
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
+        if standardized:
+            residuals = self._stdresiduals
+        else:
+            residuals = self._residuals
+            
+        sorted_residual_idx = np.argsort(residuals)
 
-        tup1, _ = stats.probplot(self._stdresiduals, dist='norm')
-        theoretical_quantitles, std_res = tup1
+        tup1, tup2 = stats.probplot(residuals, dist='norm')
+        theoretical_quantitles, ordered_vals = tup1
+        slope, intercept, _ = tup2
 
         ax.set_title('Q-Q Plot')
         ax.set_xlabel('Theoretical Quantiles')
-        ax.set_ylabel('Standardized Residuals')
 
-        temp_stack = np.hstack((theoretical_quantitles, std_res))
-        min_val = np.min(temp_stack)
-        max_val = np.max(temp_stack)
-        ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
+        if standardized:
+            ax.set_ylabel('Standardized Residuals')
+        else:
+            ax.set_ylabel('Residuals')
+
+        min_val = np.min(theoretical_quantitles)
+        max_val = np.max(theoretical_quantitles)
+        ax.plot([min_val, max_val], [min_val * slope + intercept, 
+                                     max_val * slope + intercept], 
+                color='r', linestyle='--', linewidth=1)
 
         if show_outliers and len(self._outliers_residual_idx) > 0:
-            ax.scatter(theoretical_quantitles[~self._outliers_residual_idx], 
-                    std_res[~self._outliers_residual_idx], s=2, 
-                    color='black')
-            ax.scatter(theoretical_quantitles[self._outliers_residual_idx], 
-                    std_res[self._outliers_residual_idx], s=2, 
-                    color='red')
-            for i, label in enumerate(self._outliers_df_idx):
-                ax.annotate(label, 
-                        (theoretical_quantitles[self._outliers_residual_idx][i], 
-                        std_res[self._outliers_residual_idx][i]), 
-                        textcoords="offset points", color='red',
-                        xytext=(0, 5), ha='center', fontsize=6)
+
+            ax.scatter(theoretical_quantitles, ordered_vals, 
+                s=2, color='black')
+
+            # TODO: Fix outliers for QQ plot
+
+
+            # outlier_residual_idx_sorted = self._outliers_residual_idx\
+            #     [sorted_residual_idx]
+
+            # ax.scatter(theoretical_quantitles[~outlier_residual_idx_sorted], 
+            #         ordered_vals[~outlier_residual_idx_sorted], s=2, 
+            #         color='black')
+            # ax.scatter(theoretical_quantitles[outlier_residual_idx_sorted], 
+            #         ordered_vals[outlier_residual_idx_sorted], s=2, 
+            #         color='red')
+            
+
+            # true_outlier_residual_idx: list = np.where(
+            #     self._outliers_residual_idx)[0].tolist()
+            # idx_to_label = {idx: label for idx, label in zip(
+            #     true_outlier_residual_idx, self._outliers_df_idx)}
+            
+            # true_outlier_residual_idx_sorted: list = np.where(
+            #     outlier_residual_idx_sorted)[0].tolist()
+            # sorted_idx_to_idx = {sorted_idx: idx for sorted_idx, idx in zip(
+            #     true_outlier_residual_idx_sorted, true_outlier_residual_idx
+            # )}
+
+            # annotations = []
+            # for idx in true_outlier_residual_idx_sorted:
+            #     annotations.append(
+            #         ax.annotate(idx_to_label[sorted_idx_to_idx[idx]], 
+            #         (theoretical_quantitles[idx], ordered_vals[idx]), 
+            #         textcoords="offset points", 
+            #         xytext=(0, 5), 
+            #         ha='center', 
+            #         color='red',
+            #         fontsize=6))
+            # # adjust_text(annotations, ax=ax)
         else:
-            ax.scatter(theoretical_quantitles, std_res, 
+            ax.scatter(theoretical_quantitles, ordered_vals, 
                        s=2, color='black')
 
         if fig is not None:

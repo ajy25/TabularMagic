@@ -27,7 +27,8 @@ def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray,
 
     min_val = np.min(np.hstack((y_pred, y_true)))
     max_val = np.max(np.hstack((y_pred, y_true)))
-    ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1)
+    ax.plot([min_val, max_val], [min_val, max_val], linestyle='--', 
+            color='gray', linewidth=1)
 
     ax.scatter(y_true, y_pred, s=2, color='black')
 

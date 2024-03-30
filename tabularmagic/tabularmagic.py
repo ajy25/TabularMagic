@@ -1,4 +1,5 @@
 import pandas as pd
+import polars as pl
 from typing import Iterable, Literal
 import matplotlib.pyplot as plt
 plt.ioff()
@@ -13,12 +14,12 @@ from .preprocessing import DataPreprocessor, RegressionBaseSelector
 
 class TabularMagic():
     """TabularMagic: Automatic statistical and machine learning analysis of 
-    datasets in tabular form.
+    datasets in tabular form. 
     """
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
                 test_size: float = 0.0, split_seed: int = 42):
-        """Initializes a TabularMagic object. 
+        """Initializes a TabularMagic object.
         
         Note: DataFrame indices are not guaranteed to be correctly preserved. 
 

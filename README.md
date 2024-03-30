@@ -1,9 +1,11 @@
 # TabularMagic
-TabularMagic is a comprehensive wrapper of scikit-learn and statsmodels algorithms for rapid exploratory statistical and machine learning modeling of tabular data. TabularMagic reduces the headache of exploratory data analysis, regression analysis, and machine learning model benchmarking. Use TabularMagic to quickly explore your dataset, easily conduct regression analysis, and automatically compute baseline performance metrics across several popular machine learning models. 
+TabularMagic is a comprehensive wrapper of scikit-learn and statsmodels algorithms for rapid exploratory statistical and machine learning modeling of tabular data. TabularMagic reduces the headache of exploratory data analysis, regression analysis, and machine learning model benchmarking. Use TabularMagic to quickly explore a dataset, easily conduct regression analysis, and automatically compute baseline performance metrics across several popular machine learning models. 
 
-Currently under development.
+TabularMagic is specifically designed for speeding up data science routines on clinical datasets. As such, TabularMagic works best on smaller datasets (i.e., datasets with fewer than 10000 examples). 
 
-## Installation
+Currently under active development. 
+
+## Installation and Dependencies
 
 TabularMagic can be installed via pip. The Python scripts below handle 
 package setup and pip installation. 
@@ -19,11 +21,12 @@ To uninstall TabularMagic:
 python tm-install.py uninstall
 ```
 
+TabularMagic is built on top of the standard Python data science stack (pandas, NumPy, Matplotlib). 
+
 
 ## Getting started
 
-We can build a TabularMagic object from a provided dataset. The 
-TabularMagic object allows for rapid exploratory data analysis. 
+We can build a TabularMagic object from a provided dataset. The TabularMagic object allows for rapid exploratory data analysis. 
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -39,10 +42,7 @@ df['target'] = diabetes_data.target
 tm = TabularMagic(df, test_size=0.2, split_seed=42)
 ```
 
-TabularMagic makes exploratory data analysis easy. Note that all TabularMagic 
-plotting methods close figures before returning them for easier use with 
-IPython notebooks. When working outside of IPython notebooks, returned figures 
-must be reshown. 
+TabularMagic makes exploratory data analysis easy. Note that all TabularMagic plotting methods close figures before returning them for easier use with IPython notebooks. When working outside of IPython notebooks, returned figures must be reshown. 
 ```
 def reshow(fig: plt.Figure):
     new_fig = plt.figure(figsize=fig.get_size_inches())
@@ -64,11 +64,7 @@ print(train_reg_report.statsmodels_summary())
 reshow(train_reg_report.plot_diagnostics())
 ```
 
-TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross
-validation handles hyperparameter selection and model evaluation on training 
-data. The selected models are evaluated on the withheld testing data as well. 
-Note that nested cross validation is computationally expensive and could take
-some time to run. 
+TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could takesome time to run; to disable nested cross validation, simply set `outer_cv = None`.
 ```
 from tabularmagic.ml import Linear, TreeEnsemble, SVM
 models =[
@@ -96,6 +92,11 @@ reshow(test_ml_report['Linear(l2)'].plot_pred_vs_true())
 
 To learn more about TabularMagic functionality, check out the demos available in
 the ./demo subdirectory. 
+
+
+
+
+
 
 
 

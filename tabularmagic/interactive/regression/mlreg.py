@@ -14,7 +14,7 @@ class MLRegressionReport():
     """
 
     def __init__(self, model: BaseRegression, X_eval: pd.DataFrame = None, 
-                 y_eval: pd.DataFrame = None, 
+                 y_eval: pd.Series = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a RegressionReport object. 
@@ -25,7 +25,7 @@ class MLRegressionReport():
             The model must already be trained.
         - X_eval : pd.DataFrame.
             Default: None. If None, uses the model training results directly. 
-        - y_eval : pd.DataFrame.
+        - y_eval : pd.Series.
             Default: None. If None, uses the model training results directly. 
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
@@ -38,7 +38,7 @@ class MLRegressionReport():
         self.model = model
         if X_eval is not None and y_eval is not None:
             self._y_pred = model.predict(X_eval.to_numpy())
-            self._y_true = y_eval.to_numpy().flatten()
+            self._y_true = y_eval.to_numpy()
             self.scorer = RegressionScorer(y_pred=self._y_pred, 
                 y_true=self._y_true, n_regressors=model._n_regressors, 
                 model_id_str=str(model))

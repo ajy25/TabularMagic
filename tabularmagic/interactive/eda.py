@@ -259,7 +259,7 @@ class ComprehensiveEDA():
         if stratify_by_var is None:
             grid.map_upper(lambda x, y, **kwargs: plt.text(0.5, 0.5,
                 f'ρ = {round(pearsonr(x, y)[0], 3)}\n' + \
-                f'p-value = {round(pearsonr(x, y)[1], 5)}', 
+                f'p = {round(pearsonr(x, y)[1], 5)}', 
                 ha='center', va='center', 
                 transform=plt.gca().transAxes,
                 fontsize=8))
@@ -364,6 +364,7 @@ class ComprehensiveEDA():
             density=density, figsize=figsize, ax=ax)
 
     def plot_pca(self, continuous_vars: list[str], stratify_by_var: str = None, 
+                 stratify_by_labels: pd.Series = None, 
                  standardize: bool = True, whiten: bool = False,
                  three_components: bool = False, figsize: Iterable = (5, 5), 
                  ax: axes.Axes = None):
@@ -376,6 +377,9 @@ class ComprehensiveEDA():
         - continuous_vars : list[str]. List of continuous variables across 
             which the PCA will be performed
         - stratify_by_var : str. 
+        - stratify_by_labels : Iterable[str].
+            Must be the same length as the dataset. Index must be compatible 
+            with self.df. 
         - standardize : bool. If True, centers and scales each feature to have 
             0 mean and unit variance. 
         - whiten : bool. If True, performs whitening on the data during PCA. 
@@ -389,6 +393,16 @@ class ComprehensiveEDA():
         -------
         - plt.Figure
         """
+        if stratify_by_labels is not None:
+            if len(stratify_by_labels) != len(self.df):
+                raise ValueError('stratify_by_labels must have same length ' +\
+                                 'as self.df.')
+            elif stratify_by_var is not None:
+                raise ValueError('One of stratify_by_var, stratify_by_labels' +\
+                                 ' must be None.')
+            else:
+                pass
+
         fig = None
         if ax is None:
             if three_components:
@@ -425,6 +439,29 @@ class ComprehensiveEDA():
                     ax.set_ylabel('Principle Component 2')
             legend = ax.legend()
             legend.set_title(stratify_by_var)
+        elif stratify_by_labels is not None:
+            X_y = self.df[continuous_vars].join(stratify_by_labels).dropna()
+            X = X_y[continuous_vars].to_numpy()
+            if standardize:
+                X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            components = pca.fit_transform(X)
+            labels_name = stratify_by_labels.name
+            categories = X_y[labels_name].to_numpy()
+            for category in np.unique(categories):
+                mask = categories == category
+                if three_components:
+                    ax.scatter(components[mask, 0], components[mask, 1], 
+                        components[mask, 2], label=category, s=2)
+                    ax.set_xlabel('Principle Component 1')
+                    ax.set_ylabel('Principle Component 2')
+                    ax.set_zlabel('Principle Component 3')
+                else:
+                    ax.scatter(components[mask, 0], components[mask, 1], 
+                        label=category, s=2)
+                    ax.set_xlabel('Principle Component 1')
+                    ax.set_ylabel('Principle Component 2')
+            legend = ax.legend()
+            legend.set_title(labels_name)
         else:
             X = self.df[continuous_vars].dropna().to_numpy()
             if standardize:
@@ -468,10 +505,12 @@ class ComprehensiveEDA():
 
         Returns
         -------
+        - mu_1 - mu_2 : float
         - t-statistic : float
         - p-value : float
-        - degfree : int. Degrees of freedom.
+        - deg_freedom : int. Degrees of freedom.
         """
+
         if continuous_var not in self.continuous_columns:
             raise ValueError(
                 f'Invalid input: {continuous_var}. ' + \
@@ -483,13 +522,14 @@ class ComprehensiveEDA():
                 f'Invalid input: {stratify_by_var}. ' + \
                 'Must be a known binary variable.'
             )
-        elif len(np.unique(self.df[stratify_by_var].to_numpy())) != 2:
+        
+        categories = np.unique(self.df[stratify_by_var].to_numpy())
+        if len(categories) != 2:
             raise ValueError(
                 f'Invalid stratify_by_var: {stratify_by_var}. ' + \
                 'Must be a known binary variable.'
             )
         
-        categories = np.unique(self.df[stratify_by_var].to_numpy())
         group_1 =\
             self.df.loc[self.df[stratify_by_var] == categories[0], 
                         continuous_var].to_numpy()
@@ -499,7 +539,8 @@ class ComprehensiveEDA():
 
         ttest_result = ttest_ind(group_1, group_2)
 
-        return ttest_result.statistic, ttest_result.pvalue, ttest_result.df
+        return (float(group_1.mean() - group_2.mean()),
+            ttest_result.statistic, ttest_result.pvalue, ttest_result.df)
 
 
 

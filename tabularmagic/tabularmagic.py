@@ -18,7 +18,8 @@ class TabularMagic():
     """
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
-                test_size: float = 0.0, split_seed: int = 42):
+            test_size: float = 0.0, split_seed: int = 42, 
+            verbose: bool = True):
         """Initializes a TabularMagic object.
         
         Note: DataFrame indices are not guaranteed to be correctly preserved. 
@@ -37,11 +38,15 @@ class TabularMagic():
         - split_seed : int.
             Default: 42. Used only for the train test split. 
             If df_test is provided, then split_seed is ignored. 
+        - verbose : bool. 
+            Default: False. If True, prints helpful update messages for certain 
+                TabularMagic function calls.
 
         Returns
         -------
         - None
         """
+        self._tm_verbose = verbose
         if df_test is not None:
             self.original_df_train = df.copy()
             self.original_df_test = df_test.copy()
@@ -58,6 +63,9 @@ class TabularMagic():
                 self.original_df_test = pd.DataFrame(temp_test, 
                                                      columns=df.columns)
             else:
+                if self._tm_verbose:
+                    print('NOTE: No test dataset provided. ' +\
+                          'Test dataset will be treated as train dataset copy.')
                 self.original_df_train = self.original_df
                 self.original_df_test = self.original_df
         self._verify_input_dfs()
@@ -70,9 +78,15 @@ class TabularMagic():
         self._remove_spaces_varnames()
         self._reset_categorical_continuous_vars()
 
+        if self._tm_verbose:
+            shapes_dict = self.shapes()
+            print('UPDATE: TabularMagic initialization complete. ' +\
+                'Train, test dataset shapes: ' + \
+                    f'{shapes_dict["train"], shapes_dict["test"]}')
+
 
     # --------------------------------------------------------------------------
-    # EDA + FEATURE SELECTION + LINEAR
+    # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
     def eda(self, dataset: Literal['train', 'test'] = 'train') \
         -> ComprehensiveEDA:
@@ -95,12 +109,14 @@ class TabularMagic():
         else:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 
+
     def preprocess_data(self, onehot_vars: list[str] = [],
                         standardize_vars: list[str] = [], 
                         minmax_vars: list[str] = [], 
+                        log1p_vars: list[str] = [],
+                        log_vars: list[str] = [],
                         imputation_strategy: Literal[None, 'drop', 'mean', 
                         'median', '5nn', '10nn'] = None, 
-                        impute_vars_to_skip: list[str] = [],
                         dropfirst_onehot: bool = False):
         """Fits a DataPreprocessor object on the training dataset. Then, 
         preprocesses both the train and test datasets. 
@@ -112,8 +128,10 @@ class TabularMagic():
         - onehot_vars : list[str]. 
         - standard_scale_vars : list[str].
         - minmax_scale_vars : list[str].
+        - log1p_vars : list[str].
+        - log_vars : list[str].
         - imputation_strategy: Literal[None, 'drop', 'mean', 
-            'median', '5nn', '10nn'].
+            'median', '5nn', '10nn']. 
         - dropfirst_onehot : bool. 
             Default: False. 
             All binary variables will automatically drop first, 
@@ -128,6 +146,8 @@ class TabularMagic():
             onehot_vars=onehot_vars,
             standardize_vars=standardize_vars,
             minmax_vars=minmax_vars,
+            log1p_vars=log1p_vars,
+            log_vars=log_vars,
             imputation_strategy=imputation_strategy,
             dropfirst_onehot=dropfirst_onehot
         )
@@ -137,6 +157,10 @@ class TabularMagic():
             self.working_df_test)
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
+        if self._tm_verbose:
+            print(f'UPDATE: Preprocessing complete. ' +\
+                  'Re-identified categorical ' +\
+                  'and continuous variables.')
 
 
     def voting_selection(self, X_vars: list[str], y_var: str, 
@@ -290,7 +314,6 @@ class TabularMagic():
                                    models: Iterable[BaseRegression], 
                                    outer_cv: int | None = None,
                                    outer_cv_seed: int = 42, 
-                                   verbose: bool = True, 
                                    inverse_scale_y: bool = True):
         """Conducts a comprehensive regression benchmarking exercise. 
 
@@ -304,9 +327,6 @@ class TabularMagic():
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
             The random seed for the outer cross validation loop.
-        - verbose : bool. 
-            Default: True. If True, prints progress of tasks (a task is 
-            defined as the CV training of one model)
         - inverse_scale_y : bool.
             If true, inverse scales the y_true and y_pred values to their 
             original scales. Default: 0.
@@ -323,8 +343,8 @@ class TabularMagic():
         X_train_np = local_X_train_df.to_numpy()
         y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
-            if verbose:
-                print(f'Task {i+1} of {len(models)}.\tFitting {model}.')
+            if self._tm_verbose:
+                print(f'UPDATE: Task {i+1} of {len(models)}.\tFitting {model}.')
             model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
                       outer_cv_seed=outer_cv_seed)
         y_var_scaler = None
@@ -355,11 +375,13 @@ class TabularMagic():
         -------
         - None
         """
+        if self._tm_verbose:
+            print(f'UPDATE: Working datasets checkpoint "{checkpoint}" set.')
         self._df_checkpoint_name_to_df[checkpoint] = (
             self.working_df_train.copy(),
             self.working_df_test.copy()
         )
-
+        
     def reset_working_dfs(self, checkpoint: str = None):
         """The working train and working test datasets are reset to the 
         input datasets given at object initialization.
@@ -375,9 +397,14 @@ class TabularMagic():
         - None
         """
         if checkpoint is None:
+            if self._tm_verbose:
+                print('UPDATE: Working datasets reset to original datasets.')
             self.working_df_test = self.original_df_test.copy()
             self.working_df_train = self.original_df_train.copy()
         else:
+            if self._tm_verbose:
+                print('UPDATE: Working datasets reset to checkpoint ' +\
+                       f'"{checkpoint}".')
             self.working_df_train =\
                 self._df_checkpoint_name_to_df[checkpoint][0].copy()
             self.working_df_test =\
@@ -396,7 +423,9 @@ class TabularMagic():
         -------
         - None
         """
-        self._df_checkpoint_name_to_df.pop(checkpoint)
+        out_chkpt = self._df_checkpoint_name_to_df.pop(checkpoint)
+        if self._tm_verbose:
+            print(f'UPDATE: Removed working dataset checkpoint {out_chkpt}.')
     
 
     def select_vars(self, vars: list[str]):
@@ -410,6 +439,10 @@ class TabularMagic():
         self.working_df_train = self.working_df_train[vars]
         self.working_df_test = self.working_df_test[vars]
         self._reset_categorical_continuous_vars()
+        if self._tm_verbose:
+            print(f'UPDATE: Selected columns {vars}. ' +\
+                  'Re-identified categorical ' +\
+                  'and continuous variables.')
 
 
     def drop_vars(self, vars: list[str]):
@@ -423,6 +456,10 @@ class TabularMagic():
         self.working_df_train.drop(vars, axis='columns', inplace=True)
         self.working_df_test.drop(vars, axis='columns', inplace=True)
         self._reset_categorical_continuous_vars()
+        if self._tm_verbose:
+            print(f'UPDATE: Dropped columns {vars}. ' +\
+                  'Re-identified categorical ' +\
+                  'and continuous variables.')
 
 
     def drop_train_examples(self, indices: list):
@@ -434,6 +471,8 @@ class TabularMagic():
         - indices : list.
         """
         self.working_df_train.drop(indices, axis='index', inplace=True)
+        if self._tm_verbose:
+            print(f'UPDATE: Dropped rows {indices}.')
 
 
     # --------------------------------------------------------------------------

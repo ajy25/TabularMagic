@@ -1,8 +1,25 @@
 import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 import numpy as np
-from typing import Iterable
+from typing import Iterable, Literal
 from scipy.stats import pearsonr
+
+
+def color_text(text, color: Literal['red', 'blue', 'green', 'yellow', 
+                'purple', 'none']):
+    if color == 'none':
+        return text
+    elif color == 'red':
+        return '\033[91m' + text + '\033[0m'
+    elif color == 'blue':
+        return '\033[94m' + text + '\033[0m'
+    elif color == 'purple':
+        return '\033[95m' + text + '\033[0m'
+    elif color == 'green':
+        return '\033[92m' + text + '\033[0m'
+    elif color == 'yellow':
+        return '\033[93m' + text + '\033[0m'
+    
 
 
 def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray, 

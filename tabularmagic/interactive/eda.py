@@ -197,23 +197,23 @@ class ComprehensiveEDA():
         - None
         """
         self.df = df.copy()
-        self.categorical_columns = df.select_dtypes(
+        self._categorical_vars = df.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
-        self.continuous_columns = df.select_dtypes(
+        self._continuous_vars = df.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
         self._categorical_eda_dict = {
             var: CategoricalEDA(self.df[var]) \
-                for var in self.categorical_columns
+                for var in self._categorical_vars
         }
         self._continuous_eda_dict = {
             var: ContinuousEDA(self.df[var]) \
-                for var in self.continuous_columns
+                for var in self._continuous_vars
         }
-        if len(self.categorical_columns) > 0:
+        if len(self._categorical_vars) > 0:
             self.categorical_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._categorical_eda_dict.values()], axis=1)
-        if len(self.continuous_columns) > 0:
+        if len(self._continuous_vars) > 0:
             self.continuous_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._continuous_eda_dict.values()], axis=1) 
@@ -238,7 +238,7 @@ class ComprehensiveEDA():
         - plt.Figure
         """
         if continuous_vars is None:
-            continuous_vars = self.continuous_columns
+            continuous_vars = self._continuous_vars
         if len(continuous_vars) > 6:
             raise ValueError('No more than 6 continuous variables may be ' + \
                              'plotted at the same time.')
@@ -484,7 +484,8 @@ class ComprehensiveEDA():
         ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
         
         if fig is not None:
-            fig.tight_layout()
+            if not three_components:
+                fig.tight_layout()
             plt.close()
         return fig
     
@@ -511,13 +512,13 @@ class ComprehensiveEDA():
         - deg_freedom : int. Degrees of freedom.
         """
 
-        if continuous_var not in self.continuous_columns:
+        if continuous_var not in self._continuous_vars:
             raise ValueError(
                 f'Invalid input: {continuous_var}. ' + \
                 'Must be a known continuous variable.'
             )
-        if (stratify_by_var not in self.categorical_columns) or \
-            (stratify_by_var not in self.continuous_columns):
+        if (stratify_by_var not in self._categorical_vars) or \
+            (stratify_by_var not in self._continuous_vars):
             raise ValueError(
                 f'Invalid input: {stratify_by_var}. ' + \
                 'Must be a known binary variable.'
@@ -541,7 +542,19 @@ class ComprehensiveEDA():
 
         return (float(group_1.mean() - group_2.mean()),
             ttest_result.statistic, ttest_result.pvalue, ttest_result.df)
+    
 
+
+
+
+    # --------------------------------------------------------------------------
+    # GETTERS
+    # --------------------------------------------------------------------------
+    def continuous_vars(self):
+        return self._continuous_vars
+    
+    def categorical_vars(self):
+        return self._categorical_vars
 
 
     def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:
@@ -556,9 +569,9 @@ class ComprehensiveEDA():
         - CategoricalEDA | ContinuousEDA. 
         """
         if isinstance(index, str):
-            if index in self.categorical_columns:
+            if index in self._categorical_vars:
                 return self._categorical_eda_dict[index]
-            elif index in self.continuous_columns:
+            elif index in self._continuous_vars:
                 return self._continuous_eda_dict[index]
             else:
                 raise ValueError(f'Invalid input: {index}. Index must be a ' + \

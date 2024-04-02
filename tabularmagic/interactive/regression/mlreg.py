@@ -98,7 +98,7 @@ class ComprehensiveMLRegressionReport():
 
     def __init__(self, models: Iterable[BaseRegression], 
                  X_eval: pd.DataFrame = None, 
-                 y_eval: pd.DataFrame = None, 
+                 y_eval: pd.Series = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
         Initializes a MLRegressionReport object. 
@@ -109,7 +109,7 @@ class ComprehensiveMLRegressionReport():
             The BaseRegression models must already be trained. 
         - X_eval : pd.DataFrame.
             Default: None. If None, reports on the training data.
-        - y_eval : pd.DataFrame.
+        - y_eval : pd.Series.
             Default: None. If None, reports on the training data.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
@@ -125,8 +125,8 @@ class ComprehensiveMLRegressionReport():
                 i: MLRegressionReport(model=model, y_scaler=y_scaler) \
                     for i, model in enumerate(self.models)}
         else:
-            if not isinstance(y_eval, pd.DataFrame):
-                y_eval = y_eval.to_frame()
+            if not isinstance(y_eval, pd.Series):
+                raise ValueError('y_eval must be pd.Series object.')
             self._report_dict_indexable_by_int = {
                 i: MLRegressionReport(model, X_eval, y_eval, y_scaler) \
                     for i, model in enumerate(self.models)}

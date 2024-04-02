@@ -13,12 +13,12 @@ package setup and pip installation.
 To install TabularMagic: 
 ```
 git clone https://github.com/ajy25/TabularMagic.git
-python tm-install.py install
+python tm-build.py install
 ```
 
 To uninstall TabularMagic:
 ```
-python tm-install.py uninstall
+python tm-build.py uninstall
 ```
 
 TabularMagic is built on top of the standard Python data science stack (pandas, NumPy, Matplotlib). 

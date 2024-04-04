@@ -506,10 +506,7 @@ class ComprehensiveEDA():
 
         Returns
         -------
-        - mu_1 - mu_2 : float
-        - t-statistic : float
-        - p-value : float
-        - deg_freedom : int. Degrees of freedom.
+        - dict
         """
 
         if continuous_var not in self._continuous_vars:
@@ -517,7 +514,7 @@ class ComprehensiveEDA():
                 f'Invalid input: {continuous_var}. ' + \
                 'Must be a known continuous variable.'
             )
-        if (stratify_by_var not in self._categorical_vars) or \
+        if (stratify_by_var not in self._categorical_vars) and \
             (stratify_by_var not in self._continuous_vars):
             raise ValueError(
                 f'Invalid input: {stratify_by_var}. ' + \
@@ -540,8 +537,12 @@ class ComprehensiveEDA():
 
         ttest_result = ttest_ind(group_1, group_2)
 
-        return (float(group_1.mean() - group_2.mean()),
-            ttest_result.statistic, ttest_result.pvalue, ttest_result.df)
+        return {
+            'diff': float(group_1.mean() - group_2.mean()),
+            'tstat': ttest_result.statistic, 
+            'pvalue': ttest_result.pvalue, 
+            'degfree': ttest_result.df
+        }
     
 
 

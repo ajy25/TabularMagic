@@ -1,6 +1,9 @@
 import pandas as pd
-from ...preprocessing.regression_feature_selection import RegressionBaseSelector
+from ...feature_selection.regression_feature_selection \
+    import RegressionBaseSelector
 from typing import Iterable
+from ..visualization import color_text
+
 
 class VotingSelectionReport():
     """
@@ -29,7 +32,8 @@ class VotingSelectionReport():
         self._selector_to_support = {}
         for i, selector in enumerate(selectors):
             if verbose:
-                print(f'Task {i+1} of {len(selectors)}.\tFitting {selector}.')
+                print(color_text('UPDATE: ', 'green') +\
+                    f' Task {i+1} of {len(selectors)}.\tFitting {selector}.')
             _, support = selector.select(df, X_vars, y_var, n_target_features)
             self._selector_to_support[str(selector)] = support
         self.votes_df = pd.DataFrame.from_dict(self._selector_to_support, 

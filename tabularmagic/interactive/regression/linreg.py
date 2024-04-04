@@ -6,9 +6,9 @@ import seaborn as sns
 from scipy import stats
 from typing import Iterable, Literal
 from ...metrics.regression_scoring import RegressionScorer
-from ...linear import *
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
-from ..visualization import *
+from ..visualization import plot_pred_vs_true, decrease_font_sizes_axs
+from ...linear.regression.linear_regression import OrdinaryLeastSquares
 from adjustText import adjust_text
 
 
@@ -54,9 +54,8 @@ class LinearRegressionReport():
         if y_scaler is not None:
             self._y_pred = y_scaler.inverse_transform(self._y_pred)
             self._y_true = y_scaler.inverse_transform(self._y_true)
-        self.scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
+        self._scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
             n_regressors=model._n_regressors, model_id_str=str(model))
-        self.fit_statistics = self.scorer.to_df()
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
         self._outlier_threshold = 2
@@ -581,6 +580,13 @@ class LinearRegressionReport():
         - outliers_df_idx : list ~ (n_outliers)
         """
         return self._outliers_df_idx.tolist()
+    
+
+
+
+    def fit_statistics(self):
+        return self._scorer.to_df()
+
 
 
     def _compute_outliers(self):

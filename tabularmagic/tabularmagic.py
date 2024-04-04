@@ -4,12 +4,16 @@ import matplotlib.pyplot as plt
 from textwrap import fill
 plt.ioff()
 from sklearn.model_selection import train_test_split
-from .ml import BaseRegression
-from .linear import OrdinaryLeastSquares, parse_and_transform_rlike
+from .ml.base_model import BaseModel
+from .ml.regression.base_regression import BaseRegression
+from .linear.regression.linear_regression import OrdinaryLeastSquares
+from .linear.regression.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     VotingSelectionReport, LinearRegressionReport)
 from .interactive.visualization import color_text
-from .preprocessing import DataPreprocessor, RegressionBaseSelector
+from .feature_selection import RegressionBaseSelector
+from .preprocessing.datapreprocessor import DataPreprocessor
+
 
 
 
@@ -179,7 +183,7 @@ class TabularMagic():
         """Supervised feature selection via methods voting based on
         training dataset. 
         Also returns a FeatureSelectionReport object. 
-        Can automatically updates the working train and working test
+        Can automatically update the working train and working test
         datasets so that only the selected features remain if 
         update_working_dfs is True.
         
@@ -202,6 +206,7 @@ class TabularMagic():
         -------
         - VotingSelectionReport
         """
+
         report = VotingSelectionReport(self._working_df_train, 
             X_vars, y_var, selectors, n_target_features, verbose=verbose)
         if update_working_dfs:
@@ -430,7 +435,7 @@ class TabularMagic():
         self._reset_categorical_continuous_vars()
 
 
-    def remove_working_df_checkpoint(self, checkpoint: str):
+    def remove_data_checkpoint(self, checkpoint: str):
         """Removes a saved checkpoint to conserve memory.
 
         Parameters
@@ -524,16 +529,33 @@ class TabularMagic():
         }
 
 
-    def working_dfs(self):
-        """Returns a tuple (working_df_train, working_df_test). 
-        Note that the dataframes are copied before being returned. 
+    def dataset(self, dataset: Literal['train', 'test'] = 'train', 
+                copy: bool = False):
+        """Returns one of (working_df_train, working_df_test). 
+
+        Parameters
+        ----------
+        - dataset : Literal['train', 'test']
+        - copy : bool. If True, dataframe is copied before being returned. 
         
         Returns
         -------
-        - working_df_train : pd.DataFrame
-        - working_df_test : pd.DataFrame
+        - df : pd.DataFrame
         """
-        return self._working_df_train.copy(), self._working_df_test.copy()
+        if dataset == 'train':
+            if copy:
+                return self._working_df_train.copy()
+            else: 
+                return self._working_df_train
+            
+        elif dataset == 'test':
+            if copy:
+                return self._working_df_test.copy()
+            else:
+                return self._working_df_test
+        
+        else:
+            raise ValueError('Invalid input for dataset.')
     
 
     def head(self, n = 5):
@@ -541,14 +563,19 @@ class TabularMagic():
         return self._working_df_train.head(n)
     
 
-    def continuous_vars(self):
-        """Returns the list of continuous variables."""
-        return self._continuous_vars
-    
+    def continuous_vars(self, copy: bool = False):
+        """Returns copy of list of continuous variables."""
+        if copy:
+            return self._continuous_vars.copy()
+        else:
+            return self._continuous_vars
 
-    def categorical_vars(self):
-        """Returns the list of categorical variables."""
-        return self._categorical_vars
+    def categorical_vars(self, copy: bool = False):
+        """Returns copy of list of categorical variables."""
+        if copy:
+            return self._categorical_vars.copy()
+        else:
+            return self._categorical_vars
 
 
     def __len__(self):
@@ -628,9 +655,15 @@ class TabularMagic():
         extra_test_columns = list(set(df_test.columns) -\
             set(df_train.columns))
         if len(extra_test_columns) > 0:
+            print(f'{color_text("WARNING:", "red")} ' +\
+                  f'Columns {extra_test_columns} not found in train ' +\
+                   'have been dropped from test')
             self._working_df_test.drop(columns=extra_test_columns, axis=1, 
                                       inplace=True)
         if len(missing_test_columns) > 0:
+            print(f'{color_text("WARNING:", "red")} ' +\
+                  f'Columns {missing_test_columns} not found in test ' +\
+                   'have been added to test with 0-valued entries')
             for col in missing_test_columns:
                 df_test[col] = 0
         assert len(df_test.columns) == \

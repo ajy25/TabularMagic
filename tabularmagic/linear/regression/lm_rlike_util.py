@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import itertools
-from ...preprocessing import LogTransformSingleVar, CustomFunctionSingleVar
+from ...preprocessing.datapreprocessor\
+    import LogTransformSingleVar, CustomFunctionSingleVar
 
 
 def is_continuous(var: str, df: pd.DataFrame):

@@ -3,7 +3,7 @@ from sklearn.svm import SVR
 from typing import Mapping, Iterable, Literal
 from .base_regression import BaseRegression, HyperparameterSearcher
 
-class SVM(BaseRegression):
+class SVMR(BaseRegression):
     """Support Vector Machine with kernel trick.
     
     Like all BaseRegression-derived classes, hyperparameter selection is 
@@ -17,7 +17,7 @@ class SVM(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes a SVM object. 
+        Initializes a SVMR object. 
 
         Parameters
         ----------
@@ -45,7 +45,7 @@ class SVM(BaseRegression):
         super().__init__(X, y)
 
         if nickname is None:
-            self.nickname = f'SVM({kernel})'
+            self.nickname = f'SVMR({kernel})'
         else:
             self.nickname = nickname
 

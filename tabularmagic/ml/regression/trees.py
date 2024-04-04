@@ -11,7 +11,7 @@ from .base_regression import BaseRegression, HyperparameterSearcher
 import xgboost as xgb
 
 
-class Tree(BaseRegression):
+class TreeR(BaseRegression):
     """A simple decision tree regressor. 
     
     Like all BaseRegression-derived classes, hyperparameter selection is 
@@ -25,7 +25,7 @@ class Tree(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes a Tree object. 
+        Initializes a TreeR object. 
 
         Parameters
         ----------
@@ -55,7 +55,7 @@ class Tree(BaseRegression):
         super().__init__(X, y)
 
         if nickname is None:
-            self.nickname = 'Tree'
+            self.nickname = 'TreeR'
         else:
             self.nickname = nickname
 
@@ -80,7 +80,7 @@ class Tree(BaseRegression):
         return self.nickname
 
 
-class TreeEnsemble(BaseRegression):
+class TreeEnsembleR(BaseRegression):
     """Ensemble of trees regressor. Includes random forest, gradient boosting, 
     and bagging. 
     
@@ -96,7 +96,7 @@ class TreeEnsemble(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes a TreeRegression object. 
+        Initializes a TreeEnsembleR object. 
 
         Parameters
         ----------
@@ -129,7 +129,7 @@ class TreeEnsemble(BaseRegression):
         self.ensemble_type = ensemble_type
 
         if nickname is None:
-            self.nickname = f'TreeEnsemble({ensemble_type})'
+            self.nickname = f'TreeEnsembleR({ensemble_type})'
         else:
             self.nickname = nickname
 

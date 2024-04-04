@@ -210,11 +210,11 @@ class ComprehensiveEDA():
                 for var in self._continuous_vars
         }
         if len(self._categorical_vars) > 0:
-            self.categorical_summary_statistics = pd.concat(
+            self._categorical_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._categorical_eda_dict.values()], axis=1)
         if len(self._continuous_vars) > 0:
-            self.continuous_summary_statistics = pd.concat(
+            self._continuous_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._continuous_eda_dict.values()], axis=1) 
             
@@ -555,6 +555,15 @@ class ComprehensiveEDA():
     
     def categorical_vars(self):
         return self._categorical_vars
+    
+    def categorical_summary_statistics(self):
+        return self._categorical_summary_statistics
+    
+    def continuous_summary_statistics(self):
+        return self._continuous_summary_statistics
+
+
+
 
 
     def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:

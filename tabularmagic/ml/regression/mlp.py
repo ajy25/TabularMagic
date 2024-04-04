@@ -4,7 +4,7 @@ from typing import Mapping, Iterable
 from .base_regression import BaseRegression, HyperparameterSearcher
 
 
-class MLP(BaseRegression):
+class MLPR(BaseRegression):
     """Support Vector Machine with kernel trick.
     
     Like all BaseRegression-derived classes, hyperparameter selection is 
@@ -17,7 +17,7 @@ class MLP(BaseRegression):
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  nickname: str = None, **kwargs):
         """
-        Initializes an MLP object. 
+        Initializes an MLPR object. 
 
         Parameters
         ----------
@@ -44,7 +44,7 @@ class MLP(BaseRegression):
         super().__init__(X, y)
 
         if nickname is None:
-            self.nickname = 'MLP'
+            self.nickname = 'MLPR'
         else:
             self.nickname = nickname
 

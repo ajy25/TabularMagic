@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.axes as axes
 from typing import Iterable
 from ...metrics.regression_scoring import RegressionScorer
-from ...ml import *
+from ...ml.regression.base_regression import BaseRegression
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
 from ..visualization import plot_pred_vs_true
 
@@ -39,18 +39,16 @@ class MLRegressionReport():
         if X_eval is not None and y_eval is not None:
             self._y_pred = model.predict(X_eval.to_numpy())
             self._y_true = y_eval.to_numpy()
-            self.scorer = RegressionScorer(y_pred=self._y_pred, 
+            self._scorer = RegressionScorer(y_pred=self._y_pred, 
                 y_true=self._y_true, n_regressors=model._n_regressors, 
                 model_id_str=str(model))
         else:
             self._y_pred = model._y
             self._y_true = model.predict(model._X)
-            self.scorer = model.train_scorer
+            self._scorer = model.train_scorer
         if y_scaler is not None:
-            self.scorer.rescale(y_scaler)
+            self._scorer.rescale(y_scaler)
             self.rescale(y_scaler)
-        
-        self.fit_statistics = self.scorer.to_df()
 
 
     def rescale(self, y_scaler: BaseSingleVarScaler):
@@ -70,6 +68,10 @@ class MLRegressionReport():
             for i in range(len(self._y_true)):
                 self._y_true[i] = y_scaler.inverse_transform(self._y_true[i])
                 self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
+
+
+    def fit_statistics(self):
+        return self._scorer.to_df()
 
         
     def plot_pred_vs_true(self, figsize: Iterable = (5, 5), 
@@ -134,8 +136,13 @@ class ComprehensiveMLRegressionReport():
             str(report.model): report for report in \
                 self._report_dict_indexable_by_int.values()
         }
-        self.fit_statistics = pd.concat([report.scorer.to_df() for report \
+        self._fit_statistics = pd.concat([report._scorer.to_df() for report \
             in self._report_dict_indexable_by_int.values()], axis=1)
+        
+
+    def fit_statistics(self):
+        return self._fit_statistics
+
 
     def __getitem__(self, index: int | str) -> MLRegressionReport:
         """Indexes into ComprehensiveMLRegressionReport. 

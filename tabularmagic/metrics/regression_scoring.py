@@ -96,14 +96,14 @@ class RegressionScorer():
             for y_pred_elem, y_true_elem in zip(y_pred, y_true):
                 n = len(y_pred_elem)
                 metrics_dict = dict()
-                metrics_dict['pearsonr'] =\
-                    pearsonr(y_true_elem, y_pred_elem)[0]
-                metrics_dict['spearmanr'] =\
-                    spearmanr(y_true_elem, y_pred_elem)[0]
                 metrics_dict['mse'] =\
                     mean_squared_error(y_true_elem, y_pred_elem)
                 metrics_dict['mad'] =\
                     mean_absolute_error(y_true_elem, y_pred_elem)
+                metrics_dict['pearsonr'] =\
+                    pearsonr(y_true_elem, y_pred_elem)[0]
+                metrics_dict['spearmanr'] =\
+                    spearmanr(y_true_elem, y_pred_elem)[0]
                 metrics_dict['r2'] = r2_score(y_true_elem, y_pred_elem)
                 if self.n_regressors is None:
                     metrics_dict['adjr2'] = np.NaN

@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold, BaseCrossValidator
-from ...metrics import RegressionScorer
+from ...metrics.regression_scoring import RegressionScorer
 from ..base_model import BaseModel, HyperparameterSearcher
 
 

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Literal
 import statsmodels.api as sm
-from ...metrics import RegressionScorer
+from ...metrics.regression_scoring import RegressionScorer
 
 
 class OrdinaryLeastSquares:

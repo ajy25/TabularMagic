@@ -290,6 +290,7 @@ class ComprehensiveEDA():
             for text in legend.get_texts():
                 text.set_text(fill(text.get_text(), 10))
                 text.set_fontsize(6)
+        fig.subplots_adjust(left=0.1, bottom=0.1)
         plt.close(fig)
         return fig
     
@@ -486,6 +487,8 @@ class ComprehensiveEDA():
         if fig is not None:
             if not three_components:
                 fig.tight_layout()
+            else:
+                fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
             plt.close()
         return fig
     

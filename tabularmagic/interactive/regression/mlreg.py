@@ -128,7 +128,15 @@ class ComprehensiveMLRegressionReport():
                     for i, model in enumerate(self.models)}
         else:
             if not isinstance(y_eval, pd.Series):
-                raise ValueError('y_eval must be pd.Series object.')
+                try:
+                    if isinstance(y_eval, pd.DataFrame):
+                        if y_eval.shape[1] > 1:
+                            assert False
+                        y_eval = y_eval.iloc[:, 0]
+                    else:
+                        y_eval = pd.Series(y_eval)
+                except:
+                    raise ValueError('y_eval must be pd.Series object.')
             self._report_dict_indexable_by_int = {
                 i: MLRegressionReport(model, X_eval, y_eval, y_scaler) \
                     for i, model in enumerate(self.models)}

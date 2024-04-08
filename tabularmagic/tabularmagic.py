@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 from textwrap import fill
 plt.ioff()
 from sklearn.model_selection import train_test_split
-from .ml.base_model import BaseModel
-from .ml.regression.base_regression import BaseRegression
+from .ml.discriminative.regression.base_regression import BaseRegression
 from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
-    VotingSelectionReport, LinearRegressionReport)
+    RegressionVotingSelectionReport, LinearRegressionReport)
 from .interactive.visualization import color_text
 from .feature_selection import RegressionBaseSelector
 from .preprocessing.datapreprocessor import DataPreprocessor
@@ -178,11 +177,10 @@ class TabularMagic():
     def voting_selection(self, X_vars: list[str], y_var: str, 
                          selectors: Iterable[RegressionBaseSelector], 
                          n_target_features: int, 
-                         update_working_dfs: bool = False,
-                         verbose: bool = True):
+                         update_working_dfs: bool = False):
         """Supervised feature selection via methods voting based on
         training dataset. 
-        Also returns a FeatureSelectionReport object. 
+        Also returns a RegressionVotingSelectionReport object. 
         Can automatically update the working train and working test
         datasets so that only the selected features remain if 
         update_working_dfs is True.
@@ -199,16 +197,15 @@ class TabularMagic():
             Number of desired features, < len(X_vars).
         - update_working_dfs : bool.
             Default: False.
-        - verbose : bool.
-            Default: True
 
         Returns
         -------
-        - VotingSelectionReport
+        - RegressionVotingSelectionReport
         """
 
-        report = VotingSelectionReport(self._working_df_train, 
-            X_vars, y_var, selectors, n_target_features, verbose=verbose)
+        report = RegressionVotingSelectionReport(self._working_df_train, 
+            X_vars, y_var, selectors, n_target_features, 
+            verbose=self._tm_verbose)
         if update_working_dfs:
             self._working_df_test = self._working_df_test[report.top_features]
             self._working_df_train = self._working_df_train[report.top_features]
@@ -694,7 +691,7 @@ class TabularMagic():
         """Returns metadata in string form. """
 
         shapes_message = color_text('Train shape: ', 'none') +\
-              f'{self._working_df_train.shape}  |  '+\
+              f'{self._working_df_train.shape}'+ ' '*5 + '|' + ' '*5 +\
             color_text('Test shape: ', 'none') + \
                 f'{self._working_df_test.shape}'
         max_width = len(shapes_message)

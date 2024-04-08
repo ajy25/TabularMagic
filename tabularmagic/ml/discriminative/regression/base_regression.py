@@ -1,12 +1,12 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold, BaseCrossValidator
-from ...metrics.regression_scoring import RegressionScorer
-from ..base_model import BaseModel, HyperparameterSearcher
+from ....metrics.regression_scoring import RegressionScorer
+from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
 
 
 
-class BaseRegression(BaseModel):
+class BaseRegression(BaseDiscriminativeModel):
     """A class that provides the framework upon which all regression 
     objects are built. 
 
@@ -20,9 +20,9 @@ class BaseRegression(BaseModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (n_examples, n_regressors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (n_examples).
             Default: None. Dependent variable vector. 
 
         Returns

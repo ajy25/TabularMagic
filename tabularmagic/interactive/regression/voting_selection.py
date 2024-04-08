@@ -5,17 +5,18 @@ from typing import Iterable
 from ..visualization import color_text
 
 
-class VotingSelectionReport():
+class RegressionVotingSelectionReport():
     """
-    VotingSelectionReport: generates feature selection-relevant tables.
+    RegressionVotingSelectionReport: 
+    generates feature selection-relevant tables.
     """
 
     def __init__(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
                  selectors: Iterable[RegressionBaseSelector], 
                  n_target_features: int, verbose: bool = True):
         """
-        Initializes a VotingSelectionReport object. 
-        VotingSelectionReport selects features via voting selection.
+        Initializes a RegressionVotingSelectionReport object. 
+        RegressionVotingSelectionReport selects features via voting selection.
 
         - df : pd.DataFrame.
         - X_vars : list[str].

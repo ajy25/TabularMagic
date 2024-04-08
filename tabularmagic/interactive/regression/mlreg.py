@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.axes as axes
 from typing import Iterable
 from ...metrics.regression_scoring import RegressionScorer
-from ...ml.regression.base_regression import BaseRegression
+from ...ml.discriminative.regression.base_regression import BaseRegression
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
 from ..visualization import plot_pred_vs_true
 

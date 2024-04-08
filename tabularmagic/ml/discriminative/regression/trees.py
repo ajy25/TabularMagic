@@ -29,9 +29,9 @@ class TreeR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (n_examples, n_regressors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (n_examples).
             Default: None. Dependent variable vector. 
         - random_state : int. 
             Default: 42.
@@ -100,9 +100,9 @@ class TreeEnsembleR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (n_examples, n_regressors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (n_examples).
             Default: None. Dependent variable vector. 
         - ensemble_type: Literal['random_forest', 'gradient_boosting', 
                     'adaboost', 'bagging', 'xgboost']

@@ -10,12 +10,13 @@ from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
 
 
-class BaseModel():
+class BaseDiscriminativeModel():
     """Skeletal class for typing assistance of BaseRegression and 
     BaseClassification. 
     
-    BaseRegression and BaseClassification extend BaseModel. BaseModel 
-    has no funtionality beyond providing typing assistance elsewhere. 
+    BaseRegression and BaseClassification extend BaseDiscriminativeModel. 
+    BaseDiscriminativeModel has no funtionality beyond providing 
+    typing assistance elsewhere. 
     """
 
     def __init__(self):

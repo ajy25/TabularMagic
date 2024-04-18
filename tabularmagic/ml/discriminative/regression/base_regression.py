@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import KFold, BaseCrossValidator
+import os
+from joblib import dump
 from ....metrics.regression_scoring import RegressionScorer
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
 
@@ -187,6 +189,30 @@ class BaseRegression(BaseDiscriminativeModel):
             raise ValueError(f'Invalid input: X. Must have the same',
                              'length in the second dimension as the dataset',
                              'upon which the estimator has been trained.')
+        
+
+    def save_checkpoint(self, dirpath: str = None, filepath: str = None):
+        """Saves the best estimator to a joblib file.
+
+        To load model, run the following code:
+        from joblib import load
+        load(filepath)
+        
+        Parameters
+        ----------
+        - dirpath : str. If None, defers to filepath. Otherwise, saves default
+            name file into directory specified by dirpath.
+        - filepath : str. If both filepath and dirpath are None, saves to 
+            current working directory with default name. 
+        """
+        default_name = self.nickname + '.joblib'
+        if dirpath is not None:
+            dump(self.estimator, os.path.join(dirpath, default_name))
+        elif filepath is not None:
+            dump(self.estimator, filepath)
+        else:
+            dump(self.estimator, os.path.join(os.getcwd(), default_name))
+
 
     def __str__(self):
         return self.nickname

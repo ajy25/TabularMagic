@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Literal, Callable
 from sklearn.impute import KNNImputer, SimpleImputer
+from ..util.color_text import color_text
 
 
 class BaseSingleVarScaler():
@@ -173,7 +174,8 @@ class DataPreprocessor():
                  log_vars: list[str] = [],
                  imputation_strategy: Literal[None, 'drop', 'mean', 
                         'median', '5nn', '10nn'] = None,
-                 dropfirst_onehot: bool = False):
+                 dropfirst_onehot: bool = False, 
+                 verbose: bool = False):
         """Initializes a DataPreprocessor object. 
 
         Parameters
@@ -187,12 +189,14 @@ class DataPreprocessor():
         - imputation_strategy : Literal[None, 'drop', 'mean', 
             'median', '5nn', '10nn'].
         - dropfirst_onehot : bool. 
+        - verbose : bool.
         
         Returns
         -------
         - pd.DataFrame
         """
         self.orig_df = df.copy()
+        self._verbose = verbose
 
         # one hot encoding metadata. 
         self._onehot_vars = onehot_vars.copy()
@@ -421,11 +425,17 @@ class DataPreprocessor():
         elif self._imputation_strategy == 'drop':
             orig_len = len(df)
             df = df.dropna(axis=0)
-            if len(df) < orig_len / 2:
-                print(f'{orig_len - len(df)} entries ' + \
+            if self._verbose:
+                if len(df) < orig_len / 2:
+                    print(f'{color_text("WARNING:", "red")} ' +\
+                      f'{orig_len - len(df)} entries ' + \
                       f'(over half of all {orig_len} entries) dropped.' + \
                     ' Please consider selecting a subset of features before' + \
                     ' handling missing data.')
+                else:
+                    print(f'{color_text("UPDATE:", "green")} ' +\
+                          f'Dropped {orig_len - len(df)} entries.')
+            
         elif self._imputation_strategy is None:
             pass
         else:

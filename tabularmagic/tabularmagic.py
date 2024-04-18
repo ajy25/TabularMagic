@@ -9,7 +9,7 @@ from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     RegressionVotingSelectionReport, LinearRegressionReport)
-from .interactive.visualization import color_text
+from .util.color_text import color_text
 from .feature_selection import RegressionBaseSelector
 from .preprocessing.datapreprocessor import DataPreprocessor
 
@@ -691,9 +691,9 @@ class TabularMagic():
         """Returns metadata in string form. """
 
         shapes_message = color_text('Train shape: ', 'none') +\
-              f'{self._working_df_train.shape}'+ ' '*5 + '|' + ' '*5 +\
+              f'{self._working_df_train.shape}'+ ' '*8 +\
             color_text('Test shape: ', 'none') + \
-                f'{self._working_df_test.shape}'
+                f'{self._working_df_test.shape}'  + ' '*8
         max_width = len(shapes_message)
 
         title_message = color_text(self._id, 'none')

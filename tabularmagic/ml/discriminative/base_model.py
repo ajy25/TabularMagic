@@ -20,7 +20,7 @@ class BaseDiscriminativeModel():
     """
 
     def __init__(self):
-        pass
+        self.nickname = 'BaseDiscriminativeModel'
 
     def fit(self, X, y):
         """Fits the model. 
@@ -54,7 +54,13 @@ class BaseDiscriminativeModel():
         pass
 
     def __str__(self):
-        return 'BaseModel'
+        return self.nickname
+    
+    def save_checkpoint(self, dirpath: str = None, filepath: str = None):
+        pass
+
+
+
 
 
 class HyperparameterSearcher():

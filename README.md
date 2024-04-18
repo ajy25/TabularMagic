@@ -1,9 +1,9 @@
 # TabularMagic
 TabularMagic is a comprehensive wrapper of scikit-learn and statsmodels algorithms for rapid exploratory statistical and machine learning modeling of tabular data. TabularMagic reduces the headache of exploratory data analysis, regression analysis, and machine learning model benchmarking. Use TabularMagic to quickly explore a dataset, easily conduct regression analysis, and automatically compute baseline performance metrics across several popular machine learning models. 
 
-TabularMagic is specifically designed for speeding up data science routines on clinical datasets. As such, TabularMagic works best on smaller datasets (i.e., datasets with fewer than 10000 examples). 
+TabularMagic is specifically designed for speeding up data science routines on small clinical datasets such as NHANES. As such, TabularMagic works best on smaller datasets (i.e., datasets with fewer than 10000 examples). 
 
-Currently under active development. 
+Currently under development. 
 
 ## Installation and Dependencies
 

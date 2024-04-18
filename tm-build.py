@@ -24,8 +24,8 @@ if __name__ == '__main__':
     other_arguments = arguments[1:]
     if len(other_arguments) != 1:
         raise RuntimeError('Invalid command line argument. ' + \
-            'Please call "python tm-install.py install" to install, ' + \
-            'or "python tm-install.py uninstall" to uninstall.')
+            'Please call "python tm-build.py install" to install, ' + \
+            'or "python tm-build.py uninstall" to uninstall.')
 
     if other_arguments[0] == 'install':
         try:
@@ -49,6 +49,6 @@ if __name__ == '__main__':
 
     else:
         raise RuntimeError('Invalid command line argument. ' + \
-            'Please call "python tm-install.py install" to install, ' + \
-            'or "python tm-install.py uninstall" to uninstall.')
+            'Please call "python tm-build.py install" to install, ' + \
+            'or "python tm-build.py uninstall" to uninstall.')
 

@@ -139,8 +139,8 @@ class OrdinaryLeastSquares:
             raise ValueError(f'Invalid input: X. Must be 2d pd.DataFrame.')
         if len(y.shape) != 1:
             raise ValueError(f'Invalid input: y. Must be pd.Series.')
-        if X.shape[0] != y.shape[0]:
-            raise ValueError(f'Invalid input: X, y. Must have the same',
+        if len(X) != len(y):
+            raise ValueError(f'Invalid input: X, y. Must have the same ',
                              'length in the first dimension.')
 
     def _verify_X_input_validity(self, X: pd.DataFrame):
@@ -156,7 +156,7 @@ class OrdinaryLeastSquares:
         - None
         """
         if not isinstance(X, pd.DataFrame):
-            raise ValueError(f'Invalid input: X. Must be 2d pd.DataFrame.')
+            raise ValueError(f'Invalid input: X. Must be pd.DataFrame.')
         # add 1 to n_regressors to account for constant
         if X.shape[1] != self._n_regressors + 1:
             raise ValueError(f'Invalid input: X. Must have the same ' + \

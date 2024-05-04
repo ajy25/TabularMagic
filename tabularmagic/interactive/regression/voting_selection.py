@@ -2,7 +2,7 @@ import pandas as pd
 from ...feature_selection.regression_feature_selection \
     import RegressionBaseSelector
 from typing import Iterable
-from ...util.color_text import color_text
+from ...util.console import color_text
 
 
 class RegressionVotingSelectionReport():

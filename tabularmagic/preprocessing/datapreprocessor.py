@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Literal, Callable
 from sklearn.impute import KNNImputer, SimpleImputer
-from ..util.color_text import color_text
+from ..util.console import color_text
 
 
 class BaseSingleVarScaler():

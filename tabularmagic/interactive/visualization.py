@@ -6,10 +6,10 @@ from scipy.stats import pearsonr
     
 
 
-def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray, 
+def plot_calibration(y_pred: np.ndarray, y_true: np.ndarray, 
                       figsize: Iterable = (5, 5), ax: axes.Axes = None):
-    """Returns a figure that is a scatter plot of the true and predicted y 
-    values. 
+    """Returns a figure that is a scatter plot of the observed and predicted y 
+    values. Predicted values on x axis, observed values on y axis. 
 
     Parameters 
     ----------
@@ -31,14 +31,14 @@ def plot_pred_vs_true(y_pred: np.ndarray, y_true: np.ndarray,
     ax.plot([min_val, max_val], [min_val, max_val], linestyle='--', 
             color='gray', linewidth=1)
 
-    ax.scatter(y_true, y_pred, s=2, color='black')
+    ax.scatter(y_pred, y_true, s=2, color='black')
 
     ax.set_xlim(min_val, max_val)
     ax.set_ylim(min_val, max_val)
-    ax.set_xlabel('True')
-    ax.set_ylabel('Predicted')
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Observed')
     
-    ax.set_title(f'Predicted vs True | ' + \
+    ax.set_title(f'Observed vs Predicted | ' + \
                     f'ρ = {round(pearsonr(y_pred, y_true)[0], 3)}')
     ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
 

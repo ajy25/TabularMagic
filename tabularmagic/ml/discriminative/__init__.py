@@ -4,3 +4,8 @@ from .regression.svm import SVMR
 from .regression.trees import TreeEnsembleR, TreeR
 
 
+
+
+from .classification.linear import LinearC
+
+

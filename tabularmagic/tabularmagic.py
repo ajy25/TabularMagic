@@ -1,23 +1,24 @@
+import math
 import pandas as pd
 from typing import Iterable, Literal
 import matplotlib.pyplot as plt
-from textwrap import fill
 plt.ioff()
+from textwrap import fill
 from sklearn.model_selection import train_test_split
+
 from .ml.discriminative.regression.base_regression import BaseRegression
 from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
     RegressionVotingSelectionReport, LinearRegressionReport)
-from .util.color_text import color_text
+from .util.console import print_wrapped, color_text
+from .util.constants import TOSTR_MAX_WIDTH
 from .feature_selection import RegressionBaseSelector
 from .preprocessing.datapreprocessor import DataPreprocessor
 
 
 
-
-
-class TabularMagic():
+class TabularMagic:
     """TabularMagic: Automatic statistical and machine learning analysis of 
     datasets in tabular form. 
     """
@@ -71,7 +72,7 @@ class TabularMagic():
                                                      columns=df.columns)
             else:
                 if self._tm_verbose:
-                    print(f'{color_text("WARNING:", "red")} ' +\
+                    print_wrapped(f'{color_text("WARNING:", "red")} ' +\
                           'No test dataset provided. ' +\
                           'Test dataset will be treated as train dataset copy.')
                 self._original_df_train = self._original_df
@@ -89,7 +90,7 @@ class TabularMagic():
 
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print(f'{color_text("UPDATE:", "green")} TabularMagic' +\
+            print_wrapped(f'{color_text("UPDATE:", "green")} TabularMagic' +\
                    ' initialization complete. ' +\
                 'Shapes of train, test datasets: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}')
@@ -168,7 +169,7 @@ class TabularMagic():
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
-            print(f'{color_text("UPDATE:", "green")} ' +  \
+            print_wrapped(f'{color_text("UPDATE:", "green")} ' +  \
                 'Preprocessing complete. ' +\
                 'Re-identified categorical ' +\
                 'and continuous variables.')
@@ -354,8 +355,9 @@ class TabularMagic():
         y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
             if self._tm_verbose:
-                print(f'{color_text("UPDATE:", "green")} Task {i+1} of ' +\
-                       f'{len(models)}.\tFitting {model}.')
+                print_wrapped(f'{color_text("UPDATE:", "green")} ' \
+                    + f'Task {i+1} of ' +\
+                    f'{len(models)}.\tFitting {model}.')
             model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
                       outer_cv_seed=outer_cv_seed)
         y_var_scaler = None
@@ -387,8 +389,9 @@ class TabularMagic():
         - None
         """
         if self._tm_verbose:
-            print(f'{color_text("UPDATE:", "green")} Working datasets ' + \
-                  f'checkpoint "{checkpoint}" saved.')
+            print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
+                'Working datasets ' + \
+                f'checkpoint "{checkpoint}" saved.')
         self._df_checkpoint_name_to_df[checkpoint] = (
             self._working_df_train.copy(),
             self._working_df_test.copy()
@@ -411,7 +414,7 @@ class TabularMagic():
         if checkpoint is None:
             if self._tm_verbose:
                 shapes_dict = self.shapes()
-                print(f'{color_text("UPDATE:", "green")} ' + \
+                print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
                       'Working datasets reset to original datasets. ' +\
                       'Shapes of train, test datasets: ' + \
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}')
@@ -420,7 +423,7 @@ class TabularMagic():
         else:
             if self._tm_verbose:
                 shapes_dict = self.shapes()
-                print(f'{color_text("UPDATE:", "green")} ' + \
+                print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
                        'Working datasets reset to checkpoint ' +\
                        f'"{checkpoint}". ' +\
                         'Shapes of train, test datasets: ' + \
@@ -445,7 +448,7 @@ class TabularMagic():
         """
         out_chkpt = self._df_checkpoint_name_to_df.pop(checkpoint)
         if self._tm_verbose:
-            print(f'{color_text("UPDATE:", "green")} Removed working ' +\
+            print_wrapped(f'{color_text("UPDATE:", "green")} Removed working '+\
                   f'dataset checkpoint {out_chkpt}.')
     
 
@@ -462,7 +465,7 @@ class TabularMagic():
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print(f'{color_text("UPDATE:", "green")} ' + \
+            print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
                   f'Selected columns {vars}. ' +\
                   'Re-identified categorical ' +\
                   'and continuous variables. ' +\
@@ -483,11 +486,12 @@ class TabularMagic():
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print(f'{color_text("UPDATE:", "green")} Dropped columns {vars}. '+\
-                  'Re-identified categorical ' +\
-                  'and continuous variables. ' +\
-                    'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+            print_wrapped(f'{color_text("UPDATE:", "green")} ' +\
+                f'Dropped columns {vars}. '+\
+                'Re-identified categorical ' +\
+                'and continuous variables. ' +\
+                'Shapes of train, test datasets: ' + \
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}')
 
 
     def drop_train_examples(self, indices: list):
@@ -501,9 +505,10 @@ class TabularMagic():
         self._working_df_train.drop(indices, axis='index', inplace=True)
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print(f'{color_text("UPDATE:", "green")} Dropped rows {indices}. '+\
-                  'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+            print_wrapped(f'{color_text("UPDATE:", "green")} ' +\
+                f'Dropped rows {indices}. '+\
+                'Shapes of train, test datasets: ' + \
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}')
 
 
     # --------------------------------------------------------------------------
@@ -652,13 +657,13 @@ class TabularMagic():
         extra_test_columns = list(set(df_test.columns) -\
             set(df_train.columns))
         if len(extra_test_columns) > 0:
-            print(f'{color_text("WARNING:", "red")} ' +\
+            print_wrapped(f'{color_text("WARNING:", "red")} ' +\
                   f'Columns {extra_test_columns} not found in train ' +\
                    'have been dropped from test')
             self._working_df_test.drop(columns=extra_test_columns, axis=1, 
                                       inplace=True)
         if len(missing_test_columns) > 0:
-            print(f'{color_text("WARNING:", "red")} ' +\
+            print_wrapped(f'{color_text("WARNING:", "red")} ' +\
                   f'Columns {missing_test_columns} not found in test ' +\
                    'have been added to test with 0-valued entries')
             for col in missing_test_columns:
@@ -690,11 +695,24 @@ class TabularMagic():
     def __str__(self):
         """Returns metadata in string form. """
 
+
+        max_width = TOSTR_MAX_WIDTH
+
+
+        textlen_shapes = len(str(self._working_df_train.shape) +\
+            str(self._working_df_test.shape)) + 25
+        shapes_message_buffer_left = (max_width - textlen_shapes) // 2
+        shapes_message_buffer_right = math.ceil(
+            (max_width - textlen_shapes) / 2)
+
+
         shapes_message = color_text('Train shape: ', 'none') +\
-              f'{self._working_df_train.shape}'+ ' '*8 +\
+            f'{self._working_df_train.shape}'+ \
+            ' '*shapes_message_buffer_left +\
             color_text('Test shape: ', 'none') + \
-                f'{self._working_df_test.shape}'  + ' '*8
-        max_width = len(shapes_message)
+            f'{self._working_df_test.shape}'  + \
+            ' '*shapes_message_buffer_right
+
 
         title_message = color_text(self._id, 'none')
         title_message = fill(title_message, width=max_width)

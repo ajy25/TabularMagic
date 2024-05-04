@@ -5,10 +5,10 @@ from typing import Iterable
 from ...metrics.regression_scoring import RegressionScorer
 from ...ml.discriminative.regression.base_regression import BaseRegression
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
-from ..visualization import plot_pred_vs_true
+from ..visualization import plot_calibration
 
 
-class MLRegressionReport():
+class MLRegressionReport:
     """MLRegressionReport: generates regression-relevant plots and tables 
     for a single machine learning model. 
     """
@@ -74,10 +74,10 @@ class MLRegressionReport():
         return self._scorer.to_df()
 
         
-    def plot_pred_vs_true(self, figsize: Iterable = (5, 5), 
+    def plot_calibration(self, figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None):
-        """Returns a figure that is a scatter plot of the true and predicted y 
-        values. 
+        """Returns a figure that is a scatter plot of the observed (y-axis) and 
+        predicted (x-axis) values. 
 
         Parameters 
         ----------
@@ -88,12 +88,12 @@ class MLRegressionReport():
         -------
         - plt.Figure
         """
-        return plot_pred_vs_true(self._y_pred, self._y_true, figsize, ax)
+        return plot_calibration(self._y_pred, self._y_true, figsize, ax)
 
 
 
 
-class ComprehensiveMLRegressionReport():
+class ComprehensiveMLRegressionReport:
     """An object that generates regression-relevant plots and tables for a 
     set of models. Indexable. 
     """

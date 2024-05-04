@@ -1,4 +1,24 @@
 from typing import Literal
+from textwrap import fill
+from .constants import TOSTR_MAX_WIDTH
+
+
+def print_wrapped(text: str):
+    """Prints text to terminal
+
+    Parameters
+    ----------
+    - text : str
+    """
+    print(
+        fill(
+            text, width=TOSTR_MAX_WIDTH, subsequent_indent='  '
+        )
+    )
+
+
+
+
 
 def color_text(text, color: Literal['red', 'blue', 'green', 'yellow', 
                 'purple', 'none']):

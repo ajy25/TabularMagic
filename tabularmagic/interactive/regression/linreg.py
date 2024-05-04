@@ -4,12 +4,19 @@ import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 import seaborn as sns
 from scipy import stats
-from typing import Iterable, Literal
+from typing import Iterable
+from statsmodels.stats.anova import anova_lm
+import statsmodels.api as sm
 from ...metrics.regression_scoring import RegressionScorer
 from ...preprocessing.datapreprocessor import BaseSingleVarScaler
-from ..visualization import plot_pred_vs_true, decrease_font_sizes_axs
+from ..visualization import plot_calibration, decrease_font_sizes_axs
 from ...linear.regression.linear_regression import OrdinaryLeastSquares
 from adjustText import adjust_text
+
+
+
+
+
 
 
 def reverse_argsort(indices):
@@ -19,10 +26,24 @@ def reverse_argsort(indices):
         reverse_indices[idx] = i
     return reverse_indices
 
+
+
+
+
+MAX_N_OUTLIERS_TEXT = 20
+
+
+
+
+
+
 train_only_message = 'This function is only available for training data.'
 
 
-class LinearRegressionReport():
+
+
+
+class LinearRegressionReport:
     """LinearRegressionReport: generates regression-relevant diagnostic 
     plots and tables for a single linear regression model. 
     """
@@ -46,6 +67,9 @@ class LinearRegressionReport():
         self._X_eval_df = X_eval
         self._y_eval_df = y_eval
         self._y_pred = model.predict(self._X_eval_df)
+        self._include_text = True
+        if self._y_pred > 500:
+            self._include_text = False
         self._is_train = False
         if len(self._y_pred) == len(model.estimator.fittedvalues):
             if np.allclose(self._y_pred, model.estimator.fittedvalues):
@@ -61,6 +85,7 @@ class LinearRegressionReport():
         self._outlier_threshold = 2
         self._compute_outliers()
 
+
         
     def statsmodels_summary(self):
         """
@@ -73,7 +98,7 @@ class LinearRegressionReport():
             raise RuntimeError('Error occured in statsmodels_summary call.')
 
 
-    def plot_pred_vs_true(self, show_outliers: bool = True,
+    def plot_calibration(self, show_outliers: bool = True,
                           figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None):
         """Returns a figure that is a scatter plot of the true and predicted y 
@@ -92,20 +117,21 @@ class LinearRegressionReport():
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_pred_vs_true(self._y_pred, self._y_true, figsize, ax)
-        if show_outliers:
-            ax.scatter(self._y_pred[self._outliers_residual_mask], 
-                    self._y_true[self._outliers_residual_mask], s=2, 
+        plot_calibration(self._y_pred, self._y_true, figsize, ax)
+        if show_outliers and self._n_outliers > 0:
+            ax.scatter(self._y_true[self._outliers_residual_mask], 
+                    self._y_pred[self._outliers_residual_mask], s=2, 
                     color='red')
-            annotations = []
-            for i, label in enumerate(self._outliers_df_idx):
-                annotations.append(
-                    ax.annotate(label, 
-                    (self._y_pred[self._outliers_residual_mask][i], 
-                    self._y_true[self._outliers_residual_mask][i]), 
-                    color='red',
-                    fontsize=6))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for i, label in enumerate(self._outliers_df_idx):
+                    annotations.append(
+                        ax.annotate(label, 
+                        (self._y_true[self._outliers_residual_mask][i], 
+                        self._y_pred[self._outliers_residual_mask][i]), 
+                        color='red',
+                        fontsize=6))
+                adjust_text(annotations, ax=ax)
                 
                 
         if fig is not None:
@@ -140,21 +166,22 @@ class LinearRegressionReport():
             residuals = self._stdresiduals
 
         ax.axhline(y=0, color='gray', linestyle='--', linewidth=1)
-        if show_outliers and len(self._outliers_residual_mask) > 0:
+        if show_outliers and self._n_outliers > 0:
             ax.scatter(self._y_pred[~self._outliers_residual_mask], 
                     residuals[~self._outliers_residual_mask], s=2, 
                     color='black')
             ax.scatter(self._y_pred[self._outliers_residual_mask], 
                     residuals[self._outliers_residual_mask], s=2, 
                     color='red')
-            annotations = []
-            for i, label in enumerate(self._outliers_df_idx):
-                annotations.append(
-                    ax.annotate(label, 
-                    (self._y_pred[self._outliers_residual_mask][i], 
-                        residuals[self._outliers_residual_mask][i]), 
-                    color='red', fontsize=6))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for i, label in enumerate(self._outliers_df_idx):
+                    annotations.append(
+                        ax.annotate(label, 
+                        (self._y_pred[self._outliers_residual_mask][i], 
+                            residuals[self._outliers_residual_mask][i]), 
+                        color='red', fontsize=6))
+                adjust_text(annotations, ax=ax)
         else:
             ax.scatter(self._y_pred, residuals, s=2, color='black')
 
@@ -202,20 +229,21 @@ class LinearRegressionReport():
         x_vals = self._X_eval_df[x_var].to_numpy()
 
         ax.axhline(y=0, color='gray', linestyle='--', linewidth=1)
-        if show_outliers and len(self._outliers_residual_mask) > 0:
+        if show_outliers and self._n_outliers > 0:
             ax.scatter(x_vals[~self._outliers_residual_mask], 
                     residuals[~self._outliers_residual_mask], s=2, 
                     color='black')
             ax.scatter(x_vals[self._outliers_residual_mask], 
                     residuals[self._outliers_residual_mask], s=2, 
                     color='red')
-            annotations = []
-            for i, label in enumerate(self._outliers_df_idx):
-                annotations.append(ax.annotate(label, 
-                    (x_vals[self._outliers_residual_mask][i], 
-                    residuals[self._outliers_residual_mask][i]), 
-                    color='red', fontsize=6))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for i, label in enumerate(self._outliers_df_idx):
+                    annotations.append(ax.annotate(label, 
+                        (x_vals[self._outliers_residual_mask][i], 
+                        residuals[self._outliers_residual_mask][i]), 
+                        color='red', fontsize=6))
+                adjust_text(annotations, ax=ax)
         else:
             ax.scatter(x_vals, residuals, s=2, color='black')
 
@@ -233,6 +261,8 @@ class LinearRegressionReport():
             plt.close()
         return fig
     
+
+
     def plot_residuals_hist(self, standardized: bool = False,
                             density: bool = False, 
                             figsize: Iterable = (5, 5), 
@@ -283,6 +313,7 @@ class LinearRegressionReport():
         return fig
     
 
+
     def plot_scale_location(self, show_outliers: bool = True, 
                             figsize: Iterable = (5, 5), 
                             ax: axes.Axes = None):
@@ -306,23 +337,24 @@ class LinearRegressionReport():
         residuals = np.sqrt(np.abs(self._stdresiduals))
 
         ax.axhline(y=0, color='gray', linestyle='--', linewidth=1)
-        if show_outliers and len(self._outliers_residual_mask) > 0:
+        if show_outliers and self._n_outliers > 0:
             ax.scatter(self._y_pred[~self._outliers_residual_mask], 
                     residuals[~self._outliers_residual_mask], s=2, 
                     color='black')
             ax.scatter(self._y_pred[self._outliers_residual_mask], 
                     residuals[self._outliers_residual_mask], s=2, 
                     color='red')
-            annotations = []
-            for i, label in enumerate(self._outliers_df_idx):
-                annotations.append(ax.annotate(
-                    label, 
-                    (self._y_pred[self._outliers_residual_mask][i], 
-                        residuals[self._outliers_residual_mask][i]), 
-                    color='red',
-                    fontsize=6
-                ))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for i, label in enumerate(self._outliers_df_idx):
+                    annotations.append(ax.annotate(
+                        label, 
+                        (self._y_pred[self._outliers_residual_mask][i], 
+                            residuals[self._outliers_residual_mask][i]), 
+                        color='red',
+                        fontsize=6
+                    ))
+                adjust_text(annotations, ax=ax)
             
         else:
             ax.scatter(self._y_pred, residuals, s=2, color='black')
@@ -369,23 +401,24 @@ class LinearRegressionReport():
             residuals = self._stdresiduals
 
         ax.axhline(y=0, color='gray', linestyle='--', linewidth=1)
-        if show_outliers and len(self._outliers_residual_mask) > 0:
+        if show_outliers and self._n_outliers > 0:
             ax.scatter(leverage[~self._outliers_residual_mask], 
                     residuals[~self._outliers_residual_mask], s=2, 
                     color='black')
             ax.scatter(leverage[self._outliers_residual_mask], 
                     residuals[self._outliers_residual_mask], s=2, 
                     color='red')
-            annotations = []
-            for i, label in enumerate(self._outliers_df_idx):
-                annotations.append(ax.annotate(
-                    label, 
-                    (leverage[self._outliers_residual_mask][i], 
-                        residuals[self._outliers_residual_mask][i]), 
-                    color='red',
-                    fontsize=6
-                ))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for i, label in enumerate(self._outliers_df_idx):
+                    annotations.append(ax.annotate(
+                        label, 
+                        (leverage[self._outliers_residual_mask][i], 
+                            residuals[self._outliers_residual_mask][i]), 
+                        color='red',
+                        fontsize=6
+                    ))
+                adjust_text(annotations, ax=ax)
 
         else:
             ax.scatter(leverage, residuals, s=2, color='black')
@@ -448,7 +481,7 @@ class LinearRegressionReport():
                                      max_val * slope + intercept], 
             color='gray', linestyle='--', linewidth=1)
 
-        if show_outliers and len(self._outliers_residual_mask) > 0:
+        if show_outliers and self._n_outliers > 0:
 
             residuals_sorted_idx = reverse_argsort(np.argsort(residuals))
             
@@ -467,16 +500,16 @@ class LinearRegressionReport():
                 residuals_df_not_outliers['ordered_value'], s=2, color='black')
             ax.scatter(residuals_df_outliers['theoretical_quantile'], 
                 residuals_df_outliers['ordered_value'], s=2, color='red')
-            
-            annotations = []
-            for _, row in residuals_df_outliers.iterrows():
-                annotations.append(
-                    ax.annotate(row['label'], 
-                    (row['theoretical_quantile'], row['ordered_value']), 
-                    color='red', 
-                    fontsize=6
-                ))
-            adjust_text(annotations, ax=ax)
+            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+                annotations = []
+                for _, row in residuals_df_outliers.iterrows():
+                    annotations.append(
+                        ax.annotate(row['label'], 
+                        (row['theoretical_quantile'], row['ordered_value']), 
+                        color='red', 
+                        fontsize=6
+                    ))
+                adjust_text(annotations, ax=ax)
             
         else:
             ax.scatter(theoretical_quantitles, ordered_vals, 
@@ -503,7 +536,7 @@ class LinearRegressionReport():
         """
         fig, axs = plt.subplots(2, 2, figsize=figsize)
 
-        self.plot_pred_vs_true(show_outliers=show_outliers, ax=axs[0][0])
+        self.plot_calibration(show_outliers=show_outliers, ax=axs[0][0])
         self.plot_residuals_vs_fitted(show_outliers=show_outliers, ax=axs[0][1])
 
         if self._is_train:
@@ -541,17 +574,9 @@ class LinearRegressionReport():
         if not self._is_train:
             print(train_only_message)
             return None
-        # TODO: implement
-
-
-    def backward_selection(self, criteria: Literal['r2', 'adjr2', 'aic', 'bic', 
-            'mse', 'mad']):
-        """Treats the given model as the full model. Iteratively removes 
-        """
-        if not self._is_train:
-            print(train_only_message)
-            return None
-        # TODO: implement
+        full_model = self.model.estimator
+        reduced_model = self.model.estimator
+        anova_lm()
 
 
 
@@ -597,5 +622,10 @@ class LinearRegressionReport():
             (self._stdresiduals <= -self._outlier_threshold))
         self._outliers_df_idx = self._X_eval_df.iloc[
             self._outliers_residual_mask].index.to_numpy()
+        self._n_outliers = len(self._outliers_df_idx)
+
+
+
+
 
 

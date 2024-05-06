@@ -21,9 +21,9 @@ class MLPR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_examples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_examples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
         - hyperparam_search_method : str. 
             Default: None. If None, a regression-specific default hyperparameter 

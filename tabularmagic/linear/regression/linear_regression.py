@@ -19,9 +19,9 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_samples, n_regressors).
+        - X : pd.DataFrame ~ (sample_size, n_predictors).
             Default: None. DataFrame of predictor variables. 
-        - y : pd.Series ~ (n_samples).
+        - y : pd.Series ~ (sample_size).
             Default: None. Dependent variable series. 
         - regularization_type : [None, 'l1', 'l2']. 
             Default: None.
@@ -40,8 +40,8 @@ class OrdinaryLeastSquares:
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
-            self._n_regressors = X.shape[1]
+            self._sample_size = X.shape[0]
+            self._n_predictors = X.shape[1]
         
     def fit(self, X: pd.DataFrame = None, y: pd.Series = None):
         """
@@ -49,9 +49,9 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_samples, n_regressors).
+        - X : pd.DataFrame ~ (sample_size, n_predictors).
             Default: None. DataFrame of predictor variables. 
-        - y : pd.Series ~ (n_samples).
+        - y : pd.Series ~ (sample_size).
             Default: None. Dependent variable series. 
 
         Returns
@@ -61,8 +61,8 @@ class OrdinaryLeastSquares:
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
-            self._n_regressors = X.shape[1]
+            self._sample_size = X.shape[0]
+            self._n_predictors = X.shape[1]
         if ((self._X is None) or (self._y is None)) and \
             (not ((self._X is None) and (self._y is None))):
             raise ValueError(f'Invalid input: X, y.',
@@ -84,7 +84,7 @@ class OrdinaryLeastSquares:
         
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_test_samples, n_regressors).
+        - X : pd.DataFrame ~ (n_test_samples, n_predictors).
 
         Returns
         -------
@@ -102,9 +102,9 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_samples, n_regressors).
+        - X : pd.DataFrame ~ (sample_size, n_predictors).
             Default: None. If None, computes scores using X and y. 
-        - y : pd.Series ~ (n_samples).
+        - y : pd.Series ~ (sample_size).
             Default: None. If None, computes scores using X and y. 
 
         Returns
@@ -115,7 +115,7 @@ class OrdinaryLeastSquares:
             X_test = self._X
             y_test = self._y
         return RegressionScorer(self.predict(X_test), y_test.to_numpy(), 
-            n_regressors=self._n_regressors, model_id_str=str(self))
+            n_predictors=self._n_predictors, model_id_str=str(self))
     
 
     def _verify_Xy_input_validity(self, X: pd.DataFrame, y: pd.Series):
@@ -124,8 +124,8 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_samples, n_regressors).
-        - y : pd.Series ~ (n_samples).
+        - X : pd.DataFrame ~ (sample_size, n_predictors).
+        - y : pd.Series ~ (sample_size).
 
         Returns
         -------
@@ -149,7 +149,7 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (n_samples, n_regressors).
+        - X : pd.DataFrame ~ (sample_size, n_predictors).
 
         Returns
         -------
@@ -157,8 +157,8 @@ class OrdinaryLeastSquares:
         """
         if not isinstance(X, pd.DataFrame):
             raise ValueError(f'Invalid input: X. Must be pd.DataFrame.')
-        # add 1 to n_regressors to account for constant
-        if X.shape[1] != self._n_regressors + 1:
+        # add 1 to n_predictors to account for constant
+        if X.shape[1] != self._n_predictors + 1:
             raise ValueError(f'Invalid input: X. Must have the same ' + \
                              'length in the second dimension as the dataset' + \
                              ' upon which the estimator has been trained.')

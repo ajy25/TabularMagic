@@ -29,9 +29,9 @@ class TreeR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_examples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_examples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
         - random_state : int. 
             Default: 42.
@@ -65,8 +65,8 @@ class TreeR(BaseRegression):
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'
             hyperparam_grid_specification = {
-                'min_samples_split': [2, 0.1, 0.05],
-                'min_samples_leaf': [1, 0.1, 0.05],
+                'misample_size_split': [2, 0.1, 0.05],
+                'misample_size_leaf': [1, 0.1, 0.05],
                 'max_features': ['sqrt', 'log2', None],
             }
         self._hyperparam_searcher = HyperparameterSearcher(
@@ -100,9 +100,9 @@ class TreeEnsembleR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_examples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_examples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
         - ensemble_type: Literal['random_forest', 'gradient_boosting', 
                     'adaboost', 'bagging', 'xgboost']
@@ -141,8 +141,8 @@ class TreeEnsembleR(BaseRegression):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
                     'n_estimators': [50, 100, 200],
-                    'min_samples_split': [2, 0.1],
-                    'min_samples_leaf': [1, 0.1],
+                    'misample_size_split': [2, 0.1],
+                    'misample_size_leaf': [1, 0.1],
                     'max_features': ['sqrt', 'log2', None],
                     'max_depth': [5, 10, None]
                 }
@@ -206,8 +206,8 @@ class TreeEnsembleR(BaseRegression):
                 hyperparam_grid_specification = {
                     'n_estimators': [25, 50, 100],
                     'subsample': [0.2, 0.5, 1.0],
-                    'min_samples_split': [2, 0.1],
-                    'min_samples_leaf': [1, 0.1],
+                    'misample_size_split': [2, 0.1],
+                    'misample_size_leaf': [1, 0.1],
                     'max_depth': [5, 10, None],
                     'max_features': ['sqrt', 'log2', None],
                 }

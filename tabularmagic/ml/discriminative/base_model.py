@@ -27,9 +27,9 @@ class BaseDiscriminativeModel():
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None.
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None.
 
         Returns
@@ -42,9 +42,9 @@ class BaseDiscriminativeModel():
         """
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. If None, computes scores using X and y. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. If None, computes scores using X and y. 
 
         Returns
@@ -118,8 +118,8 @@ class HyperparameterSearcher():
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
-        - y : np.ndarray ~ (n_samples).
+        - X : np.ndarray ~ (sample_size, n_predictors).
+        - y : np.ndarray ~ (sample_size).
 
         Returns
         -------

@@ -36,7 +36,7 @@ class BaseClassification(BaseDiscriminativeModel):
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
+            self._sample_size = X.shape[0]
             self._n_predictors = X.shape[1]
         self.nickname = 'BaseClassification'
 
@@ -48,9 +48,9 @@ class BaseClassification(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_predictors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None.
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None.
         - outer_cv : int | BaseCrossValidator | None. 
             Default: None. If None, does not conduct nested cross validaiton. 
@@ -66,7 +66,7 @@ class BaseClassification(BaseDiscriminativeModel):
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
+            self._sample_size = X.shape[0]
             self._n_regressors = X.shape[1]
         if ((self._X is None) or (self._y is None)) and \
             (not ((self._X is None) and (self._y is None))):
@@ -113,8 +113,8 @@ class BaseClassification(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
-        - y : np.ndarray ~ (n_samples).
+        - X : np.ndarray ~ (sample_size, n_regressors).
+        - y : np.ndarray ~ (sample_size).
 
         Returns
         -------
@@ -138,7 +138,7 @@ class BaseClassification(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_regressors).
 
         Returns
         -------

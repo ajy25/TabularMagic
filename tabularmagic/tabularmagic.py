@@ -121,13 +121,15 @@ class TabularMagic:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 
 
-    def preprocess_data(self, onehot_vars: list[str] = [],
+    def preprocess_data(self, 
+                        imputation_strategy: Literal[None, 'drop', 
+                            'median-mostfrequent', 'mean-mostfrequent', 
+                            '5nn-mostfrequent'] = None,
+                        onehot_vars: list[str] = [],
                         standardize_vars: list[str] = [], 
                         minmax_vars: list[str] = [], 
                         log1p_vars: list[str] = [],
-                        log_vars: list[str] = [],
-                        imputation_strategy: Literal[None, 'drop', 'mean', 
-                        'median', '5nn', '10nn'] = None, 
+                        log_vars: list[str] = [], 
                         dropfirst_onehot: bool = False):
         """Fits a DataPreprocessor object on the training dataset. Then, 
         preprocesses both the train and test datasets. 
@@ -136,13 +138,16 @@ class TabularMagic:
         
         Parameters
         ----------
+        - imputation_strategy : Literal[None, 'drop', 
+            'median-mostfrequent', 'mean-mostfrequent', 
+            '5nn-mostfrequent']. 
+            Imputation strategy described for 
+            continuous-categorical variables. 
         - onehot_vars : list[str]. 
         - standard_scale_vars : list[str].
         - minmax_scale_vars : list[str].
         - log1p_vars : list[str].
         - log_vars : list[str].
-        - imputation_strategy: Literal[None, 'drop', 'mean', 
-            'median', '5nn', '10nn']. 
         - dropfirst_onehot : bool. 
             Default: False. 
             All binary variables will automatically drop first, 
@@ -154,13 +159,14 @@ class TabularMagic:
         """
         self._dp = DataPreprocessor(
             self._working_df_train,
+            imputation_strategy=imputation_strategy,
             onehot_vars=onehot_vars,
             standardize_vars=standardize_vars,
             minmax_vars=minmax_vars,
             log1p_vars=log1p_vars,
             log_vars=log_vars,
-            imputation_strategy=imputation_strategy,
-            dropfirst_onehot=dropfirst_onehot
+            dropfirst_onehot=dropfirst_onehot,
+            verbose=self._tm_verbose
         )
         self._working_df_train = self._dp.forward(
             self._working_df_train)

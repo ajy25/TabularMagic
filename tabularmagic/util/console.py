@@ -12,7 +12,7 @@ def print_wrapped(text: str):
     """
     print(
         fill(
-            text, width=TOSTR_MAX_WIDTH, subsequent_indent='  '
+            text, width=TOSTR_MAX_WIDTH, subsequent_indent='    ', tabsize=0
         )
     )
 

@@ -25,9 +25,9 @@ class LinearR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_examples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_examples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
         - regularization_type : [OLS, 'l1', 'l2']. 
             Default: None.
@@ -118,9 +118,9 @@ class RobustLinearR(BaseRegression):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
         - regressor : Literal['huber', 'ransac']. 
             Default: 'huber'.
@@ -170,7 +170,7 @@ class RobustLinearR(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'min_samples': [None, 0.1, 0.25, 0.5], 
+                    'misample_size': [None, 0.1, 0.25, 0.5], 
                     'residual_threshold': [None, 1.0, 2.0], 
                     'max_trials': [100, 200, 300]
                 }

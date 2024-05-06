@@ -22,9 +22,9 @@ class BaseRegression(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_examples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (n_examples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. Dependent variable vector. 
 
         Returns
@@ -36,8 +36,8 @@ class BaseRegression(BaseDiscriminativeModel):
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
-            self._n_regressors = X.shape[1]
+            self._sample_size = X.shape[0]
+            self._n_predictors = X.shape[1]
         self.nickname = 'BaseRegression'
 
 
@@ -49,9 +49,9 @@ class BaseRegression(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None.
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None.
         - outer_cv : int | BaseCrossValidator | None. 
             Default: None. If None, does not conduct nested cross validaiton. 
@@ -67,8 +67,8 @@ class BaseRegression(BaseDiscriminativeModel):
         if (X is not None) and (y is not None):
             self._X = X.copy()
             self._y = y.copy()
-            self._n_samples = X.shape[0]
-            self._n_regressors = X.shape[1]
+            self._sample_size = X.shape[0]
+            self._n_predictors = X.shape[1]
         if ((self._X is None) or (self._y is None)) and \
             (not ((self._X is None) and (self._y is None))):
             raise ValueError(f'Invalid input: X, y.',
@@ -81,7 +81,7 @@ class BaseRegression(BaseDiscriminativeModel):
             self.train_scorer = RegressionScorer(
                 y_pred=self.estimator.predict(self._X),
                 y_true=self._y,
-                n_regressors=self._n_regressors,
+                n_predictors=self._n_predictors,
                 model_id_str=str(self)
             )
         else:
@@ -102,7 +102,7 @@ class BaseRegression(BaseDiscriminativeModel):
             self.train_scorer = RegressionScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
-                n_regressors=self._n_regressors,
+                n_predictors=self._n_predictors,
                 model_id_str=str(self)
             )
             self._hyperparam_searcher.fit(self._X, self._y)
@@ -113,7 +113,7 @@ class BaseRegression(BaseDiscriminativeModel):
         
         Parameters
         ----------
-        - X : np.ndarray ~ (n_test_samples, n_regressors).
+        - X : np.ndarray ~ (n_test_samples, n_predictors).
 
         Returns
         -------
@@ -131,9 +131,9 @@ class BaseRegression(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
             Default: None. If None, computes scores using X and y. 
-        - y : np.ndarray ~ (n_samples).
+        - y : np.ndarray ~ (sample_size).
             Default: None. If None, computes scores using X and y. 
 
         Returns
@@ -144,7 +144,7 @@ class BaseRegression(BaseDiscriminativeModel):
             return self.train_scorer
         self._verify_Xy_input_validity(X, y)
         return RegressionScorer(self.predict(X), y, 
-            n_regressors=self._n_regressors, model_id_str=str(self))
+            n_predictors=self._n_predictors, model_id_str=str(self))
     
     def _verify_Xy_input_validity(self, X: np.ndarray, y: np.ndarray):
         """Verifies that the inputs X and y are valid. If invalid, raises 
@@ -152,8 +152,8 @@ class BaseRegression(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
-        - y : np.ndarray ~ (n_samples).
+        - X : np.ndarray ~ (sample_size, n_predictors).
+        - y : np.ndarray ~ (sample_size).
 
         Returns
         -------
@@ -177,7 +177,7 @@ class BaseRegression(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - X : np.ndarray ~ (n_samples, n_regressors).
+        - X : np.ndarray ~ (sample_size, n_predictors).
 
         Returns
         -------
@@ -185,7 +185,7 @@ class BaseRegression(BaseDiscriminativeModel):
         """
         if not isinstance(X, np.ndarray):
             raise ValueError(f'Invalid input: X. Must be 2d np array.')
-        if X.shape[1] != self._n_regressors:
+        if X.shape[1] != self._n_predictors:
             raise ValueError(f'Invalid input: X. Must have the same',
                              'length in the second dimension as the dataset',
                              'upon which the estimator has been trained.')

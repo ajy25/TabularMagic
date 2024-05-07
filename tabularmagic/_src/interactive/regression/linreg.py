@@ -9,10 +9,13 @@ from typing import Iterable
 from statsmodels.stats.anova import anova_lm
 import statsmodels.api as sm
 from ...metrics.regression_scoring import RegressionScorer
-from ...preprocessing.datapreprocessor import BaseSingleVarScaler
+from ...data.preprocessing import BaseSingleVarScaler
+from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.regression.linear_regression import OrdinaryLeastSquares
 from adjustText import adjust_text
+
+
 
 
 def reverse_argsort(indices):
@@ -578,8 +581,6 @@ class LinearRegressionReport:
         - outliers_df_idx : list ~ (n_outliers)
         """
         return self._outliers_df_idx.tolist()
-    
-
 
 
     def fit_statistics(self) -> pd.DataFrame:
@@ -591,7 +592,6 @@ class LinearRegressionReport:
         - pd.DataFrame
         """
         return self._scorer.to_df()
-
 
 
     def _compute_outliers(self):
@@ -616,20 +616,22 @@ class ComprehensiveLinearRegressionReport:
                 y_scaler: BaseSingleVarScaler = None):
         """LinearRegressionReport wrapper for both train and test
 
-        Parameters 
+        Parameters
         ----------
         - model : OrdinaryLeastSquares. 
-            The model must already be trained.
         - X_test : pd.DataFrame.
         - y_test : pd.Series.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
             and on y_test before computing statistics.
         """
+
+        
         self._train_report = LinearRegressionReport(
             model, y_scaler=y_scaler)
         self._test_report = LinearRegressionReport(
             model, X_test, y_test, y_scaler)
+
     
     def train(self):
         """Returns an LinearRegressionReport object for the train dataset

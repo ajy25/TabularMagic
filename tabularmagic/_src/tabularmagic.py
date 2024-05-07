@@ -15,7 +15,8 @@ from .interactive import (ComprehensiveMLRegressionReport,
 from .util.console import print_wrapped, color_text
 from .util.constants import TOSTR_MAX_WIDTH
 from .feature_selection import RegressionBaseSelector
-from .preprocessing.datapreprocessor import DataPreprocessor
+from .data.preprocessing import DataPreprocessor
+from .data.datahandler import DataHandler
 
 
 
@@ -35,8 +36,7 @@ class TabularMagic:
         ----------
         - df : pd.DataFrame ~ (n_samples, n_variables).
         - df_test : pd.DataFrame ~ (n_test_samples, n_variables).
-            Default: None. If not None, then treats df as the train 
-            dataset. 
+            Default: None. If not None, then treats df as the train dataset.
         - test_size : float. 
             Default: 0. Proportion of the dataset to withhold for 
             testing. If test_size = 0, then the train dataset and the 
@@ -55,44 +55,41 @@ class TabularMagic:
         -------
         - None
         """
-        self._tm_verbose = verbose
+
+        self._verbose = verbose
+
         if df_test is not None:
-            self._original_df_train = df.copy()
-            self._original_df_test = df_test.copy()
-            self._original_df = pd.concat((self._original_df_train, 
-                                          self._original_df_test), axis=0)
+            self._datahandler = DataHandler(
+                df_train=df,
+                df_test=df_test,
+                verbose=self._verbose
+            )
+
         else:
-            self._original_df = df.copy()
             if test_size > 0:
-                temp_train, temp_test = train_test_split(self._original_df, 
+                temp_train, temp_test = train_test_split(df, 
                     test_size=test_size, shuffle=True, 
                     random_state=split_seed)
-                self._original_df_train = pd.DataFrame(temp_train, 
-                    columns=df.columns)
-                self._original_df_test = pd.DataFrame(temp_test, 
-                                                     columns=df.columns)
+                temp_train_df = pd.DataFrame(temp_train, columns=df.columns)
+                temp_test_df = pd.DataFrame(temp_test, columns=df.columns)
             else:
-                if self._tm_verbose:
+                if self._verbose:
                     print_wrapped(
                         'No test dataset provided. ' +\
                         'Test dataset will be treated as train dataset copy.',
                         type='WARNING'
                     )
-                self._original_df_train = self._original_df
-                self._original_df_test = self._original_df
-        self._verify_input_dfs()
-        self._dp = None
-        self._df_checkpoint_name_to_df = {}
-        self._working_df_train = self._original_df_train.copy()
-        self._working_df_test = self._original_df_test.copy()
-        self._categorical_vars = []
-        self._continuous_vars = []
+                temp_train_df = df
+                temp_test_df = df
+            self._datahandler = DataHandler(
+                df_train=temp_train_df,
+                df_test=temp_test_df, 
+                verbose=self._verbose
+            )
         self._id = id
-        self._remove_spaces_varnames()
-        self._reset_categorical_continuous_vars()
 
-        if self._tm_verbose:
-            shapes_dict = self.shapes()
+        if self._verbose:
+            shapes_dict = self._datahandler.shapes()
             print_wrapped(
                 'TabularMagic initialization complete. ' +\
                 'Shapes of train, test datasets: ' + \
@@ -119,9 +116,9 @@ class TabularMagic:
         - ComprehensiveEDA
         """
         if dataset == 'train':
-            return ComprehensiveEDA(self._working_df_train)
+            return ComprehensiveEDA(self._datahandler.df_train())
         elif dataset == 'test':
-            return ComprehensiveEDA(self._working_df_test)
+            return ComprehensiveEDA(self._datahandler.df_test())
         else:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 
@@ -174,7 +171,7 @@ class TabularMagic:
             log1p_vars=log1p_vars,
             log_vars=log_vars,
             dropfirst_onehot=dropfirst_onehot,
-            verbose=self._tm_verbose
+            verbose=self._verbose
         )
         self._working_df_train = self._dp.forward(
             self._working_df_train)
@@ -182,7 +179,7 @@ class TabularMagic:
             self._working_df_test)
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
-        if self._tm_verbose:
+        if self._verbose:
             print_wrapped(
                 'Preprocessing complete. ' +\
                 'Re-identified categorical ' +\
@@ -224,15 +221,12 @@ class TabularMagic:
         if X_vars is None:
             X_vars = self._continuous_vars.copy()
             X_vars.remove(y_var)
-
-        report = RegressionVotingSelectionReport(self._working_df_train, 
+        report = RegressionVotingSelectionReport(self._datahandler.df_train(),
             X_vars, y_var, selectors, n_target_features, 
-            verbose=self._tm_verbose)
+            verbose=self._verbose)
         if update_working_dfs:
             var_subset = report._top_features + [y_var]
-            self._working_df_test = self._working_df_test[var_subset]
-            self._working_df_train = self._working_df_train[var_subset]
-            self._reset_categorical_continuous_vars()
+            self._datahandler.select_vars(var_subset)
         return report
     
 
@@ -263,11 +257,12 @@ class TabularMagic:
             X_vars = self._continuous_vars.copy()
             X_vars.remove(y_var)
 
-        local_X_train_df = self._working_df_train[X_vars]
-        local_X_test_df = self._working_df_test[X_vars]
-        local_y_train_series = self._working_df_train[y_var]
-        local_y_test_series = self._working_df_test[y_var]
-        model = OrdinaryLeastSquares(X=local_X_train_df, y=local_y_train_series,
+        local_X_train_df = self._datahandler.df_train()[X_vars]
+        local_X_test_df = self._datahandler.df_test()[X_vars]
+        local_y_train_series = self._datahandler.df_train()[y_var]
+        local_y_test_series = self._datahandler.df_test()[y_var]
+        model = OrdinaryLeastSquares(X=local_X_train_df, 
+                                     y=local_y_train_series,
                                      regularization_type=regularization_type,
                                      alpha=alpha)
         model.fit()
@@ -277,7 +272,7 @@ class TabularMagic:
         return ComprehensiveLinearRegressionReport(
             model, local_X_test_df, local_y_test_series, y_scaler
         )
-    
+
 
     def lm_rlike(self, formula: str, inverse_scale_y: bool = True) -> \
             ComprehensiveLinearRegressionReport:
@@ -301,9 +296,9 @@ class TabularMagic:
 
         try:
             y_series_train, y_scaler, X_df_train =\
-                parse_and_transform_rlike(formula, self._working_df_train)
+                parse_and_transform_rlike(formula, self._datahandler.df_train())
             y_series_test, _, X_df_test =\
-                parse_and_transform_rlike(formula, self._working_df_test)
+                parse_and_transform_rlike(formula, self._datahandler.df_test())
         except:
             raise ValueError(f'Invalid formula: {formula}')
         
@@ -378,7 +373,7 @@ class TabularMagic:
         X_train_np = local_X_train_df.to_numpy()
         y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
-            if self._tm_verbose:
+            if self._verbose:
                 print_wrapped(
                     f'Task {i+1} of ' +\
                     f'{len(models)}.\tFitting {model}.',
@@ -411,7 +406,7 @@ class TabularMagic:
         ----------
         - checkpoint : str. 
         """
-        if self._tm_verbose:
+        if self._verbose:
             print_wrapped(
                 f'Saved working datasets checkpoint "{checkpoint}".',
                 type='UPDATE'
@@ -432,7 +427,7 @@ class TabularMagic:
             datasets given at object initialization. 
         """
         if checkpoint is None:
-            if self._tm_verbose:
+            if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
                     'Working datasets reset to original datasets. ' +\
@@ -443,7 +438,7 @@ class TabularMagic:
             self._working_df_test = self._original_df_test.copy()
             self._working_df_train = self._original_df_train.copy()
         else:
-            if self._tm_verbose:
+            if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
                     'Working datasets reset to checkpoint ' +\
@@ -467,31 +462,15 @@ class TabularMagic:
         - checkpoint : str. 
         """
         out_chkpt = self._df_checkpoint_name_to_df.pop(checkpoint)
-        if self._tm_verbose:
+        if self._verbose:
             print_wrapped(
                 f'Removed working dataset checkpoint "{out_chkpt}".',
                 type='UPDATE'
             )
             
 
-    def force_categorical(self, vars: list[str]):
-        """Forces variables to become categorical. 
-        Example use case: prepare numerically-coded categorical variables 
 
-        Parameters
-        ----------
-        - vars : list[str]
-        """
-        self._working_df_train[vars] =\
-            self._working_df_train[vars].astype('str')
-        if self._tm_verbose:
-            print_wrapped(
-                f'Converted variables {vars} to categorical.',
-                type='UPDATE'
-            )
-        self._reset_categorical_continuous_vars()
         
-    
 
     def select_vars(self, vars: list[str]):
         """Selects subset of (column) variables in-place on the working 
@@ -501,19 +480,7 @@ class TabularMagic:
         ----------
         - vars : list[str]
         """
-        self._working_df_train = self._working_df_train[vars]
-        self._working_df_test = self._working_df_test[vars]
-        self._reset_categorical_continuous_vars()
-        if self._tm_verbose:
-            shapes_dict = self.shapes()
-            print_wrapped(
-                f'Selected columns {vars}. ' +\
-                'Re-identified categorical ' +\
-                'and continuous variables. ' +\
-                'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
-                type='UPDATE'
-            )
+        self._datahandler.select_vars(vars)
 
 
     def drop_vars(self, vars: list[str]):
@@ -524,19 +491,7 @@ class TabularMagic:
         ----------
         - vars : list[str]
         """
-        self._working_df_train.drop(vars, axis='columns', inplace=True)
-        self._working_df_test.drop(vars, axis='columns', inplace=True)
-        self._reset_categorical_continuous_vars()
-        if self._tm_verbose:
-            shapes_dict = self.shapes()
-            print_wrapped(
-                f'Dropped columns {vars}. '+\
-                'Re-identified categorical ' +\
-                'and continuous variables. ' +\
-                'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
-                type='UPDATE'
-            )
+        self._datahandler.drop_vars(vars)
 
 
     def drop_train_examples(self, indices: list):
@@ -547,15 +502,7 @@ class TabularMagic:
         ----------
         - indices : list.
         """
-        self._working_df_train.drop(indices, axis='index', inplace=True)
-        if self._tm_verbose:
-            shapes_dict = self.shapes()
-            print_wrapped(
-                f'Dropped rows {indices}. '+\
-                'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
-                type='UPDATE'
-            )
+        self._datahandler.drop_train_examples(indices)
 
 
     # --------------------------------------------------------------------------
@@ -572,11 +519,7 @@ class TabularMagic:
             'test': self.working_df_test.shape
         }
         """
-        return {
-            'train': self._working_df_train.shape,
-            'test': self._working_df_test.shape
-        }
-
+        return self._datahandler.shapes()
 
     def dataset(self, dataset: Literal['train', 'test'] = 'train', 
                 copy: bool = False):
@@ -591,176 +534,46 @@ class TabularMagic:
         -------
         - df : pd.DataFrame
         """
-        if dataset == 'train':
-            if copy:
-                return self._working_df_train.copy()
-            else: 
-                return self._working_df_train
-            
-        elif dataset == 'test':
-            if copy:
-                return self._working_df_test.copy()
-            else:
-                return self._working_df_test
-        
-        else:
-            raise ValueError('Invalid input for dataset.')
+        return self._datahandler.dataset(dataset, copy)
     
 
     def head(self, n = 5):
         """Same as calling self.working_df_train.head(n)."""
-        return self._working_df_train.head(n)
+        return self._datahandler.head(n)
     
 
     def continuous_vars(self, copy: bool = False):
         """Returns copy of list of continuous variables."""
-        if copy:
-            return self._continuous_vars.copy()
-        else:
-            return self._continuous_vars
+        return self._datahandler.continuous_vars(copy)
 
     def categorical_vars(self, copy: bool = False):
         """Returns copy of list of categorical variables."""
-        if copy:
-            return self._categorical_vars.copy()
-        else:
-            return self._categorical_vars
-
+        return self._datahandler.categorical_vars(copy)
 
     def __len__(self):
         """Returns the number of examples in working_df_train."""
         return len(self._working_df_train)
-
-
-
-    # --------------------------------------------------------------------------
-    # HELPERS
-    # --------------------------------------------------------------------------
-    def _verify_input_dfs(self):
-        """Ensures that the original train and test datasets have the 
-        same variables. 
-        """
-        l1 = set(self._original_df_test.columns.to_list())
-        l2 = set(self._original_df_train.columns.to_list())
-        if len(l1.union(l2)) != len(l1):
-            raise RuntimeWarning('The train dataset and test dataset' + \
-                ' do not have the same variables.')
-
-
-    def _reset_categorical_continuous_vars(self):
-        """Resets the categorical and continuous column values."""
-        self._categorical_vars = self._working_df_train.select_dtypes(
-            include=['object', 'category', 'bool']).columns.to_list()
-        self._continuous_vars = self._working_df_train.select_dtypes(
-            exclude=['object', 'category', 'bool']).columns.to_list()
-        if self._continuous_vars is None:
-            self._continuous_vars = []
-        if self._categorical_vars is None:
-            self._categorical_vars = []
-        
-
-    def _working_train_test_var_agreement(self):
-        missing_test_columns = list(set(self._working_df_train.columns) -\
-            set(self._working_df_test.columns))
-        extra_test_columns = list(set(self._working_df_test.columns) -\
-            set(self._working_df_train.columns))
-        if len(extra_test_columns) > 0:
-            self._working_df_test.drop(columns=extra_test_columns, axis=1, 
-                                      inplace=True)
-        if len(missing_test_columns) > 0:
-            for col in missing_test_columns:
-                self._working_df_test[col] = 0
-        assert len(self._working_df_test.columns) == \
-            len(self._working_df_train.columns)
-
-        # ensure that the train and test dfs have the same order
-        # (for nicer exploration)
-        self._working_df_test = self._working_df_test[\
-            self._working_df_train.columns]
-
-        for a, b in zip(self._working_df_test.columns, 
-                        self._working_df_train.columns):
-            assert a == b
-
-
-    def _train_test_var_agreement(self, df_train: pd.DataFrame, 
-                                  df_test: pd.DataFrame):
-        """Modifies df_test to have the same columns as df_train. This helps 
-        mitigate any problems that may arise from one-hot-encoding the test set.
-
-        Parameters
-        ----------
-        - df_train : pd.DataFrame.
-        - df_test : pd.DataFrane.
-
-        Returns
-        -------
-        - df_train : pd.DataFrame
-        - df_test : pd.DataFrame
-        """
-        missing_test_columns = list(set(df_train.columns) -\
-            set(df_test.columns))
-        extra_test_columns = list(set(df_test.columns) -\
-            set(df_train.columns))
-        if len(extra_test_columns) > 0:
-            print_wrapped(
-                f'Columns {extra_test_columns} not found in train ' +\
-                'have been dropped from test.',
-                type='WARNING'
-            )
-            self._working_df_test.drop(columns=extra_test_columns, axis=1, 
-                                      inplace=True)
-        if len(missing_test_columns) > 0:
-            print_wrapped(
-                f'Columns {missing_test_columns} not found in test ' +\
-                'have been added to test with 0-valued entries.',
-                type='WARNING'
-            )
-            for col in missing_test_columns:
-                df_test[col] = 0
-        assert len(df_test.columns) == \
-            len(df_train.columns)
-
-        # ensure that the train and test dfs have the same order
-        # (for nicer exploration)
-        df_test = df_test[df_train.columns]
-        for a, b in zip(df_test.columns, 
-                        df_train.columns):
-            assert a == b
-        return df_train, df_test
-
-
-    def _remove_spaces_varnames(self):
-        """Removes spaces from variable names. Necessary for R-like lm()
-        calls.
-        """
-        new_columns = self._working_df_train.columns.to_list()
-        for i, var in enumerate(new_columns):
-            new_columns[i] = ''.join(var.split(' '))
-        self._working_df_train.columns = new_columns
-        self._working_df_test.columns = new_columns
-
             
 
     def __str__(self):
-        """Returns metadata in string form. """
-
+        """Returns metadata in string form."""
+        working_df_test = self._datahandler.df_test()
+        working_df_train = self._datahandler.df_train()
 
         max_width = TOSTR_MAX_WIDTH
 
-
-        textlen_shapes = len(str(self._working_df_train.shape) +\
-            str(self._working_df_test.shape)) + 25
+        textlen_shapes = len(str(working_df_train.shape) +\
+            str(working_df_test.shape)) + 25
         shapes_message_buffer_left = (max_width - textlen_shapes) // 2
         shapes_message_buffer_right = math.ceil(
             (max_width - textlen_shapes) / 2)
 
 
         shapes_message = color_text('Train shape: ', 'none') +\
-            f'{self._working_df_train.shape}'+ \
+            f'{working_df_train.shape}'+ \
             ' '*shapes_message_buffer_left +\
             color_text('Test shape: ', 'none') + \
-            f'{self._working_df_test.shape}'  + \
+            f'{working_df_test.shape}'  + \
             ' '*shapes_message_buffer_right
 
 
@@ -768,23 +581,23 @@ class TabularMagic:
         title_message = fill(title_message, width=max_width)
         
         categorical_var_message = color_text('Categorical variables:', 'none')
-        if len(self._categorical_vars) == 0:
+        if len(self._datahandler.categorical_vars()) == 0:
             categorical_var_message += color_text(
                 ' None', 'purple')
-        for i, var in enumerate(self._categorical_vars):
+        for i, var in enumerate(self._datahandler.categorical_vars()):
             categorical_var_message += f' {var}'
-            if i < len(self._categorical_vars) - 1:
+            if i < len(self._datahandler.categorical_vars()) - 1:
                 categorical_var_message += ','
         categorical_var_message = fill(categorical_var_message, 
                                        drop_whitespace=False, width=max_width)
 
         continuous_var_message = color_text('Continuous variables:', 'none')
-        if len(self._continuous_vars) == 0:
+        if len(self._datahandler.continuous_vars()) == 0:
             continuous_var_message += color_text(
                 ' None', 'purple')
-        for i, var in enumerate(self._continuous_vars):
+        for i, var in enumerate(self._datahandler.continuous_vars()):
             continuous_var_message += f' {var}'
-            if i < len(self._continuous_vars) - 1:
+            if i < len(self._datahandler.continuous_vars()) - 1:
                 continuous_var_message += ','
         continuous_var_message = fill(continuous_var_message, width=max_width)
 

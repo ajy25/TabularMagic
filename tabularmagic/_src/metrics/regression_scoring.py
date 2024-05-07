@@ -7,7 +7,7 @@ from scipy.stats import (
     pearsonr, spearmanr
 )
 from typing import Literal
-from ..preprocessing.datapreprocessor import BaseSingleVarScaler
+from ..data.preprocessing import BaseSingleVarScaler
 
 
 

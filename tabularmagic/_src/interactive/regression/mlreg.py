@@ -5,7 +5,7 @@ import matplotlib.figure as figure
 from typing import Iterable
 from ...metrics.regression_scoring import RegressionScorer
 from ...ml.discriminative.regression.base_regression import BaseRegression
-from ...preprocessing.datapreprocessor import BaseSingleVarScaler
+from ...data.preprocessing import BaseSingleVarScaler
 from ..visualization import plot_obs_vs_pred
 
 

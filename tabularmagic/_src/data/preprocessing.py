@@ -5,6 +5,7 @@ from sklearn.impute import KNNImputer, SimpleImputer
 from ..util.console import print_wrapped
 
 
+
 class BaseSingleVarScaler():
 
     def __init__(self, var_name: str, x: np.ndarray):

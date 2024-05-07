@@ -54,7 +54,7 @@ class BaseRegression(BaseDiscriminativeModel):
         - y : np.ndarray ~ (sample_size).
             Default: None.
         - outer_cv : int | BaseCrossValidator | None. 
-            Default: None. If None, does not conduct nested cross validaiton. 
+            Default: None. If None, does not conduct nested cross validation. 
             In this case, the train scores are computed over the entire training
             dataset, over which the model has been fitted. 
         - outer_cv_seed : int.

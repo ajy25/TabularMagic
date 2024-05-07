@@ -28,12 +28,12 @@ class DataHandler:
 
         # verify and set the original DataFrames
         self._verify_input_dfs(df_train, df_test)
-        df_train, df_test = self._remove_spaces_varnames()
+        df_train, df_test = self._remove_spaces_varnames(df_train, df_test)
         self._orig_df_train, self._orig_df_test =\
             self._force_train_test_var_agreement(df_train.copy(), 
                                                  df_test.copy())
         self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars()
+            self._compute_categorical_continuous_vars(self._orig_df_train)
 
         # set the working DataFrames
         self._working_df_train = self._orig_df_train.copy()
@@ -79,7 +79,7 @@ class DataHandler:
             self._working_df_test =\
                 self._checkpoint_name_to_df[checkpoint][1].copy()
         self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars()
+            self._compute_categorical_continuous_vars(self._working_df_train)
 
 
     def save_data_checkpoint(self, checkpoint: str):
@@ -155,7 +155,7 @@ class DataHandler:
         self._working_df_train.drop(vars, axis='columns', inplace=True)
         self._working_df_test.drop(vars, axis='columns', inplace=True)
         self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars()
+            self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self.shapes()
             print_wrapped(
@@ -305,12 +305,23 @@ class DataHandler:
                 type='UPDATE'
             )
         self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars()
+            self._compute_categorical_continuous_vars(self._working_df_train)
 
 
     # --------------------------------------------------------------------------
     # PREPROCESSING
     # --------------------------------------------------------------------------
+
+
+    def onehot(self, inplace: bool = True):
+        """One-hot encodes the train and test DataFrames."""
+        
+    
+    def handle_missing(self, strategy: Literal['dropna'], 
+                       included_vars: list[str] = None,
+                       excluded_vars: list[str] = None, 
+                       inplace: bool = True):
+        """Handles missing data."""
 
 
 
@@ -424,6 +435,12 @@ class DataHandler:
         df_train.columns = new_columns
         df_test.columns = new_columns
         return df_train, df_test
+
+
+
+    def __len__(self):
+        """Returns the number of examples in working_df_train."""
+        return len(self._working_df_train)
 
 
 

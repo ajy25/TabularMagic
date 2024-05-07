@@ -9,9 +9,9 @@ from sklearn.model_selection import train_test_split
 from .ml.discriminative.regression.base_regression import BaseRegression
 from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
-from .interactive import (ComprehensiveMLRegressionReport, 
+from .interactive import (MLRegressionReport, 
     ComprehensiveEDA, RegressionVotingSelectionReport, 
-    ComprehensiveLinearRegressionReport)
+    LinearRegressionReport)
 from .util.console import print_wrapped, color_text
 from .util.constants import TOSTR_MAX_WIDTH
 from .feature_selection import RegressionBaseSelector
@@ -57,6 +57,12 @@ class TabularMagic:
         """
 
         self._verbose = verbose
+
+
+        #TODO: deprecate DataProcessor
+        self._dp = None
+
+
 
         if df_test is not None:
             self._datahandler = DataHandler(
@@ -173,19 +179,19 @@ class TabularMagic:
             dropfirst_onehot=dropfirst_onehot,
             verbose=self._verbose
         )
-        self._working_df_train = self._dp.forward(
-            self._working_df_train)
-        self._working_df_test = self._dp.forward(
-            self._working_df_test)
-        self._working_train_test_var_agreement()
-        self._reset_categorical_continuous_vars()
-        if self._verbose:
-            print_wrapped(
-                'Preprocessing complete. ' +\
-                'Re-identified categorical ' +\
-                'and continuous variables.',
-                type='UPDATE'
-            )
+        # self._working_df_train = self._dp.forward(
+        #     self._working_df_train)
+        # self._working_df_test = self._dp.forward(
+        #     self._working_df_test)
+        # self._working_train_test_var_agreement()
+        # self._reset_categorical_continuous_vars()
+        # if self._verbose:
+        #     print_wrapped(
+        #         'Preprocessing complete. ' +\
+        #         'Re-identified categorical ' +\
+        #         'and continuous variables.',
+        #         type='UPDATE'
+        #     )
 
 
     def feature_selection(self, selectors: Iterable[RegressionBaseSelector], 
@@ -219,7 +225,7 @@ class TabularMagic:
         - RegressionVotingSelectionReport
         """
         if X_vars is None:
-            X_vars = self._continuous_vars.copy()
+            X_vars = self._datahandler.continuous_vars(True)
             X_vars.remove(y_var)
         report = RegressionVotingSelectionReport(self._datahandler.df_train(),
             X_vars, y_var, selectors, n_target_features, 
@@ -230,10 +236,11 @@ class TabularMagic:
         return report
     
 
+
     def lm(self, y_var: str, X_vars: list[str] = None, 
            regularization_type: Literal[None, 'l1', 'l2'] = None, 
            alpha: float = 0.0, inverse_scale_y: bool = True) ->\
-                ComprehensiveLinearRegressionReport:
+                LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise. 
 
         Parameters
@@ -251,31 +258,25 @@ class TabularMagic:
             
         Returns
         -------
-        - report : ComprehensiveLinearRegressionReport
+        - report : LinearRegressionReport
         """
         if X_vars is None:
-            X_vars = self._continuous_vars.copy()
+            X_vars = self._datahandler.continuous_vars(True)
             X_vars.remove(y_var)
-
-        local_X_train_df = self._datahandler.df_train()[X_vars]
-        local_X_test_df = self._datahandler.df_test()[X_vars]
-        local_y_train_series = self._datahandler.df_train()[y_var]
-        local_y_test_series = self._datahandler.df_test()[y_var]
-        model = OrdinaryLeastSquares(X=local_X_train_df, 
-                                     y=local_y_train_series,
-                                     regularization_type=regularization_type,
-                                     alpha=alpha)
-        model.fit()
         y_scaler = None
         if self._dp is not None and inverse_scale_y:
             y_scaler = self._dp.get_single_var_scaler(y_var)
-        return ComprehensiveLinearRegressionReport(
-            model, local_X_test_df, local_y_test_series, y_scaler
+        return LinearRegressionReport(
+            OrdinaryLeastSquares(
+                regularization_type=regularization_type,
+                alpha=alpha), 
+            self._datahandler, X_vars, y_var, y_scaler
         )
 
 
+
     def lm_rlike(self, formula: str, inverse_scale_y: bool = True) -> \
-            ComprehensiveLinearRegressionReport:
+            LinearRegressionReport:
         """Performs an R-like regression with OLS. That is, 
         all further preprocessing should be specified in the formula; 
         any categorical variables are automatically detected and 
@@ -291,7 +292,7 @@ class TabularMagic:
 
         Returns
         -------
-        - report : ComprehensiveLinearRegressionReport
+        - report : LinearRegressionReport
         """
 
         try:
@@ -311,22 +312,16 @@ class TabularMagic:
         y_X_df_combined_train.dropna(inplace=True)
         y_X_df_combined_test.dropna(inplace=True)
         y_X_df_combined_train, y_X_df_combined_test =\
-            self._train_test_var_agreement(y_X_df_combined_train, 
+            self._datahandler._force_train_test_var_agreement(
+                y_X_df_combined_train, 
                 y_X_df_combined_test)
-
-        y_series_train = y_X_df_combined_train[y_var]
-        X_df_train = y_X_df_combined_train[X_vars]
-        y_series_test = y_X_df_combined_test[y_var]
-        X_df_test = y_X_df_combined_test[X_vars]
-
-        model = OrdinaryLeastSquares(X=X_df_train, y=y_series_train)
-        model.fit()
-
         if not inverse_scale_y:
             y_scaler = None
 
-        return ComprehensiveLinearRegressionReport(
-            model, X_df_test, y_series_test, y_scaler
+        return LinearRegressionReport(
+            OrdinaryLeastSquares(), 
+            DataHandler(y_X_df_combined_train, y_X_df_combined_test, False), 
+            X_vars, y_var, y_scaler
         )
 
 
@@ -335,12 +330,12 @@ class TabularMagic:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
-    def ml_regression_benchmarking(self, models: Iterable[BaseRegression], 
-                                   y_var: str, X_vars: list[str] = None,
-                                   outer_cv: int = None,
-                                   outer_cv_seed: int = 42, 
-                                   inverse_scale_y: bool = True) ->\
-                                        ComprehensiveMLRegressionReport:
+    def ml_regression(self, models: Iterable[BaseRegression], 
+                    y_var: str, X_vars: list[str] = None,
+                    outer_cv: int = None,
+                    outer_cv_seed: int = 42, 
+                    inverse_scale_y: bool = True) ->\
+                        MLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
@@ -363,32 +358,20 @@ class TabularMagic:
         - report : ComprehensiveMLRegressionReport
         """
         if X_vars is None:
-            X_vars = self._continuous_vars.copy()
+            X_vars = self._datahandler.continuous_vars(True)
             X_vars.remove(y_var)
-
-        local_X_train_df = self._working_df_train[X_vars]
-        local_X_test_df = self._working_df_test[X_vars]
-        local_y_train_series = self._working_df_train[y_var]
-        local_y_test_series = self._working_df_test[y_var]
-        X_train_np = local_X_train_df.to_numpy()
-        y_train_np = local_y_train_series.to_numpy().flatten()
-        for i, model in enumerate(models):
-            if self._verbose:
-                print_wrapped(
-                    f'Task {i+1} of ' +\
-                    f'{len(models)}.\tFitting {model}.',
-                    type='UPDATE'
-                )
-            model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
-                      outer_cv_seed=outer_cv_seed)
         y_scaler = None
         if self._dp is not None and inverse_scale_y:
             y_scaler = self._dp.get_single_var_scaler(y_var)
-        return ComprehensiveMLRegressionReport(
+        return MLRegressionReport(
             models=models,
-            X_test=local_X_test_df,
-            y_test=local_y_test_series,
-            y_scaler=y_scaler
+            datahandler=self._datahandler,
+            X_vars=X_vars,
+            y_var=y_var,
+            y_scaler=y_scaler,
+            outer_cv=outer_cv,
+            outer_cv_seed=outer_cv_seed,
+            verbose=self._verbose
         )
 
 
@@ -406,15 +389,7 @@ class TabularMagic:
         ----------
         - checkpoint : str. 
         """
-        if self._verbose:
-            print_wrapped(
-                f'Saved working datasets checkpoint "{checkpoint}".',
-                type='UPDATE'
-            )
-        self._df_checkpoint_name_to_df[checkpoint] = (
-            self._working_df_train.copy(),
-            self._working_df_test.copy()
-        )
+        self._datahandler.save_data_checkpoint(checkpoint)
         
     def load_data_checkpoint(self, checkpoint: str = None):
         """The working train and working test datasets are reset to the 
@@ -426,33 +401,7 @@ class TabularMagic:
             Default: None. If None, sets the working datasets to the original 
             datasets given at object initialization. 
         """
-        if checkpoint is None:
-            if self._verbose:
-                shapes_dict = self.shapes()
-                print_wrapped(
-                    'Working datasets reset to original datasets. ' +\
-                    'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
-                    type='UPDATE'
-                )
-            self._working_df_test = self._original_df_test.copy()
-            self._working_df_train = self._original_df_train.copy()
-        else:
-            if self._verbose:
-                shapes_dict = self.shapes()
-                print_wrapped(
-                    'Working datasets reset to checkpoint ' +\
-                    f'"{checkpoint}". ' +\
-                    'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
-                    type='UPDATE'
-                )
-            self._working_df_train =\
-                self._df_checkpoint_name_to_df[checkpoint][0].copy()
-            self._working_df_test =\
-                self._df_checkpoint_name_to_df[checkpoint][1].copy()
-        self._reset_categorical_continuous_vars()
-
+        self._datahandler.load_data_checkpoint(checkpoint)
 
     def remove_data_checkpoint(self, checkpoint: str):
         """Removes a saved checkpoint to conserve memory.
@@ -461,15 +410,7 @@ class TabularMagic:
         ----------
         - checkpoint : str. 
         """
-        out_chkpt = self._df_checkpoint_name_to_df.pop(checkpoint)
-        if self._verbose:
-            print_wrapped(
-                f'Removed working dataset checkpoint "{out_chkpt}".',
-                type='UPDATE'
-            )
-            
-
-
+        self._datahandler.remove_data_checkpoint(checkpoint)
         
 
     def select_vars(self, vars: list[str]):
@@ -528,7 +469,7 @@ class TabularMagic:
         Parameters
         ----------
         - dataset : Literal['train', 'test']
-        - copy : bool. If True, dataframe is copied before being returned. 
+        - copy : bool. If True, DataFrame is copied before being returned. 
         
         Returns
         -------
@@ -549,10 +490,15 @@ class TabularMagic:
     def categorical_vars(self, copy: bool = False):
         """Returns copy of list of categorical variables."""
         return self._datahandler.categorical_vars(copy)
+    
+    def datahandler(self) -> DataHandler:
+        """Returns the DataHandler."""
+        return self._datahandler
+
 
     def __len__(self):
-        """Returns the number of examples in working_df_train."""
-        return len(self._working_df_train)
+        """Returns the number of examples in working train DataFrame."""
+        return len(self._datahandler)
             
 
     def __str__(self):

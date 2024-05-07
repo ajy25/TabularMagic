@@ -32,8 +32,8 @@ train_only_message = 'This function is only available for training data.'
 
 
 
-class LinearRegressionReport:
-    """LinearRegressionReport: generates regression-relevant diagnostic 
+class SingleDatasetLinRegReport:
+    """SingleDatasetLinRegReport: generates regression-relevant diagnostic 
     plots and tables for a single linear regression model. 
     """
     
@@ -608,32 +608,39 @@ class LinearRegressionReport:
 
 
 
-class ComprehensiveLinearRegressionReport:
+class LinearRegressionReport:
+    """LinearRegressionReport.  
+    Fits the model based on provided DataHandler.
+    Wraps train and test SingleDatasetLinRegReport objects.
+    """
 
     def __init__(self, model: OrdinaryLeastSquares,
-                X_test: pd.DataFrame, 
-                y_test: pd.Series, 
-                y_scaler: BaseSingleVarScaler = None):
-        """LinearRegressionReport wrapper for both train and test
+            datahandler: DataHandler,
+            X_vars: list[str],
+            y_var: str,
+            y_scaler: BaseSingleVarScaler = None):
+        """LinearRegressionReport.  
+        Fits the model based on provided DataHandler.
+        Wraps train and test SingleDatasetLinRegReport objects.
 
         Parameters
         ----------
         - model : OrdinaryLeastSquares. 
-        - X_test : pd.DataFrame.
-        - y_test : pd.Series.
+        - datahandler : DataHandler.
+        - X_vars : list[str].
+        - y_var : str.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
             and on y_test before computing statistics.
         """
+        self._model = model
+        self._datahandler = datahandler
+        self._X_vars = X_vars
+        self._y_var = y_var
+        self._y_scaler = y_scaler
+        self._fit_model()        
 
-        
-        self._train_report = LinearRegressionReport(
-            model, y_scaler=y_scaler)
-        self._test_report = LinearRegressionReport(
-            model, X_test, y_test, y_scaler)
-
-    
-    def train(self):
+    def train_report(self) -> SingleDatasetLinRegReport:
         """Returns an LinearRegressionReport object for the train dataset
         
         Returns
@@ -642,7 +649,7 @@ class ComprehensiveLinearRegressionReport:
         """
         return self._train_report
     
-    def test(self):
+    def test_report(self) -> SingleDatasetLinRegReport:
         """Returns an LinearRegressionReport object for the test dataset
         
         Returns
@@ -651,7 +658,29 @@ class ComprehensiveLinearRegressionReport:
         """
         return self._test_report
 
+    def model(self) -> OrdinaryLeastSquares:
+        """Returns the fitted OrdinaryLeastSquares object.
+        
+        Returns
+        -------
+        - OrdinaryLeastSquares
+        """
+        return self._model
 
-
-
+    def _fit_model(self):
+        """Fits the model.
+        """
+        df_test = self._datahandler.df_test()
+        df_train = self._datahandler.df_train()
+        self._model.fit(
+            X=df_train[self._X_vars],
+            y=df_train[self._y_var]
+        )
+        self._train_report = SingleDatasetLinRegReport(
+            self._model, y_scaler=self._y_scaler)
+        self._test_report = SingleDatasetLinRegReport(
+            self._model, 
+            df_test[self._X_vars], 
+            df_test[self._y_var], 
+            self._y_scaler)
 

@@ -6,11 +6,14 @@ from typing import Iterable
 from ...metrics.regression_scoring import RegressionScorer
 from ...ml.discriminative.regression.base_regression import BaseRegression
 from ...data.preprocessing import BaseSingleVarScaler
+from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred
+from ...util.console import print_wrapped
+from sklearn.model_selection import KFold
 
 
-class MLRegressionReportSingleModel:
-    """MLRegressionReportSingleModel: generates regression-relevant plots and 
+class SingleModelMLRegReport:
+    """SingleModelMLRegReport: generates regression-relevant plots and 
     tables for a single machine learning model. 
     """
 
@@ -18,7 +21,7 @@ class MLRegressionReportSingleModel:
                  y_test: pd.Series = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
-        Initializes a MLRegressionReportSingleModel object. 
+        Initializes a SingleModelMLRegReport object. 
 
         Parameters
         ----------
@@ -97,7 +100,7 @@ class MLRegressionReportSingleModel:
 
 
 
-class MLRegressionReport:
+class SingleDatasetMLRegReport:
     """An object that generates regression-relevant plots and tables for a 
     set of models. Indexable. 
     """
@@ -107,7 +110,7 @@ class MLRegressionReport:
                  y_test: pd.Series = None, 
                  y_scaler: BaseSingleVarScaler = None):
         """
-        Initializes a MLRegressionReport object. 
+        Initializes a SingleDatasetMLRegReport object. 
 
         Parameters 
         ----------
@@ -124,7 +127,7 @@ class MLRegressionReport:
         self.models = models
         if X_test is None and y_test is None:
             self._report_dict_indexable_by_int = {
-                i: MLRegressionReportSingleModel(model=model, 
+                i: SingleModelMLRegReport(model=model, 
                                                  y_scaler=y_scaler) \
                     for i, model in enumerate(self.models)}
         else:
@@ -139,7 +142,7 @@ class MLRegressionReport:
                 except:
                     raise ValueError('y_test must be pd.Series object.')
             self._report_dict_indexable_by_int = {
-                i: MLRegressionReportSingleModel(model, X_test, y_test, 
+                i: SingleModelMLRegReport(model, X_test, y_test, 
                                                  y_scaler) \
                     for i, model in enumerate(self.models)}
         self._report_dict_indexable_by_str = {
@@ -154,8 +157,8 @@ class MLRegressionReport:
         return self._fit_statistics
 
 
-    def __getitem__(self, index: int | str) -> MLRegressionReportSingleModel:
-        """Indexes into ComprehensiveMLRegressionReport. 
+    def __getitem__(self, index: int | str) -> SingleModelMLRegReport:
+        """Indexes into SingleDatasetMLRegReport. 
 
         Parameters
         ----------
@@ -174,30 +177,55 @@ class MLRegressionReport:
 
 
 
-class ComprehensiveMLRegressionReport:
-    """ComprehensiveMLRegressionReport: Simple object that combines 
-    the MLRegressionReports for both train and test."""
+class MLRegressionReport:
+    """MLRegressionReport.  
+    Fits the model based on provided DataHandler.
+    Wraps train and test SingleDatasetMLRegReport objects.
+    """
 
     def __init__(self, models: Iterable[BaseRegression], 
-                 X_test: pd.DataFrame, 
-                 y_test: pd.Series, 
-                 y_scaler: BaseSingleVarScaler = None):
-        """MLRegressionReport wrapper for both train and test
+                 datahandler: DataHandler,
+                 X_vars: list[str],
+                 y_var: str,
+                 y_scaler: BaseSingleVarScaler = None, 
+                 outer_cv: int = None,
+                 outer_cv_seed: int = 42,
+                 verbose: bool = True):
+        """MLRegressionReport.  
+        Fits the model based on provided DataHandler.
+        Wraps train and test SingleDatasetMLRegReport objects.
         
         Parameters 
         ----------
         - models : Iterable[BaseRegression].
             The BaseRegression models must already be trained. 
-        - X_test : pd.DataFrame.
-        - y_test : pd.Series.
+        - datahandler : DataHandler.
+        - X_vars : list[str].
+        - y_var : str.
         - y_scaler: BaseSingleVarScaler.
             Default: None. If exists, calls inverse transform on the outputs 
             and on y_test before computing statistics.
+        - outer_cv : int.
+            If not None, reports training scores via nested k-fold CV.
+        - outer_cv_seed : int.
+            The random seed for the outer cross validation loop.
+        - verbose : bool.
         """
-        self._train_report = MLRegressionReport(
-            models, y_scaler=y_scaler)
-        self._test_report = MLRegressionReport(
-            models, X_test, y_test, y_scaler)
+        self._models = models
+        self._datahandler = datahandler
+        self._X_vars = X_vars
+        self._y_var = y_var
+        self._y_scaler = y_scaler
+        self._verbose = verbose
+
+        self._outer_cv = None
+        if outer_cv is not None:
+            self._outer_cv = KFold(n_splits=outer_cv,
+                shuffle=True, random_state=self._outer_cv_seed)
+        self._outer_cv_seed = outer_cv_seed
+
+        self._fit_models()
+    
         
     def train(self):
         """Returns an MLRegressionReport object for the train dataset
@@ -216,7 +244,31 @@ class ComprehensiveMLRegressionReport:
         - report : MLRegressionReport
         """
         return self._test_report
+    
+    
+    def _fit_models(self):
+        """Fits all models.
+        """
+        df_test = self._datahandler.df_test()
+        X_test = df_test[self._X_vars]
+        y_test = df_test[self._y_var]
+        df_train = self._datahandler.df_train()
+        X_train = df_train[self._X_vars]
+        y_train = df_train[self._y_var]
 
+        for i, model in enumerate(self._models):
+            if self._verbose:
+                print_wrapped(
+                    f'Task {i+1} of ' +\
+                    f'{len(self._models)}.\tFitting {model}.',
+                    type='UPDATE'
+                )
+            model.fit(X_train.to_numpy(), y_train.to_numpy(), 
+                      outer_cv=self._outer_cv)
+        self._train_report = SingleDatasetMLRegReport(y_scaler=self._y_scaler)
+        self._test_report = SingleDatasetMLRegReport(
+            self._models, X_test, y_test, self._y_scaler
+        )
 
 
 

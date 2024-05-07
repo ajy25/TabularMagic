@@ -6,7 +6,7 @@ from scipy.stats import pearsonr
     
 
 
-def plot_calibration(y_pred: np.ndarray, y_true: np.ndarray, 
+def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray, 
                       figsize: Iterable = (5, 5), ax: axes.Axes = None):
     """Returns a figure that is a scatter plot of the observed and predicted y 
     values. Predicted values on x axis, observed values on y axis. 
@@ -41,6 +41,10 @@ def plot_calibration(y_pred: np.ndarray, y_true: np.ndarray,
     ax.set_title(f'Observed vs Predicted | ' + \
                     f'ρ = {round(pearsonr(y_pred, y_true)[0], 3)}')
     ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
+    ax.yaxis.get_offset_text().set_fontsize(
+        ax.yaxis.get_ticklabels()[0].get_fontsize())
+    ax.xaxis.get_offset_text().set_fontsize(
+        ax.xaxis.get_ticklabels()[0].get_fontsize())
 
     if fig is not None:
         fig.tight_layout()
@@ -74,9 +78,13 @@ def decrease_font_sizes_axs(axs, title_font_size_decrease: int,
         if tick_params is not None:
             tick_params.set_fontsize(
                 tick_params.get('size') - ticks_font_size_decrease_from_label)
-
-
-
+            
+        new_offset_size_diff = axes_label_font_size_decrease +\
+            ticks_font_size_decrease_from_label
+        ax.xaxis.offsetText.set_fontsize(
+            ax.xaxis.offsetText.get_fontsize() - new_offset_size_diff)
+        ax.yaxis.offsetText.set_fontsize(
+            ax.yaxis.offsetText.get_fontsize() - new_offset_size_diff)
 
 
 

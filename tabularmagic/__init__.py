@@ -1,3 +1,0 @@
-from .tabularmagic import TabularMagic
-
-

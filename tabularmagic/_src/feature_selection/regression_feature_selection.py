@@ -61,7 +61,7 @@ class RegressionBaseSelector():
 
 
 
-class KBestSelector(RegressionBaseSelector):
+class KBestSelectorR(RegressionBaseSelector):
     """Selects the k best features based on the f_regression or mutual info 
     regression score.
     """
@@ -84,7 +84,7 @@ class KBestSelector(RegressionBaseSelector):
         """
         super().__init__(nickname)
         if self.nickname is None:
-            self.nickname = f"KBestSelector({scorer})"
+            self.nickname = f'KBestSelector({scorer})'
         self.scorer = scorer
 
 
@@ -131,7 +131,7 @@ class KBestSelector(RegressionBaseSelector):
 
 
 
-class SimpleLinearSelector(RegressionBaseSelector):
+class SimpleLinearSelectorR(RegressionBaseSelector):
     """Selects the (at most) k best features via Lasso regression model-inherent 
     feature selection.
     """
@@ -204,7 +204,7 @@ class SimpleLinearSelector(RegressionBaseSelector):
     
 
 
-class RFESelector(RegressionBaseSelector):
+class RFESelectorR(RegressionBaseSelector):
     """Selects the k best features via L1-based 
     recursive feature elimination.
     """

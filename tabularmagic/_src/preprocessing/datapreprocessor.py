@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Literal, Callable
 from sklearn.impute import KNNImputer, SimpleImputer
-from ..util.console import color_text, print_wrapped
+from ..util.console import print_wrapped
 
 
 class BaseSingleVarScaler():
@@ -407,14 +407,18 @@ class DataPreprocessor:
             df_out = df.dropna(axis=0)
             if self._verbose:
                 if len(df_out) < orig_len / 2:
-                    print_wrapped(f'{color_text("WARNING:", "red")} ' +\
-                      f'{orig_len - len(df_out)} entries ' + \
-                      f'(over half of all {orig_len} entries) dropped.' + \
-                    ' Please consider selecting a subset of features before' + \
-                    ' handling missing data.')
+                    print_wrapped(
+                        f'{orig_len - len(df_out)} entries ' + \
+                        f'(over half of all {orig_len} entries) dropped.' + \
+                        ' Please consider selecting a subset of features ' + \
+                        'before handling missing data', 
+                        type='WARNING'
+                    )
                 else:
-                    print_wrapped(f'{color_text("UPDATE:", "green")} ' +\
-                          f'Dropped {orig_len - len(df_out)} entries.')
+                    print_wrapped(
+                        f'Dropped {orig_len - len(df_out)} entries',
+                        type='UPDATE'
+                    )
                     
 
         elif self._imputation_strategy in \
@@ -463,7 +467,8 @@ class DataPreprocessor:
                 df_out = df_continuous.join(df_categorical)[orig_var_order]
 
             if len(df_out.columns) != orig_n_vars:
-                raise RuntimeError('median-mostfrequent imputation failed.' + \
+                raise RuntimeError(
+                    f'{self._imputation_strategy} imputation failed.' + \
                     'Please select another imputation strategy.')
             
 

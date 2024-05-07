@@ -27,7 +27,7 @@ class RegressionScorer():
     """
 
     def __init__(self, y_pred: np.ndarray | list, y_true: np.ndarray | list, 
-                 n_regressors: int = None, model_id_str: str = None):
+                 n_predictors: int = None, model_id_str: str = None):
         """
         Initializes a RegressionScorer object. 
 
@@ -35,7 +35,7 @@ class RegressionScorer():
         ----------
         - y_pred : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
         - y_true : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
-        - n_regressors : int.
+        - n_predictors : int.
         - model_id_str : str.
 
         Returns
@@ -46,7 +46,7 @@ class RegressionScorer():
             self._model_id_str = 'Model'
         else:
             self._model_id_str = model_id_str
-        self.n_regressors = n_regressors
+        self.n_predictors = n_predictors
         self._y_pred = y_pred
         self._y_true = y_true
         self._dict_indexable_by_str = self._compute_stats_dict(y_pred, y_true)
@@ -81,12 +81,12 @@ class RegressionScorer():
             metrics_dict['pearsonr'] = pearsonr(y_true, y_pred)[0]
             metrics_dict['spearmanr'] = spearmanr(y_true, y_pred)[0]
             metrics_dict['r2'] = r2_score(y_true, y_pred)
-            if self.n_regressors is None:
+            if self.n_predictors is None:
                 metrics_dict['adjr2'] = np.NaN
             else: 
                 metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
                     (n - 1)) / (n - \
-                    self.n_regressors - 1))
+                    self.n_predictors - 1))
             metrics_dict['n'] = len(y_true)
             output = metrics_dict
         elif isinstance(y_pred, list) and isinstance(y_true, list):
@@ -105,12 +105,12 @@ class RegressionScorer():
                 metrics_dict['spearmanr'] =\
                     spearmanr(y_true_elem, y_pred_elem)[0]
                 metrics_dict['r2'] = r2_score(y_true_elem, y_pred_elem)
-                if self.n_regressors is None:
+                if self.n_predictors is None:
                     metrics_dict['adjr2'] = np.NaN
                 else: 
                     metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
                         (n - 1)) / (n - \
-                        self.n_regressors - 1))
+                        self.n_predictors - 1))
                 metrics_dict['n'] = n
                 folds_metrics.append(metrics_dict)
             self.cv_metrics = metrics_dict

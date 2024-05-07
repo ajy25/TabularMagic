@@ -9,8 +9,9 @@ from sklearn.model_selection import train_test_split
 from .ml.discriminative.regression.base_regression import BaseRegression
 from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
-from .interactive import (ComprehensiveMLRegressionReport, ComprehensiveEDA, 
-    RegressionVotingSelectionReport, LinearRegressionReport)
+from .interactive import (ComprehensiveMLRegressionReport, 
+    ComprehensiveEDA, RegressionVotingSelectionReport, 
+    ComprehensiveLinearRegressionReport)
 from .util.console import print_wrapped, color_text
 from .util.constants import TOSTR_MAX_WIDTH
 from .feature_selection import RegressionBaseSelector
@@ -72,9 +73,11 @@ class TabularMagic:
                                                      columns=df.columns)
             else:
                 if self._tm_verbose:
-                    print_wrapped(f'{color_text("WARNING:", "red")} ' +\
-                          'No test dataset provided. ' +\
-                          'Test dataset will be treated as train dataset copy.')
+                    print_wrapped(
+                        'No test dataset provided. ' +\
+                        'Test dataset will be treated as train dataset copy.',
+                        type='WARNING'
+                    )
                 self._original_df_train = self._original_df
                 self._original_df_test = self._original_df
         self._verify_input_dfs()
@@ -90,17 +93,19 @@ class TabularMagic:
 
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print_wrapped(f'{color_text("UPDATE:", "green")} TabularMagic' +\
-                   ' initialization complete. ' +\
+            print_wrapped(
+                'TabularMagic initialization complete. ' +\
                 'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                type='UPDATE'
+            )
 
 
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(self, dataset: Literal['train', 'test'] = 'train') \
-        -> ComprehensiveEDA:
+    def eda(self, dataset: Literal['train', 'test'] = 'train') ->\
+            ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for either the working train 
         or the working test dataset. 
 
@@ -125,16 +130,19 @@ class TabularMagic:
                         imputation_strategy: Literal[None, 'drop', 
                             'median-mostfrequent', 'mean-mostfrequent', 
                             '5nn-mostfrequent'] = None,
-                        onehot_vars: list[str] = [],
                         standardize_vars: list[str] = [], 
                         minmax_vars: list[str] = [], 
                         log1p_vars: list[str] = [],
                         log_vars: list[str] = [], 
-                        dropfirst_onehot: bool = False):
+                        onehot_vars: list[str] = [],
+                        dropfirst_onehot: bool = True):
         """Fits a DataPreprocessor object on the training dataset. Then, 
         preprocesses both the train and test datasets. 
 
         Note: The working train and test datasets will be modified. 
+
+        Workflow: 
+            Impute -> Standardize -> Minmax -> Log -> Onehot-encode -> Output
         
         Parameters
         ----------
@@ -143,13 +151,13 @@ class TabularMagic:
             '5nn-mostfrequent']. 
             Imputation strategy described for 
             continuous-categorical variables. 
-        - onehot_vars : list[str]. 
         - standard_scale_vars : list[str].
         - minmax_scale_vars : list[str].
         - log1p_vars : list[str].
         - log_vars : list[str].
+        - onehot_vars : list[str]. 
         - dropfirst_onehot : bool. 
-            Default: False. 
+            Default: True. 
             All binary variables will automatically drop first, 
             regardless of the value of  dropfirst_onehot
 
@@ -175,15 +183,18 @@ class TabularMagic:
         self._working_train_test_var_agreement()
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
-            print_wrapped(f'{color_text("UPDATE:", "green")} ' +  \
+            print_wrapped(
                 'Preprocessing complete. ' +\
                 'Re-identified categorical ' +\
-                'and continuous variables.')
+                'and continuous variables.',
+                type='UPDATE'
+            )
 
 
-    def voting_selection(self, X_vars: list[str], y_var: str, 
-                         selectors: Iterable[RegressionBaseSelector], 
-                         n_target_features: int, 
+    def feature_selection(self, selectors: Iterable[RegressionBaseSelector], 
+                         y_var: str, 
+                         X_vars: list[str] = None, 
+                         n_target_features: int = 10, 
                          update_working_dfs: bool = False):
         """Supervised feature selection via methods voting based on
         training dataset. 
@@ -194,14 +205,15 @@ class TabularMagic:
         
         Parameters
         ----------
-        - X_vars : list[str].
-            A list of features to look through. 
-        - y_var : str.
-            The variable to be predicted.
         - selectors : Iterable[BaseSelector].
             Each BaseSelector decides on the top n_target_features.
+        - y_var : str.
+            The variable to be predicted. 
+        - X_vars : list[str].
+            A list of features from which n_target_features are to be selected.
+            If None, all continuous variables except y_var will be used. 
         - n_target_features : int. 
-            Number of desired features, < len(X_vars).
+            Number of desired features, < len(X_vars). Default 10. 
         - update_working_dfs : bool.
             Default: False.
 
@@ -209,26 +221,32 @@ class TabularMagic:
         -------
         - RegressionVotingSelectionReport
         """
+        if X_vars is None:
+            X_vars = self._continuous_vars.copy()
+            X_vars.remove(y_var)
 
         report = RegressionVotingSelectionReport(self._working_df_train, 
             X_vars, y_var, selectors, n_target_features, 
             verbose=self._tm_verbose)
         if update_working_dfs:
-            self._working_df_test = self._working_df_test[report.top_features]
-            self._working_df_train = self._working_df_train[report.top_features]
+            var_subset = report._top_features + [y_var]
+            self._working_df_test = self._working_df_test[var_subset]
+            self._working_df_train = self._working_df_train[var_subset]
             self._reset_categorical_continuous_vars()
         return report
     
 
-    def lm(self, X_vars: list[str], y_var: str, 
+    def lm(self, y_var: str, X_vars: list[str] = None, 
            regularization_type: Literal[None, 'l1', 'l2'] = None, 
-           alpha: float = 0.0, inverse_scale_y: bool = True):
+           alpha: float = 0.0, inverse_scale_y: bool = True) ->\
+                ComprehensiveLinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise. 
 
         Parameters
         ----------
-        - X_vars : list[str]. 
         - y_var : str. 
+        - X_vars : list[str]. 
+            If None, all continuous variables except y_var will be used. 
         - regularization_type : [None, 'l1', 'l2']. 
             Default: None.
         - alpha : float.
@@ -239,9 +257,12 @@ class TabularMagic:
             
         Returns
         -------
-        - train_report : LinearRegressionReport.
-        - test_report : LinearRegressionReport.
+        - report : ComprehensiveLinearRegressionReport
         """
+        if X_vars is None:
+            X_vars = self._continuous_vars.copy()
+            X_vars.remove(y_var)
+
         local_X_train_df = self._working_df_train[X_vars]
         local_X_test_df = self._working_df_test[X_vars]
         local_y_train_series = self._working_df_train[y_var]
@@ -250,44 +271,41 @@ class TabularMagic:
                                      regularization_type=regularization_type,
                                      alpha=alpha)
         model.fit()
-        y_var_scaler = None
+        y_scaler = None
         if self._dp is not None and inverse_scale_y:
-            y_var_scaler = self._dp.get_single_var_scaler(y_var)
-        return (
-            LinearRegressionReport(model, X_eval=local_X_train_df, 
-                                   y_eval=local_y_train_series,
-                                   y_scaler=y_var_scaler),
-            LinearRegressionReport(model, X_eval=local_X_test_df,
-                                   y_eval=local_y_test_series,
-                                   y_scaler=y_var_scaler),
+            y_scaler = self._dp.get_single_var_scaler(y_var)
+        return ComprehensiveLinearRegressionReport(
+            model, local_X_test_df, local_y_test_series, y_scaler
         )
     
 
-    def lm_rlike(self, formula: str, inverse_scale_y: bool = True):
-        """Performs an R-like regression analysis. That is, 
-        all further preprocessing should be specified 
-        in the formula; any categorical variables are automatically 
-        detected and one-hot encoded. 
-        Examples with missing data will be dropped.
+    def lm_rlike(self, formula: str, inverse_scale_y: bool = True) -> \
+            ComprehensiveLinearRegressionReport:
+        """Performs an R-like regression with OLS. That is, 
+        all further preprocessing should be specified in the formula; 
+        any categorical variables are automatically detected and 
+        one-hot encoded. Examples with missing data will be dropped. 
 
         Parameters
         ----------
         - formula : str. 
-            An R-like formula, e.g. y ~ x1 + log(x2) + poly(x3)
+            An R-like formula, e.g. y ~ x1 + log(x2) + poly(x3) + x1 * x2
         - inverse_scale_y : bool.
             If True, inverse scales the y_true and y_pred values to their 
             original scales. Default: 0.
 
         Returns
         -------
-        - train_report : LinearRegressionReport.
-        - test_report : LinearRegressionReport.
+        - report : ComprehensiveLinearRegressionReport
         """
 
-        y_series_train, y_scaler_train, X_df_train =\
-            parse_and_transform_rlike(formula, self._working_df_train)
-        y_series_test, y_scaler_test, X_df_test =\
-            parse_and_transform_rlike(formula, self._working_df_test)
+        try:
+            y_series_train, y_scaler, X_df_train =\
+                parse_and_transform_rlike(formula, self._working_df_train)
+            y_series_test, _, X_df_test =\
+                parse_and_transform_rlike(formula, self._working_df_test)
+        except:
+            raise ValueError(f'Invalid formula: {formula}')
         
         y_var = y_series_train.name
         X_vars = X_df_train.columns
@@ -310,15 +328,10 @@ class TabularMagic:
         model.fit()
 
         if not inverse_scale_y:
-            y_scaler_train = None
-            y_scaler_test = None
-        return (
-            LinearRegressionReport(model, X_eval=X_df_train, 
-                                   y_eval=y_series_train,
-                                   y_scaler=y_scaler_train),
-            LinearRegressionReport(model, X_eval=X_df_test,
-                                   y_eval=y_series_test,
-                                   y_scaler=y_scaler_test),
+            y_scaler = None
+
+        return ComprehensiveLinearRegressionReport(
+            model, X_df_test, y_series_test, y_scaler
         )
 
 
@@ -327,19 +340,21 @@ class TabularMagic:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
-    def ml_regression_benchmarking(self, X_vars: list[str], y_var: str, 
-                                   models: Iterable[BaseRegression], 
-                                   outer_cv: int | None = None,
+    def ml_regression_benchmarking(self, models: Iterable[BaseRegression], 
+                                   y_var: str, X_vars: list[str] = None,
+                                   outer_cv: int = None,
                                    outer_cv_seed: int = 42, 
-                                   inverse_scale_y: bool = True):
+                                   inverse_scale_y: bool = True) ->\
+                                        ComprehensiveMLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
         ----------
-        - X_vars : list[str]. 
-        - y_var : str. 
         - models : Iterable[BaseRegression]. 
             Testing performance of all models will be evaluated. 
+        - y_var : str. 
+        - X_vars : list[str]. 
+            If None, uses all continuous variables except y_var as predictors.
         - outer_cv : int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
@@ -350,9 +365,12 @@ class TabularMagic:
         
         Returns
         -------
-        - train_report : ComprehensiveMLRegressionReport.
-        - test_report : ComprehensiveMLRegressionReport.
+        - report : ComprehensiveMLRegressionReport
         """
+        if X_vars is None:
+            X_vars = self._continuous_vars.copy()
+            X_vars.remove(y_var)
+
         local_X_train_df = self._working_df_train[X_vars]
         local_X_test_df = self._working_df_test[X_vars]
         local_y_train_series = self._working_df_train[y_var]
@@ -361,19 +379,22 @@ class TabularMagic:
         y_train_np = local_y_train_series.to_numpy().flatten()
         for i, model in enumerate(models):
             if self._tm_verbose:
-                print_wrapped(f'{color_text("UPDATE:", "green")} ' \
-                    + f'Task {i+1} of ' +\
-                    f'{len(models)}.\tFitting {model}.')
+                print_wrapped(
+                    f'Task {i+1} of ' +\
+                    f'{len(models)}.\tFitting {model}.',
+                    type='UPDATE'
+                )
             model.fit(X_train_np, y_train_np, outer_cv=outer_cv, 
                       outer_cv_seed=outer_cv_seed)
-        y_var_scaler = None
+        y_scaler = None
         if self._dp is not None and inverse_scale_y:
-            y_var_scaler = self._dp.get_single_var_scaler(y_var)
-        train_report = ComprehensiveMLRegressionReport(
-            models=models, y_scaler=y_var_scaler)
-        test_report = ComprehensiveMLRegressionReport(
-            models, local_X_test_df, local_y_test_series, y_var_scaler)
-        return train_report, test_report
+            y_scaler = self._dp.get_single_var_scaler(y_var)
+        return ComprehensiveMLRegressionReport(
+            models=models,
+            X_test=local_X_test_df,
+            y_test=local_y_test_series,
+            y_scaler=y_scaler
+        )
 
 
 
@@ -389,15 +410,12 @@ class TabularMagic:
         Parameters
         ----------
         - checkpoint : str. 
-
-        Returns
-        -------
-        - None
         """
         if self._tm_verbose:
-            print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
-                'Working datasets ' + \
-                f'checkpoint "{checkpoint}" saved.')
+            print_wrapped(
+                f'Saved working datasets checkpoint "{checkpoint}".',
+                type='UPDATE'
+            )
         self._df_checkpoint_name_to_df[checkpoint] = (
             self._working_df_train.copy(),
             self._working_df_test.copy()
@@ -412,28 +430,28 @@ class TabularMagic:
         - checkpoint : str. 
             Default: None. If None, sets the working datasets to the original 
             datasets given at object initialization. 
-
-        Returns
-        _______
-        - None
         """
         if checkpoint is None:
             if self._tm_verbose:
                 shapes_dict = self.shapes()
-                print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
-                      'Working datasets reset to original datasets. ' +\
-                      'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+                print_wrapped(
+                    'Working datasets reset to original datasets. ' +\
+                    'Shapes of train, test datasets: ' + \
+                    f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                    type='UPDATE'
+                )
             self._working_df_test = self._original_df_test.copy()
             self._working_df_train = self._original_df_train.copy()
         else:
             if self._tm_verbose:
                 shapes_dict = self.shapes()
-                print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
-                       'Working datasets reset to checkpoint ' +\
-                       f'"{checkpoint}". ' +\
-                        'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+                print_wrapped(
+                    'Working datasets reset to checkpoint ' +\
+                    f'"{checkpoint}". ' +\
+                    'Shapes of train, test datasets: ' + \
+                    f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
+                    type='UPDATE'
+                )
             self._working_df_train =\
                 self._df_checkpoint_name_to_df[checkpoint][0].copy()
             self._working_df_test =\
@@ -447,15 +465,32 @@ class TabularMagic:
         Parameters
         ----------
         - checkpoint : str. 
-
-        Returns
-        -------
-        - None
         """
         out_chkpt = self._df_checkpoint_name_to_df.pop(checkpoint)
         if self._tm_verbose:
-            print_wrapped(f'{color_text("UPDATE:", "green")} Removed working '+\
-                  f'dataset checkpoint {out_chkpt}.')
+            print_wrapped(
+                f'Removed working dataset checkpoint "{out_chkpt}".',
+                type='UPDATE'
+            )
+            
+
+    def force_categorical(self, vars: list[str]):
+        """Forces variables to become categorical. 
+        Example use case: prepare numerically-coded categorical variables 
+
+        Parameters
+        ----------
+        - vars : list[str]
+        """
+        self._working_df_train[vars] =\
+            self._working_df_train[vars].astype('str')
+        if self._tm_verbose:
+            print_wrapped(
+                f'Converted variables {vars} to categorical.',
+                type='UPDATE'
+            )
+        self._reset_categorical_continuous_vars()
+        
     
 
     def select_vars(self, vars: list[str]):
@@ -471,12 +506,14 @@ class TabularMagic:
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print_wrapped(f'{color_text("UPDATE:", "green")} ' + \
-                  f'Selected columns {vars}. ' +\
-                  'Re-identified categorical ' +\
-                  'and continuous variables. ' +\
-                    'Shapes of train, test datasets: ' + \
-                    f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+            print_wrapped(
+                f'Selected columns {vars}. ' +\
+                'Re-identified categorical ' +\
+                'and continuous variables. ' +\
+                'Shapes of train, test datasets: ' + \
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                type='UPDATE'
+            )
 
 
     def drop_vars(self, vars: list[str]):
@@ -492,12 +529,14 @@ class TabularMagic:
         self._reset_categorical_continuous_vars()
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print_wrapped(f'{color_text("UPDATE:", "green")} ' +\
+            print_wrapped(
                 f'Dropped columns {vars}. '+\
                 'Re-identified categorical ' +\
                 'and continuous variables. ' +\
                 'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
+                type='UPDATE'
+            )
 
 
     def drop_train_examples(self, indices: list):
@@ -511,10 +550,12 @@ class TabularMagic:
         self._working_df_train.drop(indices, axis='index', inplace=True)
         if self._tm_verbose:
             shapes_dict = self.shapes()
-            print_wrapped(f'{color_text("UPDATE:", "green")} ' +\
+            print_wrapped(
                 f'Dropped rows {indices}. '+\
                 'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}')
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                type='UPDATE'
+            )
 
 
     # --------------------------------------------------------------------------
@@ -587,8 +628,7 @@ class TabularMagic:
 
 
     def __len__(self):
-        """Returns the number of examples in working_df_train.
-        """
+        """Returns the number of examples in working_df_train."""
         return len(self._working_df_train)
 
 
@@ -663,15 +703,19 @@ class TabularMagic:
         extra_test_columns = list(set(df_test.columns) -\
             set(df_train.columns))
         if len(extra_test_columns) > 0:
-            print_wrapped(f'{color_text("WARNING:", "red")} ' +\
-                  f'Columns {extra_test_columns} not found in train ' +\
-                   'have been dropped from test')
+            print_wrapped(
+                f'Columns {extra_test_columns} not found in train ' +\
+                'have been dropped from test.',
+                type='WARNING'
+            )
             self._working_df_test.drop(columns=extra_test_columns, axis=1, 
                                       inplace=True)
         if len(missing_test_columns) > 0:
-            print_wrapped(f'{color_text("WARNING:", "red")} ' +\
-                  f'Columns {missing_test_columns} not found in test ' +\
-                   'have been added to test with 0-valued entries')
+            print_wrapped(
+                f'Columns {missing_test_columns} not found in test ' +\
+                'have been added to test with 0-valued entries.',
+                type='WARNING'
+            )
             for col in missing_test_columns:
                 df_test[col] = 0
         assert len(df_test.columns) == \

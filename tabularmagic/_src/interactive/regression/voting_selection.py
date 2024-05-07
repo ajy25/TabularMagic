@@ -2,7 +2,7 @@ import pandas as pd
 from ...feature_selection.regression_feature_selection \
     import RegressionBaseSelector
 from typing import Iterable
-from ...util.console import color_text
+from ...util.console import print_wrapped
 
 
 class RegressionVotingSelectionReport():
@@ -33,19 +33,31 @@ class RegressionVotingSelectionReport():
         self._selector_to_support = {}
         for i, selector in enumerate(selectors):
             if verbose:
-                print(color_text('UPDATE: ', 'green') +\
-                    f' Task {i+1} of {len(selectors)}.\tFitting {selector}.')
+                print_wrapped(
+                    f'Task {i+1} of {len(selectors)}.\tFitting {selector}.', 
+                    type='UPDATE')
             _, support = selector.select(df, X_vars, y_var, n_target_features)
             self._selector_to_support[str(selector)] = support
-        self.votes_df = pd.DataFrame.from_dict(self._selector_to_support, 
+        self._votes_df = pd.DataFrame.from_dict(self._selector_to_support, 
             orient='index', columns=X_vars)
-        self._vote_counts_series = self.votes_df.sum(axis=0)
+        self._vote_counts_series = self._votes_df.sum(axis=0)
         
         self._selector_dict_indexable_by_str = {
             str(selector): selector for selector in selectors
         }
-        self.top_features = self._vote_counts_series.\
+        self._top_features = self._vote_counts_series.\
             sort_values(ascending=False).index.to_list()[:n_target_features]
+
+
+    def top_features(self) -> list:
+        """Returns a list of top features determined by the voting 
+        selectors."""
+        return self._top_features
+    
+    def votes_df(self) -> pd.DataFrame:
+        """Returns a DataFrame that describes the distribution of 
+        votes among selectors."""
+        return self._votes_df
 
 
     def __getitem__(self, index: str) -> RegressionBaseSelector:

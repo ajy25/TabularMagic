@@ -15,7 +15,6 @@ from .interactive import (MLRegressionReport,
 from .util.console import print_wrapped, color_text
 from .util.constants import TOSTR_MAX_WIDTH
 from .feature_selection import RegressionBaseSelector
-from .data.preprocessing import DataPreprocessor
 from .data.datahandler import DataHandler
 
 
@@ -57,11 +56,6 @@ class TabularMagic:
         """
 
         self._verbose = verbose
-
-
-        #TODO: deprecate DataProcessor
-        self._dp = None
-
 
 
         if df_test is not None:
@@ -127,71 +121,6 @@ class TabularMagic:
             return ComprehensiveEDA(self._datahandler.df_test())
         else:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
-
-
-    def preprocess_data(self, 
-                        imputation_strategy: Literal[None, 'drop', 
-                            'median-mostfrequent', 'mean-mostfrequent', 
-                            '5nn-mostfrequent'] = None,
-                        standardize_vars: list[str] = [], 
-                        minmax_vars: list[str] = [], 
-                        log1p_vars: list[str] = [],
-                        log_vars: list[str] = [], 
-                        onehot_vars: list[str] = [],
-                        dropfirst_onehot: bool = True):
-        """Fits a DataPreprocessor object on the training dataset. Then, 
-        preprocesses both the train and test datasets. 
-
-        Note: The working train and test datasets will be modified. 
-
-        Workflow: 
-            Impute -> Standardize -> Minmax -> Log -> Onehot-encode -> Output
-        
-        Parameters
-        ----------
-        - imputation_strategy : Literal[None, 'drop', 
-            'median-mostfrequent', 'mean-mostfrequent', 
-            '5nn-mostfrequent']. 
-            Imputation strategy described for 
-            continuous-categorical variables. 
-        - standard_scale_vars : list[str].
-        - minmax_scale_vars : list[str].
-        - log1p_vars : list[str].
-        - log_vars : list[str].
-        - onehot_vars : list[str]. 
-        - dropfirst_onehot : bool. 
-            Default: True. 
-            All binary variables will automatically drop first, 
-            regardless of the value of  dropfirst_onehot
-
-        Returns
-        -------
-        - None
-        """
-        self._dp = DataPreprocessor(
-            self._working_df_train,
-            imputation_strategy=imputation_strategy,
-            onehot_vars=onehot_vars,
-            standardize_vars=standardize_vars,
-            minmax_vars=minmax_vars,
-            log1p_vars=log1p_vars,
-            log_vars=log_vars,
-            dropfirst_onehot=dropfirst_onehot,
-            verbose=self._verbose
-        )
-        # self._working_df_train = self._dp.forward(
-        #     self._working_df_train)
-        # self._working_df_test = self._dp.forward(
-        #     self._working_df_test)
-        # self._working_train_test_var_agreement()
-        # self._reset_categorical_continuous_vars()
-        # if self._verbose:
-        #     print_wrapped(
-        #         'Preprocessing complete. ' +\
-        #         'Re-identified categorical ' +\
-        #         'and continuous variables.',
-        #         type='UPDATE'
-        #     )
 
 
     def feature_selection(self, selectors: Iterable[RegressionBaseSelector], 
@@ -264,8 +193,8 @@ class TabularMagic:
             X_vars = self._datahandler.continuous_vars(True)
             X_vars.remove(y_var)
         y_scaler = None
-        if self._dp is not None and inverse_scale_y:
-            y_scaler = self._dp.get_single_var_scaler(y_var)
+        if inverse_scale_y:
+            y_scaler = self._datahandler.yscaler()
         return LinearRegressionReport(
             OrdinaryLeastSquares(
                 regularization_type=regularization_type,
@@ -461,35 +390,7 @@ class TabularMagic:
         }
         """
         return self._datahandler.shapes()
-
-    def dataset(self, dataset: Literal['train', 'test'] = 'train', 
-                copy: bool = False):
-        """Returns one of (working_df_train, working_df_test). 
-
-        Parameters
-        ----------
-        - dataset : Literal['train', 'test']
-        - copy : bool. If True, DataFrame is copied before being returned. 
-        
-        Returns
-        -------
-        - df : pd.DataFrame
-        """
-        return self._datahandler.dataset(dataset, copy)
     
-
-    def head(self, n = 5):
-        """Same as calling self.working_df_train.head(n)."""
-        return self._datahandler.head(n)
-    
-
-    def continuous_vars(self, copy: bool = False):
-        """Returns copy of list of continuous variables."""
-        return self._datahandler.continuous_vars(copy)
-
-    def categorical_vars(self, copy: bool = False):
-        """Returns copy of list of categorical variables."""
-        return self._datahandler.categorical_vars(copy)
     
     def datahandler(self) -> DataHandler:
         """Returns the DataHandler."""
@@ -564,3 +465,8 @@ class TabularMagic:
 
 
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+
+
+        

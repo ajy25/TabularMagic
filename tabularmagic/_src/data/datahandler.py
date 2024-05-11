@@ -3,7 +3,9 @@ from typing import Literal
 from ..util.console import print_wrapped
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
-
+from sklearn.impute import KNNImputer, SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import KFold
 
 
 
@@ -13,6 +15,9 @@ class DataHandler:
 
     def __init__(self, df_train: pd.DataFrame, 
                  df_test: pd.DataFrame, 
+                 y_var: str | None = None,
+                 X_vars: list[str] | None = None,
+                 nickname: str = None,
                  verbose: bool = True):
         """Initializes a DataHandler object.
 
@@ -20,6 +25,8 @@ class DataHandler:
         ----------
         - df_train : pd.DataFrame.
         - df_test : pd.DataFrame.
+        - y_var : str | None. Default: None.
+        - X_vars : list[str] | None. Default: None.
         - verbose : bool.
         """
         self._checkpoint_name_to_df: \
@@ -38,7 +45,23 @@ class DataHandler:
         # set the working DataFrames
         self._working_df_train = self._orig_df_train.copy()
         self._working_df_test = self._orig_df_test.copy()
-    
+
+        # keep track of scalers
+        self._continuous_var_to_scalar = {
+            var: None for var in self._continuous_vars
+        }
+
+        # set the y-variable
+        self.set_yvar(y_var=y_var)
+        self.set_Xvars(X_vars=X_vars)
+
+
+        # set the nickname
+        if nickname is None:
+            self.nickname = 'DataHandler'
+        else:
+            self.nickname = nickname
+
 
     # --------------------------------------------------------------------------
     # CHECKPOINT HANDLING
@@ -54,6 +77,8 @@ class DataHandler:
             datasets given at object initialization. 
         """
         if checkpoint is None:
+            self._working_df_test = self._orig_df_test.copy()
+            self._working_df_train = self._orig_df_train.copy()
             if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
@@ -62,9 +87,11 @@ class DataHandler:
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type='UPDATE'
                 )
-            self._working_df_test = self._orig_df_test.copy()
-            self._working_df_train = self._orig_df_train.copy()
         else:
+            self._working_df_train =\
+                self._checkpoint_name_to_df[checkpoint][0].copy()
+            self._working_df_test =\
+                self._checkpoint_name_to_df[checkpoint][1].copy()
             if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
@@ -74,10 +101,6 @@ class DataHandler:
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                     type='UPDATE'
                 )
-            self._working_df_train =\
-                self._checkpoint_name_to_df[checkpoint][0].copy()
-            self._working_df_test =\
-                self._checkpoint_name_to_df[checkpoint][1].copy()
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars(self._working_df_train)
 
@@ -186,41 +209,159 @@ class DataHandler:
             )
 
 
+    def set_yvar(self, y_var: str | None):
+        """Specifies the y-variable. All other variables are treated as 
+        predictors for the y-variable.
+
+        Parameters
+        ----------
+        - y_var : str. Name of the y-variable.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if y_var is None:
+            self._yvar = None
+            if self._verbose:
+                print_wrapped(
+                    'Cleared y-variable.',
+                    type='UPDATE'
+                )
+            return self
+        if y_var in self._categorical_vars + self._continuous_vars:
+            self._yvar = y_var
+            if self._verbose:
+                print_wrapped(
+                    f'Set y-variable to "{y_var}".',
+                    type='UPDATE'
+                )
+        else:
+            raise ValueError('Invalid y-variable name.')
+        return self
+
+        
+    def set_Xvars(self, X_vars: list[str] | None):
+        """
+        Specifies the predictor variables. The y-variable if specified 
+        is not included.
+        
+        Parameters
+        ----------
+        - X_vars : list[str]. Names of the predictor variables.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if X_vars is None:
+            X_vars = self.categorical_vars(ignore_yvar=True) +\
+                self.continuous_vars(ignore_yvar=True)
+        if self._yvar is not None:
+            if self._yvar in X_vars:
+                X_vars.remove(self._yvar)
+        self._Xvars = X_vars
+        if self._verbose:
+            print_wrapped(
+                f'Set predictor variables to "{X_vars}".',
+                type='UPDATE'
+            )
+        return self
+
+
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def df_train(self, copy: bool = False):
+    def df_train(self, onehotted: bool = False, dropfirst: bool = True):
         """Returns the working train DataFrame.
 
         Parameters
         ----------
-        - copy : bool.
-            If True returns a copy.
+        - onehotted : bool. Default: False. 
+            If True, returns the one-hot encoded DataFrame.
+        - dropfirst : bool. Default: True.
+            If True, the first dummy variable is dropped. Does nothing if
+            onehotted is False.
 
         Returns
         -------
         - pd.DataFrame
         """
-        if copy:
-            return self._working_df_train.copy()
+        if onehotted:
+            return self._onehot(self._working_df_train, dropfirst=dropfirst)
         return self._working_df_train
 
 
-    def df_test(self, copy: bool = False):
+    def df_test(self, onehotted: bool = False, dropfirst: bool = True):
         """Returns the working test DataFrame.
 
         Parameters
         ----------
-        - copy : bool.
-            If True returns a copy.
+        - onehotted : bool. Default: False. 
+            If True, returns the one-hot encoded DataFrame.
+        - dropfirst : bool. Default: True.
+            If True, the first dummy variable is dropped. Does nothing if
+            onehotted is False.
 
         Returns
         -------
         - pd.DataFrame
         """
-        if copy:
-            return self._working_df_test.copy()
+        if onehotted:
+            return self._onehot(self._working_df_test, dropfirst=dropfirst)
         return self._working_df_test
+    
+
+    def df_train_split(self, onehotted: bool = False, 
+                       dropfirst: bool = True):
+        """Returns the working train DataFrame subsetted by the predictors 
+            and the y-variable.
+
+        Parameters
+        ----------
+        - onehotted : bool. Default: False. 
+            If True, returns the one-hot encoded DataFrame.
+        - dropfirst : bool. Default: True.
+            If True, the first dummy variable is dropped. Does nothing if
+            onehotted is False.
+
+        Returns
+        -------
+        - pd.DataFrame
+        - pd.Series
+        """
+        if onehotted:
+            return (self._onehot(self._working_df_train[self._Xvars], 
+                                 dropfirst=dropfirst), 
+                    self._working_df_train[self._yvar])
+        return (self._working_df_train[self._Xvars], 
+            self._working_df_train[self._yvar])
+    
+
+    def df_test_split(self, onehotted: bool = False, 
+                       dropfirst: bool = True):
+        """Returns the working test DataFrame subsetted by the predictors 
+            and the y-variable.
+
+        Parameters
+        ----------
+        - onehotted : bool. Default: False. 
+            If True, returns the one-hot encoded DataFrame.
+        - dropfirst : bool. Default: True.
+            If True, the first dummy variable is dropped. Does nothing if
+            onehotted is False.
+
+        Returns
+        -------
+        - pd.DataFrame
+        - pd.Series
+        """
+        if onehotted:
+            return (self._onehot(self._working_df_test[self._Xvars], 
+                                 dropfirst=dropfirst), 
+                    self._working_df_test[self._yvar])
+        return (self._working_df_test[self._Xvars], 
+            self._working_df_test[self._yvar])
     
 
     def shapes(self):
@@ -240,54 +381,105 @@ class DataHandler:
         }
     
 
-    def continuous_vars(self, copy: bool = False):
-        """Returns copy of list of continuous variables."""
-        if copy:
-            return self._continuous_vars.copy()
-        else:
-            return self._continuous_vars
-
-    def categorical_vars(self, copy: bool = False):
-        """Returns copy of list of categorical variables."""
-        if copy:
-            return self._categorical_vars.copy()
-        else:
-            return self._categorical_vars
-
-
-    def dataset(self, dataset: Literal['train', 'test'] = 'train', 
-                copy: bool = False):
-        """Returns one of (working_df_train, working_df_test). 
-
+    def continuous_vars(self, ignore_yvar: bool = True):
+        """Returns copy of list of continuous variables.
+        
         Parameters
         ----------
-        - dataset : Literal['train', 'test']
-        - copy : bool. If True, dataframe is copied before being returned. 
-        
-        Returns
-        -------
-        - df : pd.DataFrame
+        - ignore_yvar : bool. Default: True.
         """
-        if dataset == 'train':
-            if copy:
-                return self._working_df_train.copy()
-            else: 
-                return self._working_df_train
-            
-        elif dataset == 'test':
-            if copy:
-                return self._working_df_test.copy()
-            else:
-                return self._working_df_test
+        out = self._continuous_vars.copy()
+        if ignore_yvar and self._yvar is not None:
+            if self._yvar in out:
+                out.remove(self._yvar)
+        return out
+
+    def categorical_vars(self, ignore_yvar: bool = True):
+        """Returns copy of list of categorical variables.
         
-        else:
-            raise ValueError('Invalid input for dataset.')
+        Parameters
+        ----------
+        - ignore_yvar : bool. Default: True.
+        """
+        out = self._categorical_vars.copy()
+        if ignore_yvar and self._yvar is not None:
+            if self._yvar in out:
+                out.remove(self._yvar)
+        return out
 
 
     def head(self, n = 5):
-        """Same as calling self.working_df_train.head(n)."""
+        """Returns the first n rows of the working train DataFrame."""
         return self._working_df_train.head(n)
     
+
+    def yscaler(self) -> BaseSingleVarScaler | None:
+        """Returns the y-variable scaler, which could be None."""
+        if self._yvar is None:
+            return None
+        return self._continuous_var_to_scalar[self._yvar]
+    
+
+    def scaler(self, var: str) -> BaseSingleVarScaler | None:
+        """Returns the scaler for a continuous variable, which could be None.
+        
+        Parameters
+        ----------
+        - var : str
+        """
+        return self._continuous_var_to_scalar[var]
+        
+
+    def copy(self, verbose: bool = False):
+        """Creates a shallow copy of the DataHandler object. That is, 
+        the returned object will be initialized with the current 
+        working DataFrames, but will not have any other checkpoints saved.
+        No other attributes such as y-variable and predictor specifications
+        are retained.
+        
+        Parameters
+        ----------
+        - verbose : bool. Default: False.
+
+        Returns
+        -------
+        - DataHandler
+        """
+        return DataHandler(
+            self._working_df_train, 
+            self._working_df_test, 
+            verbose=verbose, nickname=self.nickname + '_copy')
+    
+
+    def kfold_copies(self, k: int, shuffle: bool = True, 
+                     seed: int = 42,
+                     verbose: bool = False) -> list['DataHandler']:
+        """Returns k shallow copies of the DataHandler object, each with the 
+        properly specified train and test datasets for k-fold cross 
+        validation.
+        
+        Parameters
+        ----------
+        - k : int. Number of folds.
+        - shuffle : bool. Default: True. If True, shuffles the examples 
+            before splitting into folds.
+        - verbose : bool. Default: False.
+        """
+        cv = KFold(n_splits=k, shuffle=shuffle, random_state=seed)
+        out = []
+        for i, (train_index, test_index) in enumerate(
+            cv.split(self._working_df_train)):
+            train_df = self._working_df_train.iloc[train_index]
+            test_df = self._working_df_train.iloc[test_index]
+            out.append(DataHandler(
+                train_df, test_df, 
+                verbose=verbose, nickname=self.nickname + f'_fold_{i}'))
+        return out
+    
+
+    # --------------------------------------------------------------------------
+    # PREPROCESSING
+    # --------------------------------------------------------------------------
 
     def force_categorical(self, vars: list[str]):
         """Forces variables to become categorical. 
@@ -306,26 +498,196 @@ class DataHandler:
             )
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars(self._working_df_train)
-
-
-    # --------------------------------------------------------------------------
-    # PREPROCESSING
-    # --------------------------------------------------------------------------
-
-
-    def onehot(self, inplace: bool = True):
-        """One-hot encodes the train and test DataFrames."""
         
-    
-    def handle_missing(self, strategy: Literal['dropna'], 
-                       included_vars: list[str] = None,
-                       excluded_vars: list[str] = None, 
-                       inplace: bool = True):
-        """Handles missing data."""
+
+
+    def _onehot(self, df: pd.DataFrame, dropfirst: bool = True, 
+                ignore_yvar: bool = True) -> pd.DataFrame:
+        """One-hot encodes all categorical variables with more than 
+        two categories. Optionally does not ignore the set y-variable, 
+        if specified.
+        
+        Parameters
+        ----------
+        - df : pd.DataFrame
+        - dropfirst : bool. Default: True. 
+            If True, the first dummy variable is dropped.
+        - ignore_yvar : bool. Default: True.
+            If True, the y-variable (if specified) is not one-hot encoded.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        categorical_vars, _ = self._compute_categorical_continuous_vars(df)
+
+        if ignore_yvar and self._yvar is not None:
+            if self._yvar in categorical_vars:
+                categorical_vars.remove(self._yvar)
+
+        if categorical_vars:
+            if dropfirst:
+                drop = 'first'
+            else:
+                drop = None
+
+            encoder = OneHotEncoder(drop=drop, sparse_output=False)
+            encoded = encoder.fit_transform(df[categorical_vars])
+            feature_names = encoder.get_feature_names_out(categorical_vars)
+            df_encoded = pd.DataFrame(
+                encoded, columns=feature_names, index=df.index)
+            return pd.concat(
+                [df_encoded, df.drop(columns=categorical_vars)], axis=1)
+        else:
+            return df
+        
+
+    def dropna_yvar(self):
+        """Drops rows with missing values in the y-variable in-place.
+        
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if self._yvar is not None:
+            self.dropna(vars=[self._yvar])
+        return self
+
+
+    def dropna(self, vars: list[str] = None):
+        """Drops rows with missing values in-place.
+
+        Parameters
+        ----------
+        - vars : list[str]. Default: None.
+            Subset of variables (columns). 
+            If not None, only considers missing values in the subset of 
+            variables.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        self._working_df_train.dropna(subset=vars, inplace=True)
+        self._working_df_test.dropna(subset=vars, inplace=True)
+        if self._verbose:
+            shapes_dict = self.shapes()
+            print_wrapped(
+                'Dropped rows with missing values. ' +\
+                'Shapes of train, test datasets: ' + \
+                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                type='UPDATE'
+            )
+        return self
 
 
 
+    def impute(self, 
+            continuous_strategy: Literal['median', 'mean', '5nn'] = 'median', 
+            categorical_strategy: Literal['most_frequent'] = 'most_frequent', 
+            ignore_yvar: bool = True):
+        """Imputes missing values in-place.
+        
+        Parameters
+        ----------
+        - continuous_strategy : Literal['median', 'mean', '5nn']. 
+            Default: 'median'.
+            Strategy for imputing missing values in continuous variables.
+            - 'median': impute with median.
+            - 'mean': impute with mean.
+            - '5nn': impute with 5-nearest neighbors.
+        - categorical_strategy : Literal['most_frequent']. 
+            Default: 'most_frequent'.
+            Strategy for imputing missing values in categorical variables.
+            - 'most_frequent': impute with most frequent value.
+        - ignore_yvar : bool. Default: True. If True, the y-variable is not 
+            imputed.
 
+        Returns
+        -------
+        - self : DataHandler
+        """
+        continuous_vars = self.continuous_vars(ignore_yvar=ignore_yvar)
+        categorical_vars = self.categorical_vars(ignore_yvar=ignore_yvar)
+
+        # impute continuous variables
+        if continuous_strategy == '5nn':
+            imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
+        else:
+            imputer = SimpleImputer(strategy=continuous_strategy, 
+                                    keep_empty_features=True)
+        self._working_df_train[continuous_vars] =\
+            imputer.fit_transform(self._working_df_train[continuous_vars])
+        self._working_df_test[continuous_vars] =\
+            imputer.transform(self._working_df_test[continuous_vars])
+        
+        # impute categorical variables
+        imputer = SimpleImputer(strategy=categorical_strategy, 
+                                keep_empty_features=True)
+        self._working_df_train[categorical_vars] =\
+            imputer.fit_transform(
+                self._working_df_train[categorical_vars])
+        self._working_df_test[categorical_vars] =\
+            imputer.transform(self._working_df_test[categorical_vars])
+        
+        if self._verbose:
+            print_wrapped(
+                'Imputed missing values with strategies: ' +\
+                f'continuous: "{continuous_strategy}", ' +\
+                f'categorical: "{categorical_strategy}".',
+                type='UPDATE'
+            )
+        return self
+
+
+    def scale(self, vars: list[str] = None, 
+              strategy: Literal['standardize', 'minmax', 'log', 
+                                'log1p'] = 'standardize'):
+        """Scales variables in-place.
+
+        Parameters
+        ----------
+        - vars : list[str]. Default: None.
+            Subset of variables (columns). 
+            If None, scales all continuous variables.
+        - strategy : Literal['standardize', 'minmax', 'log', 'log1p']. 
+            Default: 'standardize'.
+            Strategy for scaling continuous variables.
+            - 'standardize': standardize variables.
+            - 'minmax': min-max scale variables.
+            - 'log': log transform variables.
+            - 'log1p': log1p transform variables.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if vars is None:
+            vars = self._continuous_vars
+        train_data = self._working_df_train[vars].to_numpy()
+        for var in vars:
+            if strategy == 'standardize':
+                scaler = StandardizeSingleVar(var, train_data)
+            elif strategy == 'minmax':
+                scaler = MinMaxSingleVar(var, train_data)
+            elif strategy == 'log':
+                scaler = LogTransformSingleVar(var, train_data)
+            elif strategy == 'log1p':
+                scaler = Log1PTransformSingleVar(var, train_data)
+            else:
+                raise ValueError('Invalid scaling strategy.')
+            self._working_df_train[var] = scaler.transform(
+                self._working_df_train[var])
+            self._working_df_test[var] = scaler.transform(
+                self._working_df_test[var])
+            if var == self._yvar:
+                self._yvar_scaler = scaler
+        if self._verbose:
+            print_wrapped(
+                f'Scaled variables {vars} using strategy "{strategy}".',
+                type='UPDATE'
+            )
+        return self
 
     # --------------------------------------------------------------------------
     # HELPERS
@@ -443,4 +805,12 @@ class DataHandler:
         return len(self._working_df_train)
 
 
+
+    def __str__(self):
+        """Returns a string representation of the DataHandler object."""
+        return f'DataHandler object: {self.nickname}'
+
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
 

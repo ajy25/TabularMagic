@@ -1,86 +1,52 @@
 import pandas as pd
-import numpy as np
 import matplotlib.axes as axes
 import matplotlib.figure as figure
-from typing import Iterable
-from ...metrics.regression_scoring import RegressionScorer
+from typing import Iterable, Literal
 from ...ml.discriminative.regression.base_regression import BaseRegression
-from ...data.preprocessing import BaseSingleVarScaler
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred
 from ...util.console import print_wrapped
-from sklearn.model_selection import KFold
 
 
-class SingleModelMLRegReport:
-    """SingleModelMLRegReport: generates regression-relevant plots and 
-    tables for a single machine learning model. 
+
+
+
+class SingleModelSingleDatasetReport:
+    """
+    SingleModelSingleDatasetReport: generates regression-relevant plots and
+    tables for a single machine learning model on a single dataset.
     """
 
-    def __init__(self, model: BaseRegression, X_test: pd.DataFrame = None, 
-                 y_test: pd.Series = None, 
-                 y_scaler: BaseSingleVarScaler = None):
+    def __init__(self, model: BaseRegression, 
+                 specification: Literal['train', 'test']):
         """
-        Initializes a SingleModelMLRegReport object. 
-
+        Initializes a SingleModelSingleDatasetReport object.
+        
         Parameters
         ----------
-        - model : BaseRegression.
-            The model must already be trained.
-        - X_test : pd.DataFrame.
-            Default: None. If None, uses the model training results directly. 
-        - y_test : pd.Series.
-            Default: None. If None, uses the model training results directly. 
-        - y_scaler: BaseSingleVarScaler.
-            Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
+        - model : BaseRegression. The data for the model must already be 
+            specified. The model should already be trained on the 
+            specified data.
+        - specification : Literal['train', 'test'].
         """
         self.model = model
-        if X_test is not None and y_test is not None:
-            self._y_pred = model.predict(X_test.to_numpy())
-            self._y_true = y_test.to_numpy()
-            self._scorer = RegressionScorer(y_pred=self._y_pred, 
-                y_true=self._y_true, n_predictors=model._n_predictors, 
-                model_id_str=str(model))
-        else:
-            self._y_pred = model._y
-            self._y_true = model.predict(model._X)
-            self._scorer = model.train_scorer
-        if y_scaler is not None:
-            self._scorer.rescale(y_scaler)
-            self.rescale(y_scaler)
-
-
-    def rescale(self, y_scaler: BaseSingleVarScaler):
-        """
-        Inverse scales y values.
-
-        Parameters
-        ----------
-        - y_scaler: BaseSingleVarScaler.
-            Calls inverse transform on the outputs 
-            and on y_test before computing statistics.
-        """
-        if isinstance(self._y_true, np.ndarray):
-            self._y_pred = y_scaler.inverse_transform(self._y_pred)
-            self._y_true = y_scaler.inverse_transform(self._y_true)
-        elif isinstance(self._y_true, list):
-            for i in range(len(self._y_true)):
-                self._y_true[i] = y_scaler.inverse_transform(self._y_true[i])
-                self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
-
+        if specification not in ['train', 'test']:
+            raise ValueError('specification must be either "train" or "test".')
+        self.specification = specification
 
     def fit_statistics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
-        for the model.
+        for the model on the specified data.
 
         Parameters
         ----------
         - pd.DataFrame
         """
-        return self._scorer.to_df()
-
-        
+        if self.specification == 'train':
+            return self.model.train_scorer.to_df()
+        else:
+            return self.model.test_scorer.to_df()
+    
     def plot_obs_vs_pred(self, figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None) -> figure.Figure:
         """Returns a figure that is a scatter plot of the observed (y-axis) and 
@@ -95,85 +61,52 @@ class SingleModelMLRegReport:
         -------
         - Figure
         """
-        return plot_obs_vs_pred(self._y_pred, self._y_true, figsize, ax)
+        if self.specification == 'train':
+            y_pred = self.model.train_scorer._y_pred
+            y_true = self.model.train_scorer._y_true
+        else:
+            y_pred = self.model.test_scorer._y_pred
+            y_true = self.model.test_scorer._y_true
+        return plot_obs_vs_pred(y_pred, y_true, figsize, ax)
 
 
-
-
-class SingleDatasetMLRegReport:
-    """An object that generates regression-relevant plots and tables for a 
-    set of models. Indexable. 
+class SingleModelMLRegReport:
+    """SingleModelMLRegReport: generates regression-relevant plots and 
+    tables for a single machine learning model. 
     """
 
-    def __init__(self, models: Iterable[BaseRegression], 
-                 X_test: pd.DataFrame = None, 
-                 y_test: pd.Series = None, 
-                 y_scaler: BaseSingleVarScaler = None):
+    def __init__(self, model: BaseRegression):
         """
-        Initializes a SingleDatasetMLRegReport object. 
-
-        Parameters 
-        ----------
-        - models : Iterable[BaseRegression].
-            The BaseRegression models must already be trained. 
-        - X_test : pd.DataFrame.
-            Default: None. If None, reports on the training data.
-        - y_test : pd.Series.
-            Default: None. If None, reports on the training data.
-        - y_scaler: BaseSingleVarScaler.
-            Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
-        """
-        self.models = models
-        if X_test is None and y_test is None:
-            self._report_dict_indexable_by_int = {
-                i: SingleModelMLRegReport(model=model, 
-                                                 y_scaler=y_scaler) \
-                    for i, model in enumerate(self.models)}
-        else:
-            if not isinstance(y_test, pd.Series):
-                try:
-                    if isinstance(y_test, pd.DataFrame):
-                        if y_test.shape[1] > 1:
-                            assert False
-                        y_test = y_test.iloc[:, 0]
-                    else:
-                        y_test = pd.Series(y_test)
-                except:
-                    raise ValueError('y_test must be pd.Series object.')
-            self._report_dict_indexable_by_int = {
-                i: SingleModelMLRegReport(model, X_test, y_test, 
-                                                 y_scaler) \
-                    for i, model in enumerate(self.models)}
-        self._report_dict_indexable_by_str = {
-            str(report.model): report for report in \
-                self._report_dict_indexable_by_int.values()
-        }
-        self._fit_statistics = pd.concat([report._scorer.to_df() for report \
-            in self._report_dict_indexable_by_int.values()], axis=1)
-        
-
-    def fit_statistics(self):
-        return self._fit_statistics
-
-
-    def __getitem__(self, index: int | str) -> SingleModelMLRegReport:
-        """Indexes into SingleDatasetMLRegReport. 
+        Initializes a SingleModelMLRegReport object. 
 
         Parameters
         ----------
-        - index : int | str. 
+        - model : BaseRegression. The data for the model must already be 
+            specified. The model should already be trained on the 
+            specified data.
+        """
+        self.model = model
+
+
+    def train(self) -> SingleModelSingleDatasetReport:
+        """Returns a SingleModelSingleDatasetReport object for the training data.
 
         Returns
         -------
-        - MLRegressionReport. 
+        - SingleModelSingleDatasetReport
         """
-        if isinstance(index, int):
-            return self._report_dict_indexable_by_int[index]
-        elif isinstance(index, str):
-            return self._report_dict_indexable_by_str[index]
-        else:
-            raise ValueError(f'Invalid input: {index}.')
+        return SingleModelSingleDatasetReport(self.model, 'train')
+    
+    def test(self) -> SingleModelSingleDatasetReport:
+        """Returns a SingleModelSingleDatasetReport object for the test data.
+
+        Returns
+        -------
+        - SingleModelSingleDatasetReport
+        """
+        return SingleModelSingleDatasetReport(self.model, 'test')
+
+
 
 
 
@@ -185,9 +118,8 @@ class MLRegressionReport:
 
     def __init__(self, models: Iterable[BaseRegression], 
                  datahandler: DataHandler,
-                 X_vars: list[str],
                  y_var: str,
-                 y_scaler: BaseSingleVarScaler = None, 
+                 X_vars: list[str],
                  outer_cv: int = None,
                  outer_cv_seed: int = 42,
                  verbose: bool = True):
@@ -200,11 +132,8 @@ class MLRegressionReport:
         - models : Iterable[BaseRegression].
             The BaseRegression models must already be trained. 
         - datahandler : DataHandler.
-        - X_vars : list[str].
         - y_var : str.
-        - y_scaler: BaseSingleVarScaler.
-            Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
+        - X_vars : list[str].
         - outer_cv : int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
@@ -212,63 +141,57 @@ class MLRegressionReport:
         - verbose : bool.
         """
         self._models = models
+        self._id_to_model = {model._id: model for model in models}
+
+
         self._datahandler = datahandler
         self._X_vars = X_vars
         self._y_var = y_var
-        self._y_scaler = y_scaler
         self._verbose = verbose
-
-        self._outer_cv = None
-        if outer_cv is not None:
-            self._outer_cv = KFold(n_splits=outer_cv,
-                shuffle=True, random_state=self._outer_cv_seed)
-        self._outer_cv_seed = outer_cv_seed
-
-        self._fit_models()
-    
-        
-    def train(self):
-        """Returns an MLRegressionReport object for the train dataset
-        
-        Returns
-        -------
-        - report : MLRegressionReport
-        """
-        return self._train_report
-    
-    def test(self):
-        """Returns an MLRegressionReport object for the test dataset
-        
-        Returns
-        -------
-        - report : MLRegressionReport
-        """
-        return self._test_report
-    
-    
-    def _fit_models(self):
-        """Fits all models.
-        """
-        df_test = self._datahandler.df_test()
-        X_test = df_test[self._X_vars]
-        y_test = df_test[self._y_var]
-        df_train = self._datahandler.df_train()
-        X_train = df_train[self._X_vars]
-        y_train = df_train[self._y_var]
-
-        for i, model in enumerate(self._models):
+        for model in self._models:
             if self._verbose:
-                print_wrapped(
-                    f'Task {i+1} of ' +\
-                    f'{len(self._models)}.\tFitting {model}.',
-                    type='UPDATE'
-                )
-            model.fit(X_train.to_numpy(), y_train.to_numpy(), 
-                      outer_cv=self._outer_cv)
-        self._train_report = SingleDatasetMLRegReport(y_scaler=self._y_scaler)
-        self._test_report = SingleDatasetMLRegReport(
-            self._models, X_test, y_test, self._y_scaler
-        )
+                print_wrapped(f'Fitting model {model._id}.', 
+                            type='UPDATE')
+            model.specify_data(datahandler, y_var, X_vars, outer_cv, 
+                                outer_cv_seed)
+            model.fit()
+            if self._verbose:
+                print_wrapped(f'Fitted model {model._id}.', 
+                            type='UPDATE')
+        
+        self._id_to_report = {model._id: SingleModelMLRegReport(model) \
+                              for model in models}
+    
+
+    def get_model_report(self, model_id: str) -> SingleModelMLRegReport:
+        """Returns the SingleModelMLRegReport object for the specified model.
+
+        Parameters
+        ----------
+        - model_id : str. The id of the model.
+
+        Returns
+        -------
+        - SingleModelMLRegReport
+        """
+        return self._id_to_report[model_id]
+    
+    def get_model(self, model_id: str) -> BaseRegression:
+        """Returns the model with the specified id.
+
+        Parameters
+        ----------
+        - model_id : str. The id of the model.
+
+        Returns
+        -------
+        - BaseRegression
+        """
+        return self._id_to_model[model_id]
+    
+    
+    def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
+        return self._id_to_report[model_id]
 
 
 

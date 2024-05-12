@@ -115,7 +115,7 @@ class OrdinaryLeastSquares:
             X_test = self._X
             y_test = self._y
         return RegressionScorer(self.predict(X_test), y_test.to_numpy(), 
-            n_predictors=self._n_predictors, model_id_str=str(self))
+            n_predictors=self._n_predictors, id=str(self))
     
 
     def _verify_Xy_input_validity(self, X: pd.DataFrame, y: pd.Series):

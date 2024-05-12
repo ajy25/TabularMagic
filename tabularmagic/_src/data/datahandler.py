@@ -17,7 +17,7 @@ class DataHandler:
                  df_test: pd.DataFrame, 
                  y_var: str | None = None,
                  X_vars: list[str] | None = None,
-                 nickname: str = None,
+                 id: str = None,
                  verbose: bool = True):
         """Initializes a DataHandler object.
 
@@ -56,11 +56,11 @@ class DataHandler:
         self.set_Xvars(X_vars=X_vars)
 
 
-        # set the nickname
-        if nickname is None:
+        # set the id
+        if id is None:
             self.nickname = 'DataHandler'
         else:
-            self.nickname = nickname
+            self.nickname = id
 
 
     # --------------------------------------------------------------------------
@@ -88,9 +88,9 @@ class DataHandler:
                     type='UPDATE'
                 )
         else:
-            self._working_df_train =\
-                self._checkpoint_name_to_df[checkpoint][0].copy()
             self._working_df_test =\
+                self._checkpoint_name_to_df[checkpoint][0].copy()
+            self._working_df_train =\
                 self._checkpoint_name_to_df[checkpoint][1].copy()
             if self._verbose:
                 shapes_dict = self.shapes()
@@ -120,8 +120,8 @@ class DataHandler:
                 type='UPDATE'
             )
         self._checkpoint_name_to_df[checkpoint] = (
-            self._working_df_train.copy(),
-            self._working_df_test.copy()
+            self._working_df_test.copy(),
+            self._working_df_train.copy()
         )
 
 
@@ -151,8 +151,8 @@ class DataHandler:
         ----------
         - vars : list[str]
         """
-        self._working_df_train = self._working_df_train[vars]
         self._working_df_test = self._working_df_test[vars]
+        self._working_df_train = self._working_df_train[vars]
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars()
         if self._verbose:
@@ -175,8 +175,8 @@ class DataHandler:
         ----------
         - vars : list[str]
         """
-        self._working_df_train.drop(vars, axis='columns', inplace=True)
         self._working_df_test.drop(vars, axis='columns', inplace=True)
+        self._working_df_train.drop(vars, axis='columns', inplace=True)
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
@@ -312,56 +312,82 @@ class DataHandler:
         return self._working_df_test
     
 
-    def df_train_split(self, onehotted: bool = False, 
-                       dropfirst: bool = True):
+    def df_train_split(self, onehotted: bool = True, 
+                       dropfirst: bool = True, dropna: bool = True):
         """Returns the working train DataFrame subsetted by the predictors 
             and the y-variable.
 
         Parameters
         ----------
-        - onehotted : bool. Default: False. 
+        - onehotted : bool. Default: True. 
             If True, returns the one-hot encoded DataFrame.
         - dropfirst : bool. Default: True.
             If True, the first dummy variable is dropped. Does nothing if
             onehotted is False.
+        - dropna : bool. Default: True.
+            If True, drops rows with missing values.
 
         Returns
         -------
         - pd.DataFrame
         - pd.Series
         """
+        out_train = self._working_df_train[self._Xvars + [self._yvar]]
+
         if onehotted:
-            return (self._onehot(self._working_df_train[self._Xvars], 
-                                 dropfirst=dropfirst), 
-                    self._working_df_train[self._yvar])
-        return (self._working_df_train[self._Xvars], 
-            self._working_df_train[self._yvar])
+            out_train = self._onehot(out_train, dropfirst=dropfirst, 
+                                     fit=True, ignore_yvar=True)
+
+        if dropna:
+            prev_len = len(out_train)
+            out_train.dropna(inplace=True)
+            if self._verbose:
+                print_wrapped(
+                    f'Dropped {prev_len - len(out_train)} rows with missing ' +\
+                        'values.',
+                    type='WARNING'
+                )
+
+        return (out_train.drop(self._yvar, axis=1), out_train[self._yvar])
     
 
-    def df_test_split(self, onehotted: bool = False, 
-                       dropfirst: bool = True):
+    def df_test_split(self, onehotted: bool = True, 
+                       dropfirst: bool = True, dropna: bool = True):
         """Returns the working test DataFrame subsetted by the predictors 
             and the y-variable.
 
         Parameters
         ----------
-        - onehotted : bool. Default: False. 
+        - onehotted : bool. Default: True. 
             If True, returns the one-hot encoded DataFrame.
         - dropfirst : bool. Default: True.
             If True, the first dummy variable is dropped. Does nothing if
             onehotted is False.
-
+        - dropna : bool. Default: True.
+            If True, drops rows with missing values.
+            
         Returns
         -------
         - pd.DataFrame
         - pd.Series
         """
+        out_test = self._working_df_test[self._Xvars + [self._yvar]]
+
         if onehotted:
-            return (self._onehot(self._working_df_test[self._Xvars], 
-                                 dropfirst=dropfirst), 
-                    self._working_df_test[self._yvar])
-        return (self._working_df_test[self._Xvars], 
-            self._working_df_test[self._yvar])
+            out_test = self._onehot(out_test, dropfirst=dropfirst, 
+                                    fit=False, ignore_yvar=True)
+
+        if dropna:
+            prev_len = len(out_test)
+            out_test.dropna(inplace=True)
+            if self._verbose:
+                print_wrapped(
+                    f'Dropped {prev_len - len(out_test)} rows with missing ' +\
+                        'values.',
+                    type='WARNING'
+                )
+
+        return (out_test.drop(self._yvar, axis=1), out_test[self._yvar])
     
 
     def shapes(self):
@@ -376,7 +402,7 @@ class DataHandler:
         }
         """
         return {
-            'train': self._working_df_train.shape,
+            'train': self._working_df_test.shape,
             'test': self._working_df_test.shape
         }
     
@@ -410,7 +436,7 @@ class DataHandler:
 
     def head(self, n = 5):
         """Returns the first n rows of the working train DataFrame."""
-        return self._working_df_train.head(n)
+        return self._working_df_test.head(n)
     
 
     def yscaler(self) -> BaseSingleVarScaler | None:
@@ -430,7 +456,8 @@ class DataHandler:
         return self._continuous_var_to_scalar[var]
         
 
-    def copy(self, verbose: bool = False):
+    def copy(self, y_var: str = None, 
+             X_vars: str = None, verbose: bool = False) -> 'DataHandler':
         """Creates a shallow copy of the DataHandler object. That is, 
         the returned object will be initialized with the current 
         working DataFrames, but will not have any other checkpoints saved.
@@ -439,6 +466,8 @@ class DataHandler:
         
         Parameters
         ----------
+        - y_var : str | None. Default: None.
+        - X_vars : list[str] | None. Default: None.
         - verbose : bool. Default: False.
 
         Returns
@@ -448,10 +477,12 @@ class DataHandler:
         return DataHandler(
             self._working_df_train, 
             self._working_df_test, 
-            verbose=verbose, nickname=self.nickname + '_copy')
+            y_var=y_var, X_vars=X_vars,
+            verbose=verbose, id=self.nickname + '_copy')
     
 
-    def kfold_copies(self, k: int, shuffle: bool = True, 
+    def kfold_copies(self, k: int, y_var: str = None, X_vars: str = None, 
+                     shuffle: bool = True, 
                      seed: int = 42,
                      verbose: bool = False) -> list['DataHandler']:
         """Returns k shallow copies of the DataHandler object, each with the 
@@ -461,9 +492,16 @@ class DataHandler:
         Parameters
         ----------
         - k : int. Number of folds.
+        - y_var : str | None. Default: None.
+        - X_vars : list[str] | None. Default: None.
         - shuffle : bool. Default: True. If True, shuffles the examples 
             before splitting into folds.
+        - seed : int. Default: 42. Random seed for shuffling.
         - verbose : bool. Default: False.
+
+        Returns 
+        -------
+        - list[DataHandler]
         """
         cv = KFold(n_splits=k, shuffle=shuffle, random_state=seed)
         out = []
@@ -473,7 +511,8 @@ class DataHandler:
             test_df = self._working_df_train.iloc[test_index]
             out.append(DataHandler(
                 train_df, test_df, 
-                verbose=verbose, nickname=self.nickname + f'_fold_{i}'))
+                verbose=verbose, y_var=y_var, 
+                X_vars=X_vars, id=self.nickname + f'_fold_{i}'))
         return out
     
 
@@ -491,6 +530,8 @@ class DataHandler:
         """
         self._working_df_train[vars] =\
             self._working_df_train[vars].astype('str')
+        self._working_df_test[vars] =\
+            self._working_df_test[vars].astype('str')
         if self._verbose:
             print_wrapped(
                 f'Converted variables {vars} to categorical.',
@@ -501,8 +542,10 @@ class DataHandler:
         
 
 
-    def _onehot(self, df: pd.DataFrame, dropfirst: bool = True, 
-                ignore_yvar: bool = True) -> pd.DataFrame:
+    def _onehot(self, df: pd.DataFrame, 
+                dropfirst: bool = True, 
+                ignore_yvar: bool = True, 
+                fit: bool = True) -> pd.DataFrame:
         """One-hot encodes all categorical variables with more than 
         two categories. Optionally does not ignore the set y-variable, 
         if specified.
@@ -514,10 +557,13 @@ class DataHandler:
             If True, the first dummy variable is dropped.
         - ignore_yvar : bool. Default: True.
             If True, the y-variable (if specified) is not one-hot encoded.
+        - fit : bool. Default: True.
+            If True, fits the encoder on the training data. Otherwise,
+            only transforms the test data.
 
         Returns
         -------
-        - pd.DataFrame
+        - df_train encoded : pd.DataFrame
         """
         categorical_vars, _ = self._compute_categorical_continuous_vars(df)
 
@@ -531,16 +577,35 @@ class DataHandler:
             else:
                 drop = None
 
-            encoder = OneHotEncoder(drop=drop, sparse_output=False)
-            encoded = encoder.fit_transform(df[categorical_vars])
-            feature_names = encoder.get_feature_names_out(categorical_vars)
-            df_encoded = pd.DataFrame(
-                encoded, columns=feature_names, index=df.index)
+            if fit:
+                self._onehot_encoder = \
+                    OneHotEncoder(drop=drop, sparse_output=False)
+                encoded = self._onehot_encoder.fit_transform(
+                    df[categorical_vars])
+                feature_names = self._onehot_encoder.get_feature_names_out(
+                    categorical_vars)
+                df_encoded = pd.DataFrame(
+                    encoded, columns=feature_names, index=df.index)
+            
+            else:
+                encoded = self._onehot_encoder.transform(
+                    df[categorical_vars])
+                feature_names = self._onehot_encoder.get_feature_names_out(
+                    categorical_vars)
+                df_encoded = pd.DataFrame(
+                    encoded, columns=feature_names, index=df.index)
+            
             return pd.concat(
-                [df_encoded, df.drop(columns=categorical_vars)], axis=1)
+                    [
+                        df_encoded, 
+                        df.drop(columns=categorical_vars)
+                    ], 
+                    axis=1
+                )
         else:
             return df
-        
+
+
 
     def dropna_yvar(self):
         """Drops rows with missing values in the y-variable in-place.
@@ -664,7 +729,7 @@ class DataHandler:
         """
         if vars is None:
             vars = self._continuous_vars
-        train_data = self._working_df_train[vars].to_numpy()
+        train_data = self._working_df_test[vars].to_numpy()
         for var in vars:
             if strategy == 'standardize':
                 scaler = StandardizeSingleVar(var, train_data)
@@ -753,8 +818,7 @@ class DataHandler:
                     'have been dropped from test.',
                     type='WARNING'
                 )
-            self._working_df_test.drop(columns=extra_test_columns, axis=1, 
-                                      inplace=True)
+            df_test.drop(columns=extra_test_columns, axis=1, inplace=True)
         if len(missing_test_columns) > 0:
             if self._verbose:
                 print_wrapped(
@@ -797,7 +861,6 @@ class DataHandler:
         df_train.columns = new_columns
         df_test.columns = new_columns
         return df_train, df_test
-
 
 
     def __len__(self):

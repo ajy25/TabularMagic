@@ -1,10 +1,7 @@
-import numpy as np
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import KFold, BaseCrossValidator
-import os
-from joblib import dump
 from ....metrics.regression_scoring import RegressionScorer
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
+from ....data.datahandler import DataHandler
 
 
 
@@ -17,203 +14,134 @@ class BaseRegression(BaseDiscriminativeModel):
     model selection processes. 
     """
 
-    def __init__(self, X: np.ndarray = None, y: np.ndarray = None):
+    def __init__(self):
         """Initializes a BaseRegression object. Creates copies of the inputs. 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. Dependent variable vector. 
 
         Returns
         -------
         - None
         """
         self._hyperparam_searcher: HyperparameterSearcher = None
-        self.estimator: BaseEstimator = None
-        if (X is not None) and (y is not None):
-            self._X = X.copy()
-            self._y = y.copy()
-            self._sample_size = X.shape[0]
-            self._n_predictors = X.shape[1]
-        self.nickname = 'BaseRegression'
+        self._estimator: BaseEstimator = None
+        self._datahandler = None
+        self._datahandlers = None
+        self._id = 'BaseRegression'
 
 
-    def fit(self, X: np.ndarray = None, y: np.ndarray = None, 
-            outer_cv: int | BaseCrossValidator | None = None,
-            outer_cv_seed: int = 42):
-        """Fits the model. Records training metrics, which can be done via 
-        nested cross validation.
+    def specify_data(self, datahandler: DataHandler, y_var: str, 
+                     X_vars: list[str], 
+                     outer_cv: int = None, 
+                     outer_cv_seed: int = 42):
+        """Adds a DataHandler object to the model. 
 
         Parameters
         ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None.
-        - y : np.ndarray ~ (sample_size).
-            Default: None.
-        - outer_cv : int | BaseCrossValidator | None. 
-            Default: None. If None, does not conduct nested cross validation. 
-            In this case, the train scores are computed over the entire training
-            dataset, over which the model has been fitted. 
-        - outer_cv_seed : int.
-            Random state of the outer cross validator.
-
-        Returns
-        -------
-        - None
+        - datahandler : DataHandler containing all data. Copy will be made
+            for this specific model.
+        - y_var : str. The name of the target variable.
+        - X_vars : list[str]. The names of the predictor variables.
+        - outer_cv : int. Number of folds. 
+            If None, does not conduct nested cross validation.
+            Otherwise, conducts nested cross validation with outer_cv folds.
+        - outer_cv_seed : int. Random seed for outer_cv.
         """
-        if (X is not None) and (y is not None):
-            self._X = X.copy()
-            self._y = y.copy()
-            self._sample_size = X.shape[0]
-            self._n_predictors = X.shape[1]
-        if ((self._X is None) or (self._y is None)) and \
-            (not ((self._X is None) and (self._y is None))):
-            raise ValueError(f'Invalid input: X, y.',
-                             'X and y both must not be None.')
-        self._verify_Xy_input_validity(self._X, self._y)
+        self._datahandler = datahandler.copy(y_var=y_var, X_vars=X_vars)
+        if outer_cv is not None:
+            self._datahandlers = datahandler.kfold_copies(k=outer_cv, 
+                y_var=y_var, X_vars=X_vars, seed=outer_cv_seed)
 
-        if outer_cv is None:
-            self._hyperparam_searcher.fit(self._X, self._y)
-            self.estimator = self._hyperparam_searcher.best_estimator
+
+    def fit(self):
+        """Fits the model. Records training metrics, which can be done via 
+        nested cross validation.
+        """
+        y_scaler = self._datahandler.yscaler()
+
+        if self._datahandlers is None and self._datahandler is not None:
+            X_train_df, y_train_series = self._datahandler.df_train_split()
+            X_train = X_train_df.to_numpy()
+            y_train = y_train_series.to_numpy()
+            self._hyperparam_searcher.fit(X_train, y_train)
+            self._estimator = self._hyperparam_searcher.best_estimator
+
+            y_pred = self._estimator.predict(X_train)
+            if y_scaler is not None:
+                y_pred = y_scaler.inverse_transform(y_pred)
+                y_train = y_scaler.inverse_transform(y_train)
+
             self.train_scorer = RegressionScorer(
-                y_pred=self.estimator.predict(self._X),
-                y_true=self._y,
-                n_predictors=self._n_predictors,
-                model_id_str=str(self)
+                y_pred=y_pred,
+                y_true=y_train,
+                n_predictors=X_train.shape[1],
+                id=str(self) + '_train'
             )
-        else:
-            if isinstance(outer_cv, int):
-                cv = KFold(n_splits=outer_cv,
-                           shuffle=True, random_state=outer_cv_seed)
-            elif isinstance(outer_cv, BaseCrossValidator):
-                cv = outer_cv
+
+        elif self._datahandlers is not None and self._datahandler is not None:
             y_preds = []
             y_trues = []
-            for train_index, test_index in cv.split(X):
-                X_train, X_test = X[train_index], X[test_index]
-                y_train, y_test = y[train_index], y[test_index]
+            for datahandler in self._datahandlers:
+                X_train_df, y_train_series = datahandler.df_train_split()
+                X_test_df, y_test_series = datahandler.df_test_split()
+                X_train = X_train_df.to_numpy()
+                y_train = y_train_series.to_numpy()
+                X_test = X_test_df.to_numpy()
+                y_test = y_test_series.to_numpy()
                 self._hyperparam_searcher.fit(X_train, y_train)
                 fold_estimator = self._hyperparam_searcher.best_estimator
-                y_preds.append(fold_estimator.predict(X_test))
+
+                y_pred = fold_estimator.predict(X_test)
+                if y_scaler is not None:
+                    y_pred = y_scaler.inverse_transform(y_pred)
+                    y_test = y_scaler.inverse_transform(y_test)
+
+                y_preds.append(y_pred)
                 y_trues.append(y_test)
+
             self.train_scorer = RegressionScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
-                n_predictors=self._n_predictors,
-                model_id_str=str(self)
+                n_predictors=X_train.shape[1],
+                id=str(self) + '_train_cv'
             )
-            self._hyperparam_searcher.fit(self._X, self._y)
-            self.estimator = self._hyperparam_searcher.best_estimator
-        
-    def predict(self, X: np.ndarray):
-        """Returns y_pred.
-        
-        Parameters
-        ----------
-        - X : np.ndarray ~ (n_test_samples, n_predictors).
-
-        Returns
-        -------
-        - np.ndarray ~ (n_test_samples)
-        """
-        self._verify_X_input_validity(X)
-        return self.estimator.predict(X)
-
-
-    def score(self, X: np.ndarray = None, y: np.ndarray = None) -> \
-            RegressionScorer:
-        """Returns the MSE, MAD, Pearson Correlation, and Spearman Correlation 
-        of the true and predicted y values. Also, returns the R-squared and 
-        adjusted R-squared 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. If None, computes scores using X and y. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. If None, computes scores using X and y. 
-
-        Returns
-        -------
-        - RegressionScorer. 
-        """
-        if X is None or y is None:
-            return self.train_scorer
-        self._verify_Xy_input_validity(X, y)
-        return RegressionScorer(self.predict(X), y, 
-            n_predictors=self._n_predictors, model_id_str=str(self))
-    
-    def _verify_Xy_input_validity(self, X: np.ndarray, y: np.ndarray):
-        """Verifies that the inputs X and y are valid. If invalid, raises 
-        the appropriate error with the appropriate error message. 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-        - y : np.ndarray ~ (sample_size).
-
-        Returns
-        -------
-        - None
-        """
-        if not isinstance(X, np.ndarray):
-            raise ValueError(f'Invalid input: X. Must be 2d np array.')
-        if not isinstance(y, np.ndarray):
-            raise ValueError(f'Invalid input: y. Must be 1d np array.')
-        if len(X.shape) != 2:
-            raise ValueError(f'Invalid input: X. Must be 2d np array.')
-        if len(y.shape) != 1:
-            raise ValueError(f'Invalid input: y. Must be 1d np array.')
-        if X.shape[0] != y.shape[0]:
-            raise ValueError(f'Invalid input: X, y. Must have the same',
-                             'length in the first dimension.')
-
-    def _verify_X_input_validity(self, X: np.ndarray):
-        """Verifies that the input X is valid. If invalid, raises 
-        the appropriate error with the appropriate error message. 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-
-        Returns
-        -------
-        - None
-        """
-        if not isinstance(X, np.ndarray):
-            raise ValueError(f'Invalid input: X. Must be 2d np array.')
-        if X.shape[1] != self._n_predictors:
-            raise ValueError(f'Invalid input: X. Must have the same',
-                             'length in the second dimension as the dataset',
-                             'upon which the estimator has been trained.')
-        
-
-    def save_checkpoint(self, dirpath: str = None, filepath: str = None):
-        """Saves the best estimator to a joblib file.
-
-        To load model, run the following code:
-        from joblib import load
-        load(filepath)
-        
-        Parameters
-        ----------
-        - dirpath : str. If None, defers to filepath. Otherwise, saves default
-            name file into directory specified by dirpath.
-        - filepath : str. If both filepath and dirpath are None, saves to 
-            current working directory with default name. 
-        """
-        default_name = self.nickname + '.joblib'
-        if dirpath is not None:
-            dump(self.estimator, os.path.join(dirpath, default_name))
-        elif filepath is not None:
-            dump(self.estimator, filepath)
+            # refit on all data
+            X_train_df, y_train_series = self._datahandler.df_train_split()
+            X_train = X_train_df.to_numpy()
+            y_train = y_train_series.to_numpy()
+            self._hyperparam_searcher.fit(X_train, y_train)
+            self._estimator = self._hyperparam_searcher.best_estimator
         else:
-            dump(self.estimator, os.path.join(os.getcwd(), default_name))
+            raise ValueError('Error occured in fit method.')
+
+        X_test_df, y_test_series = self._datahandler.df_test_split()
+        X_test = X_test_df.to_numpy()
+        y_test = y_test_series.to_numpy()
+
+        y_pred = self._estimator.predict(X_test)
+        if y_scaler is not None:
+            y_pred = y_scaler.inverse_transform(y_pred)
+            y_test = y_scaler.inverse_transform(y_test)
+        
+        self.test_scorer = RegressionScorer(
+            y_pred=y_pred,
+            y_true=y_test,
+            n_predictors=X_train.shape[1],
+            id=str(self) + '_test'
+        )
+
+    def sklearn_estimator(self):
+        """Returns the sklearn estimator object. 
+
+        Returns
+        -------
+        - BaseEstimator
+        """
+        return self._estimator
 
 
     def __str__(self):
-        return self.nickname
+        return self._id
+
+
+
+
 

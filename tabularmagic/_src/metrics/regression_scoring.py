@@ -27,7 +27,7 @@ class RegressionScorer():
     """
 
     def __init__(self, y_pred: np.ndarray | list, y_true: np.ndarray | list, 
-                 n_predictors: int = None, model_id_str: str = None):
+                 n_predictors: int = None, id: str = None):
         """
         Initializes a RegressionScorer object. 
 
@@ -36,16 +36,16 @@ class RegressionScorer():
         - y_pred : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
         - y_true : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
         - n_predictors : int.
-        - model_id_str : str.
+        - id : str.
 
         Returns
         -------
         - None
         """
-        if model_id_str is None:
-            self._model_id_str = 'Model'
+        if id is None:
+            self._id = 'Model'
         else:
-            self._model_id_str = model_id_str
+            self._id = id
         self.n_predictors = n_predictors
         self._y_pred = y_pred
         self._y_true = y_true
@@ -191,6 +191,6 @@ class RegressionScorer():
         - pd.DataFrame.
         """
         return pd.DataFrame(list(self._dict_indexable_by_str.items()), 
-            columns=['Statistic', self._model_id_str]).set_index('Statistic')
+            columns=['Statistic', self._id]).set_index('Statistic')
 
     

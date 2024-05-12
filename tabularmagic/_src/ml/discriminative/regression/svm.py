@@ -49,7 +49,7 @@ class SVMR(BaseRegression):
         else:
             self.nickname = nickname
 
-        self.estimator = SVR(kernel=kernel)
+        self._estimator = SVR(kernel=kernel)
 
 
         if (hyperparam_search_method is None) or \
@@ -69,7 +69,7 @@ class SVMR(BaseRegression):
                 }
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self.estimator,
+            estimator=self._estimator,
             method=hyperparam_search_method,
             grid=hyperparam_grid_specification,
             **kwargs

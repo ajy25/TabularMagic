@@ -262,9 +262,7 @@ class TabularMagic:
     def ml_regression(self, models: Iterable[BaseRegression], 
                     y_var: str, X_vars: list[str] = None,
                     outer_cv: int = None,
-                    outer_cv_seed: int = 42, 
-                    inverse_scale_y: bool = True) ->\
-                        MLRegressionReport:
+                    outer_cv_seed: int = 42) -> MLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise. 
 
         Parameters
@@ -278,9 +276,6 @@ class TabularMagic:
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
             The random seed for the outer cross validation loop.
-        - inverse_scale_y : bool.
-            If true, inverse scales the y_true and y_pred values to their 
-            original scales. Default: 0.
         
         Returns
         -------
@@ -288,16 +283,12 @@ class TabularMagic:
         """
         if X_vars is None:
             X_vars = self._datahandler.continuous_vars(True)
-            X_vars.remove(y_var)
-        y_scaler = None
-        if self._dp is not None and inverse_scale_y:
-            y_scaler = self._dp.get_single_var_scaler(y_var)
+
         return MLRegressionReport(
             models=models,
             datahandler=self._datahandler,
             X_vars=X_vars,
             y_var=y_var,
-            y_scaler=y_scaler,
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose

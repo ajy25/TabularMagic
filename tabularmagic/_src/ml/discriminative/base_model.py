@@ -10,6 +10,9 @@ from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
 
 
+
+
+
 class BaseDiscriminativeModel():
     """Skeletal class for typing assistance of BaseRegression and 
     BaseClassification. 
@@ -20,44 +23,10 @@ class BaseDiscriminativeModel():
     """
 
     def __init__(self):
-        self.nickname = 'BaseDiscriminativeModel'
-
-    def fit(self, X, y):
-        """Fits the model. 
-
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None.
-        - y : np.ndarray ~ (sample_size).
-            Default: None.
-
-        Returns
-        -------
-        - None
-        """
-        pass
-    
-    def score(self, X_test, y_test):
-        """
-        Parameters
-        ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. If None, computes scores using X and y. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. If None, computes scores using X and y. 
-
-        Returns
-        -------
-        - Scoring object. 
-        """
-        pass
+        self._id = 'BaseDiscriminativeModel'
 
     def __str__(self):
-        return self.nickname
-    
-    def save_checkpoint(self, dirpath: str = None, filepath: str = None):
-        pass
+        return self._id
 
 
 

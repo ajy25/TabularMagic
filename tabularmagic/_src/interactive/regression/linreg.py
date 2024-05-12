@@ -80,7 +80,7 @@ class SingleDatasetLinRegReport:
             self._y_pred = y_scaler.inverse_transform(self._y_pred)
             self._y_true = y_scaler.inverse_transform(self._y_true)
         self._scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
-            n_predictors=model._n_predictors, model_id_str=str(model))
+            n_predictors=model._n_predictors, id=str(model))
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
         self._outlier_threshold = 2

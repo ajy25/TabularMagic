@@ -48,7 +48,7 @@ class MLPR(BaseRegression):
         else:
             self.nickname = nickname
 
-        self.estimator = MLPRegressor()
+        self._estimator = MLPRegressor()
         if (hyperparam_search_method is None) or \
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'
@@ -60,7 +60,7 @@ class MLPR(BaseRegression):
                 'learning_rate': ['constant', 'adaptive'],
             }
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self.estimator,
+            estimator=self._estimator,
             method=hyperparam_search_method,
             grid=hyperparam_grid_specification,
             **kwargs

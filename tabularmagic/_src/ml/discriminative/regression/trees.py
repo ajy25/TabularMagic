@@ -60,7 +60,7 @@ class TreeR(BaseRegression):
             self.nickname = nickname
 
         self.random_state = random_state
-        self.estimator = DecisionTreeRegressor(random_state=self.random_state)
+        self._estimator = DecisionTreeRegressor(random_state=self.random_state)
         if (hyperparam_search_method is None) or \
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'
@@ -70,7 +70,7 @@ class TreeR(BaseRegression):
                 'max_features': ['sqrt', 'log2', None],
             }
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self.estimator,
+            estimator=self._estimator,
             method=hyperparam_search_method,
             grid=hyperparam_grid_specification,
             **kwargs
@@ -134,7 +134,7 @@ class TreeEnsembleR(BaseRegression):
             self.nickname = nickname
 
         if ensemble_type == 'random_forest':
-            self.estimator = RandomForestRegressor(
+            self._estimator = RandomForestRegressor(
                 random_state=self.random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
@@ -147,13 +147,13 @@ class TreeEnsembleR(BaseRegression):
                     'max_depth': [5, 10, None]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self.estimator,
+                estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
         elif ensemble_type == 'adaboost':
-            self.estimator = AdaBoostRegressor(
+            self._estimator = AdaBoostRegressor(
                 random_state=self.random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
@@ -168,13 +168,13 @@ class TreeEnsembleR(BaseRegression):
                     ]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self.estimator,
+                estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
         elif ensemble_type == 'bagging':
-            self.estimator = BaggingRegressor(
+            self._estimator = BaggingRegressor(
                 random_state=self.random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
@@ -192,13 +192,13 @@ class TreeEnsembleR(BaseRegression):
                     ]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self.estimator,
+                estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
         elif ensemble_type == 'gradient_boosting':
-            self.estimator = GradientBoostingRegressor(
+            self._estimator = GradientBoostingRegressor(
                 random_state=self.random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
@@ -212,13 +212,13 @@ class TreeEnsembleR(BaseRegression):
                     'max_features': ['sqrt', 'log2', None],
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self.estimator,
+                estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
         elif ensemble_type == 'xgboost':
-            self.estimator = xgb.XGBRegressor()
+            self._estimator = xgb.XGBRegressor()
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -231,7 +231,7 @@ class TreeEnsembleR(BaseRegression):
                     'colsample_bytree': [1, 0.8, 0.5]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self.estimator,
+                estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
                 **kwargs

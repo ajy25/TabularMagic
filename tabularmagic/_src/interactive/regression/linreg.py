@@ -591,7 +591,7 @@ class SingleDatasetLinRegReport:
         ----------
         - pd.DataFrame
         """
-        return self._scorer.to_df()
+        return self._scorer.stats_df()
 
 
     def _compute_outliers(self):

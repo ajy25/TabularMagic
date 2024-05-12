@@ -6,9 +6,6 @@ from sklearn.metrics import (
 from scipy.stats import (
     pearsonr, spearmanr
 )
-from typing import Literal
-from ..data.preprocessing import BaseSingleVarScaler
-
 
 
 class RegressionScorer():
@@ -49,13 +46,14 @@ class RegressionScorer():
         self.n_predictors = n_predictors
         self._y_pred = y_pred
         self._y_true = y_true
-        self._dict_indexable_by_str = self._compute_stats_dict(y_pred, y_true)
-        self._dict_indexable_by_int = {i: value for i, (_, value) in \
-            enumerate(self._dict_indexable_by_str.items())}
-        self.cv_metrics = None
+
+        self._stats_df = None
+        self._cv_stats_df = None
+        self._set_stats_df(y_pred, y_true)
 
 
-    def _compute_stats_dict(self, y_pred: np.ndarray | list, 
+
+    def _set_stats_df(self, y_pred: np.ndarray | list, 
                             y_true: np.ndarray | list):
         """
         Returns a statistics dictionary given y_pred and y_true. If y_pred and
@@ -67,130 +65,115 @@ class RegressionScorer():
         ----------
         - y_pred : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
         - y_true : np.ndarray ~ (n_samples) | list[np.ndarray ~ (n_samples)].
-
-        Returns
-        -------
-        - dict ~ {statistic (str) : value (float)} | 
-            [{statistic (str) : value (float)}]
         """
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
             n = len(y_pred)
-            metrics_dict = dict()
-            metrics_dict['mse'] = mean_squared_error(y_true, y_pred)
-            metrics_dict['mad'] = mean_absolute_error(y_true, y_pred)
-            metrics_dict['pearsonr'] = pearsonr(y_true, y_pred)[0]
-            metrics_dict['spearmanr'] = spearmanr(y_true, y_pred)[0]
-            metrics_dict['r2'] = r2_score(y_true, y_pred)
+            df = pd.DataFrame(columns=[self._id])
+            df.loc['rmse', self._id] = mean_squared_error(y_true, y_pred, 
+                squared=False)
+            df.loc['mad', self._id] = mean_absolute_error(y_true, y_pred)
+            df.loc['pearsonr', self._id] = pearsonr(y_true, y_pred)[0]
+            df.loc['spearmanr', self._id] = spearmanr(y_true, y_pred)[0]
+            df.loc['r2', self._id] = r2_score(y_true, y_pred)
             if self.n_predictors is None:
-                metrics_dict['adjr2'] = np.NaN
+                df.loc['adjr2', self._id] = np.NaN
             else: 
-                metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
+                df.loc['adjr2', self._id] = 1 - \
+                    (((1 - df.loc['r2', self._id]) * \
                     (n - 1)) / (n - \
                     self.n_predictors - 1))
-            metrics_dict['n'] = len(y_true)
-            output = metrics_dict
+            df.loc['n', self._id] = len(y_true)
+            df.rename_axis('Statistic', axis='rows', inplace=True)
+            self._stats_df = df
         elif isinstance(y_pred, list) and isinstance(y_true, list):
             assert len(y_pred) == len(y_true)
-            n_folds = len(y_true)
-            folds_metrics = []
-            for y_pred_elem, y_true_elem in zip(y_pred, y_true):
+            cvdf = pd.DataFrame(columns=['Fold', 'Statistic', self._id])
+            for i, (y_pred_elem, y_true_elem) in enumerate(zip(y_pred, y_true)):
                 n = len(y_pred_elem)
-                metrics_dict = dict()
-                metrics_dict['mse'] =\
-                    mean_squared_error(y_true_elem, y_pred_elem)
-                metrics_dict['mad'] =\
-                    mean_absolute_error(y_true_elem, y_pred_elem)
-                metrics_dict['pearsonr'] =\
-                    pearsonr(y_true_elem, y_pred_elem)[0]
-                metrics_dict['spearmanr'] =\
-                    spearmanr(y_true_elem, y_pred_elem)[0]
-                metrics_dict['r2'] = r2_score(y_true_elem, y_pred_elem)
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'rmse', 
+                        self._id: mean_squared_error(y_true_elem, y_pred_elem,
+                                                     squared=False),
+                        'Fold': i
+                    }
+                )
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'mad', 
+                        self._id: mean_absolute_error(y_true_elem, y_pred_elem),
+                        'Fold': i
+                    }
+                )
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'pearsonr', 
+                        self._id: pearsonr(y_true_elem, y_pred_elem)[0],
+                        'Fold': i
+                    }
+                )
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'spearmanr', 
+                        self._id: spearmanr(y_true_elem, y_pred_elem)[0],
+                        'Fold': i
+                    }
+                )
+                r2 = r2_score(y_true_elem, y_pred_elem)
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'r2', 
+                        self._id: r2,
+                        'Fold': i
+                    }
+                )
                 if self.n_predictors is None:
-                    metrics_dict['adjr2'] = np.NaN
-                else: 
-                    metrics_dict['adjr2'] = 1 - (((1 - metrics_dict['r2']) * \
-                        (n - 1)) / (n - \
-                        self.n_predictors - 1))
-                metrics_dict['n'] = n
-                folds_metrics.append(metrics_dict)
-            self.cv_metrics = metrics_dict
+                    adjr2 = np.NaN
+                else:
+                    adjr2 = 1 - (((1 - r2) * \
+                        (n - 1)) / (n - self.n_predictors - 1))
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'adjr2', 
+                        self._id: adjr2,
+                        'Fold': i
+                    }
+                )
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        'Statistic': 'n', 
+                        self._id: n,
+                        'Fold': i
+                    }
+                )
+            self._cv_stats_df = cvdf.set_index(['Statistic', 'Fold'])
+            self._stats_df = pd.DataFrame(columns=[self._id])
+            for stat in cvdf['Statistic'].unique():
+                self._stats_df.loc[stat, self._id] = cvdf.loc[
+                    cvdf['Statistic'] == stat, self._id].mean()
 
-            output = dict()
-            for fold in folds_metrics:
-                for key in fold.keys():
-                    if key not in output:
-                        output[key] = fold[key] / n_folds
-                    else:
-                        output[key] += fold[key] / n_folds
         else:
             raise ValueError('Input types for y_pred and y_true are invalid.')
-        return output
-    
 
-    def rescale(self, y_scaler: BaseSingleVarScaler):
-        """
-        Inverse scales y values, then recomputes fit statistics.
-
-        Parameters
-        ----------
-        - y_scaler: BaseSingleVarScaler.
-            Calls inverse transform on the outputs 
-            and on y_test before computing statistics.
-        """
-        if isinstance(self._y_true, np.ndarray):
-            self._y_pred = y_scaler.inverse_transform(self._y_pred)
-            self._y_true = y_scaler.inverse_transform(self._y_true)
-        elif isinstance(self._y_true, list):
-            for i in range(len(self._y_true)):
-                self._y_true[i] = y_scaler.inverse_transform(self._y_true[i])
-                self._y_pred[i] = y_scaler.inverse_transform(self._y_pred[i])
-        self._dict_indexable_by_str = self._compute_stats_dict(self._y_pred, 
-                                                               self._y_true)
-        self._dict_indexable_by_int = {i: value for i, (_, value) in \
-            enumerate(self._dict_indexable_by_str.items())}
-    
-
-    def __getitem__(self, index: Literal[0, 1, 2, 3, 4, 5] | \
-            Literal['mse', 'mad', 'pearsonr', 'spearmanr', 'r2', 'adjr2']):
-        """
-        Indexes into RegressionScorer. 
         
-        RegressionScorer is indexable by integers in the following order: 
-            (MSE, MAD, Pearson Correlation, Spearman Correlation, R Squared, 
-            Adjusted R Squared). 
-
-        RegressionScorer also is indexable by a string key similar to the 
-        dictionary: {'mse': MSE, 'mad': MAD, 'pearsonr': Pearson Correlation, 
-            'spearmanr': Spearman Correlation, 'r2': R Squared, 
-            'adjr2': Adjusted R Squared}. 
-
-        Parameters
-        ----------
-        - index : int | str. 
-
-        Returns
-        -------
-        - float. Value of the appropriate statistic. 
-        """
-        if isinstance(index, int):
-            return self._dict_indexable_by_int[index]
-        elif isinstance(index, str):
-            return self._dict_indexable_by_str[index]
-        else:
-            raise ValueError(f'Invalid input: {index}.')
-        
-    def to_df(self):
-        """Outputs a DataFrame that contains all the statistics.
-
-        Parameters
-        ----------
-        - None
+    def stats_df(self):
+        """Outputs a DataFrame that contains the fit statistics.
 
         Returns
         -------
         - pd.DataFrame.
         """
-        return pd.DataFrame(list(self._dict_indexable_by_str.items()), 
-            columns=['Statistic', self._id]).set_index('Statistic')
+        return self._stats_df
+
+
+    def cv_df(self):
+        """Outputs a DataFrame that contains the cross validation statistics.
+
+        Returns
+        -------
+        - pd.DataFrame.
+        """
+        return self._cv_stats_df
+
 
     

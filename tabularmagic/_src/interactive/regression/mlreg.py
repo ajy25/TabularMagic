@@ -43,9 +43,23 @@ class SingleModelSingleDatasetReport:
         - pd.DataFrame
         """
         if self.specification == 'train':
-            return self.model.train_scorer.to_df()
+            return self.model.train_scorer.stats_df()
         else:
-            return self.model.test_scorer.to_df()
+            return self.model.test_scorer.stats_df()
+        
+    def cv_fit_statistics(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the cross-validated goodness-of-fit 
+        statistics for the model on the specified data.
+
+        Parameters
+        ----------
+        - pd.DataFrame
+        """
+        if self.specification == 'train':
+            return self.model.train_scorer.cv_df()
+        else:
+            raise ValueError(
+                'Cross-validated statistics are not available for test data.')
     
     def plot_obs_vs_pred(self, figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None) -> figure.Figure:

@@ -35,7 +35,7 @@ class SingleDatasetLinRegReport:
     """
     
     def __init__(self, model: OrdinaryLeastSquares, 
-                 specification: Literal['train', 'test']):
+                 dataset: Literal['train', 'test']):
         """
         Initializes a RegressionReport object. 
 
@@ -43,15 +43,15 @@ class SingleDatasetLinRegReport:
         ----------
         - model : BaseRegression.
             The model must already be trained.
-        - specification : Literal['train', 'test'].
+        - dataset : Literal['train', 'test'].
         """
         self.model = model
         
-        if specification == 'test':
+        if dataset == 'test':
             self.scorer = model.test_scorer
             self._X_eval_df = self.model._datahandler.df_test_split()[0]
             self._is_train = False
-        elif specification == 'train':
+        elif dataset == 'train':
             self.scorer = model.train_scorer
             self._X_eval_df = self.model._datahandler.df_train_split()[0]
             self._is_train = True

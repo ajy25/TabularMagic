@@ -5,6 +5,7 @@ from textwrap import fill
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
+from sklearn.utils._testing import ignore_warnings
 from ..util.console import print_wrapped, color_text, list_to_string
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
@@ -418,6 +419,20 @@ class DataHandler:
         }
     
 
+    def vars(self, ignore_yvar: bool = True):
+        """Returns a list of all variables in the working DataFrames
+        
+        Parameters
+        ----------
+        - ignore_yvar : bool. Default: True.
+        """
+        out = self._working_df_train.columns.to_list()
+        if ignore_yvar and self._yvar is not None:
+            if self._yvar in out:
+                out.remove(self._yvar)
+        return out
+
+
     def continuous_vars(self, ignore_yvar: bool = True):
         """Returns copy of list of continuous variables.
         
@@ -597,7 +612,8 @@ class DataHandler:
 
             if fit:
                 self._onehot_encoder = \
-                    OneHotEncoder(drop=drop, sparse_output=False)
+                    OneHotEncoder(drop=drop, sparse_output=False, 
+                                  handle_unknown='ignore')
                 encoded = self._onehot_encoder.fit_transform(
                     df[categorical_vars])
                 feature_names = self._onehot_encoder.get_feature_names_out(
@@ -606,7 +622,7 @@ class DataHandler:
                     encoded, columns=feature_names, index=df.index)
             
             else:
-                encoded = self._onehot_encoder.transform(
+                encoded = ignore_warnings(self._onehot_encoder.transform)(
                     df[categorical_vars])
                 feature_names = self._onehot_encoder.get_feature_names_out(
                     categorical_vars)
@@ -623,6 +639,41 @@ class DataHandler:
         else:
             return df
 
+
+    def drop_highly_missing_vars(self, threshold: float = 0.5):
+        """Drops columns with more than 50% missing values (on train) in-place.
+        
+        Parameters
+        ----------
+        - threshold : float. Default: 0.5. Proportion of missing values
+            above which a column is dropped.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        prev_vars = self._working_df_train.columns.to_list()
+        self._working_df_train.dropna(axis=1, 
+            thresh=threshold*len(self._working_df_train),
+            inplace=True)
+        curr_vars = self._working_df_train.columns.to_list()
+        vars_dropped = set(prev_vars) - set(curr_vars)
+
+        self._working_df_test.drop(vars_dropped, 
+            axis=1, inplace=True)
+        
+        if self._verbose:
+            print_wrapped(
+                f'Dropped variables {list_to_string(vars_dropped)} ' +\
+                f'with more than {threshold*100}% ' +\
+                'missing values.',
+                type='UPDATE'
+            )
+
+        self._categorical_vars, self._continuous_vars =\
+            self._compute_categorical_continuous_vars(self._working_df_train)
+
+        return self
 
 
     def dropna_yvar(self):

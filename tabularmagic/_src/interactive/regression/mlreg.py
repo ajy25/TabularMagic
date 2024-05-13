@@ -18,7 +18,7 @@ class SingleModelSingleDatasetMLReport:
     """
 
     def __init__(self, model: BaseRegression, 
-                 specification: Literal['train', 'test']):
+                 dataset: Literal['train', 'test']):
         """
         Initializes a SingleModelSingleDatasetMLReport object.
         
@@ -27,12 +27,12 @@ class SingleModelSingleDatasetMLReport:
         - model : BaseRegression. The data for the model must already be 
             specified. The model should already be trained on the 
             specified data.
-        - specification : Literal['train', 'test'].
+        - dataset : Literal['train', 'test'].
         """
         self.model = model
-        if specification not in ['train', 'test']:
-            raise ValueError('specification must be either "train" or "test".')
-        self.specification = specification
+        if dataset not in ['train', 'test']:
+            raise ValueError('dataset must be either "train" or "test".')
+        self._dataset = dataset
 
     def fit_statistics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -42,7 +42,7 @@ class SingleModelSingleDatasetMLReport:
         ----------
         - pd.DataFrame
         """
-        if self.specification == 'train':
+        if self._dataset == 'train':
             return self.model.train_scorer.stats_df()
         else:
             return self.model.test_scorer.stats_df()
@@ -55,7 +55,7 @@ class SingleModelSingleDatasetMLReport:
         ----------
         - pd.DataFrame
         """
-        if self.specification == 'train':
+        if self._dataset == 'train':
             return self.model.train_scorer.cv_df()
         else:
             raise ValueError(
@@ -75,7 +75,7 @@ class SingleModelSingleDatasetMLReport:
         -------
         - Figure
         """
-        if self.specification == 'train':
+        if self._dataset == 'train':
             if self.model.train_overall_scorer is not None:
                 # in case of nested cross validation, use overall scorer
                 y_pred = self.model.train_overall_scorer._y_pred
@@ -210,19 +210,19 @@ class MLRegressionReport:
     
 
     def fit_statistics(self,
-                       specification: Literal['train', 'test']) -> pd.DataFrame:
+                       dataset: Literal['train', 'test']) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics for 
         all models on the specified data.
         
         Parameters
         ----------
-        - specification : Literal['train', 'test'].
+        - dataset : Literal['train', 'test'].
 
         Returns
         -------
         - pd.DataFrame
         """
-        if specification == 'train':
+        if dataset == 'train':
             return pd.concat([report.train_report().fit_statistics() \
                               for report in self._id_to_report.values()], 
                               axis=1)

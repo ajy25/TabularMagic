@@ -173,14 +173,14 @@ class TabularMagic:
         ----------
         - y_var : str. 
         - X_vars : list[str]. 
-            If None, all continuous variables except y_var will be used. 
+            If None, all variables except y_var will be used. 
             
         Returns
         -------
         - report : LinearRegressionReport
         """
         if X_vars is None:
-            X_vars = self._datahandler.continuous_vars(False)
+            X_vars = self._datahandler.vars(ignore_yvar=False)
             X_vars.remove(y_var)
         return LinearRegressionReport(
             OrdinaryLeastSquares(),
@@ -267,11 +267,9 @@ class TabularMagic:
         -------
         - report : ComprehensiveMLRegressionReport
         """
-        if y_var not in self.datahandler().continuous_vars(ignore_yvar=False):
-            raise ValueError(f'y_var = {y_var} is not a continuous variable.')
-
         if X_vars is None:
-            X_vars = self._datahandler.continuous_vars(True)
+            X_vars = self._datahandler.vars(ignore_yvar=False)
+            X_vars.remove(y_var)
 
         return MLRegressionReport(
             models=models,

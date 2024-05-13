@@ -27,7 +27,7 @@ class BaseClassification(BaseDiscriminativeModel):
         self.train_overall_scorer = None
         self.test_scorer = None
 
-        # By default, the first column is NOT dropped. For LinearR, 
+        # By default, the first column is NOT dropped unless binary. For LinearR, 
         # the first column is dropped to avoid multicollinearity.
         self._dropfirst = False
 
@@ -70,15 +70,21 @@ class BaseClassification(BaseDiscriminativeModel):
 
             y_pred = self._estimator.predict(X_train)
 
+            if hasattr(self._estimator, 'predict_proba'):
+                y_pred_scores = self._estimator.predict_proba(X_test)
+
             self.train_scorer = ClassificationScorer(
                 y_pred=y_pred,
                 y_true=y_train,
+                y_pred_scores=y_pred_scores,
                 name=str(self) + '_train'
             )
 
         elif self._datahandlers is not None and self._datahandler is not None:
             y_preds = []
             y_trues = []
+            y_pred_scores = []
+
             for datahandler in self._datahandlers:
                 X_train_df, y_train_series = datahandler.df_train_split(
                     dropfirst=self._dropfirst)
@@ -96,9 +102,16 @@ class BaseClassification(BaseDiscriminativeModel):
                 y_preds.append(y_pred)
                 y_trues.append(y_test)
 
+                if hasattr(fold_estimator, 'predict_proba'):
+                    y_pred_scores.append(fold_estimator.predict_proba(X_test))
+
+
+            if len(y_pred_scores) == 0:
+                y_pred_scores = None
             self.train_scorer = ClassificationScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
+                y_pred_scores=y_pred_scores,
                 name=str(self) + '_train_cv'
             )
 
@@ -128,11 +141,19 @@ class BaseClassification(BaseDiscriminativeModel):
 
         y_pred = self._estimator.predict(X_test)
 
+
+        y_pred_scores = None
+        if hasattr(self._estimator, 'predict_proba'):
+            y_pred_scores = self._estimator.predict_proba(X_test)
+
         self.test_scorer = ClassificationScorer(
             y_pred=y_pred,
             y_true=y_test,
+            y_pred_scores=y_pred_scores,
             name=str(self) + '_test'
         )
+
+
 
     def sklearn_estimator(self):
         """Returns the sklearn estimator object. 

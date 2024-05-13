@@ -36,10 +36,10 @@ class CategoricalEDA:
         n_missing = self._var_series.isna().sum()
 
         self._summary_statistics_dict = {
-            'n_unique_vals': self._var_series.nunique(),
-            'most_common_val': self._var_series.\
+            'n_unique': self._var_series.nunique(),
+            'most_common': self._var_series.\
                 value_counts(dropna=True).idxmax(),
-            'least_common_val': self._var_series.\
+            'least_common': self._var_series.\
                 value_counts(dropna=True).idxmin(), 
             'n_missing': n_missing,
             'missing_rate': n_missing / len(self._var_series),
@@ -114,6 +114,7 @@ class ContinuousEDA():
             'min': self._var_series.min(),
             'max': self._var_series.max(),
             'mean': self._var_series.mean(),
+            'std': self._var_series.std(),
             'variance': self._var_series.var(),
             'skew': skew(self._var_series.dropna().to_numpy()),
             'kurtosis': kurtosis(self._var_series.dropna().to_numpy()),

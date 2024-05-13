@@ -101,14 +101,14 @@ class TabularMagic:
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(self, dataset: Literal['train', 'test'] = 'train') ->\
+    def eda(self, dataset: Literal['train', 'test', 'all'] = 'train') ->\
             ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for either the working train 
         or the working test dataset. 
 
         Parameters
         ----------
-        - dataset: Literal['train', 'test'].
+        - dataset: Literal['train', 'test', 'all'].
             Default: 'train'.
 
         Returns
@@ -119,6 +119,8 @@ class TabularMagic:
             return ComprehensiveEDA(self._datahandler.df_train())
         elif dataset == 'test':
             return ComprehensiveEDA(self._datahandler.df_test())
+        elif dataset == 'all':
+            return ComprehensiveEDA(self._datahandler.df_all())
         else:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 

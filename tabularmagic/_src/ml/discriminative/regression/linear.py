@@ -74,7 +74,7 @@ class LinearR(BaseRegression):
             )
         elif type == 'l1':
             self._estimator = Lasso(selection='random',
-                random_state=model_random_state, max_iter=2000)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -89,7 +89,7 @@ class LinearR(BaseRegression):
             )
         elif type == 'l2':
             self._estimator = Ridge(
-                random_state=model_random_state, max_iter=2000)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -104,13 +104,13 @@ class LinearR(BaseRegression):
             )
         elif type == 'elasticnet':
             self._estimator = ElasticNet(selection='random',
-                random_state=model_random_state, max_iter=2000)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'alpha': np.logspace(-5, 2, 100),
-                    'l1_ratio': np.linspace(0, 1, 100)
+                    'alpha': np.logspace(-5, 2, 10),
+                    'l1_ratio': np.linspace(0, 1, 10)
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -136,6 +136,7 @@ class RobustLinearR(BaseRegression):
                  hyperparam_search_method: \
                     Literal[None, 'grid', 'random'] = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
+                 model_random_state: int = 42,
                  name: str = None, **kwargs):
         """
         Initializes a RobustLinearR object. 
@@ -153,6 +154,8 @@ class RobustLinearR(BaseRegression):
         - name : str. 
             Default: None. Determines how the model shows up in the reports. 
             If None, the name is set to be the class name.
+        - model_random_state : int.
+            Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
             inner_cv and inner_random_state can be set via kwargs. 
@@ -175,13 +178,13 @@ class RobustLinearR(BaseRegression):
             self._name = name
 
         if type == 'huber':
-            self._estimator = HuberRegressor(max_iter=1000)
+            self._estimator = HuberRegressor()
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
                     'epsilon': [1.0, 1.2, 1.35, 1.5, 2.0],
-                    'alpha': np.logspace(-6, -1, num=10)
+                    'alpha': np.logspace(-5, 2, num=10)
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -190,12 +193,12 @@ class RobustLinearR(BaseRegression):
                 **kwargs
             )
         elif type == 'ransac':
-            self._estimator = RANSACRegressor()
+            self._estimator = RANSACRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'misample_size': [None, 0.1, 0.25, 0.5], 
+                    'min_samples': [None, 0.1, 0.25, 0.5], 
                     'residual_threshold': [None, 1.0, 2.0], 
                     'max_trials': [100, 200, 300]
                 }

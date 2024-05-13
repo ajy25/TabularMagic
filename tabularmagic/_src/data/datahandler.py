@@ -284,6 +284,39 @@ class DataHandler:
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
+
+    def df_all(self, onehotted: bool = False, dropfirst: bool = True):
+        """Returns the working train and test DataFrames concatenated.
+
+        Parameters
+        ----------
+        - onehotted : bool. Default: False. 
+            If True, returns the one-hot encoded DataFrame.
+        - dropfirst : bool. Default: True.
+            If True, the first dummy variable is dropped. Does nothing if
+            onehotted is False.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        no_test = True
+
+        for a, b in zip(self._working_df_train.index, 
+                        self._working_df_test.index):
+            if a != b:
+                no_test = False
+                break
+
+
+        if no_test:
+            out = self.df_train(onehotted, dropfirst)
+        else:
+            out = pd.concat([self.df_train(onehotted, dropfirst), 
+                            self.df_test(onehotted, dropfirst)])
+        return out
+
+
     def df_train(self, onehotted: bool = False, dropfirst: bool = True):
         """Returns the working train DataFrame.
 

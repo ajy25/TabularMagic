@@ -11,7 +11,7 @@ from ...util.console import print_wrapped
 
 
 
-class SingleModelSingleDatasetMLReport:
+class SingleModelSingleDatasetMLRegReport:
     """
     SingleModelSingleDatasetMLReport: generates regression-relevant plots and
     tables for a single machine learning model on a single dataset.
@@ -107,23 +107,23 @@ class SingleModelMLRegReport:
         self.model = model
 
 
-    def train_report(self) -> SingleModelSingleDatasetMLReport:
+    def train_report(self) -> SingleModelSingleDatasetMLRegReport:
         """Returns a SingleModelSingleDatasetMLReport object for the training data.
 
         Returns
         -------
         - SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetMLReport(self.model, 'train')
+        return SingleModelSingleDatasetMLRegReport(self.model, 'train')
     
-    def test_report(self) -> SingleModelSingleDatasetMLReport:
+    def test_report(self) -> SingleModelSingleDatasetMLRegReport:
         """Returns a SingleModelSingleDatasetMLReport object for the test data.
 
         Returns
         -------
         - SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetMLReport(self.model, 'test')
+        return SingleModelSingleDatasetMLRegReport(self.model, 'test')
 
 
 

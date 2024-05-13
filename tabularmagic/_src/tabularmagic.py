@@ -173,7 +173,7 @@ class TabularMagic:
         ----------
         - y_var : str. 
         - X_vars : list[str]. 
-            If None, all variables except y_var will be used. 
+            If None, all variables except y_var will be used as predictors.
             
         Returns
         -------
@@ -257,7 +257,7 @@ class TabularMagic:
             Testing performance of all models will be evaluated. 
         - y_var : str. 
         - X_vars : list[str]. 
-            If None, uses all continuous variables except y_var as predictors.
+            If None, uses all variables except y_var as predictors.
         - outer_cv : int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
@@ -265,7 +265,7 @@ class TabularMagic:
         
         Returns
         -------
-        - report : ComprehensiveMLRegressionReport
+        - report : MLRegressionReport
         """
         if X_vars is None:
             X_vars = self._datahandler.vars(ignore_yvar=False)
@@ -285,9 +285,38 @@ class TabularMagic:
     def ml_classification(self, models: Iterable[BaseClassification], 
         y_var: str, X_vars: list[str] = None, outer_cv: int = None,
         outer_cv_seed: int = 42) -> MLClassificationReport:
+        """Conducts a comprehensive classification benchmarking exercise.
+        
+        Parameters
+        ----------
+        - models : Iterable[BaseClassification].
+            Testing performance of all models will be evaluated.
+        - y_var : str.
+        - X_vars : list[str].
+            If None, uses all variables except y_var as predictors.
+        - outer_cv : int.
+            If not None, reports training scores via nested k-fold CV.
+        - outer_cv_seed : int.
+            The random seed for the outer cross validation loop.
 
-        pass
+        Returns
+        -------
+        - report MLClassificationReport
+        """
 
+        if X_vars is None:
+            X_vars = self._datahandler.vars(ignore_yvar=False)
+            X_vars.remove(y_var)
+        
+        return MLClassificationReport(
+            models=models,
+            datahandler=self._datahandler,
+            X_vars=X_vars,
+            y_var=y_var,
+            outer_cv=outer_cv,
+            outer_cv_seed=outer_cv_seed,
+            verbose=self._verbose
+        )
 
 
 

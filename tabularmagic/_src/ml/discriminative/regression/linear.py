@@ -1,6 +1,6 @@
 import numpy as np 
 from sklearn.linear_model import (LinearRegression, Ridge, Lasso, 
-    HuberRegressor, RANSACRegressor)
+    ElasticNet, HuberRegressor, RANSACRegressor)
 from typing import Mapping, Literal, Iterable
 from .base_regression import BaseRegression, HyperparameterSearcher
 
@@ -14,7 +14,7 @@ class LinearR(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, type: Literal['ols', 'l1', 'l2'] = 'ols', 
+    def __init__(self, type: Literal['ols', 'l1', 'l2', 'elasticnet'] = 'ols', 
                  hyperparam_search_method: \
                     Literal[None, 'grid', 'random'] = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
@@ -102,8 +102,24 @@ class LinearR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
+        elif type == 'elasticnet':
+            self._estimator = ElasticNet(selection='random',
+                random_state=model_random_state, max_iter=2000)
+            if (hyperparam_search_method is None) or \
+                (hyperparam_grid_specification is None):
+                hyperparam_search_method = 'grid'
+                hyperparam_grid_specification = {
+                    'alpha': np.logspace(-5, 2, 100),
+                    'l1_ratio': np.linspace(0, 1, 100)
+                }
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self._estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs
+            )
         else:
-            raise ValueError('Invalid value for regularization_type')
+            raise ValueError('Invalid value for type')
 
 
 
@@ -190,3 +206,6 @@ class RobustLinearR(BaseRegression):
                 **kwargs
             )
 
+        else:
+            raise ValueError('Invalid value for type')
+        

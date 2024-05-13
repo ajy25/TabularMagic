@@ -3,7 +3,8 @@ import matplotlib.axes as axes
 import numpy as np
 from typing import Iterable
 from scipy.stats import pearsonr
-    
+from sklearn.metrics import roc_curve, auc
+
 
 
 def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray, 
@@ -50,6 +51,47 @@ def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray,
         fig.tight_layout()
         plt.close()
     return fig
+
+
+
+
+def plot_roc_curve(y_pred: np.ndarray, y_true: np.ndarray, figsize: Iterable = (5, 5), ax: axes.Axes = None):
+    """Returns a figure that is the ROC curve for the model.
+
+    Parameters
+    ----------
+    - y_pred: np.ndarray. Predicted probabilities or decision scores.
+    - y_true: np.ndarray. True binary labels.
+    - figsize: Iterable.
+    - ax: axes.Axes.
+
+    Returns
+    -------
+    - plt.Figure
+    """
+    fig = None
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    roc_auc = auc(fpr, tpr)
+
+    ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=1)
+    ax.plot(fpr, tpr, color='black', label=f'ROC curve (AUC = {roc_auc:.3f})')
+    ax.set_xlim([-0.05, 1.05])
+    ax.set_ylim([-0.05, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title('Receiver Operating Characteristic (ROC) Curve')
+    ax.legend(loc='lower right')
+
+    if fig is not None:
+        fig.tight_layout()
+        plt.close()
+    return fig
+
+
+
 
 
 def decrease_font_sizes_axs(axs, title_font_size_decrease: int, 

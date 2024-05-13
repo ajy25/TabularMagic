@@ -51,12 +51,11 @@ class RegressionScorer:
 
         self._stats_df = None
         self._cv_stats_df = None
-        self._set_stats_df(y_pred, y_true)
+        self._set_stats_df()
 
 
 
-    def _set_stats_df(self, y_pred: np.ndarray | list, 
-                            y_true: np.ndarray | list):
+    def _set_stats_df(self):
         """
         Returns a statistics dictionary given y_pred and y_true. If y_pred and
         y_true are lists, then the elements are treated as cross 
@@ -70,6 +69,9 @@ class RegressionScorer:
         - y_true : np.ndarray ~ (sample_size) | 
             list[np.ndarray ~ (sample_size)].
         """
+        y_pred = self._y_pred
+        y_true = self._y_true
+
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
             n = len(y_pred)
             df = pd.DataFrame(columns=[self._name])

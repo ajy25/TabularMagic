@@ -1,19 +1,16 @@
-import math
 import pandas as pd
 from typing import Iterable, Literal
-import matplotlib.pyplot as plt
-plt.ioff()
-from textwrap import fill
 from sklearn.model_selection import train_test_split
 
 from .ml.discriminative.regression.base_regression import BaseRegression
+from .ml.discriminative.classification.\
+    base_classification import BaseClassification
 from .linear.regression.linear_regression import OrdinaryLeastSquares
 from .linear.regression.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (MLRegressionReport, 
     ComprehensiveEDA, RegressionVotingSelectionReport, 
-    LinearRegressionReport)
-from .util.console import print_wrapped, color_text
-from .util.constants import TOSTR_MAX_WIDTH
+    LinearRegressionReport, MLClassificationReport)
+from .util.console import print_wrapped
 from .feature_selection import RegressionBaseSelector
 from .data.datahandler import DataHandler
 
@@ -26,15 +23,15 @@ class TabularMagic:
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
             test_size: float = 0.0, split_seed: int = 42, 
-            verbose: bool = True, id: str = 'TabularMagic'):
+            verbose: bool = True, name: str = 'TabularMagic'):
         """Initializes a TabularMagic object.
         
         Note: DataFrame indices are not guaranteed to be correctly preserved. 
 
         Parameters
         ----------
-        - df : pd.DataFrame ~ (n_samples, n_variables).
-        - df_test : pd.DataFrame ~ (n_test_samples, n_variables).
+        - df : pd.DataFrame ~ (sample_size, n_variables).
+        - df_test : pd.DataFrame ~ (test_sample_size, n_variables).
             Default: None. If not None, then treats df as the train dataset.
         - test_size : float. 
             Default: 0. Proportion of the dataset to withhold for 
@@ -47,12 +44,13 @@ class TabularMagic:
         - verbose : bool. 
             Default: False. If True, prints helpful update messages for certain 
                 TabularMagic function calls.
-        - id : str. 
+        - name : str. 
             Identifier for object. 
 
-        Returns
-        -------
-        - None
+        Notable kwargs
+        --------------
+        - inner_cv : int | BaseCrossValidator. 
+        - inner_cv_seed : int.
         """
 
         self._verbose = verbose
@@ -62,7 +60,8 @@ class TabularMagic:
             self._datahandler = DataHandler(
                 df_train=df,
                 df_test=df_test,
-                verbose=self._verbose
+                verbose=self._verbose,
+                name=name
             )
 
         else:
@@ -84,9 +83,10 @@ class TabularMagic:
             self._datahandler = DataHandler(
                 df_train=temp_train_df,
                 df_test=temp_test_df, 
-                verbose=self._verbose
+                verbose=self._verbose,
+                name=name
             )
-        self._id = id
+        self._name = name
 
         if self._verbose:
             shapes_dict = self._datahandler.shapes()
@@ -163,12 +163,9 @@ class TabularMagic:
             var_subset = report._top_features + [y_var]
             self._datahandler.select_vars(var_subset)
         return report
-    
 
 
-    def lm(self, y_var: str, X_vars: list[str] = None, 
-           regularization_type: Literal[None, 'l1', 'l2'] = None, 
-           alpha: float = 0.0, inverse_scale_y: bool = True) ->\
+    def lm(self, y_var: str, X_vars: list[str] = None) ->\
                 LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise. 
 
@@ -177,36 +174,23 @@ class TabularMagic:
         - y_var : str. 
         - X_vars : list[str]. 
             If None, all continuous variables except y_var will be used. 
-        - regularization_type : [None, 'l1', 'l2']. 
-            Default: None.
-        - alpha : float.
-            Default: 0.
-        - inverse_scale_y : bool.
-            If True, inverse scales the y_true and y_pred values to their 
-            original scales. Default: 0.
             
         Returns
         -------
         - report : LinearRegressionReport
         """
         if X_vars is None:
-            X_vars = self._datahandler.continuous_vars(True)
+            X_vars = self._datahandler.continuous_vars(False)
             X_vars.remove(y_var)
-        y_scaler = None
-        if inverse_scale_y:
-            y_scaler = self._datahandler.yscaler()
         return LinearRegressionReport(
-            OrdinaryLeastSquares(
-                regularization_type=regularization_type,
-                alpha=alpha), 
-            self._datahandler, X_vars, y_var, y_scaler
+            OrdinaryLeastSquares(),
+            self._datahandler, X_vars, y_var
         )
+    
 
-
-
-    def lm_rlike(self, formula: str, inverse_scale_y: bool = True) -> \
+    def lm_formula(self, formula: str) -> \
             LinearRegressionReport:
-        """Performs an R-like regression with OLS. That is, 
+        """Performs a regression with OLS via formula. That is, 
         all further preprocessing should be specified in the formula; 
         any categorical variables are automatically detected and 
         one-hot encoded. Examples with missing data will be dropped. 
@@ -214,10 +198,7 @@ class TabularMagic:
         Parameters
         ----------
         - formula : str. 
-            An R-like formula, e.g. y ~ x1 + log(x2) + poly(x3) + x1 * x2
-        - inverse_scale_y : bool.
-            If True, inverse scales the y_true and y_pred values to their 
-            original scales. Default: 0.
+            A formula, e.g. y ~ x1 + log(x2) + poly(x3, 2) + x1 * x2
 
         Returns
         -------
@@ -231,9 +212,6 @@ class TabularMagic:
                 parse_and_transform_rlike(formula, self._datahandler.df_test())
         except:
             raise ValueError(f'Invalid formula: {formula}')
-        
-        y_var = y_series_train.name
-        X_vars = X_df_train.columns
 
         # ensure missing values are dropped
         y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
@@ -244,13 +222,21 @@ class TabularMagic:
             self._datahandler._force_train_test_var_agreement(
                 y_X_df_combined_train, 
                 y_X_df_combined_test)
-        if not inverse_scale_y:
-            y_scaler = None
+        
+        X_vars = y_X_df_combined_train.columns.to_list()
+        y_var = y_series_train.name
+        X_vars.remove(y_var)
+        
+        datahandler = DataHandler(
+            y_X_df_combined_train, 
+            y_X_df_combined_test, 
+            verbose=False)
+        datahandler._continuous_var_to_scaler[y_var] = y_scaler
 
         return LinearRegressionReport(
             OrdinaryLeastSquares(), 
-            DataHandler(y_X_df_combined_train, y_X_df_combined_test, False), 
-            X_vars, y_var, y_scaler
+            datahandler,
+            X_vars, y_var
         )
 
 
@@ -281,6 +267,9 @@ class TabularMagic:
         -------
         - report : ComprehensiveMLRegressionReport
         """
+        if y_var not in self.datahandler().continuous_vars(ignore_yvar=False):
+            raise ValueError(f'y_var = {y_var} is not a continuous variable.')
+
         if X_vars is None:
             X_vars = self._datahandler.continuous_vars(True)
 
@@ -295,94 +284,18 @@ class TabularMagic:
         )
 
 
+    def ml_classification(self, models: Iterable[BaseClassification], 
+        y_var: str, X_vars: list[str] = None, outer_cv: int = None,
+        outer_cv_seed: int = 42) -> MLClassificationReport:
+
+        pass
 
 
-    # --------------------------------------------------------------------------
-    # DATAFRAME MANIPULATION + INDEXING
-    # --------------------------------------------------------------------------
-    
-    def save_data_checkpoint(self, checkpoint: str):
-        """Saves the current state of the working train and test datasets. 
-        The state may be returned to by calling reset_working_dfs(checkpoint).
-
-        Parameters
-        ----------
-        - checkpoint : str. 
-        """
-        self._datahandler.save_data_checkpoint(checkpoint)
-        
-    def load_data_checkpoint(self, checkpoint: str = None):
-        """The working train and working test datasets are reset to the 
-        input datasets given at object initialization.
-
-        Parameters
-        ----------
-        - checkpoint : str. 
-            Default: None. If None, sets the working datasets to the original 
-            datasets given at object initialization. 
-        """
-        self._datahandler.load_data_checkpoint(checkpoint)
-
-    def remove_data_checkpoint(self, checkpoint: str):
-        """Removes a saved checkpoint to conserve memory.
-
-        Parameters
-        ----------
-        - checkpoint : str. 
-        """
-        self._datahandler.remove_data_checkpoint(checkpoint)
-        
-
-    def select_vars(self, vars: list[str]):
-        """Selects subset of (column) variables in-place on the working 
-        train and test datasets. 
-
-        Parameters
-        ----------
-        - vars : list[str]
-        """
-        self._datahandler.select_vars(vars)
-
-
-    def drop_vars(self, vars: list[str]):
-        """Drops subset of variables (columns) in-place on the working 
-        train and test datasets. 
-
-        Parameters
-        ----------
-        - vars : list[str]
-        """
-        self._datahandler.drop_vars(vars)
-
-
-    def drop_train_examples(self, indices: list):
-        """Drops subset of examples (rows) in-place on the working train 
-        dataset. 
-
-        Parameters
-        ----------
-        - indices : list.
-        """
-        self._datahandler.drop_train_examples(indices)
 
 
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def shapes(self):
-        """Returns a dictionary containing shape information for the 
-        TabularMagic (working) datasets
-        
-        Returns
-        -------
-        - {
-            'train': self.working_df_train.shape,
-            'test': self.working_df_test.shape
-        }
-        """
-        return self._datahandler.shapes()
-    
-    
     def datahandler(self) -> DataHandler:
         """Returns the DataHandler."""
         return self._datahandler
@@ -395,65 +308,7 @@ class TabularMagic:
 
     def __str__(self):
         """Returns metadata in string form."""
-        working_df_test = self._datahandler.df_test()
-        working_df_train = self._datahandler.df_train()
-
-        max_width = TOSTR_MAX_WIDTH
-
-        textlen_shapes = len(str(working_df_train.shape) +\
-            str(working_df_test.shape)) + 25
-        shapes_message_buffer_left = (max_width - textlen_shapes) // 2
-        shapes_message_buffer_right = math.ceil(
-            (max_width - textlen_shapes) / 2)
-
-
-        shapes_message = color_text('Train shape: ', 'none') +\
-            f'{working_df_train.shape}'+ \
-            ' '*shapes_message_buffer_left +\
-            color_text('Test shape: ', 'none') + \
-            f'{working_df_test.shape}'  + \
-            ' '*shapes_message_buffer_right
-
-
-        title_message = color_text(self._id, 'none')
-        title_message = fill(title_message, width=max_width)
-        
-        categorical_var_message = color_text('Categorical variables:', 'none')
-        if len(self._datahandler.categorical_vars()) == 0:
-            categorical_var_message += color_text(
-                ' None', 'purple')
-        for i, var in enumerate(self._datahandler.categorical_vars()):
-            categorical_var_message += f' {var}'
-            if i < len(self._datahandler.categorical_vars()) - 1:
-                categorical_var_message += ','
-        categorical_var_message = fill(categorical_var_message, 
-                                       drop_whitespace=False, width=max_width)
-
-        continuous_var_message = color_text('Continuous variables:', 'none')
-        if len(self._datahandler.continuous_vars()) == 0:
-            continuous_var_message += color_text(
-                ' None', 'purple')
-        for i, var in enumerate(self._datahandler.continuous_vars()):
-            continuous_var_message += f' {var}'
-            if i < len(self._datahandler.continuous_vars()) - 1:
-                continuous_var_message += ','
-        continuous_var_message = fill(continuous_var_message, width=max_width)
-
-        bottom_divider = '\n' + color_text('='*max_width, 'none')
-        divider = '\n' + color_text('-'*max_width, 'none') + '\n'
-        divider_invisible = '\n' + ' '*max_width + '\n'
-        top_divider = color_text('='*max_width, 'none') + '\n'
-
-        final_message = top_divider + title_message + divider +\
-            shapes_message + divider + categorical_var_message +\
-            divider_invisible + continuous_var_message + bottom_divider
-        
-        return final_message
-
-
-        
-
-
+        return self._datahandler.__str__()
 
 
     def _repr_pretty_(self, p, cycle):

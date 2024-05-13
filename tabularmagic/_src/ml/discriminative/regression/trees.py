@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import (
     RandomForestRegressor,
@@ -19,48 +18,46 @@ class TreeR(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
-                 random_state: int = 42, 
+    def __init__(self,
                  hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 nickname: str = None, **kwargs):
+                 model_random_state: int = 42,
+                 name: str = None, **kwargs):
         """
         Initializes a TreeR object. 
 
         Parameters
         ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. Dependent variable vector. 
-        - random_state : int. 
-            Default: 42.
         - hyperparam_search_method : str. 
-            Default: None. If None, a Tree-specific default hyperparameter 
+            Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - hyperparam_grid_specification : Mapping[str, Iterable]. 
-            Default: None. If None, a Tree-specific default hyperparameter 
+        - hyperparam_grid_specification : Mapping[str, list]. 
+            Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - nickname : str. 
+        - name : str. 
             Default: None. Determines how the model shows up in the reports. 
-            If None, the nickname is set to be the class name.
+            If None, the name is set to be the class name.
+        - model_random_state : int.
+            Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
             inner_cv and inner_random_state can be set via kwargs. 
 
-        Returns
-        -------
-        - None
+        Notable kwargs
+        --------------
+        - inner_cv : int | BaseCrossValidator.
+        - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
-        super().__init__(X, y)
+        super().__init__()
 
-        if nickname is None:
-            self.nickname = 'TreeR'
+        if name is None:
+            self._name = 'TreeR'
         else:
-            self.nickname = nickname
+            self._name = name
 
-        self.random_state = random_state
-        self._estimator = DecisionTreeRegressor(random_state=self.random_state)
+        self._estimator = DecisionTreeRegressor(random_state=model_random_state)
         if (hyperparam_search_method is None) or \
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'
@@ -76,8 +73,6 @@ class TreeR(BaseRegression):
             **kwargs
         )
 
-    def __str__(self):
-        return self.nickname
 
 
 class TreeEnsembleR(BaseRegression):
@@ -89,60 +84,59 @@ class TreeEnsembleR(BaseRegression):
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
-                 ensemble_type: Literal['random_forest', 'gradient_boosting', 
-                    'adaboost', 'bagging', 'xgboost'] = 'random_forest', 
-                 random_state: int = 42, hyperparam_search_method: str = None, 
+    def __init__(self, 
+                 type: Literal['random_forest', 'gradient_boosting', 
+                    'adaboost', 'bagging', 'xgboost', 'xgboostrf'] =\
+                          'random_forest', 
+                 hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 nickname: str = None, **kwargs):
+                 model_random_state: int = 42,
+                 name: str = None, **kwargs):
         """
         Initializes a TreeEnsembleR object. 
 
         Parameters
         ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. Dependent variable vector. 
-        - ensemble_type: Literal['random_forest', 'gradient_boosting', 
-                    'adaboost', 'bagging', 'xgboost']
-        - random_state : int. 
-            Default: 42.
+        - type: Literal['random_forest', 'gradient_boosting', 
+                    'adaboost', 'bagging', 'xgboost', 'xgboostrf']
         - hyperparam_search_method : str. 
             Default: None. If None, a Tree-specific default hyperparameter 
             search is conducted. 
         - hyperparam_grid_specification : Mapping[str, Iterable]. 
             Default: None. If None, a Tree-specific default hyperparameter 
             search is conducted. 
-        - nickname : str. 
+        - name : str. 
             Default: None. Determines how the model shows up in the reports. 
-            If None, the nickname is set to be the class name.
+            If None, the name is set to be the class name.
+        - model_random_state : int.
+            Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the hyperparameter search method. 
 
-        Returns
-        -------
-        - None
+        Notable kwargs
+        --------------
+        - inner_cv : int | BaseCrossValidator.
+        - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
-        super().__init__(X, y)
-        self.random_state = random_state
-        self.ensemble_type = ensemble_type
+        super().__init__()
 
-        if nickname is None:
-            self.nickname = f'TreeEnsembleR({ensemble_type})'
+        if name is None:
+            self._name = f'TreeEnsembleR({type})'
         else:
-            self.nickname = nickname
+            self._name = name
 
-        if ensemble_type == 'random_forest':
+        if type == 'random_forest':
             self._estimator = RandomForestRegressor(
-                random_state=self.random_state)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
                     'n_estimators': [50, 100, 200],
-                    'misample_size_split': [2, 0.1],
-                    'misample_size_leaf': [1, 0.1],
+                    'min_samples_split': [2, 5, 10],
+                    'min_samples_leaf': [1, 2, 4],
                     'max_features': ['sqrt', 'log2', None],
                     'max_depth': [5, 10, None]
                 }
@@ -152,9 +146,9 @@ class TreeEnsembleR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
-        elif ensemble_type == 'adaboost':
+        elif type == 'adaboost':
             self._estimator = AdaBoostRegressor(
-                random_state=self.random_state)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -162,9 +156,12 @@ class TreeEnsembleR(BaseRegression):
                     'n_estimators': [25, 50, 100],
                     'learning_rate': [0.01, 0.001],
                     'estimator': [
-                        DecisionTreeRegressor(max_depth=5), 
-                        DecisionTreeRegressor(max_depth=10),
-                        DecisionTreeRegressor(max_depth=None)
+                        DecisionTreeRegressor(max_depth=5, 
+                                              random_state=model_random_state), 
+                        DecisionTreeRegressor(max_depth=10, 
+                                              random_state=model_random_state),
+                        DecisionTreeRegressor(max_depth=None, 
+                                              random_state=model_random_state)
                     ]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
@@ -173,9 +170,9 @@ class TreeEnsembleR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
-        elif ensemble_type == 'bagging':
+        elif type == 'bagging':
             self._estimator = BaggingRegressor(
-                random_state=self.random_state)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -186,9 +183,12 @@ class TreeEnsembleR(BaseRegression):
                     'bootstrap': [True, False],
                     'bootstrap_features': [True, False],
                     'estimator': [
-                        DecisionTreeRegressor(max_depth=5), 
-                        DecisionTreeRegressor(max_depth=10),
-                        DecisionTreeRegressor(max_depth=None)
+                        DecisionTreeRegressor(max_depth=5, 
+                                              random_state=model_random_state), 
+                        DecisionTreeRegressor(max_depth=10, 
+                                              random_state=model_random_state),
+                        DecisionTreeRegressor(max_depth=None, 
+                                              random_state=model_random_state)
                     ]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
@@ -197,9 +197,9 @@ class TreeEnsembleR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
-        elif ensemble_type == 'gradient_boosting':
+        elif type == 'gradient_boosting':
             self._estimator = GradientBoostingRegressor(
-                random_state=self.random_state)
+                random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -217,8 +217,8 @@ class TreeEnsembleR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
-        elif ensemble_type == 'xgboost':
-            self._estimator = xgb.XGBRegressor()
+        elif type == 'xgboost':
+            self._estimator = xgb.XGBRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or \
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
@@ -236,9 +236,30 @@ class TreeEnsembleR(BaseRegression):
                 grid=hyperparam_grid_specification,
                 **kwargs
             )
+        elif type == 'xgboostrf':
+            self._estimator = xgb.XGBRFRegressor(
+                random_state=model_random_state)
+            if (hyperparam_search_method is None) or \
+                (hyperparam_grid_specification is None):
+                hyperparam_search_method = 'grid'
+                hyperparam_grid_specification = {
+                    'max_depth': [3, 6, 12],
+                    'n_estimators': [100, 200, 300],
+                    'colsample_bynode': [0.5, 0.8, 1.0],
+                    'min_child_weight': [1, 3, 5],
+                    'subsample': [0.5, 0.8, 1.0],
+                    'reg_lambda': [0.1, 1.0, 10.0]
+                }
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self._estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs
+            )
+
         else:
-            raise ValueError(f'Invalid input: ensemble_type = ' + \
-                             '"{ensemble_type}".')
+            raise ValueError('Invalid input: ensemble_type = ' + \
+                             f'"{type}".')
 
 
 

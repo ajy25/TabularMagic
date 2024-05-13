@@ -1,12 +1,14 @@
 import pandas as pd
+import math
 from typing import Literal
-from ..util.console import print_wrapped
-from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
-    LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
+from textwrap import fill
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
-
+from ..util.console import print_wrapped, color_text, list_to_string
+from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
+    LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
+from ..util.constants import TOSTR_MAX_WIDTH
 
 
 class DataHandler:
@@ -17,7 +19,7 @@ class DataHandler:
                  df_test: pd.DataFrame, 
                  y_var: str | None = None,
                  X_vars: list[str] | None = None,
-                 id: str = None,
+                 name: str = None,
                  verbose: bool = True):
         """Initializes a DataHandler object.
 
@@ -27,6 +29,7 @@ class DataHandler:
         - df_test : pd.DataFrame.
         - y_var : str | None. Default: None.
         - X_vars : list[str] | None. Default: None.
+        - name : str. Default: None.
         - verbose : bool.
         """
         self._checkpoint_name_to_df: \
@@ -47,20 +50,26 @@ class DataHandler:
         self._working_df_test = self._orig_df_test.copy()
 
         # keep track of scalers
-        self._continuous_var_to_scalar = {
+        self._continuous_var_to_scaler = {
             var: None for var in self._continuous_vars
         }
 
         # set the y-variable
-        self.set_yvar(y_var=y_var)
-        self.set_Xvars(X_vars=X_vars)
+        self._yvar = y_var
+        self._Xvars = X_vars
+        if X_vars is None:
+            self._Xvars = self.categorical_vars(ignore_yvar=True) +\
+                self.continuous_vars(ignore_yvar=True)
+        if self._yvar is not None:
+            if self._yvar in self._Xvars:
+                self._Xvars.remove(self._yvar)
 
 
-        # set the id
-        if id is None:
-            self.nickname = 'DataHandler'
+        # set the name
+        if name is None:
+            self._name = 'DataHandler'
         else:
-            self.nickname = id
+            self._name = name
 
 
     # --------------------------------------------------------------------------
@@ -79,6 +88,9 @@ class DataHandler:
         if checkpoint is None:
             self._working_df_test = self._orig_df_test.copy()
             self._working_df_train = self._orig_df_train.copy()
+            self._continuous_var_to_scaler = {
+                var: None for var in self._continuous_vars
+            }
             if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
@@ -92,6 +104,8 @@ class DataHandler:
                 self._checkpoint_name_to_df[checkpoint][0].copy()
             self._working_df_train =\
                 self._checkpoint_name_to_df[checkpoint][1].copy()
+            self._continuous_var_to_scaler =\
+                self._checkpoint_name_to_df[checkpoint][2].copy()
             if self._verbose:
                 shapes_dict = self.shapes()
                 print_wrapped(
@@ -121,7 +135,8 @@ class DataHandler:
             )
         self._checkpoint_name_to_df[checkpoint] = (
             self._working_df_test.copy(),
-            self._working_df_train.copy()
+            self._working_df_train.copy(),
+            self._continuous_var_to_scaler.copy()
         )
 
 
@@ -158,9 +173,7 @@ class DataHandler:
         if self._verbose:
             shapes_dict = self.shapes()
             print_wrapped(
-                f'Selected columns {vars}. ' +\
-                'Re-identified categorical ' +\
-                'and continuous variables. ' +\
+                f'Selected columns {list_to_string(vars)}. ' +\
                 'Shapes of train, test datasets: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'
@@ -182,9 +195,7 @@ class DataHandler:
         if self._verbose:
             shapes_dict = self.shapes()
             print_wrapped(
-                f'Dropped columns {vars}. '+\
-                'Re-identified categorical ' +\
-                'and continuous variables. ' +\
+                f'Dropped columns {list_to_string(vars)}. '+\
                 'Shapes of train, test datasets: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                 type='UPDATE'
@@ -202,7 +213,7 @@ class DataHandler:
         if self._verbose:
             shapes_dict = self.shapes()
             print_wrapped(
-                f'Dropped rows {indices}. '+\
+                f'Dropped rows {list_to_string(indices)}. '+\
                 'Shapes of train, test datasets: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'
@@ -233,7 +244,7 @@ class DataHandler:
             self._yvar = y_var
             if self._verbose:
                 print_wrapped(
-                    f'Set y-variable to "{y_var}".',
+                    f'Set y-variable to {y_var}.',
                     type='UPDATE'
                 )
         else:
@@ -263,7 +274,7 @@ class DataHandler:
         self._Xvars = X_vars
         if self._verbose:
             print_wrapped(
-                f'Set predictor variables to "{X_vars}".',
+                f'Set predictor variables to {list_to_string(X_vars)}.',
                 type='UPDATE'
             )
         return self
@@ -341,10 +352,10 @@ class DataHandler:
         if dropna:
             prev_len = len(out_train)
             out_train.dropna(inplace=True)
-            if self._verbose:
+            if self._verbose and (prev_len - len(out_train)) / prev_len > 0.2:
                 print_wrapped(
-                    f'Dropped {prev_len - len(out_train)} rows with missing ' +\
-                        'values.',
+                    f'Dropped {prev_len - len(out_train)} of {prev_len} ' +\
+                    'total rows.',
                     type='WARNING'
                 )
 
@@ -380,10 +391,10 @@ class DataHandler:
         if dropna:
             prev_len = len(out_test)
             out_test.dropna(inplace=True)
-            if self._verbose:
+            if self._verbose and (prev_len - len(out_test)) / prev_len > 0.2:
                 print_wrapped(
-                    f'Dropped {prev_len - len(out_test)} rows with missing ' +\
-                        'values.',
+                    f'Dropped {prev_len - len(out_test)} of {prev_len} ' +\
+                    'total rows.',
                     type='WARNING'
                 )
 
@@ -402,7 +413,7 @@ class DataHandler:
         }
         """
         return {
-            'train': self._working_df_test.shape,
+            'train': self._working_df_train.shape,
             'test': self._working_df_test.shape
         }
     
@@ -443,7 +454,7 @@ class DataHandler:
         """Returns the y-variable scaler, which could be None."""
         if self._yvar is None:
             return None
-        return self._continuous_var_to_scalar[self._yvar]
+        return self._continuous_var_to_scaler[self._yvar]
     
 
     def scaler(self, var: str) -> BaseSingleVarScaler | None:
@@ -453,7 +464,7 @@ class DataHandler:
         ----------
         - var : str
         """
-        return self._continuous_var_to_scalar[var]
+        return self._continuous_var_to_scaler[var]
         
 
     def copy(self, y_var: str = None, 
@@ -461,6 +472,7 @@ class DataHandler:
         """Creates a shallow copy of the DataHandler object. That is, 
         the returned object will be initialized with the current 
         working DataFrames, but will not have any other checkpoints saved.
+        The scalers dataframe will be retained. 
         No other attributes such as y-variable and predictor specifications
         are retained.
         
@@ -474,11 +486,13 @@ class DataHandler:
         -------
         - DataHandler
         """
-        return DataHandler(
+        new = DataHandler(
             self._working_df_train, 
             self._working_df_test, 
             y_var=y_var, X_vars=X_vars,
-            verbose=verbose, id=self.nickname + '_copy')
+            verbose=verbose, name=self._name + '_copy')
+        new._continuous_var_to_scaler = self._continuous_var_to_scaler.copy()
+        return new
     
 
     def kfold_copies(self, k: int, y_var: str = None, X_vars: str = None, 
@@ -509,10 +523,14 @@ class DataHandler:
             cv.split(self._working_df_train)):
             train_df = self._working_df_train.iloc[train_index]
             test_df = self._working_df_train.iloc[test_index]
-            out.append(DataHandler(
+            new = DataHandler(
                 train_df, test_df, 
                 verbose=verbose, y_var=y_var, 
-                X_vars=X_vars, id=self.nickname + f'_fold_{i}'))
+                X_vars=X_vars, name=self._name + f'_fold_{i}',
+            )
+            new._continuous_var_to_scaler =\
+                self._continuous_var_to_scaler.copy()
+            out.append(new)
         return out
     
 
@@ -534,7 +552,7 @@ class DataHandler:
             self._working_df_test[vars].astype('str')
         if self._verbose:
             print_wrapped(
-                f'Converted variables {vars} to categorical.',
+                f'Converted variables {list_to_string(vars)} to categorical.',
                 type='UPDATE'
             )
         self._categorical_vars, self._continuous_vars =\
@@ -697,9 +715,9 @@ class DataHandler:
         
         if self._verbose:
             print_wrapped(
-                'Imputed missing values with strategies: ' +\
-                f'continuous: "{continuous_strategy}", ' +\
-                f'categorical: "{categorical_strategy}".',
+                'Imputed missing values with ' +\
+                f'continuous strategy "{continuous_strategy}", ' +\
+                f'categorical strategy "{categorical_strategy}".',
                 type='UPDATE'
             )
         return self
@@ -729,8 +747,9 @@ class DataHandler:
         """
         if vars is None:
             vars = self._continuous_vars
-        train_data = self._working_df_test[vars].to_numpy()
+        
         for var in vars:
+            train_data = self._working_df_train[var].to_numpy()
             if strategy == 'standardize':
                 scaler = StandardizeSingleVar(var, train_data)
             elif strategy == 'minmax':
@@ -741,15 +760,17 @@ class DataHandler:
                 scaler = Log1PTransformSingleVar(var, train_data)
             else:
                 raise ValueError('Invalid scaling strategy.')
+            
             self._working_df_train[var] = scaler.transform(
-                self._working_df_train[var])
+                self._working_df_train[var].to_numpy())
             self._working_df_test[var] = scaler.transform(
-                self._working_df_test[var])
-            if var == self._yvar:
-                self._yvar_scaler = scaler
+                self._working_df_test[var].to_numpy())
+            self._continuous_var_to_scaler[var] = scaler
+
         if self._verbose:
             print_wrapped(
-                f'Scaled variables {vars} using strategy "{strategy}".',
+                f'Scaled variables {list_to_string(vars)} ' + \
+                    f'using strategy "{strategy}".',
                 type='UPDATE'
             )
         return self
@@ -814,16 +835,16 @@ class DataHandler:
         if len(extra_test_columns) > 0:
             if self._verbose:
                 print_wrapped(
-                    f'Columns {extra_test_columns} not found in train ' +\
-                    'have been dropped from test.',
+                    f'Columns {list_to_string(extra_test_columns)} not ' +\
+                    'in train have been dropped from test.',
                     type='WARNING'
                 )
             df_test.drop(columns=extra_test_columns, axis=1, inplace=True)
         if len(missing_test_columns) > 0:
             if self._verbose:
                 print_wrapped(
-                    f'Columns {missing_test_columns} not found in test ' +\
-                    'have been added to test with 0-valued entries.',
+                    f'Columns {list_to_string(missing_test_columns)} not ' +\
+                    'in test have been added to test with 0-valued entries.',
                     type='WARNING'
                 )
             for col in missing_test_columns:
@@ -871,7 +892,60 @@ class DataHandler:
 
     def __str__(self):
         """Returns a string representation of the DataHandler object."""
-        return f'DataHandler object: {self.nickname}'
+        working_df_test = self._working_df_test
+        working_df_train = self._working_df_train
+
+        max_width = TOSTR_MAX_WIDTH
+
+        textlen_shapes = len(str(working_df_train.shape) +\
+            str(working_df_test.shape)) + 25
+        shapes_message_buffer_left = (max_width - textlen_shapes) // 2
+        shapes_message_buffer_right = math.ceil(
+            (max_width - textlen_shapes) / 2)
+
+
+        shapes_message = color_text('Train shape: ', 'yellow') +\
+            f'{working_df_train.shape}'+ \
+            ' '*shapes_message_buffer_left +\
+            color_text('Test shape: ', 'yellow') + \
+            f'{working_df_test.shape}'  + \
+            ' '*shapes_message_buffer_right
+
+
+        title_message = color_text(self._name, 'yellow')
+        title_message = fill(title_message, width=max_width)
+        
+        categorical_var_message = color_text('Categorical variables:', 'yellow')
+        if len(self.categorical_vars()) == 0:
+            categorical_var_message += color_text(
+                ' None', 'blue')
+        for i, var in enumerate(self.categorical_vars()):
+            categorical_var_message += f' {var}'
+            if i < len(self.categorical_vars()) - 1:
+                categorical_var_message += ','
+        categorical_var_message = fill(categorical_var_message, 
+                                       drop_whitespace=False, width=max_width)
+
+        continuous_var_message = color_text('Continuous variables:', 'yellow')
+        if len(self.continuous_vars()) == 0:
+            continuous_var_message += color_text(
+                ' None', 'blue')
+        for i, var in enumerate(self.continuous_vars()):
+            continuous_var_message += f' {var}'
+            if i < len(self.continuous_vars()) - 1:
+                continuous_var_message += ','
+        continuous_var_message = fill(continuous_var_message, width=max_width)
+
+        bottom_divider = '\n' + color_text('='*max_width, 'purple')
+        divider = '\n' + color_text('-'*max_width, 'purple') + '\n'
+        divider_invisible = '\n' + ' '*max_width + '\n'
+        top_divider = color_text('='*max_width, 'purple') + '\n'
+
+        final_message = top_divider + title_message + divider +\
+            shapes_message + divider + categorical_var_message +\
+            divider_invisible + continuous_var_message + bottom_divider
+        
+        return final_message
 
 
     def _repr_pretty_(self, p, cycle):

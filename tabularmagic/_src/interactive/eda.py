@@ -32,14 +32,18 @@ class CategoricalEDA:
         """
         self.variable_name = str(var_series.name)
         self._var_series = var_series
+
+        n_missing = self._var_series.isna().sum()
+
         self._summary_statistics_dict = {
             'n_unique_vals': self._var_series.nunique(),
             'most_common_val': self._var_series.\
                 value_counts(dropna=True).idxmax(),
             'least_common_val': self._var_series.\
                 value_counts(dropna=True).idxmin(), 
-            'n_missing_samples': self._var_series.isna().sum(),
-            'n_samples': len(self._var_series)
+            'n_missing': n_missing,
+            'missing_rate': n_missing / len(self._var_series),
+            'n': len(self._var_series)
         }
         self.summary_statistics = pd.DataFrame(
             list(self._summary_statistics_dict.items()), 
@@ -103,6 +107,9 @@ class ContinuousEDA():
         """
         self.variable_name = str(var_series.name)
         self._var_series = var_series
+
+        n_missing = self._var_series.isna().sum()
+
         self._summary_statistics_dict = {
             'min': self._var_series.min(),
             'max': self._var_series.max(),
@@ -113,7 +120,8 @@ class ContinuousEDA():
             'q1': self._var_series.quantile(q=0.25),
             'median': self._var_series.median(),
             'q3': self._var_series.quantile(q=0.75),
-            'n_missing': self._var_series.isna().sum(),
+            'n_missing': n_missing,
+            'missing_rate': n_missing / len(self._var_series),
             'n': len(self._var_series)
         }
         self.summary_statistics = pd.DataFrame(

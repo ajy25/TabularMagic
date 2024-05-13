@@ -5,16 +5,13 @@ import matplotlib.axes as axes
 import matplotlib.figure as figure
 import seaborn as sns
 from scipy import stats
-from typing import Iterable
+from typing import Iterable, Literal
 from statsmodels.stats.anova import anova_lm
-import statsmodels.api as sm
-from ...metrics.regression_scoring import RegressionScorer
-from ...data.preprocessing import BaseSingleVarScaler
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.regression.linear_regression import OrdinaryLeastSquares
+from ...util.console import print_wrapped
 from adjustText import adjust_text
-
 
 
 
@@ -38,9 +35,7 @@ class SingleDatasetLinRegReport:
     """
     
     def __init__(self, model: OrdinaryLeastSquares, 
-                 X_test: pd.DataFrame = None, 
-                 y_test: pd.Series = None, 
-                 y_scaler: BaseSingleVarScaler = None):
+                 specification: Literal['train', 'test']):
         """
         Initializes a RegressionReport object. 
 
@@ -48,54 +43,35 @@ class SingleDatasetLinRegReport:
         ----------
         - model : BaseRegression.
             The model must already be trained.
-        - X_test : pd.DataFrame.
-            Default: None. If None, reports on the training data.
-        - y_test : pd.Series.
-            Default: None. If None, reports on the training data.
-        - y_scaler: BaseSingleVarScaler.
-            Default: None. If exists, calls inverse transform on the outputs 
-            and on y_eval before computing statistics.
+        - specification : Literal['train', 'test'].
         """
         self.model = model
-
-        if X_test is None:
-            self._X_eval_df = self.model._X
+        
+        if specification == 'test':
+            self.scorer = model.test_scorer
+            self._X_eval_df = self.model._datahandler.df_test_split()[0]
+            self._is_train = False
+        elif specification == 'train':
+            self.scorer = model.train_scorer
+            self._X_eval_df = self.model._datahandler.df_train_split()[0]
+            self._is_train = True
         else:
-            self._X_eval_df = X_test
-        if y_test is None:
-            self._y_eval_series = self.model._y
-        else:
-            self._y_eval_series = y_test
+            raise ValueError('specification must be either "train" or "test".')
 
-        self._y_pred = model.predict(self._X_eval_df)
-        self._include_text = True
-        if len(self._y_pred) > 500:
-            self._include_text = False
-        self._is_train = False
-        if len(self._y_pred) == len(model.estimator.fittedvalues):
-            if np.allclose(self._y_pred, model.estimator.fittedvalues):
-                self._is_train = True
-        self._y_true = self._y_eval_series.to_numpy()
-        if y_scaler is not None:
-            self._y_pred = y_scaler.inverse_transform(self._y_pred)
-            self._y_true = y_scaler.inverse_transform(self._y_true)
-        self._scorer = RegressionScorer(y_pred=self._y_pred, y_true=self._y_true, 
-            n_predictors=model._n_predictors, id=str(model))
+
+        
+
+        self._y_pred = self.scorer._y_pred
+        self._y_true = self.scorer._y_true
+        
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
         self._outlier_threshold = 2
         self._compute_outliers()
 
-
-        
-    def statsmodels_summary(self):
-        """Returns the summary of the statsmodels RegressionResultsWrapper for 
-        OLS.
-        """
-        try:
-            return self.model.estimator.summary()
-        except:
-            raise RuntimeError('Error occured in statsmodels_summary call.')
+        self._include_text = False
+        if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+            self._include_text = True
 
 
     def plot_obs_vs_pred(self, show_outliers: bool = True,
@@ -388,7 +364,7 @@ class SingleDatasetLinRegReport:
         - Figure
         """
         if not self._is_train:
-            print(train_only_message)
+            print_wrapped(train_only_message, type='WARNING')
             return None
 
         fig = None
@@ -591,7 +567,7 @@ class SingleDatasetLinRegReport:
         ----------
         - pd.DataFrame
         """
-        return self._scorer.stats_df()
+        return self.scorer.stats_df()
 
 
     def _compute_outliers(self):
@@ -617,8 +593,7 @@ class LinearRegressionReport:
     def __init__(self, model: OrdinaryLeastSquares,
             datahandler: DataHandler,
             X_vars: list[str],
-            y_var: str,
-            y_scaler: BaseSingleVarScaler = None):
+            y_var: str):
         """LinearRegressionReport.  
         Fits the model based on provided DataHandler.
         Wraps train and test SingleDatasetLinRegReport objects.
@@ -629,16 +604,16 @@ class LinearRegressionReport:
         - datahandler : DataHandler.
         - X_vars : list[str].
         - y_var : str.
-        - y_scaler: BaseSingleVarScaler.
-            Default: None. If exists, calls inverse transform on the outputs 
-            and on y_test before computing statistics.
         """
         self._model = model
         self._datahandler = datahandler
-        self._X_vars = X_vars
-        self._y_var = y_var
-        self._y_scaler = y_scaler
-        self._fit_model()        
+        self._model.specify_data(datahandler, y_var=y_var, X_vars=X_vars)
+        self._model.fit()
+
+        self._train_report = SingleDatasetLinRegReport(model, 'train')
+        self._test_report = SingleDatasetLinRegReport(model, 'test')
+
+
 
     def train_report(self) -> SingleDatasetLinRegReport:
         """Returns an LinearRegressionReport object for the train dataset
@@ -666,21 +641,14 @@ class LinearRegressionReport:
         - OrdinaryLeastSquares
         """
         return self._model
+ 
 
-    def _fit_model(self):
-        """Fits the model.
+    def statsmodels_summary(self):
+        """Returns the summary of the statsmodels RegressionResultsWrapper for 
+        OLS.
         """
-        df_test = self._datahandler.df_test()
-        df_train = self._datahandler.df_train()
-        self._model.fit(
-            X=df_train[self._X_vars],
-            y=df_train[self._y_var]
-        )
-        self._train_report = SingleDatasetLinRegReport(
-            self._model, y_scaler=self._y_scaler)
-        self._test_report = SingleDatasetLinRegReport(
-            self._model, 
-            df_test[self._X_vars], 
-            df_test[self._y_var], 
-            self._y_scaler)
+        try:
+            return self._model.estimator.summary()
+        except:
+            raise RuntimeError('Error occured in statsmodels_summary call.')
 

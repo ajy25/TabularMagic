@@ -5,50 +5,50 @@ from .base_regression import BaseRegression, HyperparameterSearcher
 
 
 class MLPR(BaseRegression):
-    """Support Vector Machine with kernel trick.
+    """Multi-layer Perceptron regressor.
     
     Like all BaseRegression-derived classes, hyperparameter selection is 
     performed automatically during training. The cross validation and 
     hyperparameter selection process can be modified by the user. 
     """
 
-    def __init__(self, X: np.ndarray = None, y: np.ndarray = None, 
-                 hyperparam_search_method: str = None, 
+    def __init__(self, hyperparam_search_method: str = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 nickname: str = None, **kwargs):
+                 model_random_state: int = 42,
+                 name: str = None, **kwargs):
         """
         Initializes an MLPR object. 
 
         Parameters
         ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-            Default: None. Matrix of predictor variables. 
-        - y : np.ndarray ~ (sample_size).
-            Default: None. Dependent variable vector. 
         - hyperparam_search_method : str. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
         - hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - nickname : str. 
+        - name : str. 
             Default: None. Determines how the model shows up in the reports. 
-            If None, the nickname is set to be the class name.
+            If None, the name is set to be the class name.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the hyperparameter search method. 
 
-        Returns
-        -------
-        - None
+        Notable kwargs
+        --------------
+        - inner_cv : int | BaseCrossValidator.
+        - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
-        super().__init__(X, y)
+        super().__init__()
 
-        if nickname is None:
-            self.nickname = 'MLPR'
+        self._type = type
+        if name is None:
+            self._name = f'MLPR'
         else:
-            self.nickname = nickname
+            self._name = name
 
-        self._estimator = MLPRegressor()
+        self._estimator = MLPRegressor(random_state=model_random_state)
         if (hyperparam_search_method is None) or \
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'

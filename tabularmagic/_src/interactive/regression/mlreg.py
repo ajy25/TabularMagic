@@ -11,16 +11,16 @@ from ...util.console import print_wrapped
 
 
 
-class SingleModelSingleDatasetReport:
+class SingleModelSingleDatasetMLReport:
     """
-    SingleModelSingleDatasetReport: generates regression-relevant plots and
+    SingleModelSingleDatasetMLReport: generates regression-relevant plots and
     tables for a single machine learning model on a single dataset.
     """
 
     def __init__(self, model: BaseRegression, 
                  specification: Literal['train', 'test']):
         """
-        Initializes a SingleModelSingleDatasetReport object.
+        Initializes a SingleModelSingleDatasetMLReport object.
         
         Parameters
         ----------
@@ -76,8 +76,13 @@ class SingleModelSingleDatasetReport:
         - Figure
         """
         if self.specification == 'train':
-            y_pred = self.model.train_scorer._y_pred
-            y_true = self.model.train_scorer._y_true
+            if self.model.train_overall_scorer is not None:
+                # in case of nested cross validation, use overall scorer
+                y_pred = self.model.train_overall_scorer._y_pred
+                y_true = self.model.train_overall_scorer._y_true
+            else:
+                y_pred = self.model.train_scorer._y_pred
+                y_true = self.model.train_scorer._y_true
         else:
             y_pred = self.model.test_scorer._y_pred
             y_true = self.model.test_scorer._y_true
@@ -102,23 +107,23 @@ class SingleModelMLRegReport:
         self.model = model
 
 
-    def train(self) -> SingleModelSingleDatasetReport:
-        """Returns a SingleModelSingleDatasetReport object for the training data.
+    def train_report(self) -> SingleModelSingleDatasetMLReport:
+        """Returns a SingleModelSingleDatasetMLReport object for the training data.
 
         Returns
         -------
-        - SingleModelSingleDatasetReport
+        - SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetReport(self.model, 'train')
+        return SingleModelSingleDatasetMLReport(self.model, 'train')
     
-    def test(self) -> SingleModelSingleDatasetReport:
-        """Returns a SingleModelSingleDatasetReport object for the test data.
+    def test_report(self) -> SingleModelSingleDatasetMLReport:
+        """Returns a SingleModelSingleDatasetMLReport object for the test data.
 
         Returns
         -------
-        - SingleModelSingleDatasetReport
+        - SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetReport(self.model, 'test')
+        return SingleModelSingleDatasetMLReport(self.model, 'test')
 
 
 
@@ -155,7 +160,7 @@ class MLRegressionReport:
         - verbose : bool.
         """
         self._models = models
-        self._id_to_model = {model._id: model for model in models}
+        self._id_to_model = {model._name: model for model in models}
 
 
         self._datahandler = datahandler
@@ -164,16 +169,16 @@ class MLRegressionReport:
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
-                print_wrapped(f'Fitting model {model._id}.', 
+                print_wrapped(f'Fitting model {model._name}.', 
                             type='UPDATE')
             model.specify_data(datahandler, y_var, X_vars, outer_cv, 
                                 outer_cv_seed)
             model.fit()
             if self._verbose:
-                print_wrapped(f'Fitted model {model._id}.', 
+                print_wrapped(f'Fitted model {model._name}.', 
                             type='UPDATE')
         
-        self._id_to_report = {model._id: SingleModelMLRegReport(model) \
+        self._id_to_report = {model._name: SingleModelMLRegReport(model) \
                               for model in models}
     
 
@@ -203,6 +208,29 @@ class MLRegressionReport:
         """
         return self._id_to_model[model_id]
     
+
+    def fit_statistics(self,
+                       specification: Literal['train', 'test']) -> pd.DataFrame:
+        """Returns a DataFrame containing the goodness-of-fit statistics for 
+        all models on the specified data.
+        
+        Parameters
+        ----------
+        - specification : Literal['train', 'test'].
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        if specification == 'train':
+            return pd.concat([report.train_report().fit_statistics() \
+                              for report in self._id_to_report.values()], 
+                              axis=1)
+        else:
+            return pd.concat([report.test_report().fit_statistics() \
+                              for report in self._id_to_report.values()], 
+                              axis=1)
+
     
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]

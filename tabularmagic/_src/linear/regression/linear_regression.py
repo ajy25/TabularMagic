@@ -1,170 +1,87 @@
-import numpy as np 
-import pandas as pd
-from typing import Literal
 import statsmodels.api as sm
 from ...metrics.regression_scoring import RegressionScorer
+from ...data.datahandler import DataHandler
 
 
 class OrdinaryLeastSquares:
     """Statsmodels OLS wrapper.
     """
 
-    def __init__(self, X: pd.DataFrame = None, 
-                 y: pd.Series = None, 
-                 regularization_type: Literal[None, 'l1', 'l2'] = None,
-                 alpha: float = 0,
-                 nickname: str = None):
+    def __init__(self, name: str = None):
         """
         Initializes a OrdinaryLeastSquares object. Regresses y on X.
 
         Parameters
         ----------
-        - X : pd.DataFrame ~ (sample_size, n_predictors).
-            Default: None. DataFrame of predictor variables. 
-        - y : pd.Series ~ (sample_size).
-            Default: None. Dependent variable series. 
-        - regularization_type : [None, 'l1', 'l2']. 
-            Default: None.
-        - alpha : float.
-            Default: 0.
         - nickname : str. 
             Default: None. Determines how the model shows up in the reports. 
             If None, the nickname is set to be the class name.
         """
         self.estimator = None
-        self.regularization_type = regularization_type
-        self.alpha = alpha
-        self.nickname = nickname
-        if self.nickname is None:
-            self.nickname = f'OrdinaryLeastSquares({regularization_type})'
-        if (X is not None) and (y is not None):
-            self._X = X.copy()
-            self._y = y.copy()
-            self._sample_size = X.shape[0]
-            self._n_predictors = X.shape[1]
+        self._name = name
+        if self._name is None:
+            self._name = f'OrdinaryLeastSquares'
+    
+
+    def specify_data(self, datahandler: DataHandler, y_var: str, 
+                     X_vars: list[str]):
+        """Adds a DataHandler object to the model. 
+
+        Parameters
+        ----------
+        - datahandler : DataHandler containing all data. Copy will be made
+            for this specific model.
+        - y_var : str. The name of the target variable.
+        - X_vars : list[str]. The names of the predictor variables.
+        """
+        self._datahandler = datahandler.copy(y_var=y_var, X_vars=X_vars)
+
+
+    def fit(self):
+        """Fits the model based on the data specified.
+        """
+        y_scaler = self._datahandler.yscaler()
+
+        X_train, y_train = self._datahandler.df_train_split(
+            onehotted=True, dropfirst=True, dropna=True)
+        n_predictors = X_train.shape[1]
+        X_train = sm.add_constant(X_train)
+        self.estimator = sm.OLS(y_train, X_train).fit(cov_type='HC3')
         
-    def fit(self, X: pd.DataFrame = None, y: pd.Series = None):
-        """
-        Fits the model. 
 
-        Parameters
-        ----------
-        - X : pd.DataFrame ~ (sample_size, n_predictors).
-            Default: None. DataFrame of predictor variables. 
-        - y : pd.Series ~ (sample_size).
-            Default: None. Dependent variable series. 
+        y_pred_train = self.estimator.predict(X_train).to_numpy()
+        if y_scaler is not None:
+            y_pred_train = y_scaler.inverse_transform(y_pred_train)
+            y_train = y_scaler.inverse_transform(y_train)
 
-        Returns
-        -------
-        - None
-        """
-        if (X is not None) and (y is not None):
-            self._X = X.copy()
-            self._y = y.copy()
-            self._sample_size = X.shape[0]
-            self._n_predictors = X.shape[1]
-        if ((self._X is None) or (self._y is None)) and \
-            (not ((self._X is None) and (self._y is None))):
-            raise ValueError(f'Invalid input: X, y.',
-                             'X and y both must not be None.')
-        self._X = sm.add_constant(self._X)
-        self._verify_Xy_input_validity(self._X, self._y)
-        if self.regularization_type is None:
-            self.estimator = sm.OLS(self._y, self._X).fit(cov_type='HC3')
-        else:
-            if self.regularization_type == 'l1':
-                self.estimator = sm.OLS(self._y, self._X).\
-                    fit_regularized(alpha=self.alpha, L1_wt=1)
-            elif self.regularization_type == 'l2':
-                self.estimator = sm.OLS(self._y, self._X).\
-                    fit_regularized(alpha=self.alpha, L1_wt=0)
-    
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        """Returns y_pred.
-        
-        Parameters
-        ----------
-        - X : pd.DataFrame ~ (n_test_samples, n_predictors).
 
-        Returns
-        -------
-        - np.ndarray ~ (n_test_samples)
-        """
-        X = sm.add_constant(X)
-        self._verify_X_input_validity(X)
-        return self.estimator.predict(X).to_numpy()
-    
-    def score(self, X_test: pd.DataFrame = None, y_test: pd.Series = None) \
-        -> RegressionScorer:
-        """Returns the MSE, MAD, Pearson Correlation, and Spearman Correlation 
-        of the true and predicted y values. Also, returns the R-squared and 
-        adjusted R-squared 
+        self.train_scorer = RegressionScorer(
+            y_pred=y_pred_train,
+            y_true=y_train.to_numpy(),
+            n_predictors=n_predictors,
+            name=self._name + '_train'
+        )
 
-        Parameters
-        ----------
-        - X : pd.DataFrame ~ (sample_size, n_predictors).
-            Default: None. If None, computes scores using X and y. 
-        - y : pd.Series ~ (sample_size).
-            Default: None. If None, computes scores using X and y. 
+        X_test, y_test = self._datahandler.df_test_split(
+            onehotted=True, dropfirst=True, dropna=True)
+        X_test = sm.add_constant(X_test)
 
-        Returns
-        -------
-        - RegressionScorer. 
-        """
-        if X_test is None or y_test is None:
-            X_test = self._X
-            y_test = self._y
-        return RegressionScorer(self.predict(X_test), y_test.to_numpy(), 
-            n_predictors=self._n_predictors, id=str(self))
-    
 
-    def _verify_Xy_input_validity(self, X: pd.DataFrame, y: pd.Series):
-        """Verifies that the inputs X and y are valid. If invalid, raises 
-        the appropriate error with the appropriate error message. 
+        y_pred_test = self.estimator.predict(X_test).to_numpy()
+        if y_scaler is not None:
+            y_pred_test = y_scaler.inverse_transform(y_pred_test)
+            y_test = y_scaler.inverse_transform(y_test)
 
-        Parameters
-        ----------
-        - X : pd.DataFrame ~ (sample_size, n_predictors).
-        - y : pd.Series ~ (sample_size).
+        self.test_scorer = RegressionScorer(
+            y_pred=y_pred_test,
+            y_true=y_test.to_numpy(),
+            n_predictors=n_predictors,
+            name=self._name + '_test'
+        )
 
-        Returns
-        -------
-        - None
-        """
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError(f'Invalid input: X. Must be 2d pd.DataFrame.')
-        if not isinstance(y, pd.Series):
-            raise ValueError(f'Invalid input: y. Must be pd.Series.')
-        if len(X.shape) != 2:
-            raise ValueError(f'Invalid input: X. Must be 2d pd.DataFrame.')
-        if len(y.shape) != 1:
-            raise ValueError(f'Invalid input: y. Must be pd.Series.')
-        if len(X) != len(y):
-            raise ValueError(f'Invalid input: X, y. Must have the same ',
-                             'length in the first dimension.')
-
-    def _verify_X_input_validity(self, X: pd.DataFrame):
-        """Verifies that the input X is valid. If invalid, raises 
-        the appropriate error with the appropriate error message. 
-
-        Parameters
-        ----------
-        - X : pd.DataFrame ~ (sample_size, n_predictors).
-
-        Returns
-        -------
-        - None
-        """
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError(f'Invalid input: X. Must be pd.DataFrame.')
-        # add 1 to n_predictors to account for constant
-        if X.shape[1] != self._n_predictors + 1:
-            raise ValueError(f'Invalid input: X. Must have the same ' + \
-                             'length in the second dimension as the dataset' + \
-                             ' upon which the estimator has been trained.')
 
 
     def __str__(self):
-        return self.nickname
+        return self._name
 
 

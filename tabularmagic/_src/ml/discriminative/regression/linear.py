@@ -19,7 +19,7 @@ class LinearR(BaseRegression):
                     Literal[None, 'grid', 'random'] = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
                  model_random_state: int = 42,
-                 id: str = None, **kwargs):
+                 name: str = None, **kwargs):
         """
         Initializes a LinearR object. 
 
@@ -33,9 +33,9 @@ class LinearR(BaseRegression):
         - hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - id : str. 
+        - name : str. 
             Default: None. Determines how the model shows up in the reports. 
-            If None, the id is set to be the class name.
+            If None, the name is set to be the class name.
         - model_random_state : int.
             Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
@@ -46,14 +46,17 @@ class LinearR(BaseRegression):
         --------------
         - inner_cv : int | BaseCrossValidator.
         - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
         super().__init__()
+        self._dropfirst = True
 
         self._type = type
-        if id is None:
-            self._id = f'LinearR({self._type})'
+        if name is None:
+            self._name = f'LinearR({self._type})'
         else:
-            self._id = id
+            self._name = name
 
         if type == 'ols':
             self._estimator = LinearRegression()
@@ -117,7 +120,7 @@ class RobustLinearR(BaseRegression):
                  hyperparam_search_method: \
                     Literal[None, 'grid', 'random'] = None, 
                  hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 id: str = None, **kwargs):
+                 name: str = None, **kwargs):
         """
         Initializes a RobustLinearR object. 
 
@@ -131,26 +134,29 @@ class RobustLinearR(BaseRegression):
         - hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - id : str. 
+        - name : str. 
             Default: None. Determines how the model shows up in the reports. 
-            If None, the id is set to be the class name.
+            If None, the name is set to be the class name.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
             inner_cv and inner_random_state can be set via kwargs. 
 
         Notable kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator. 
+        - inner_cv : int | BaseCrossValidator.
         - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
         super().__init__()
+        self._dropfirst = True
 
         self._type = type
 
-        if id is None:
-            self._id = f'RobustLinearR({type})'
+        if name is None:
+            self._name = f'RobustLinearR({type})'
         else:
-            self._id = id
+            self._name = name
 
         if type == 'huber':
             self._estimator = HuberRegressor(max_iter=1000)

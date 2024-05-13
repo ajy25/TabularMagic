@@ -44,9 +44,25 @@ def print_wrapped(text: str,
             base_message, 
             width=TOSTR_MAX_WIDTH, 
             subsequent_indent=indent_size,
-            drop_whitespace=False
+            drop_whitespace=True
         )
     )
 
+
+def list_to_string(lst):
+    """
+    Converts a Python list to a string representation with 
+    elements separated by commas.
+
+    Args:
+        lst (list): The input list to be converted to a string.
+
+    Returns:
+        str: A string representation of the input list with elements 
+        separated by commas.
+    """
+    # Join the string representations of each element in the list with a comma
+    string_repr = ", ".join(str(element) for element in lst)
+    return string_repr
 
 

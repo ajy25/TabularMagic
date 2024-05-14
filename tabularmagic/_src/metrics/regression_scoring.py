@@ -152,11 +152,12 @@ class RegressionScorer:
                         'Fold': i
                     }
                 )
-            self._cv_stats_df = cvdf.set_index(['Statistic', 'Fold'])
-            self._stats_df = pd.DataFrame(columns=[self._name])
-            for stat in cvdf['Statistic'].unique():
-                self._stats_df.loc[stat, self._name] = cvdf.loc[
-                    cvdf['Statistic'] == stat, self._name].mean()
+            self._cv_stats_df = cvdf.set_index(['Fold', 'Statistic'])
+            self._stats_df = cvdf.groupby(['Statistic'])[[self._name]].\
+                mean().reindex(
+                ['rmse', 'mad', 'pearsonr', 'spearmanr', 'r2', 'adjr2', 'n']
+            )
+
 
         else:
             raise ValueError('Input types for y_pred and y_true are invalid.')

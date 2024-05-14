@@ -55,7 +55,8 @@ def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray,
 
 
 
-def plot_roc_curve(y_pred: np.ndarray, y_true: np.ndarray, figsize: Iterable = (5, 5), ax: axes.Axes = None):
+def plot_roc_curve(y_pred: np.ndarray, y_true: np.ndarray, 
+                   figsize: Iterable = (5, 5), ax: axes.Axes = None):
     """Returns a figure that is the ROC curve for the model.
 
     Parameters

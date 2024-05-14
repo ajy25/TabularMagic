@@ -22,7 +22,7 @@ class LinearC(BaseClassification):
                  model_random_state: int = 42,
                  name: str = None, **kwargs):
         """
-        Initializes a LogisticRegressor object.
+        Initializes a LinearC object.
 
         Parameters
         ----------
@@ -54,7 +54,7 @@ class LinearC(BaseClassification):
         self._dropfirst = True
 
         if name is None:
-            self._name = f'LogisticRegressor({type})'
+            self._name = f'LinearC({type})'
         else:
             self._name = name
 

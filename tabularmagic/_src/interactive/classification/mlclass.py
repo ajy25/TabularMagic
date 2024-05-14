@@ -34,6 +34,7 @@ class SingleModelSingleDatasetMLClassReport:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
 
+
     def fit_statistics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics
         for the model on the specified data.
@@ -46,6 +47,21 @@ class SingleModelSingleDatasetMLClassReport:
             return self.model.train_scorer.stats_df()
         else:
             return self.model.test_scorer.stats_df()
+        
+
+    def fit_statistics_by_class(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the evaluation metrics
+        for the model on the specified data, broken down by class.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        if self._dataset == 'train':
+            return self.model.train_scorer.stats_by_class_df()
+        else:
+            return self.model.test_scorer.stats_by_class_df()
+
 
     def cv_fit_statistics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated evaluation metrics
@@ -60,6 +76,22 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             raise ValueError(
                 'Cross-validated statistics are not available for test data.')
+        
+
+    def cv_fit_statistics_by_class(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the cross-validated evaluation metrics
+        for the model on the specified data, broken down by class.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        if self._dataset == 'train':
+            return self.model.train_scorer.cv_stats_by_class_df()
+        else:
+            raise ValueError(
+                'Cross-validated statistics are not available for test data.')
+        
 
     def plot_roc_curve(self, figsize: Iterable = (5, 5),
                        ax: axes.Axes = None) -> figure.Figure:
@@ -224,6 +256,19 @@ class MLClassificationReport:
             return pd.concat([report.test_report().fit_statistics()
                               for report in self._id_to_report.values()],
                               axis=1)
+        
+    def cv_fit_statistics(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the evaluation metrics for
+        all models on the training data. Cross validation must have been 
+        specified; otherwise an error will be thrown.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        return pd.concat([report.train_report().cv_fit_statistics()
+                            for report in self._id_to_report.values()],
+                            axis=1)
 
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:

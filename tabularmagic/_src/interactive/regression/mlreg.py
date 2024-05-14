@@ -230,6 +230,19 @@ class MLRegressionReport:
             return pd.concat([report.test_report().fit_statistics() \
                               for report in self._id_to_report.values()], 
                               axis=1)
+        
+    def cv_fit_statistics(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the cross-validated goodness-of-fit 
+        statistics for all models on the training data. Cross validation must 
+        have been conducted.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        return pd.concat([report.train_report().cv_fit_statistics() \
+                          for report in self._id_to_report.values()], 
+                          axis=1)
 
     
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:

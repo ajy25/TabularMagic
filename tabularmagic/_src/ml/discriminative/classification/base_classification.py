@@ -71,12 +71,16 @@ class BaseClassification(BaseDiscriminativeModel):
             y_pred = self._estimator.predict(X_train)
 
             if hasattr(self._estimator, 'predict_proba'):
-                y_pred_scores = self._estimator.predict_proba(X_test)
+                y_pred_score = self._estimator.predict_proba(X_train)
+            elif hasattr(self._estimator, 'decision_function'):
+                y_pred_score = self._estimator.decision_function(X_train)
+
 
             self.train_scorer = ClassificationScorer(
                 y_pred=y_pred,
                 y_true=y_train,
-                y_pred_scores=y_pred_scores,
+                y_pred_score=y_pred_score,
+                y_pred_class_order=self._estimator.classes_,
                 name=str(self) + '_train'
             )
 
@@ -104,14 +108,19 @@ class BaseClassification(BaseDiscriminativeModel):
 
                 if hasattr(fold_estimator, 'predict_proba'):
                     y_pred_scores.append(fold_estimator.predict_proba(X_test))
+                elif hasattr(self._estimator, 'decision_function'):
+                    y_pred_scores.append(
+                        self._estimator.decision_function(X_test))
 
 
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
+
             self.train_scorer = ClassificationScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
-                y_pred_scores=y_pred_scores,
+                y_pred_score=y_pred_scores,
+                y_pred_class_order=fold_estimator.classes_,
                 name=str(self) + '_train_cv'
             )
 
@@ -122,11 +131,19 @@ class BaseClassification(BaseDiscriminativeModel):
             y_train = y_train_series.to_numpy()
             self._hyperparam_searcher.fit(X_train, y_train)
             self._estimator = self._hyperparam_searcher.best_estimator
+
+
             y_pred = self._estimator.predict(X_train)
+            if hasattr(fold_estimator, 'predict_proba'):
+                y_pred_score = fold_estimator.predict_proba(X_train)
+            elif hasattr(self._estimator, 'decision_function'):
+                y_pred_score = self._estimator.decision_function(X_train)
 
             self.train_overall_scorer = ClassificationScorer(
                 y_pred=y_pred,
                 y_true=y_train,
+                y_pred_score=y_pred_score,
+                y_pred_class_order=self._estimator.classes_,
                 name=str(self) + '_train_no_cv'
             )
 
@@ -142,14 +159,17 @@ class BaseClassification(BaseDiscriminativeModel):
         y_pred = self._estimator.predict(X_test)
 
 
-        y_pred_scores = None
+        y_pred_score = None
         if hasattr(self._estimator, 'predict_proba'):
-            y_pred_scores = self._estimator.predict_proba(X_test)
+            y_pred_score = self._estimator.predict_proba(X_test)
+        elif hasattr(self._estimator, 'decision_function'):
+            y_pred_score = self._estimator.decision_function(X_test)
 
         self.test_scorer = ClassificationScorer(
             y_pred=y_pred,
             y_true=y_test,
-            y_pred_scores=y_pred_scores,
+            y_pred_score=y_pred_score,
+            y_pred_class_order=self._estimator.classes_,
             name=str(self) + '_test'
         )
 

@@ -1,12 +1,13 @@
 from typing import Literal
-from textwrap import fill
+import textwrap
 from .constants import TOSTR_MAX_WIDTH
-
+import re
 
 
 
 def color_text(text, color: Literal['red', 'blue', 'green', 'yellow', 
                 'purple', 'none']):
+    return text
     if color == 'none':
         return text
     elif color == 'red':
@@ -40,16 +41,15 @@ def print_wrapped(text: str,
         indent_size = ' '*len('INFO: ')
 
     print(
-        fill(
+        textwrap.fill(
             base_message, 
-            width=TOSTR_MAX_WIDTH, 
-            subsequent_indent=indent_size,
-            drop_whitespace=True
+            width=TOSTR_MAX_WIDTH
         )
     )
 
 
-def list_to_string(lst):
+def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow', 
+                'purple', 'none'] = 'none'):
     """
     Converts a Python list to a string representation with 
     elements separated by commas.
@@ -62,7 +62,54 @@ def list_to_string(lst):
         separated by commas.
     """
     # Join the string representations of each element in the list with a comma
-    string_repr = ", ".join(str(element) for element in lst)
-    return string_repr
+    
+    msg = ''
+    for i, elem in enumerate(lst):
+        if i == len(lst) - 1:
+            msg += f'{color_text(elem, color)}'
+        else:
+            msg += f'{color_text(elem, color)}, '
+    return msg
 
 
+
+
+import re
+import textwrap
+
+def fill_ignore_color(text, width=70, **kwargs):
+    """
+    Wrap text, ignoring ANSI escape sequences when computing line length.
+
+    :param text: The text to wrap
+    :param width: The maximum width of each line
+    :param kwargs: Additional keyword arguments passed to `textwrap.fill`
+    :return: The wrapped text
+    """
+    # Remove ANSI escape sequences from the text
+    ansi_escape_sequences = r'\033\[(\d+m)'
+    text_no_ansi = re.sub(ansi_escape_sequences, '', text)
+
+    # Compute the wrapped text, using the text without ANSI escape sequences
+    wrapped_text = textwrap.fill(text_no_ansi, width=width, **kwargs)
+
+    # Replace the original text (with ANSI escape sequences) into the wrapped text
+    lines = wrapped_text.split('\n')
+    wrapped_lines = []
+    for line in lines:
+        ansi_sequences = re.finditer(ansi_escape_sequences, text)
+        ansi_positions = [(m.start(), m.end()) for m in ansi_sequences]
+        ansi_positions.sort(reverse=True)
+
+        line_with_ansi = ''
+        last_pos = 0
+        for pos, end in ansi_positions:
+            line_with_ansi += text[last_pos:pos]
+            line_with_ansi += text[pos:end]
+            last_pos = end
+        line_with_ansi += text[last_pos:]
+
+        wrapped_lines.append(line_with_ansi)
+    wrapped_text = '\n'.join(wrapped_lines)
+
+    return wrapped_text

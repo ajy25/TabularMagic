@@ -1,12 +1,12 @@
 import pandas as pd
 import math
 from typing import Literal
-from textwrap import fill
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
 from sklearn.utils._testing import ignore_warnings
-from ..util.console import print_wrapped, color_text, list_to_string
+from ..util.console import (print_wrapped, color_text, list_to_string)
+import textwrap
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
 from ..util.constants import TOSTR_MAX_WIDTH
@@ -988,42 +988,39 @@ class DataHandler:
             (max_width - textlen_shapes) / 2)
 
 
-        shapes_message = color_text('Train shape: ', 'yellow') +\
+        shapes_message = color_text('Train shape: ', 'none') +\
             f'{working_df_train.shape}'+ \
             ' '*shapes_message_buffer_left +\
-            color_text('Test shape: ', 'yellow') + \
+            color_text('Test shape: ', 'none') + \
             f'{working_df_test.shape}'  + \
             ' '*shapes_message_buffer_right
 
 
-        title_message = color_text(self._name, 'yellow')
-        title_message = fill(title_message, width=max_width)
+        title_message = color_text(self._name, 'none')
+        title_message = textwrap.fill(title_message, width=max_width)
         
-        categorical_var_message = color_text('Categorical variables:', 'yellow')
+        categorical_var_message = color_text('Categorical variables:', 'none')
         if len(self.categorical_vars()) == 0:
-            categorical_var_message += color_text(
-                ' None', 'blue')
-        for i, var in enumerate(self.categorical_vars()):
-            categorical_var_message += f' {var}'
-            if i < len(self.categorical_vars()) - 1:
-                categorical_var_message += ','
-        categorical_var_message = fill(categorical_var_message, 
-                                       drop_whitespace=False, width=max_width)
+            categorical_var_message += ' ' + color_text('None', 'yellow')
+        else:
+            categorical_var_message += ' ' + \
+                list_to_string(self.categorical_vars(), 'blue')
+        categorical_var_message = textwrap.fill(categorical_var_message, 
+            width=max_width)
 
-        continuous_var_message = color_text('Continuous variables:', 'yellow')
+        continuous_var_message = color_text('Continuous variables:', 'none')
         if len(self.continuous_vars()) == 0:
-            continuous_var_message += color_text(
-                ' None', 'blue')
-        for i, var in enumerate(self.continuous_vars()):
-            continuous_var_message += f' {var}'
-            if i < len(self.continuous_vars()) - 1:
-                continuous_var_message += ','
-        continuous_var_message = fill(continuous_var_message, width=max_width)
+            continuous_var_message += ' ' + color_text('None', 'yellow')
+        else:
+            continuous_var_message += ' ' + \
+                list_to_string(self.continuous_vars(), 'blue')
+        continuous_var_message = textwrap.fill(
+            continuous_var_message, width=max_width)
 
-        bottom_divider = '\n' + color_text('='*max_width, 'purple')
-        divider = '\n' + color_text('-'*max_width, 'purple') + '\n'
+        bottom_divider = '\n' + color_text('='*max_width, 'none')
+        divider = '\n' + color_text('-'*max_width, 'none') + '\n'
         divider_invisible = '\n' + ' '*max_width + '\n'
-        top_divider = color_text('='*max_width, 'purple') + '\n'
+        top_divider = color_text('='*max_width, 'none') + '\n'
 
         final_message = top_divider + title_message + divider +\
             shapes_message + divider + categorical_var_message +\

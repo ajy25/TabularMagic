@@ -641,6 +641,26 @@ class LinearRegressionReport:
         - OrdinaryLeastSquares
         """
         return self._model
+    
+
+    def fit_statistics(self, dataset: Literal['train', 'test'] = 'test') -> \
+            pd.DataFrame:
+        """Returns a DataFrame containing the goodness-of-fit statistics
+        for the model.
+
+        Parameters
+        ----------
+        - dataset : Literal['train', 'test'].
+            Default is 'test'.
+
+        Returns
+        -------
+        - pd.DataFrame
+        """
+        if dataset == 'train':
+            return self._train_report.fit_statistics()
+        else:
+            return self._test_report.fit_statistics()
  
 
     def statsmodels_summary(self):

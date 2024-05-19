@@ -1,13 +1,10 @@
 from typing import Literal
-import textwrap
 from .constants import TOSTR_MAX_WIDTH
-import re
 
 
 
 def color_text(text, color: Literal['red', 'blue', 'green', 'yellow', 
                 'purple', 'none']):
-    return text
     if color == 'none':
         return text
     elif color == 'red':
@@ -32,24 +29,24 @@ def print_wrapped(text: str,
     - type : Literal['WARNING', 'UPDATE', None].
     """
     base_message = text
-    indent_size='    '
     if type == 'WARNING':
         base_message = color_text('WARN: ', 'red') + base_message
-        indent_size = ' '*len('WARN: ')
     elif type == 'UPDATE':
         base_message = color_text('INFO: ', 'green') + base_message
-        indent_size = ' '*len('INFO: ')
 
     print(
-        textwrap.fill(
+        fill_ignore_color(
             base_message, 
             width=TOSTR_MAX_WIDTH
         )
     )
 
 
+
+
+
 def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow', 
-                'purple', 'none'] = 'none'):
+                'purple', 'none'] = 'purple'):
     """
     Converts a Python list to a string representation with 
     elements separated by commas.
@@ -73,43 +70,53 @@ def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow',
 
 
 
+def len_ignore_color(text: str):
+    """Returns the length of a string without color codes."""
+    base_len = len(text)
+    if '\033[91m' in text:
+        base_len -= 5
+    if '\033[92m' in text:
+        base_len -= 5
+    if '\033[93m' in text:
+        base_len -= 5
+    if '\033[94m' in text:
+        base_len -= 5
+    if '\033[95m' in text:
+        base_len -= 5
+    if '\033[0m' in text:
+        base_len -= 4
+    return base_len
 
-import re
-import textwrap
 
-def fill_ignore_color(text, width=70, **kwargs):
+def fill_ignore_color(text: str, width: int = TOSTR_MAX_WIDTH, 
+                      initial_indent: int = 0,
+                      subsequent_indent: int = 6):
+    """Wraps text to a max width of TOSTR_MAX_WIDTH. Text must NOT 
+    contain any newline characters.
+
+    Parameters
+    ----------
+    - text : str.
     """
-    Wrap text, ignoring ANSI escape sequences when computing line length.
+    if '\n' in text:
+        raise ValueError('Text must not contain newline characters.')
 
-    :param text: The text to wrap
-    :param width: The maximum width of each line
-    :param kwargs: Additional keyword arguments passed to `textwrap.fill`
-    :return: The wrapped text
-    """
-    # Remove ANSI escape sequences from the text
-    ansi_escape_sequences = r'\033\[(\d+m)'
-    text_no_ansi = re.sub(ansi_escape_sequences, '', text)
+    text_split = text.split(' ')
+    newstr = ''
 
-    # Compute the wrapped text, using the text without ANSI escape sequences
-    wrapped_text = textwrap.fill(text_no_ansi, width=width, **kwargs)
+    newstr += ' ' * initial_indent
+    line_length = initial_indent
 
-    # Replace the original text (with ANSI escape sequences) into the wrapped text
-    lines = wrapped_text.split('\n')
-    wrapped_lines = []
-    for line in lines:
-        ansi_sequences = re.finditer(ansi_escape_sequences, text)
-        ansi_positions = [(m.start(), m.end()) for m in ansi_sequences]
-        ansi_positions.sort(reverse=True)
+    for word in text_split:
+        if line_length + len_ignore_color(word) > width:
+            newstr += '\n'
+            newstr += ' ' * subsequent_indent
+            line_length = subsequent_indent
+        newstr += word + ' '
+        line_length += len_ignore_color(word) + 1
 
-        line_with_ansi = ''
-        last_pos = 0
-        for pos, end in ansi_positions:
-            line_with_ansi += text[last_pos:pos]
-            line_with_ansi += text[pos:end]
-            last_pos = end
-        line_with_ansi += text[last_pos:]
+    return newstr
 
-        wrapped_lines.append(line_with_ansi)
-    wrapped_text = '\n'.join(wrapped_lines)
 
-    return wrapped_text
+
+

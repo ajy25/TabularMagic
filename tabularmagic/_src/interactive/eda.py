@@ -333,10 +333,16 @@ class ComprehensiveEDA():
 
 
 
-    def plot_distribution_stratified(self, continuous_var: str, 
-        stratify_by: str, include_hist: bool = False, 
-        figsize : Iterable = (5, 5), 
-        ax: axes.Axes = None):
+    def plot_distribution_stratified(self, 
+            continuous_var: str, 
+            stratify_by: str, 
+            strategy: Literal['stacked_kde_density', 
+                              'stacked_hist_kde_density', 
+                              'stacked_hist_kde_frequency',
+                              'violin', 
+                              'violin_swarm', 'box_swarm', 'box'],
+            figsize : Iterable = (5, 5), 
+            ax: axes.Axes = None):
         """Plots the distributions (density) of a given continuous variable 
         stratified by a categorical variable. Note that NaNs will be dropped, 
         which may yield different ranges for different 
@@ -346,8 +352,10 @@ class ComprehensiveEDA():
         ----------
         - continuous_var : str. Continuous variable of interest.
         - stratify_by : str. 
-        - include_hist: bool. If True, includes the histograms in addition to 
-            the KDE plots. 
+        - strategy : Literal['stacked_kde_density', 
+                            'stacked_hist_kde_frequency', 
+                              'violin', 'stacked_hist_kde_density',
+                              'violin_swarm', 'box_swarm', 'box'].
         - figsize : Iterable.
         - ax : axes.Axes. If not None, does not return a figure; plots the 
             plot directly onto the input axes.Axes. 
@@ -362,19 +370,75 @@ class ComprehensiveEDA():
 
         local_df = self.df[[continuous_var, stratify_by]].dropna()
 
-        for i, category in enumerate(local_df[stratify_by].unique()):
-            subset = local_df[local_df[stratify_by] == category]
-            if include_hist:
-                sns.histplot(subset[continuous_var], bins='auto', kde=True, 
-                            label=str(category), alpha=0.2, stat='density', 
-                            ax=ax, color=sns.color_palette()[i], 
-                            edgecolor='none')
-            else:
-                sns.kdeplot(subset[continuous_var], label=str(category), ax=ax)
 
-        legend = ax.legend()
-        legend.set_title(stratify_by)
-        ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
+        if strategy in ['stacked_hist_kde_frequency', 
+                        'stacked_hist_kde_density', 
+                        'stacked_kde_density']:
+            for i, category in enumerate(local_df[stratify_by].unique()):
+                subset = local_df[local_df[stratify_by] == category]
+                if strategy == 'stacked_hist_density':
+                    sns.histplot(subset[continuous_var], bins='auto', kde=True, 
+                                label=str(category), alpha=0.2, stat='density', 
+                                ax=ax, color=sns.color_palette()[i], 
+                                edgecolor='none')
+                elif strategy == 'stacked_hist_frequency':
+                    sns.histplot(subset[continuous_var], bins='auto', kde=True, 
+                                label=str(category), alpha=0.2, 
+                                stat='frequency', 
+                                ax=ax, color=sns.color_palette()[i], 
+                                edgecolor='none')
+                else:
+                    sns.kdeplot(subset[continuous_var], 
+                                label=str(category), ax=ax)
+
+                    
+            legend = ax.legend()
+            legend.set_title(stratify_by)
+
+            ax.ticklabel_format(style='sci', axis='x', scilimits=(-3, 3))
+
+
+        elif strategy == 'violin_swarm':
+            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+                           ax=ax, color='black', edgecolor='none', alpha=0.2)
+            sns.swarmplot(data=local_df, x=stratify_by, y=continuous_var, 
+                color='black', size=2, ax=ax)
+            
+            
+        elif strategy == 'violin':
+            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+                           ax=ax, color='black', edgecolor='none', alpha=0.2)
+            
+        elif strategy == 'violin_strip':
+            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+                           ax=ax, color='black', edgecolor='none', alpha=0.2)
+            sns.stripplot(data=local_df, x=stratify_by, y=continuous_var, 
+                color='black', size=2, ax=ax)
+            
+
+        elif strategy == 'box_swarm':
+            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+                        ax=ax, color='black', fill=False, linewidth=0.5)
+            sns.swarmplot(data=local_df, x=stratify_by, y=continuous_var, 
+                color='black', size=2, ax=ax)
+            
+        elif strategy == 'box_strip':
+            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+                        ax=ax, color='black', fill=False, linewidth=0.5)
+            sns.stripplot(data=local_df, x=stratify_by, y=continuous_var, 
+                color='black', size=2, ax=ax)
+            
+        elif strategy == 'box':
+            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+                        ax=ax, color='black', fill=False, linewidth=0.5)
+            
+        
+        else:
+            raise ValueError(f'Invalid input: {strategy}.')
+            
+
+
+        ax.ticklabel_format(style='sci', axis='y', scilimits=(-3, 3))
         ax.set_title(f'Distribution of {continuous_var}')
 
         if fig is not None:

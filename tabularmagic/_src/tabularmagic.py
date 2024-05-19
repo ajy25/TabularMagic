@@ -91,7 +91,7 @@ class TabularMagic:
         if self._verbose:
             shapes_dict = self._datahandler.shapes()
             print_wrapped(
-                'TabularMagic initialization complete. ' +\
+                'Initialization complete. ' +\
                 'Shapes of train, test datasets: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'

@@ -209,14 +209,15 @@ class MLRegressionReport:
         return self._id_to_model[model_id]
     
 
-    def fit_statistics(self,
-                       dataset: Literal['train', 'test']) -> pd.DataFrame:
+    def fit_statistics(self, dataset: Literal['train', 'test'] = 'test') -> \
+            pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics for 
         all models on the specified data.
         
         Parameters
         ----------
         - dataset : Literal['train', 'test'].
+            Default is 'test'.
 
         Returns
         -------

@@ -5,8 +5,8 @@ from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
 from sklearn.utils._testing import ignore_warnings
-from ..util.console import (print_wrapped, color_text, list_to_string)
-import textwrap
+from ..util.console import (print_wrapped, color_text, list_to_string, 
+                            fill_ignore_color)
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
 from ..util.constants import TOSTR_MAX_WIDTH
@@ -170,7 +170,7 @@ class DataHandler:
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
         self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars()
+            self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self.shapes()
             print_wrapped(
@@ -201,6 +201,7 @@ class DataHandler:
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                 type='UPDATE'
             )
+
 
     def drop_train_examples(self, indices: list):
         """Drops subset of examples (rows) in-place on the working train 
@@ -593,6 +594,10 @@ class DataHandler:
         Parameters
         ----------
         - vars : list[str]
+
+        Returns
+        -------
+        - self : DataHandler
         """
         self._working_df_train[vars] =\
             self._working_df_train[vars].astype('str')
@@ -605,6 +610,7 @@ class DataHandler:
             )
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars(self._working_df_train)
+        return self
         
 
 
@@ -778,33 +784,37 @@ class DataHandler:
         categorical_vars = self.categorical_vars(ignore_yvar=ignore_yvar)
 
         # impute continuous variables
-        if continuous_strategy == '5nn':
-            imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
-        else:
-            imputer = SimpleImputer(strategy=continuous_strategy, 
-                                    keep_empty_features=True)
-        self._working_df_train[continuous_vars] =\
-            imputer.fit_transform(self._working_df_train[continuous_vars])
-        self._working_df_test[continuous_vars] =\
-            imputer.transform(self._working_df_test[continuous_vars])
+        if len(categorical_vars) == 0:
+            if continuous_strategy == '5nn':
+                imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
+            else:
+                imputer = SimpleImputer(strategy=continuous_strategy, 
+                                        keep_empty_features=True)
+            self._working_df_train[continuous_vars] =\
+                imputer.fit_transform(self._working_df_train[continuous_vars])
+            self._working_df_test[continuous_vars] =\
+                imputer.transform(self._working_df_test[continuous_vars])
         
         # impute categorical variables
-        imputer = SimpleImputer(strategy=categorical_strategy, 
-                                keep_empty_features=True)
-        self._working_df_train[categorical_vars] =\
-            imputer.fit_transform(
-                self._working_df_train[categorical_vars])
-        self._working_df_test[categorical_vars] =\
-            imputer.transform(self._working_df_test[categorical_vars])
-        
-        if self._verbose:
-            print_wrapped(
-                'Imputed missing values with ' +\
-                f'continuous strategy "{continuous_strategy}", ' +\
-                f'categorical strategy "{categorical_strategy}".',
-                type='UPDATE'
-            )
+        if len(continuous_vars) == 0:
+            imputer = SimpleImputer(strategy=categorical_strategy, 
+                                    keep_empty_features=True)
+            self._working_df_train[categorical_vars] =\
+                imputer.fit_transform(
+                    self._working_df_train[categorical_vars])
+            self._working_df_test[categorical_vars] =\
+                imputer.transform(self._working_df_test[categorical_vars])
+            
+            if self._verbose:
+                print_wrapped(
+                    'Imputed missing values with ' +\
+                    f'continuous strategy "{continuous_strategy}", ' +\
+                    f'categorical strategy "{categorical_strategy}".',
+                    type='UPDATE'
+                )
+
         return self
+
 
 
     def scale(self, vars: list[str] = None, 
@@ -997,25 +1007,27 @@ class DataHandler:
 
 
         title_message = color_text(self._name, 'none')
-        title_message = textwrap.fill(title_message, width=max_width)
+        title_message = fill_ignore_color(title_message, width=max_width)
         
-        categorical_var_message = color_text('Categorical variables:', 'none')
-        if len(self.categorical_vars()) == 0:
-            categorical_var_message += ' ' + color_text('None', 'yellow')
-        else:
-            categorical_var_message += ' ' + \
-                list_to_string(self.categorical_vars(), 'blue')
-        categorical_var_message = textwrap.fill(categorical_var_message, 
-            width=max_width)
 
-        continuous_var_message = color_text('Continuous variables:', 'none')
-        if len(self.continuous_vars()) == 0:
-            continuous_var_message += ' ' + color_text('None', 'yellow')
+        categorical_message = color_text('Categorical variables:\n', 'none')
+        categorical_var_message = ''
+        if len(self.categorical_vars()) == 0:
+            categorical_var_message += color_text('None', 'yellow')
         else:
-            continuous_var_message += ' ' + \
-                list_to_string(self.continuous_vars(), 'blue')
-        continuous_var_message = textwrap.fill(
-            continuous_var_message, width=max_width)
+            categorical_var_message += list_to_string(self.categorical_vars())
+        categorical_var_message = fill_ignore_color(categorical_var_message, 
+            width=max_width, initial_indent=2, subsequent_indent=2)
+
+        continuous_message = color_text('Continuous variables:\n', 'none')
+        continuous_var_message = ''
+        if len(self.continuous_vars()) == 0:
+            continuous_var_message += color_text('None', 'yellow')
+        else:
+            continuous_var_message += list_to_string(self.continuous_vars())
+        continuous_var_message = fill_ignore_color(
+            continuous_var_message, width=max_width, 
+            initial_indent=2, subsequent_indent=2)
 
         bottom_divider = '\n' + color_text('='*max_width, 'none')
         divider = '\n' + color_text('-'*max_width, 'none') + '\n'
@@ -1023,12 +1035,16 @@ class DataHandler:
         top_divider = color_text('='*max_width, 'none') + '\n'
 
         final_message = top_divider + title_message + divider +\
-            shapes_message + divider + categorical_var_message +\
-            divider_invisible + continuous_var_message + bottom_divider
+            shapes_message + divider + categorical_message +\
+            categorical_var_message + divider_invisible + continuous_message +\
+            continuous_var_message + bottom_divider
         
         return final_message
 
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
+
+
+
 

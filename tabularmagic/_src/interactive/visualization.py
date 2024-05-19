@@ -1,9 +1,13 @@
 import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 import numpy as np
+import seaborn as sns
 from typing import Iterable
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
+
+
+sns.set_theme()
 
 
 

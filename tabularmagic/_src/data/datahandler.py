@@ -85,6 +85,10 @@ class DataHandler:
         - checkpoint : str. 
             Default: None. If None, sets the working datasets to the original 
             datasets given at object initialization. 
+
+        Returns
+        -------
+        - self : DataHandler
         """
         if checkpoint is None:
             self._working_df_test = self._orig_df_test.copy()
@@ -118,6 +122,8 @@ class DataHandler:
                 )
         self._categorical_vars, self._continuous_vars =\
             self._compute_categorical_continuous_vars(self._working_df_train)
+        
+        return self
 
 
     def save_data_checkpoint(self, checkpoint: str):
@@ -128,6 +134,10 @@ class DataHandler:
         Parameters
         ----------
         - checkpoint : str. 
+
+        Returns
+        -------
+        - self : DataHandler
         """
         if self._verbose:
             print_wrapped(
@@ -140,6 +150,8 @@ class DataHandler:
             self._continuous_var_to_scaler.copy()
         )
 
+        return self
+
 
     def remove_data_checkpoint(self, checkpoint: str):
         """Removes a saved checkpoint to conserve memory.
@@ -147,6 +159,10 @@ class DataHandler:
         Parameters
         ----------
         - checkpoint : str. 
+
+        Returns
+        -------
+        - self : DataHandler
         """
         out_chkpt = self._checkpoint_name_to_df.pop(checkpoint)
         if self._verbose:
@@ -154,6 +170,8 @@ class DataHandler:
                 f'Removed working dataset checkpoint "{out_chkpt}".',
                 type='UPDATE'
             )
+
+        return self
 
 
     # --------------------------------------------------------------------------
@@ -599,6 +617,8 @@ class DataHandler:
         -------
         - self : DataHandler
         """
+        if not isinstance(vars, list):
+            vars = [vars]
         self._working_df_train[vars] =\
             self._working_df_train[vars].astype('str')
         self._working_df_test[vars] =\

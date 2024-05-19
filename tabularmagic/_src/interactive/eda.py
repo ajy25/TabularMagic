@@ -87,6 +87,19 @@ class CategoricalEDA:
             fig.tight_layout()
             plt.close()
         return fig
+    
+    def counts(self) -> pd.Series:
+        """Returns the counts of each category in the variable.
+        
+        Parameters
+        ----------
+        - var : str.
+
+        Returns
+        -------
+        - pd.Series
+        """
+        return self._var_series.value_counts(normalize=False)
 
 
 class ContinuousEDA():
@@ -686,6 +699,26 @@ class ComprehensiveEDA():
         return self._continuous_summary_statistics
 
 
+
+
+    def specific(self, var: str) -> CategoricalEDA | ContinuousEDA:
+        """Returns either a CategoricalEDA or ContinuousEDA object.
+        
+        Parameters
+        ----------
+        - var : str.
+
+        Returns
+        -------
+        - CategoricalEDA | ContinuousEDA
+        """
+        if var in self._categorical_vars:
+            return self._categorical_eda_dict[var]
+        elif var in self._continuous_vars:
+            return self._continuous_eda_dict[var]
+        else:
+            raise ValueError(f'Invalid input: {var}. ' + \
+                             'Must be a known variable in the input df.')
 
 
 

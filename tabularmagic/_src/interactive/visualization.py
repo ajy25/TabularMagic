@@ -7,7 +7,7 @@ from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
 
 
-sns.set_theme()
+# sns.set_theme()
 
 
 

@@ -113,7 +113,9 @@ class StatisticalTestResult:
         return final_message
 
 
-        
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+
 
 
 

@@ -81,8 +81,8 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
     """
 
     # efficient multiplication checker for most cases
-    if '*' in expression and check_all_parentheses(expression.split('*')):
-        expression_split = expression.split('*')
+    if ':' in expression and check_all_parentheses(expression.split(':')):
+        expression_split = expression.split(':')
         dfs_to_multiply = []
         for subexpression in expression_split:
             temp_df: pd.DataFrame =\
@@ -98,7 +98,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
                 first_df.columns.to_list(), last_df.columns.to_list()))
             output_temp = dict()
             for var_a, var_b in cartesian_product:
-                output_temp[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
+                output_temp[f'{var_a}:{var_b}'] = first_df[var_a].to_numpy() * \
                     last_df[var_b].to_numpy()
             output = pd.DataFrame(output_temp, index=df.index)
         return output
@@ -151,11 +151,11 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
     
     # a less efficient multiplication-handling scheme for edge cases, only  
     # reaches this point if a transformation is being applied to first term
-    elif '*' in expression:
-        expression_split = expression.split('*')
+    elif ':' in expression:
+        expression_split = expression.split(':')
         for right_cutoff in range(1, len(expression_split)):
-            left_subexpression = '*'.join(expression_split[:right_cutoff])
-            right_subexpression = '*'.join(expression_split[right_cutoff:])
+            left_subexpression = ':'.join(expression_split[:right_cutoff])
+            right_subexpression = ':'.join(expression_split[right_cutoff:])
             if not check_all_parentheses(
                 [left_subexpression, right_subexpression]):
                 continue
@@ -168,7 +168,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
                                   last_df.columns.to_list()))
             output = dict()
             for var_a, var_b in cartesian_product:
-                output[f'{var_a}*{var_b}'] = first_df[var_a].to_numpy() * \
+                output[f'{var_a}:{var_b}'] = first_df[var_a].to_numpy() * \
                     last_df[var_b].to_numpy()
             return pd.DataFrame(output, index=df.index)
         raise ValueError('Error in formula when parsing poly().')
@@ -189,7 +189,8 @@ def parse_and_transform_rlike(formula: str, df: pd.DataFrame):
     Works for the following transformations:
     1. log()
     2. poly()
-    3. interactions
+    3. boxcox()
+    4. interactions (:)
 
     Parameters
     ----------

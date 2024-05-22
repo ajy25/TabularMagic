@@ -9,14 +9,17 @@ from sklearn.base import BaseEstimator
 import pandas as pd
 from typing import Literal
 
+from ..data.datahandler import DataHandler
 
-class RegressionBaseSelector():
+
+
+class BaseFeatureSelectorR():
     """A feature selection class.
     """
 
-    def __init__(self, nickname: str = None):
+    def __init__(self, name: str = None):
         """
-        Constructs a RegressionBaseSelector.
+        Constructs a BaseFeatureSelectorR.
 
         Parameters
         ----------
@@ -26,23 +29,23 @@ class RegressionBaseSelector():
         -------
         - None
         """
-        self.nickname = nickname
+        self._name = name
 
 
-    def select(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
+    def select(self, 
+               datahandler: DataHandler,
                n_target_features: int):
         """
-        Selects the top n_target_features features.
+        Selects the top n_target_features features 
+        based on the training data.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - X_vars : list[str].
-            A list of features to look through. 
-        - y_var : str.
-            The variable to be predicted.
+        - datahandler : DataHandler.
+            Copy will NOT be made.
+            The X and y variables must already be specified.
         - n_target_features : int. 
-            Number of desired features, < len(X_vars).
+            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -55,21 +58,21 @@ class RegressionBaseSelector():
 
 
     def __str__(self):
-        return self.nickname
+        return self._name
 
 
 
 
 
-class KBestSelectorR(RegressionBaseSelector):
+class KBestSelectorR(BaseFeatureSelectorR):
     """Selects the k best features based on the f_regression or mutual info 
     regression score.
     """
 
     def __init__(self, scorer: Literal['f_regression', 'r_regression',
-            'mutual_info_regression'], nickname: str = None):
+            'mutual_info_regression'], name: str = None):
         """
-        Constructs a RegressionBaseSelector.
+        Constructs a KBestSelectorR.
 
         Parameters
         ----------
@@ -82,26 +85,26 @@ class KBestSelectorR(RegressionBaseSelector):
         -------
         - None
         """
-        super().__init__(nickname)
-        if self.nickname is None:
-            self.nickname = f'KBestSelector({scorer})'
+        super().__init__(name)
+        if self._name is None:
+            self._name = f'KBestSelector({scorer})'
         self.scorer = scorer
 
 
-    def select(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
+    def select(self, 
+               datahandler: DataHandler,
                n_target_features: int):
         """
-        Selects the top n_target_features features.
+        Selects the top n_target_features features
+        based on the training data.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - X_vars : list[str].
-            A list of features to look through. 
-        - y_var : str.
-            The variable to be predicted.
+        - datahandler : DataHandler.
+            Copy will NOT be made.
+            The X and y variables must already be specified.
         - n_target_features : int. 
-            Number of desired features, < len(X_vars).
+            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -118,10 +121,14 @@ class KBestSelectorR(RegressionBaseSelector):
         elif self.scorer == 'r_regression':
             scorer = r_regression
         selector = SelectKBest(scorer, k=n_target_features)
+
+        X_train, y_train = datahandler.df_train_split()
+
         selector.fit(
-            X=df[X_vars],
-            y=df[y_var]
+            X=X_train,
+            y=y_train
         )
+
         self.selected_features = selector.get_feature_names_out()
         self.all_feature_scores = selector.scores_
         self.support = selector.get_support()
@@ -131,15 +138,15 @@ class KBestSelectorR(RegressionBaseSelector):
 
 
 
-class SimpleLinearSelectorR(RegressionBaseSelector):
+class SimpleLinearSelectorR(BaseFeatureSelectorR):
     """Selects the (at most) k best features via Lasso regression model-inherent 
-    feature selection.
+    feature selection based on the training data.
     """
 
     def __init__(self, regularization_type: Literal[None, 'l1', 'l2'] = None, 
-                 alpha = 0.0, nickname: str = None):
+                 alpha = 0.0, name: str = None):
         """
-        Constructs an SimpleLinearSelector.
+        Constructs a SimpleLinearSelectorR.
 
         Parameters
         ----------
@@ -153,9 +160,9 @@ class SimpleLinearSelectorR(RegressionBaseSelector):
         -------
         - None
         """
-        super().__init__(nickname)
-        if self.nickname is None:
-            self.nickname = f'LinearSelector({regularization_type}, {alpha})'
+        super().__init__(name)
+        if self._name is None:
+            self._name = f'LinearSelector({regularization_type}, {alpha})'
         if regularization_type == 'l1':
             self.model = Lasso(alpha=alpha)
         elif regularization_type == 'l2':
@@ -166,20 +173,20 @@ class SimpleLinearSelectorR(RegressionBaseSelector):
             raise ValueError(f'Invalid input: regularization_type = ' + \
                              f'{regularization_type}')
 
-    def select(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
+    def select(self, 
+               datahandler: DataHandler,
                n_target_features: int):
         """
-        Selects (at maximum) the top n_target_features features.
+        Selects the (at most) top n_target_features features
+        based on the training data.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - X_vars : list[str].
-            A list of features to look through. 
-        - y_var : str.
-            The variable to be predicted.
+        - datahandler : DataHandler.
+            Copy will NOT be made.
+            The X and y variables must already be specified.
         - n_target_features : int. 
-            Number of desired features, < len(X_vars).
+            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -188,32 +195,35 @@ class SimpleLinearSelectorR(RegressionBaseSelector):
         - np array ~ (n_features).
             Boolean mask.
         """
+        X_train, y_train = datahandler.df_train_split()
+
         self.model.fit(
-            X=df[X_vars].to_numpy(),
-            y=df[y_var].to_numpy()
+            X=X_train.to_numpy(),
+            y=y_train.to_numpy()
         )
         selector = SelectFromModel(estimator=self.model, prefit=True, 
             max_features=n_target_features)
         selector.fit(
-            X=df[X_vars],
-            y=df[y_var]
+            X=X_train,
+            y=y_train
         )
+
         self.selected_features = selector.get_feature_names_out()
         self.support = selector.get_support()
         return self.selected_features, self.support
     
 
 
-class RFESelectorR(RegressionBaseSelector):
+class RFESelectorR(BaseFeatureSelectorR):
     """Selects the k best features via L1-based 
-    recursive feature elimination.
+    recursive feature elimination based on the training data.
     """
 
     def __init__(self, model: Literal['ols', 'l1', 'l2', 'decision_tree', 
                     'svm', 'random_forest'] | BaseEstimator, 
-                 nickname: str = None):
+                 name: str = None):
         """
-        Constructs an RFESelector. 
+        Constructs a RFESelectorR. 
 
         Parameters
         ----------
@@ -225,9 +235,9 @@ class RFESelectorR(RegressionBaseSelector):
         -------
         - None
         """
-        super().__init__(nickname)
-        if self.nickname is None:
-            self.nickname = f"RFESelector({model})"
+        super().__init__(name)
+        if self._name is None:
+            self._name = f"RFESelector({model})"
         if isinstance(model, str):
             if model == 'ols':
                 self.model = LinearRegression()
@@ -247,20 +257,20 @@ class RFESelectorR(RegressionBaseSelector):
             raise ValueError('Invalid input: model.')
 
 
-    def select(self, df: pd.DataFrame, X_vars: list[str], y_var: str, 
+    def select(self, 
+               datahandler: DataHandler,
                n_target_features: int):
         """
-        Selects (at maximum) the top n_target_features features.
+        Selects (at maximum) the top n_target_features features
+        based on the training data.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - X_vars : list[str].
-            A list of features to look through. 
-        - y_var : str.
-            The variable to be predicted.
+        - datahandler : DataHandler.
+            Copy will NOT be made.
+            The X and y variables must already be specified.
         - n_target_features : int. 
-            Number of desired features, < len(X_vars).
+            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -269,11 +279,13 @@ class RFESelectorR(RegressionBaseSelector):
         - np array ~ (n_features).
             Boolean mask.
         """
+        X_train, y_train = datahandler.df_train_split()
+
         selector = RFE(estimator=self.model, 
                        n_features_to_select=n_target_features)
         selector.fit(
-            X=df[X_vars],
-            y=df[y_var]
+            X=X_train,
+            y=y_train
         )
         self.selected_features = selector.get_feature_names_out()
         self.support = selector.get_support()

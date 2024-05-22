@@ -166,8 +166,6 @@ class MLClassificationReport:
 
     def __init__(self, models: Iterable[BaseClassification],
                  datahandler: DataHandler,
-                 y_var: str,
-                 X_vars: list[str],
                  outer_cv: int = None,
                  outer_cv_seed: int = 42,
                  verbose: bool = True):
@@ -180,8 +178,6 @@ class MLClassificationReport:
         - models: Iterable[BaseClassification].
             The BaseClassification models must already be trained.
         - datahandler: DataHandler.
-        - y_var: str.
-        - X_vars: list[str].
         - outer_cv: int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed: int.
@@ -192,15 +188,18 @@ class MLClassificationReport:
         self._id_to_model = {model._name: model for model in models}
 
         self._datahandler = datahandler
-        self._X_vars = X_vars
-        self._y_var = y_var
+        self._datahandlers = None
+        if outer_cv is not None:
+            self._datahandlers = datahandler.kfold_copies(k=outer_cv, 
+                                                          seed=outer_cv_seed)
+            
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
                 print_wrapped(f'Fitting model {model._name}.',
                                type='UPDATE')
-            model.specify_data(datahandler, y_var, X_vars, outer_cv,
-                                outer_cv_seed)
+            model.specify_data(datahandler=self._datahandler,
+                               datahandlers=self._datahandlers)
             model.fit()
             if self._verbose:
                 print_wrapped(f'Fitted model {model._name}.',
@@ -209,7 +208,7 @@ class MLClassificationReport:
         self._id_to_report = {model._name: SingleModelMLClassReport(model)
                               for model in models}
 
-    def get_model_report(self, model_id: str) -> SingleModelMLClassReport:
+    def model_report(self, model_id: str) -> SingleModelMLClassReport:
         """Returns the SingleModelMLClassReport object for the specified model.
 
         Parameters
@@ -222,7 +221,7 @@ class MLClassificationReport:
         """
         return self._id_to_report[model_id]
 
-    def get_model(self, model_id: str) -> BaseClassification:
+    def model(self, model_id: str) -> BaseClassification:
         """Returns the model with the specified id.
 
         Parameters
@@ -235,8 +234,7 @@ class MLClassificationReport:
         """
         return self._id_to_model[model_id]
 
-    def fit_statistics(self,
-                       dataset: Literal['train', 'test']) -> pd.DataFrame:
+    def fit_statistics(self, dataset: Literal['train', 'test']) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics for
         all models on the specified data.
 

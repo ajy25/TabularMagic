@@ -23,18 +23,15 @@ class OrdinaryLeastSquares:
             self._name = f'OrdinaryLeastSquares'
     
 
-    def specify_data(self, datahandler: DataHandler, y_var: str, 
-                     X_vars: list[str]):
+    def specify_data(self, datahandler: DataHandler):
         """Adds a DataHandler object to the model. 
 
         Parameters
         ----------
-        - datahandler : DataHandler containing all data. Copy will be made
-            for this specific model.
-        - y_var : str. The name of the target variable.
-        - X_vars : list[str]. The names of the predictor variables.
+        - datahandler : DataHandler containing all data. X and y variables 
+            must be specified.
         """
-        self._datahandler = datahandler.copy(y_var=y_var, X_vars=X_vars)
+        self._datahandler = datahandler
 
 
     def fit(self):

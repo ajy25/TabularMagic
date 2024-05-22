@@ -31,27 +31,20 @@ class BaseRegression(BaseDiscriminativeModel):
         self._dropfirst = False
 
 
-    def specify_data(self, datahandler: DataHandler, y_var: str, 
-                     X_vars: list[str], 
-                     outer_cv: int = None, 
-                     outer_cv_seed: int = 42):
+    def specify_data(self, 
+                     datahandler: DataHandler, 
+                     datahandlers: list[DataHandler] = None):
         """Adds a DataHandler object to the model. 
 
         Parameters
         ----------
         - datahandler : DataHandler containing all data. Copy will be made
             for this specific model.
-        - y_var : str. The name of the target variable.
-        - X_vars : list[str]. The names of the predictor variables.
-        - outer_cv : int. Number of folds. 
-            If None, does not conduct nested cross validation.
-            Otherwise, conducts nested cross validation with outer_cv folds.
-        - outer_cv_seed : int. Random seed for outer_cv.
+        - datahandlers : list[DataHandler]. 
+            If not None, specifies the datahandlers for nested cross validation.
         """
-        self._datahandler = datahandler.copy(y_var=y_var, X_vars=X_vars)
-        if outer_cv is not None:
-            self._datahandlers = datahandler.kfold_copies(k=outer_cv, 
-                y_var=y_var, X_vars=X_vars, seed=outer_cv_seed)
+        self._datahandler = datahandler
+        self._datahandlers = datahandlers
 
 
     def fit(self):
@@ -131,7 +124,7 @@ class BaseRegression(BaseDiscriminativeModel):
 
 
         else:
-            raise ValueError('Error occured in fit method.')
+            raise ValueError('The datahandler must not be None')
 
         X_test_df, y_test_series = self._datahandler.df_test_split(
             dropfirst=self._dropfirst)
@@ -150,6 +143,8 @@ class BaseRegression(BaseDiscriminativeModel):
             name=str(self) + '_test'
         )
 
+
+
     def sklearn_estimator(self):
         """Returns the sklearn estimator object. 
 
@@ -158,6 +153,8 @@ class BaseRegression(BaseDiscriminativeModel):
         - BaseEstimator
         """
         return self._estimator
+
+
 
 
     def __str__(self):

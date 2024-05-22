@@ -1,12 +1,13 @@
 import pandas as pd
-import math
+import numpy as np
 from typing import Literal
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
 from sklearn.utils._testing import ignore_warnings
-from ..util.console import (print_wrapped, color_text, list_to_string, 
-                            fill_ignore_color)
+from ..util.console import (print_wrapped, color_text, bold_text, 
+                            list_to_string, 
+                            fill_ignore_format)
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar)
 from ..util.constants import TOSTR_MAX_WIDTH
@@ -16,7 +17,8 @@ class DataHandler:
     """DataHandler: handles all aspects of data preprocessing and loading.
     """
 
-    def __init__(self, df_train: pd.DataFrame, 
+    def __init__(self, 
+                 df_train: pd.DataFrame, 
                  df_test: pd.DataFrame, 
                  y_var: str | None = None,
                  X_vars: list[str] | None = None,
@@ -376,8 +378,10 @@ class DataHandler:
         return self._working_df_test
     
 
-    def df_train_split(self, onehotted: bool = True, 
-                       dropfirst: bool = True, dropna: bool = True):
+    def df_train_split(self, 
+                       onehotted: bool = True, 
+                       dropfirst: bool = True, 
+                       dropna: bool = True):
         """Returns the working train DataFrame subsetted by the predictors 
             and the y-variable.
 
@@ -404,7 +408,7 @@ class DataHandler:
 
         if dropna:
             prev_len = len(out_train)
-            out_train.dropna(inplace=True)
+            out_train = out_train.dropna()
             if self._verbose and (prev_len - len(out_train)) / prev_len > 0.2:
                 print_wrapped(
                     f'Dropped {prev_len - len(out_train)} of {prev_len} ' +\
@@ -443,7 +447,7 @@ class DataHandler:
 
         if dropna:
             prev_len = len(out_test)
-            out_test.dropna(inplace=True)
+            out_test = out_test.dropna()
             if self._verbose and (prev_len - len(out_test)) / prev_len > 0.2:
                 print_wrapped(
                     f'Dropped {prev_len - len(out_test)} of {prev_len} ' +\
@@ -539,26 +543,33 @@ class DataHandler:
         """Creates a shallow copy of the DataHandler object. That is, 
         the returned object will be initialized with the current 
         working DataFrames, but will not have any other checkpoints saved.
-        The scalers dataframe will be retained. 
-        No other attributes such as y-variable and predictor specifications
-        are retained.
+        The scalers dataframe will be preserved. 
         
         Parameters
         ----------
         - y_var : str | None. Default: None.
+            If None, the y-variable is not changed from the parent object.
         - X_vars : list[str] | None. Default: None.
+            If None, the predictor variables are not changed from the parent
+            object.
         - verbose : bool. Default: False.
 
         Returns
         -------
         - DataHandler
         """
+        if y_var is None:
+            y_var = self._yvar
+        if X_vars is None:
+            X_vars = self._Xvars
+
         new = DataHandler(
             self._working_df_train, 
             self._working_df_test, 
             y_var=y_var, X_vars=X_vars,
             verbose=verbose, name=self._name + '_copy')
         new._continuous_var_to_scaler = self._continuous_var_to_scaler.copy()
+
         return new
     
 
@@ -569,12 +580,17 @@ class DataHandler:
         """Returns k shallow copies of the DataHandler object, each with the 
         properly specified train and test datasets for k-fold cross 
         validation.
+
+        The scalers dataframe will be preserved. 
         
         Parameters
         ----------
         - k : int. Number of folds.
         - y_var : str | None. Default: None.
+            If None, the y-variable is not changed from the parent object.
         - X_vars : list[str] | None. Default: None.
+            If None, the predictor variables are not changed from the parent
+            object.
         - shuffle : bool. Default: True. If True, shuffles the examples 
             before splitting into folds.
         - seed : int. Default: 42. Random seed for shuffling.
@@ -584,6 +600,12 @@ class DataHandler:
         -------
         - list[DataHandler]
         """
+
+        if y_var is None:
+            y_var = self._yvar
+        if X_vars is None:
+            X_vars = self._Xvars
+
         cv = KFold(n_splits=k, shuffle=shuffle, random_state=seed)
         out = []
         for i, (train_index, test_index) in enumerate(
@@ -619,16 +641,22 @@ class DataHandler:
         """
         if not isinstance(vars, list):
             vars = [vars]
-        self._working_df_train[vars] =\
-            self._working_df_train[vars].astype('str')
-        self._working_df_test[vars] =\
-            self._working_df_test[vars].astype('str')
+
+        for var in vars:
+            self._working_df_train[var] = self._working_df_train[var].apply(
+                lambda x: str(x) if pd.notna(x) else np.nan
+            )
+            self._working_df_test[var] = self._working_df_test[var].apply(
+                lambda x: str(x) if pd.notna(x) else np.nan
+            )
+
         if self._verbose:
             print_wrapped(
                 f'Converted variables {list_to_string(vars)} to categorical.',
                 type='UPDATE'
             )
-        self._categorical_vars, self._continuous_vars =\
+
+        self._categorical_vars, self._continuous_vars = \
             self._compute_categorical_continuous_vars(self._working_df_train)
         return self
         
@@ -804,7 +832,7 @@ class DataHandler:
         categorical_vars = self.categorical_vars(ignore_yvar=ignore_yvar)
 
         # impute continuous variables
-        if len(categorical_vars) == 0:
+        if len(continuous_vars) > 0:
             if continuous_strategy == '5nn':
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
             else:
@@ -816,7 +844,7 @@ class DataHandler:
                 imputer.transform(self._working_df_test[continuous_vars])
         
         # impute categorical variables
-        if len(continuous_vars) == 0:
+        if len(categorical_vars) > 0:
             imputer = SimpleImputer(strategy=categorical_strategy, 
                                     keep_empty_features=True)
             self._working_df_train[categorical_vars] =\
@@ -1014,38 +1042,40 @@ class DataHandler:
         textlen_shapes = len(str(working_df_train.shape) +\
             str(working_df_test.shape)) + 25
         shapes_message_buffer_left = (max_width - textlen_shapes) // 2
-        shapes_message_buffer_right = math.ceil(
-            (max_width - textlen_shapes) / 2)
+        shapes_message_buffer_right = int(np.ceil(
+            (max_width - textlen_shapes) / 2))
 
 
-        shapes_message = color_text('Train shape: ', 'none') +\
-            f'{working_df_train.shape}'+ \
+        shapes_message =\
+            color_text(bold_text('Train shape: '), 'none') +\
+            color_text(str(working_df_train.shape), 'yellow') + \
             ' '*shapes_message_buffer_left +\
-            color_text('Test shape: ', 'none') + \
-            f'{working_df_test.shape}'  + \
+            color_text(bold_text('Test shape: '), 'none') + \
+            color_text(str(working_df_test.shape), 'yellow')  + \
             ' '*shapes_message_buffer_right
 
 
-        title_message = color_text(self._name, 'none')
-        title_message = fill_ignore_color(title_message, width=max_width)
+        title_message = color_text(bold_text(self._name), 'none')
+        title_message = fill_ignore_format(title_message, width=max_width)
         
-
-        categorical_message = color_text('Categorical variables:\n', 'none')
+        categorical_message = color_text(
+            bold_text('Categorical variables:'), 'none') + '\n'
         categorical_var_message = ''
         if len(self.categorical_vars()) == 0:
             categorical_var_message += color_text('None', 'yellow')
         else:
             categorical_var_message += list_to_string(self.categorical_vars())
-        categorical_var_message = fill_ignore_color(categorical_var_message, 
+        categorical_var_message = fill_ignore_format(categorical_var_message, 
             width=max_width, initial_indent=2, subsequent_indent=2)
 
-        continuous_message = color_text('Continuous variables:\n', 'none')
+        continuous_message = color_text(
+            bold_text('Continuous variables:'), 'none') + '\n'
         continuous_var_message = ''
         if len(self.continuous_vars()) == 0:
             continuous_var_message += color_text('None', 'yellow')
         else:
             continuous_var_message += list_to_string(self.continuous_vars())
-        continuous_var_message = fill_ignore_color(
+        continuous_var_message = fill_ignore_format(
             continuous_var_message, width=max_width, 
             initial_indent=2, subsequent_indent=2)
 

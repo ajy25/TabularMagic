@@ -389,18 +389,18 @@ class ComprehensiveEDA():
                         'stacked_kde_density']:
             for i, category in enumerate(local_df[stratify_by].unique()):
                 subset = local_df[local_df[stratify_by] == category]
-                if strategy == 'stacked_hist_density':
+                if strategy == 'stacked_hist_kde_density':
                     sns.histplot(subset[continuous_var], bins='auto', kde=True, 
                                 label=str(category), alpha=0.2, stat='density', 
                                 ax=ax, color=sns.color_palette()[i], 
                                 edgecolor='none')
-                elif strategy == 'stacked_hist_frequency':
+                elif strategy == 'stacked_hist_kde_frequency':
                     sns.histplot(subset[continuous_var], bins='auto', kde=True, 
                                 label=str(category), alpha=0.2, 
                                 stat='frequency', 
                                 ax=ax, color=sns.color_palette()[i], 
                                 edgecolor='none')
-                else:
+                elif strategy == 'stacked_kde_density':
                     sns.kdeplot(subset[continuous_var], 
                                 label=str(category), ax=ax)
 

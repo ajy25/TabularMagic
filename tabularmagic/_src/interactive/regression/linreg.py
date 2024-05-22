@@ -525,7 +525,7 @@ class SingleDatasetLinRegReport:
 
         self.plot_qq(show_outliers=show_outliers, ax=axs[1][1])
         
-        fig.subplots_adjust(hspace=0.2, wspace=0.2)
+        fig.subplots_adjust(hspace=0.3, wspace=0.3)
 
         decrease_font_sizes_axs(axs, 5, 5, 0)
 
@@ -590,10 +590,9 @@ class LinearRegressionReport:
     Wraps train and test SingleDatasetLinRegReport objects.
     """
 
-    def __init__(self, model: OrdinaryLeastSquares,
-            datahandler: DataHandler,
-            X_vars: list[str],
-            y_var: str):
+    def __init__(self, 
+                 model: OrdinaryLeastSquares,
+                 datahandler: DataHandler):
         """LinearRegressionReport.  
         Fits the model based on provided DataHandler.
         Wraps train and test SingleDatasetLinRegReport objects.
@@ -601,13 +600,12 @@ class LinearRegressionReport:
         Parameters
         ----------
         - model : OrdinaryLeastSquares. 
-        - datahandler : DataHandler.
-        - X_vars : list[str].
-        - y_var : str.
+        - datahandler : DataHandler. 
+            X and y variables must be specified.
         """
         self._model = model
         self._datahandler = datahandler
-        self._model.specify_data(datahandler, y_var=y_var, X_vars=X_vars)
+        self._model.specify_data(self._datahandler)
         self._model.fit()
 
         self._train_report = SingleDatasetLinRegReport(model, 'train')

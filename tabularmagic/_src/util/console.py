@@ -5,6 +5,7 @@ from .constants import TOSTR_MAX_WIDTH
 
 def color_text(text, color: Literal['red', 'blue', 'green', 'yellow', 
                 'purple', 'none']):
+    """Returns text in a specified color."""
     if color == 'none':
         return text
     elif color == 'red':
@@ -17,6 +18,12 @@ def color_text(text, color: Literal['red', 'blue', 'green', 'yellow',
         return '\033[92m' + text + '\033[0m'
     elif color == 'yellow':
         return '\033[93m' + text + '\033[0m'
+    
+
+def bold_text(text):
+    """Returns text in bold.
+    """
+    return '\033[1m' + text + '\033[0m'
     
 
 def print_wrapped(text: str, 
@@ -35,7 +42,7 @@ def print_wrapped(text: str,
         base_message = color_text('INFO: ', 'green') + base_message
 
     print(
-        fill_ignore_color(
+        fill_ignore_format(
             base_message, 
             width=TOSTR_MAX_WIDTH
         )
@@ -63,32 +70,41 @@ def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow',
     msg = ''
     for i, elem in enumerate(lst):
         if i == len(lst) - 1:
-            msg += f'{color_text(elem, color)}'
+            msg += color_text(elem, color)
         else:
-            msg += f'{color_text(elem, color)}, '
+            msg += color_text(elem + ', ', color)
     return msg
 
 
 
-def len_ignore_color(text: str):
-    """Returns the length of a string without color codes."""
+def len_ignore_format(text: str):
+    """Returns the length of a string without ANSI codes."""
     base_len = len(text)
     if '\033[91m' in text:
-        base_len -= 5
+        count = text.count('\033[91m')
+        base_len -= 5 * count
     if '\033[92m' in text:
-        base_len -= 5
+        count = text.count('\033[92m')
+        base_len -= 5 * count
     if '\033[93m' in text:
-        base_len -= 5
+        count = text.count('\033[93m')
+        base_len -= 5 * count
     if '\033[94m' in text:
-        base_len -= 5
+        count = text.count('\033[94m')
+        base_len -= 5 * count
     if '\033[95m' in text:
-        base_len -= 5
+        count = text.count('\033[95m')
+        base_len -= 5 * count
+    if '\033[1m' in text:
+        count = text.count('\033[1m')
+        base_len -= 4 * count
     if '\033[0m' in text:
-        base_len -= 4
+        count = text.count('\033[0m')
+        base_len -= 4 * count
     return base_len
 
 
-def fill_ignore_color(text: str, width: int = TOSTR_MAX_WIDTH, 
+def fill_ignore_format(text: str, width: int = TOSTR_MAX_WIDTH, 
                       initial_indent: int = 0,
                       subsequent_indent: int = 6):
     """Wraps text to a max width of TOSTR_MAX_WIDTH. Text must NOT 
@@ -108,12 +124,12 @@ def fill_ignore_color(text: str, width: int = TOSTR_MAX_WIDTH,
     line_length = initial_indent
 
     for word in text_split:
-        if line_length + len_ignore_color(word) > width:
+        if line_length + len_ignore_format(word) > width:
             newstr += '\n'
             newstr += ' ' * subsequent_indent
             line_length = subsequent_indent
         newstr += word + ' '
-        line_length += len_ignore_color(word) + 1
+        line_length += len_ignore_format(word) + 1
 
     return newstr
 

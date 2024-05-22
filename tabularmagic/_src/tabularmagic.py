@@ -11,7 +11,7 @@ from .interactive import (MLRegressionReport,
     ComprehensiveEDA, RegressionVotingSelectionReport, 
     LinearRegressionReport, MLClassificationReport)
 from .util.console import print_wrapped
-from .feature_selection import RegressionBaseSelector
+from .feature_selection import BaseFeatureSelectorR
 from .data.datahandler import DataHandler
 
 
@@ -125,11 +125,12 @@ class TabularMagic:
             raise ValueError(f'Invalid input: dataset = {dataset}.')
 
 
-    def feature_selection(self, selectors: Iterable[RegressionBaseSelector], 
-                         y_var: str, 
-                         X_vars: list[str] = None, 
-                         n_target_features: int = 10, 
-                         update_working_dfs: bool = False):
+    def feature_selection(self, 
+                          selectors: Iterable[BaseFeatureSelectorR], 
+                          y_var: str, 
+                          X_vars: list[str] = None, 
+                          n_target_features: int = 10, 
+                          update_working_dfs: bool = False):
         """Supervised feature selection via methods voting based on
         training dataset. 
         Also returns a RegressionVotingSelectionReport object. 
@@ -157,89 +158,91 @@ class TabularMagic:
         """
         if X_vars is None:
             X_vars = self._datahandler.continuous_vars(True)
-            X_vars.remove(y_var)
-        report = RegressionVotingSelectionReport(self._datahandler.df_train(),
-            X_vars, y_var, selectors, n_target_features, 
-            verbose=self._verbose)
+        report = RegressionVotingSelectionReport(
+            selectors=selectors,
+            datahandler=self._datahandler.copy(y_var, X_vars),
+            n_target_features=n_target_features, 
+            verbose=self._verbose
+        )
         if update_working_dfs:
             var_subset = report._top_features + [y_var]
             self._datahandler.select_vars(var_subset)
         return report
 
 
-    def lm(self, y_var: str, X_vars: list[str] = None) ->\
+
+
+    def lm(self, y_var: str = None, X_vars: list[str] = None, 
+           formula: str = None) ->\
                 LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise. 
+        If formula is provided, performs regression with OLS via formula. 
+        Examples with missing data will be dropped. 
 
         Parameters
         ----------
         - y_var : str. 
         - X_vars : list[str]. 
             If None, all variables except y_var will be used as predictors.
+        - formula : str.
+            If not None, uses formula to specify the regression 
+            (overrides y_var and X_vars).
             
         Returns
         -------
         - report : LinearRegressionReport
         """
-        if X_vars is None:
-            X_vars = self._datahandler.vars(ignore_yvar=False)
+        if formula is None and y_var is None:
+            raise ValueError('y_var must be specified if formula is None.')
+
+        elif formula is None:
+            if X_vars is None:
+                X_vars = self._datahandler.vars(ignore_yvar=False)
+                X_vars.remove(y_var)
+            return LinearRegressionReport(
+                OrdinaryLeastSquares(),
+                self._datahandler.copy(y_var, X_vars),
+            )
+        
+        else:
+            try:
+                y_series_train, y_scaler, X_df_train =\
+                    parse_and_transform_rlike(formula, 
+                                              self._datahandler.df_train())
+                y_series_test, _, X_df_test =\
+                    parse_and_transform_rlike(formula,
+                                              self._datahandler.df_test())
+            except:
+                raise ValueError(f'Invalid formula: {formula}')
+
+            # ensure missing values are dropped
+            y_X_df_combined_train = pd.DataFrame(
+                y_series_train).join(X_df_train)
+            y_X_df_combined_test = pd.DataFrame(
+                y_series_test).join(X_df_test)
+            y_X_df_combined_train.dropna(inplace=True)
+            y_X_df_combined_test.dropna(inplace=True)
+            y_X_df_combined_train, y_X_df_combined_test =\
+                self._datahandler._force_train_test_var_agreement(
+                    y_X_df_combined_train,
+                    y_X_df_combined_test)
+            
+            X_vars = y_X_df_combined_train.columns.to_list()
+            y_var = y_series_train.name
             X_vars.remove(y_var)
-        return LinearRegressionReport(
-            OrdinaryLeastSquares(),
-            self._datahandler, X_vars, y_var
-        )
-    
-
-    def lm_formula(self, formula: str) -> \
-            LinearRegressionReport:
-        """Performs a regression with OLS via formula. That is, 
-        all further preprocessing should be specified in the formula; 
-        any categorical variables are automatically detected and 
-        one-hot encoded. Examples with missing data will be dropped. 
-
-        Parameters
-        ----------
-        - formula : str. 
-            A formula, e.g. y ~ x1 + log(x2) + poly(x3, 2) + x1 * x2
-
-        Returns
-        -------
-        - report : LinearRegressionReport
-        """
-
-        try:
-            y_series_train, y_scaler, X_df_train =\
-                parse_and_transform_rlike(formula, self._datahandler.df_train())
-            y_series_test, _, X_df_test =\
-                parse_and_transform_rlike(formula, self._datahandler.df_test())
-        except:
-            raise ValueError(f'Invalid formula: {formula}')
-
-        # ensure missing values are dropped
-        y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
-        y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
-        y_X_df_combined_train.dropna(inplace=True)
-        y_X_df_combined_test.dropna(inplace=True)
-        y_X_df_combined_train, y_X_df_combined_test =\
-            self._datahandler._force_train_test_var_agreement(
+            
+            datahandler = DataHandler(
                 y_X_df_combined_train, 
-                y_X_df_combined_test)
-        
-        X_vars = y_X_df_combined_train.columns.to_list()
-        y_var = y_series_train.name
-        X_vars.remove(y_var)
-        
-        datahandler = DataHandler(
-            y_X_df_combined_train, 
-            y_X_df_combined_test, 
-            verbose=False)
-        datahandler._continuous_var_to_scaler[y_var] = y_scaler
+                y_X_df_combined_test, 
+                verbose=False)
+            datahandler._continuous_var_to_scaler[y_var] = y_scaler
 
-        return LinearRegressionReport(
-            OrdinaryLeastSquares(), 
-            datahandler,
-            X_vars, y_var
-        )
+            return LinearRegressionReport(
+                OrdinaryLeastSquares(), 
+                datahandler.copy(y_var, X_vars),
+            )
+
+
 
 
 
@@ -247,11 +250,14 @@ class TabularMagic:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
-    def ml_regression(self, models: Iterable[BaseRegression], 
-                    y_var: str, X_vars: list[str] = None,
-                    outer_cv: int = None,
-                    outer_cv_seed: int = 42) -> MLRegressionReport:
+    def ml_regression(self, 
+                      models: Iterable[BaseRegression], 
+                      y_var: str, 
+                      X_vars: list[str] = None,
+                      outer_cv: int = None,
+                      outer_cv_seed: int = 42) -> MLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise. 
+        Examples with missing data will be dropped. 
 
         Parameters
         ----------
@@ -275,19 +281,21 @@ class TabularMagic:
 
         return MLRegressionReport(
             models=models,
-            datahandler=self._datahandler,
-            X_vars=X_vars,
-            y_var=y_var,
+            datahandler=self._datahandler.copy(y_var, X_vars),
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose
         )
 
 
-    def ml_classification(self, models: Iterable[BaseClassification], 
-        y_var: str, X_vars: list[str] = None, outer_cv: int = None,
-        outer_cv_seed: int = 42) -> MLClassificationReport:
+    def ml_classification(self, 
+                          models: Iterable[BaseClassification], 
+                          y_var: str, 
+                          X_vars: list[str] = None, 
+                          outer_cv: int = None,
+                          outer_cv_seed: int = 42) -> MLClassificationReport:
         """Conducts a comprehensive classification benchmarking exercise.
+        Examples with missing data will be dropped. 
         
         Parameters
         ----------
@@ -312,9 +320,7 @@ class TabularMagic:
         
         return MLClassificationReport(
             models=models,
-            datahandler=self._datahandler,
-            X_vars=X_vars,
-            y_var=y_var,
+            datahandler=self._datahandler.copy(y_var, X_vars),
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose

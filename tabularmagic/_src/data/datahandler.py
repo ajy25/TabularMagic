@@ -300,6 +300,118 @@ class DataHandler:
                 type='UPDATE'
             )
         return self
+    
+
+
+
+    def force_binary(self, vars: list[str], pos_label: str = None, 
+                     ignore_multiclass: bool = False):
+        """Forces variables to be binary (0 and 1 valued continuous variables). 
+        Does nothing if the data contains more than two classes unless 
+        ignore_multiclass is True and pos_label is specified, 
+        in which case all classes except pos_label are labeled with zero.
+
+        Parameters
+        ----------
+        - vars : list[str]. Name of variables.
+        - pos_label : str. Default: None. The positive label. If None, the 
+            first class is the positive label.
+        - ignore_multiclass : bool. Default: False. If True, all classes 
+            except pos_label are labeled with zero.
+        
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if pos_label is None and ignore_multiclass:
+            raise ValueError(
+                'pos_label must be specified if ignore_multiclass is True.')
+        
+        for var in vars:
+            if var not in self._working_df_train.columns:
+                raise ValueError(f'Invalid variable name: {var}.')
+            
+            if pos_label is None:
+                unique_vals = self._working_df_train[var].unique()
+                if len(unique_vals) > 2:
+                    if self._verbose:
+                        print_wrapped(
+                            'More than two classes present for ' +\
+                            f'{var}. Skipping {var}.',
+                            type='WARNING'
+                        )
+                        continue
+                pos_label = unique_vals[0]
+                self._working_df_train[var] = \
+                    self._working_df_train[var].apply(
+                        lambda x: 1 if x == pos_label else 0)
+                self._working_df_test[var] = \
+                    self._working_df_test[var].apply(
+                        lambda x: 1 if x == pos_label else 0)
+            else:
+                unique_vals = self._working_df_train[var].unique()
+                if len(unique_vals) > 2:
+                    if not ignore_multiclass:
+                        if self._verbose:
+                            print_wrapped(
+                                'More than two classes present for ' +\
+                                f'{var}. Skipping {var}.',
+                                type='WARNING'
+                            )
+                        continue
+                self._working_df_train[var] = \
+                    self._working_df_train[var].apply(
+                        lambda x: 1 if x == pos_label else 0)
+                self._working_df_test[var] = \
+                    self._working_df_test[var].apply(
+                        lambda x: 1 if x == pos_label else 0)
+            
+        if self._verbose:
+            print_wrapped(
+                f'Forced variable {color_text(var, "purple")} to binary.',
+                type='UPDATE'
+            )
+
+        self._categorical_vars, self._continuous_vars = \
+            self._compute_categorical_continuous_vars(self._working_df_train)
+        return self
+
+
+
+    def force_categorical(self, vars: list[str]):
+        """Forces variables to become categorical. 
+        Example use case: prepare numerically-coded categorical variables 
+
+        Parameters
+        ----------
+        - vars : list[str]
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        if not isinstance(vars, list):
+            vars = [vars]
+
+        for var in vars:
+            self._working_df_train[var] = self._working_df_train[var].apply(
+                lambda x: str(x) if pd.notna(x) else np.nan
+            )
+            self._working_df_test[var] = self._working_df_test[var].apply(
+                lambda x: str(x) if pd.notna(x) else np.nan
+            )
+
+        if self._verbose:
+            print_wrapped(
+                f'Converted variables {list_to_string(vars)} to categorical.',
+                type='UPDATE'
+            )
+
+        self._categorical_vars, self._continuous_vars = \
+            self._compute_categorical_continuous_vars(self._working_df_train)
+        return self
+
+
 
 
     # --------------------------------------------------------------------------
@@ -626,40 +738,6 @@ class DataHandler:
     # --------------------------------------------------------------------------
     # PREPROCESSING
     # --------------------------------------------------------------------------
-
-    def force_categorical(self, vars: list[str]):
-        """Forces variables to become categorical. 
-        Example use case: prepare numerically-coded categorical variables 
-
-        Parameters
-        ----------
-        - vars : list[str]
-
-        Returns
-        -------
-        - self : DataHandler
-        """
-        if not isinstance(vars, list):
-            vars = [vars]
-
-        for var in vars:
-            self._working_df_train[var] = self._working_df_train[var].apply(
-                lambda x: str(x) if pd.notna(x) else np.nan
-            )
-            self._working_df_test[var] = self._working_df_test[var].apply(
-                lambda x: str(x) if pd.notna(x) else np.nan
-            )
-
-        if self._verbose:
-            print_wrapped(
-                f'Converted variables {list_to_string(vars)} to categorical.',
-                type='UPDATE'
-            )
-
-        self._categorical_vars, self._continuous_vars = \
-            self._compute_categorical_continuous_vars(self._working_df_train)
-        return self
-        
 
 
     def _onehot(self, df: pd.DataFrame, 

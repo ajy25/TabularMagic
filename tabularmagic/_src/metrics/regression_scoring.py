@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    mean_squared_error, mean_absolute_error, r2_score
+    root_mean_squared_error, mean_absolute_error, r2_score
 )
 from scipy.stats import (
     pearsonr, spearmanr
@@ -75,8 +75,7 @@ class RegressionScorer:
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
             n = len(y_pred)
             df = pd.DataFrame(columns=[self._name])
-            df.loc['rmse', self._name] = mean_squared_error(y_true, y_pred, 
-                squared=False)
+            df.loc['rmse', self._name] = root_mean_squared_error(y_true, y_pred)
             df.loc['mad', self._name] = mean_absolute_error(y_true, y_pred)
             df.loc['pearsonr', self._name] = pearsonr(y_true, y_pred)[0]
             df.loc['spearmanr', self._name] = spearmanr(y_true, y_pred)[0]
@@ -99,8 +98,8 @@ class RegressionScorer:
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
                         'Statistic': 'rmse', 
-                        self._name: mean_squared_error(y_true_elem, y_pred_elem,
-                                                     squared=False),
+                        self._name: root_mean_squared_error(
+                            y_true_elem, y_pred_elem),
                         'Fold': i
                     }
                 )

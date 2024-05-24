@@ -72,7 +72,7 @@ class SingleModelSingleDatasetMLClassReport:
         - pd.DataFrame
         """
         if self._dataset == 'train':
-            return self.model.train_scorer.cv_df()
+            return self.model.train_scorer.cv_stats_df()
         else:
             raise ValueError(
                 'Cross-validated statistics are not available for test data.')
@@ -109,15 +109,15 @@ class SingleModelSingleDatasetMLClassReport:
         if self._dataset == 'train':
             if self.model.train_overall_scorer is not None:
                 # in case of nested cross validation, use overall scorer
-                y_pred = self.model.train_overall_scorer._y_pred
+                y_score = self.model.train_overall_scorer._y_pred_score
                 y_true = self.model.train_overall_scorer._y_true
             else:
-                y_pred = self.model.train_scorer._y_pred
+                y_score = self.model.train_scorer._y_pred_score
                 y_true = self.model.train_scorer._y_true
         else:
-            y_pred = self.model.test_scorer._y_pred
+            y_score = self.model.test_scorer._y_pred_score
             y_true = self.model.test_scorer._y_true
-        return plot_roc_curve(y_pred, y_true, figsize, ax)
+        return plot_roc_curve(y_score, y_true, figsize, ax)
 
 
 class SingleModelMLClassReport:

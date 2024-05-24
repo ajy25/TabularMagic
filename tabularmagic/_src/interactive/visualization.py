@@ -60,13 +60,13 @@ def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray,
 
 
 
-def plot_roc_curve(y_pred: np.ndarray, y_true: np.ndarray, 
+def plot_roc_curve(y_score: np.ndarray, y_true: np.ndarray, 
                    figsize: Iterable = (5, 5), ax: axes.Axes = None):
     """Returns a figure that is the ROC curve for the model.
 
     Parameters
     ----------
-    - y_pred: np.ndarray. Predicted probabilities or decision scores.
+    - y_score: np.ndarray. Predicted probabilities or decision scores.
     - y_true: np.ndarray. True binary labels.
     - figsize: Iterable.
     - ax: axes.Axes.
@@ -79,7 +79,7 @@ def plot_roc_curve(y_pred: np.ndarray, y_true: np.ndarray,
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    fpr, tpr, thresholds = roc_curve(y_true, y_score)
     roc_auc = auc(fpr, tpr)
 
     ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=1)

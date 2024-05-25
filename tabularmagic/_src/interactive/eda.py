@@ -64,7 +64,7 @@ class CategoricalEDA:
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         value_freqs = self._var_series.value_counts(normalize=density)
 
@@ -159,11 +159,11 @@ class ContinuousEDA():
             Default: None. 
         - density : bool.
         - figsize : Iterable.
-        - ax : axes.Axes.
+        - ax : Axes.
             
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         values = self._var_series.to_numpy()
 
@@ -252,7 +252,7 @@ class ComprehensiveEDA():
 
 
     def plot_continuous_pairs(self, continuous_vars: list[str] = None, 
-        stratify_by: str = None, figsize: Iterable = (5, 5)):
+        stratify_by: str = None, figsize: Iterable = (7, 7)):
         """
         Plots pairwise relationships between continuous variables. 
 
@@ -267,7 +267,7 @@ class ComprehensiveEDA():
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         if continuous_vars is None:
             continuous_vars = self._continuous_vars
@@ -341,7 +341,7 @@ class ComprehensiveEDA():
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
 
 
@@ -370,12 +370,12 @@ class ComprehensiveEDA():
                               'violin', 'stacked_hist_kde_density',
                               'violin_swarm', 'box_swarm', 'box'].
         - figsize : Iterable.
-        - ax : axes.Axes. If not None, does not return a figure; plots the 
-            plot directly onto the input axes.Axes. 
+        - ax : Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input Axes. 
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         fig = None
         if ax is None:
@@ -471,12 +471,12 @@ class ComprehensiveEDA():
         - density : bool. If True, plots the density rather than the 
             frequency.
         - figsize : Iterable.
-        - ax : axes.Axes. If not None, does not return a figure; plots the 
-            plot directly onto the input axes.Axes. 
+        - ax : Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input Axes. 
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         return self[var].plot_distribution(
             density=density, figsize=figsize, ax=ax)
@@ -508,12 +508,12 @@ class ComprehensiveEDA():
         - three_components : If True, returns a 3D plot. Otherwise plots the 
             first two components only. 
         - figsize : Iterable.
-        - ax : axes.Axes. If not None, does not return a figure; plots the 
-            plot directly onto the input axes.Axes. 
+        - ax : Axes. If not None, does not return a figure; plots the 
+            plot directly onto the input Axes. 
 
         Returns
         -------
-        - plt.Figure
+        - Figure
         """
         if strata is not None:
             if len(strata) != len(self.df):

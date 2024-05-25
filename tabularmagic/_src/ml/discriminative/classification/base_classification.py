@@ -70,7 +70,7 @@ class BaseClassification(BaseDiscriminativeModel):
 
 
             self._hyperparam_searcher.fit(X_train, y_train)
-            self._estimator = self._hyperparam_searcher.best_estimator
+            self._estimator = self._hyperparam_searcher._best_estimator
 
             y_pred = self._estimator.predict(X_train)
 
@@ -113,7 +113,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
                 self._hyperparam_searcher.fit(X_train, y_train)
-                fold_estimator = self._hyperparam_searcher.best_estimator
+                fold_estimator = self._hyperparam_searcher._best_estimator
 
                 y_pred = fold_estimator.predict(X_test)
 
@@ -155,7 +155,7 @@ class BaseClassification(BaseDiscriminativeModel):
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
             self._hyperparam_searcher.fit(X_train, y_train)
-            self._estimator = self._hyperparam_searcher.best_estimator
+            self._estimator = self._hyperparam_searcher._best_estimator
 
 
             y_pred = self._estimator.predict(X_train)
@@ -225,6 +225,15 @@ class BaseClassification(BaseDiscriminativeModel):
         - BaseEstimator
         """
         return self._estimator
+
+    def hyperparam_searcher(self) -> HyperparameterSearcher:
+        """Returns the HyperparameterSearcher object.
+        
+        Returns
+        -------
+        - HyperparameterSearcher
+        """
+        return self._hyperparam_searcher
 
 
     def __str__(self):

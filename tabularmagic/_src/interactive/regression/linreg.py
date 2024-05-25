@@ -533,19 +533,26 @@ class SingleDatasetLinRegReport:
         return fig
 
 
-    def set_outlier_threshold(self, threshold: float):
+    def set_outlier_threshold(self, threshold: float) -> \
+            'SingleDatasetLinRegReport':
         """Standardized residuals threshold for outlier identification. 
-        Recomputes the outliers.
+        Recomputes the outliers. 
         
         Parameters
         ----------
-        - threshold: float. Must be a nonnegative value.
+        - threshold : float. Must be a nonnegative value. By default the 
+            outlier threshold is 2.
+
+        Returns
+        -------
+        - self : SingleDatasetLinRegReport
         """
         if threshold < 0:
             raise ValueError(
                 f'Input threshold must be nonnegative. Received {threshold}.')
         self._outlier_threshold = threshold
         self._compute_outliers()
+        return self
 
 
     def get_outlier_indices(self) -> list:

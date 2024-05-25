@@ -18,7 +18,7 @@ from .data.datahandler import DataHandler
 
 class TabularMagic:
     """TabularMagic: Automatic statistical and machine learning analysis of 
-    datasets in tabular form. 
+    DataFrames in tabular form. 
     """
 
     def __init__(self, df: pd.DataFrame, df_test: pd.DataFrame = None, 
@@ -32,11 +32,11 @@ class TabularMagic:
         ----------
         - df : pd.DataFrame ~ (sample_size, n_variables).
         - df_test : pd.DataFrame ~ (test_sample_size, n_variables).
-            Default: None. If not None, then treats df as the train dataset.
+            Default: None. If not None, then treats df as the train DataFrame.
         - test_size : float. 
-            Default: 0. Proportion of the dataset to withhold for 
-            testing. If test_size = 0, then the train dataset and the 
-            test dataset will both be the same as the input df. 
+            Default: 0. Proportion of the DataFrame to withhold for 
+            testing. If test_size = 0, then the train DataFrame and the 
+            test DataFrame will both be the same as the input df. 
             If df_test is provided, then test_size is ignored. 
         - split_seed : int.
             Default: 42. Used only for the train test split. 
@@ -74,8 +74,8 @@ class TabularMagic:
             else:
                 if self._verbose:
                     print_wrapped(
-                        'No test dataset provided. ' +\
-                        'Test dataset will be treated as train dataset copy.',
+                        'No test DataFrame provided. The test DataFrame ' +\
+                        'will be treated as a train DataFrame copy.',
                         type='WARNING'
                     )
                 temp_train_df = df
@@ -89,11 +89,12 @@ class TabularMagic:
         self._name = name
 
         if self._verbose:
-            shapes_dict = self._datahandler.shapes()
+            shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
                 'Initialization complete. ' +\
-                'Shapes of train, test datasets: ' + \
-                f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                'Shapes of train, test DataFrames: ' + \
+                f'{shapes_dict["train"]}, ' + \
+                f'{shapes_dict["test"]}.',
                 type='UPDATE'
             )
 
@@ -104,7 +105,7 @@ class TabularMagic:
     def eda(self, dataset: Literal['train', 'test', 'all'] = 'train') ->\
             ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for either the working train 
-        or the working test dataset. 
+        or the working test DataFrame. 
 
         Parameters
         ----------

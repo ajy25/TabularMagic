@@ -64,7 +64,7 @@ class HyperparameterSearcher():
         - None
         """
         
-        self.best_estimator = None
+        self._best_estimator = None
         if isinstance(inner_cv, int):
             self.inner_cv = KFold(n_splits=inner_cv, 
                                   random_state=inner_cv_seed, 
@@ -81,7 +81,7 @@ class HyperparameterSearcher():
             raise ValueError('Invalid input: method.')
 
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> BaseEstimator:
         """Cross validation search of optimal hyperparameters. Idenfities 
         best estimator. 
 
@@ -95,9 +95,27 @@ class HyperparameterSearcher():
         - best_estimator : BaseEstimator. 
         """
         ignore_warnings(self._searcher.fit)(X, y)
-        self.best_estimator = self._searcher.best_estimator_
-        self.best_params = self._searcher.best_params_
-        return self.best_estimator
+        self._best_estimator = self._searcher.best_estimator_
+        self._best_params = self._searcher.best_params_
+        return self._best_estimator
 
+
+    def best_estimator(self) -> BaseEstimator:
+        """Returns the best estimator. 
+
+        Returns
+        -------
+        - BaseEstimator
+        """
+        return self._best_estimator
+    
+    def best_params(self) -> Mapping:
+        """Returns the best parameters. 
+
+        Returns
+        -------
+        - Mapping
+        """
+        return self._best_params
 
 

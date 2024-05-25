@@ -22,11 +22,11 @@ def plot_obs_vs_pred(y_pred: np.ndarray, y_true: np.ndarray,
     - y_pred : np.ndarray.
     - y_true : np.ndarray.
     - figsize : Iterable. 
-    - ax : axes.Axes.
+    - ax : Axes.
 
     Returns
     -------
-    - plt.Figure
+    - Figure
     """
     fig = None
     if ax is None:
@@ -69,11 +69,11 @@ def plot_roc_curve(y_score: np.ndarray, y_true: np.ndarray,
     - y_score: np.ndarray. Predicted probabilities or decision scores.
     - y_true: np.ndarray. True binary labels.
     - figsize: Iterable.
-    - ax: axes.Axes.
+    - ax: Axes.
 
     Returns
     -------
-    - plt.Figure
+    - Figure
     """
     fig = None
     if ax is None:
@@ -83,13 +83,12 @@ def plot_roc_curve(y_score: np.ndarray, y_true: np.ndarray,
     roc_auc = auc(fpr, tpr)
 
     ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=1)
-    ax.plot(fpr, tpr, color='black', label=f'ROC curve (AUC = {roc_auc:.3f})')
+    ax.plot(fpr, tpr, color='black')
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
-    ax.set_title('Receiver Operating Characteristic (ROC) Curve')
-    ax.legend(loc='lower right')
+    ax.set_title(f'ROC Curve (AUC = {roc_auc:.3f})')
 
     if fig is not None:
         fig.tight_layout()

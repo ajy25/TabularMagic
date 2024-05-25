@@ -45,7 +45,9 @@ class DataHandler:
         self._orig_df_train, self._orig_df_test =\
             self._force_train_test_var_agreement(df_train.copy(), 
                                                  df_test.copy())
-        self._categorical_vars, self._continuous_vars =\
+        
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
             self._compute_categorical_continuous_vars(self._orig_df_train)
 
         # set the working DataFrames
@@ -79,14 +81,14 @@ class DataHandler:
     # CHECKPOINT HANDLING
     # --------------------------------------------------------------------------
     def load_data_checkpoint(self, checkpoint: str = None):
-        """The working train and working test datasets are reset to the 
-        input datasets given at object initialization.
+        """The working train and working test DataFrames are reset to the 
+        original input DataFrames given at object initialization.
 
         Parameters
         ----------
         - checkpoint : str. 
-            Default: None. If None, sets the working datasets to the original 
-            datasets given at object initialization. 
+            Default: None. If None, sets the working DataFrames to the original 
+            DataFrames given at object initialization. 
 
         Returns
         -------
@@ -99,10 +101,10 @@ class DataHandler:
                 var: None for var in self._continuous_vars
             }
             if self._verbose:
-                shapes_dict = self.shapes()
+                shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
-                    'Working datasets reset to original datasets. ' +\
-                    'Shapes of train, test datasets: ' + \
+                    'Working DataFrames reset to original DataFrames. ' +\
+                    'Shapes of train, test DataFrames: ' + \
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type='UPDATE'
                 )
@@ -114,22 +116,23 @@ class DataHandler:
             self._continuous_var_to_scaler =\
                 self._checkpoint_name_to_df[checkpoint][2].copy()
             if self._verbose:
-                shapes_dict = self.shapes()
+                shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
-                    'Working datasets reset to checkpoint ' +\
+                    'Working DataFrames reset to checkpoint ' +\
                     f'"{checkpoint}". ' +\
-                    'Shapes of train, test datasets: ' + \
+                    'Shapes of train, test DataFrames: ' + \
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                     type='UPDATE'
                 )
-        self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         
         return self
 
 
     def save_data_checkpoint(self, checkpoint: str):
-        """Saves the current state of the working train and test datasets. 
+        """Saves the current state of the working train and test DataFrames. 
         The state may be returned to by calling 
         load_data_checkpoint(checkpoint).
 
@@ -143,7 +146,7 @@ class DataHandler:
         """
         if self._verbose:
             print_wrapped(
-                f'Saved working datasets checkpoint "{checkpoint}".',
+                f'Saved working data checkpoint "{checkpoint}".',
                 type='UPDATE'
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -169,7 +172,7 @@ class DataHandler:
         out_chkpt = self._checkpoint_name_to_df.pop(checkpoint)
         if self._verbose:
             print_wrapped(
-                f'Removed working dataset checkpoint "{out_chkpt}".',
+                f'Removed working data checkpoint "{out_chkpt}".',
                 type='UPDATE'
             )
 
@@ -181,7 +184,7 @@ class DataHandler:
     # --------------------------------------------------------------------------
     def select_vars(self, vars: list[str]):
         """Selects subset of (column) variables in-place on the working 
-        train and test datasets. 
+        train and test DataFrames. 
 
         Parameters
         ----------
@@ -189,13 +192,14 @@ class DataHandler:
         """
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
-        self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         if self._verbose:
-            shapes_dict = self.shapes()
+            shapes_dict = self._shapes_str_formatted()
             print_wrapped(
                 f'Selected columns {list_to_string(vars)}. ' +\
-                'Shapes of train, test datasets: ' + \
+                'Shapes of train, test DataFrames: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'
             )
@@ -203,7 +207,7 @@ class DataHandler:
 
     def drop_vars(self, vars: list[str]):
         """Drops subset of variables (columns) in-place on the working 
-        train and test datasets. 
+        train and test DataFrames. 
 
         Parameters
         ----------
@@ -211,13 +215,14 @@ class DataHandler:
         """
         self._working_df_test.drop(vars, axis='columns', inplace=True)
         self._working_df_train.drop(vars, axis='columns', inplace=True)
-        self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         if self._verbose:
-            shapes_dict = self.shapes()
+            shapes_dict = self._shapes_str_formatted()
             print_wrapped(
                 f'Dropped columns {list_to_string(vars)}. '+\
-                'Shapes of train, test datasets: ' + \
+                'Shapes of train, test DataFrames: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                 type='UPDATE'
             )
@@ -225,18 +230,21 @@ class DataHandler:
 
     def drop_train_examples(self, indices: list):
         """Drops subset of examples (rows) in-place on the working train 
-        dataset. 
+        DataFrame. 
 
         Parameters
         ----------
         - indices : list.
         """
         self._working_df_train.drop(indices, axis='index', inplace=True)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         if self._verbose:
-            shapes_dict = self.shapes()
+            shapes_dict = self._shapes_str_formatted()
             print_wrapped(
                 f'Dropped rows {list_to_string(indices)}. '+\
-                'Shapes of train, test datasets: ' + \
+                'Shapes of train, test DataFrames: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'
             )
@@ -327,6 +335,8 @@ class DataHandler:
             raise ValueError(
                 'pos_label must be specified if ignore_multiclass is True.')
         
+
+        success_vars = []
         for var in vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f'Invalid variable name: {var}.')
@@ -365,15 +375,26 @@ class DataHandler:
                 self._working_df_test[var] = \
                     self._working_df_test[var].apply(
                         lambda x: 1 if x == pos_label else 0)
+                
+            success_vars.append(var)
             
         if self._verbose:
-            print_wrapped(
-                f'Forced variable {color_text(var, "purple")} to binary.',
-                type='UPDATE'
-            )
+            if len(success_vars) == 0:
+                print_wrapped(
+                    'No variables were forced to binary.',
+                    type='WARNING'
+                )
+            else:
+                colored_text = color_text(
+                    list_to_string(success_vars), "purple")
+                print_wrapped(
+                    f'Forced variables {colored_text} to binary.',
+                    type='UPDATE'
+                )
 
-        self._categorical_vars, self._continuous_vars = \
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         return self
 
 
@@ -403,12 +424,13 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f'Converted variables {list_to_string(vars)} to categorical.',
+                f'Forced variables {list_to_string(vars)} to categorical.',
                 type='UPDATE'
             )
 
-        self._categorical_vars, self._continuous_vars = \
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
         return self
 
 
@@ -570,23 +592,6 @@ class DataHandler:
         return (out_test.drop(self._yvar, axis=1), out_test[self._yvar])
     
 
-    def shapes(self):
-        """Returns a dictionary containing shape information for the 
-        working DataFrames.
-        
-        Returns
-        -------
-        - {
-            'train': self.working_df_train.shape,
-            'test': self.working_df_test.shape
-        }
-        """
-        return {
-            'train': self._working_df_train.shape,
-            'test': self._working_df_test.shape
-        }
-    
-
     def vars(self, ignore_yvar: bool = True):
         """Returns a list of all variables in the working DataFrames
         
@@ -650,8 +655,10 @@ class DataHandler:
         return self._continuous_var_to_scaler[var]
         
 
-    def copy(self, y_var: str = None, 
-             X_vars: str = None, verbose: bool = False) -> 'DataHandler':
+    def copy(self, 
+             y_var: str = None, 
+             X_vars: str = None, 
+             verbose: bool = False) -> 'DataHandler':
         """Creates a shallow copy of the DataHandler object. That is, 
         the returned object will be initialized with the current 
         working DataFrames, but will not have any other checkpoints saved.
@@ -683,17 +690,20 @@ class DataHandler:
         new._continuous_var_to_scaler = self._continuous_var_to_scaler.copy()
 
         return new
-    
 
-    def kfold_copies(self, k: int, y_var: str = None, X_vars: str = None, 
+
+    def kfold_copies(self, 
+                     k: int, 
+                     y_var: str = None, 
+                     X_vars: str = None, 
                      shuffle: bool = True, 
                      seed: int = 42,
                      verbose: bool = False) -> list['DataHandler']:
         """Returns k shallow copies of the DataHandler object, each with the 
-        properly specified train and test datasets for k-fold cross 
+        properly specified train and test DataFrames for k-fold cross 
         validation.
 
-        The scalers dataframe will be preserved. 
+        The scalers will be preserved. 
         
         Parameters
         ----------
@@ -739,6 +749,32 @@ class DataHandler:
     # PREPROCESSING
     # --------------------------------------------------------------------------
 
+    def onehot(self,
+               dropfirst: bool = True, 
+               ignore_yvar: bool = True) -> 'DataHandler':
+        """One-hot encodes all categorical variables in-place.
+        
+        Parameters
+        ----------
+        - dropfirst : bool. Default: True. 
+            If True, the first dummy variable is dropped. 
+        - ignore_yvar : bool. Default: True.
+            If True, the y-variable (if specified) is not one-hot encoded.
+
+        Returns
+        -------
+        - self : DataHandler
+        """
+        self._working_df_train = self._onehot(self._working_df_train, 
+                                              dropfirst=dropfirst, 
+                                              ignore_yvar=ignore_yvar,
+                                              fit=True)
+        self._working_df_test = self._onehot(self._working_df_test,
+                                             dropfirst=dropfirst, 
+                                             ignore_yvar=ignore_yvar,
+                                             fit=False)
+        return self
+
 
     def _onehot(self, df: pd.DataFrame, 
                 dropfirst: bool = True, 
@@ -763,7 +799,8 @@ class DataHandler:
         -------
         - df_train encoded : pd.DataFrame
         """
-        categorical_vars, _ = self._compute_categorical_continuous_vars(df)
+        categorical_vars, _, _ =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
 
         if ignore_yvar and self._yvar is not None:
             if self._yvar in categorical_vars:
@@ -805,7 +842,7 @@ class DataHandler:
             return df
 
 
-    def drop_highly_missing_vars(self, threshold: float = 0.5):
+    def drop_highly_missing_vars(self, threshold: float = 0.5) -> 'DataHandler':
         """Drops columns with more than 50% missing values (on train) in-place.
         
         Parameters
@@ -835,13 +872,14 @@ class DataHandler:
                 type='UPDATE'
             )
 
-        self._categorical_vars, self._continuous_vars =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._orig_df_train)
 
         return self
 
 
-    def dropna_yvar(self):
+    def dropna_yvar(self) -> 'DataHandler':
         """Drops rows with missing values in the y-variable in-place.
         
         Returns
@@ -853,7 +891,7 @@ class DataHandler:
         return self
 
 
-    def dropna(self, vars: list[str] = None):
+    def dropna(self, vars: list[str] = None) -> 'DataHandler':
         """Drops rows with missing values in-place.
 
         Parameters
@@ -870,10 +908,10 @@ class DataHandler:
         self._working_df_train.dropna(subset=vars, inplace=True)
         self._working_df_test.dropna(subset=vars, inplace=True)
         if self._verbose:
-            shapes_dict = self.shapes()
+            shapes_dict = self._shapes_str_formatted()
             print_wrapped(
                 'Dropped rows with missing values. ' +\
-                'Shapes of train, test datasets: ' + \
+                'Shapes of train, test DataFrames: ' + \
                 f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                 type='UPDATE'
             )
@@ -882,9 +920,9 @@ class DataHandler:
 
 
     def impute(self, 
-            continuous_strategy: Literal['median', 'mean', '5nn'] = 'median', 
-            categorical_strategy: Literal['most_frequent'] = 'most_frequent', 
-            ignore_yvar: bool = True):
+               continuous_strategy: Literal['median', 'mean', '5nn'] = 'median', 
+               categorical_strategy: Literal['most_frequent'] = 'most_frequent', 
+               ignore_yvar: bool = True) -> 'DataHandler':
         """Imputes missing values in-place.
         
         Parameters
@@ -945,7 +983,7 @@ class DataHandler:
 
     def scale(self, vars: list[str] = None, 
               strategy: Literal['standardize', 'minmax', 'log', 
-                                'log1p'] = 'standardize'):
+                                'log1p'] = 'standardize') -> 'DataHandler':
         """Scales variables in-place.
 
         Parameters
@@ -999,7 +1037,7 @@ class DataHandler:
     # HELPERS
     # --------------------------------------------------------------------------
     def _verify_input_dfs(self, df1: pd.DataFrame, df2: pd.DataFrame):
-        """Ensures that the original train and test datasets have the 
+        """Ensures that the original train and test DataFrames have the 
         same variables. 
 
         Parameters
@@ -1010,12 +1048,13 @@ class DataHandler:
         l1 = set(df1.columns.to_list())
         l2 = set(df2.columns.to_list())
         if len(l1.union(l2)) != len(l1):
-            raise RuntimeWarning('The train dataset and test dataset' + \
+            raise RuntimeWarning('The train and test DataFrames' + \
                 ' do not have the same variables.')
 
 
     def _compute_categorical_continuous_vars(self, df: pd.DataFrame):
-        """Resets the categorical and continuous column values.
+        """Returns the categorical and continuous column values. 
+        Also returns the categorical variables mapped to their categories.
         
         Parameters
         ----------
@@ -1025,15 +1064,19 @@ class DataHandler:
         -------
         - categorical_vars : list[str]
         - continuous_vars : list[str]
+        - c
         """
         categorical_vars = df.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
         continuous_vars = df.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
-        return categorical_vars, continuous_vars
+        categoical_mapped = self._compute_categories(df, categorical_vars)
+        return categorical_vars, continuous_vars, categoical_mapped
         
 
-    def _force_train_test_var_agreement(self, df_train: pd.DataFrame, 
+    def _force_train_test_var_agreement(
+            self, 
+            df_train: pd.DataFrame, 
             df_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Modifies df_test to have the same columns as df_train. This helps 
         mitigate any problems that may arise from one-hot-encoding the test set.
@@ -1102,6 +1145,54 @@ class DataHandler:
         df_train.columns = new_columns
         df_test.columns = new_columns
         return df_train, df_test
+    
+
+
+    def _shapes_str_formatted(self):
+        """Returns a dictionary containing shape information for the 
+        working DataFrames.
+        
+        Returns
+        -------
+        - {
+            'train': self.working_df_train.shape,
+            'test': self.working_df_test.shape
+        }
+        """
+        return {
+            'train': color_text(str(self._working_df_train.shape), 
+                                color='yellow'),
+            'test': color_text(str(self._working_df_test.shape),
+                               color='yellow')
+        }
+    
+
+
+
+
+    def _compute_categories(self, 
+                            df: pd.DataFrame,
+                            categorical_vars: list[str]):
+        """Returns a dictionary containing the categorical variables 
+        each mapped to a list of all categories in the variable.
+        
+        Parameters
+        ----------
+        - df : pd.DataFrame.
+        - categorical_vars : list[str]. 
+
+        Returns
+        -------
+        - dict
+        """
+        categories_dict = {}
+        for var in categorical_vars:
+            categories_dict[var] = df[var].unique().tolist()
+        return categories_dict
+
+
+
+
 
 
     def __len__(self):

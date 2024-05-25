@@ -126,7 +126,7 @@ class DataHandler:
                 )
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         
         return self
 
@@ -194,7 +194,7 @@ class DataHandler:
         self._working_df_train = self._working_df_train[vars]
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -217,7 +217,7 @@ class DataHandler:
         self._working_df_train.drop(vars, axis='columns', inplace=True)
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -239,7 +239,7 @@ class DataHandler:
         self._working_df_train.drop(indices, axis='index', inplace=True)
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -394,7 +394,7 @@ class DataHandler:
 
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         return self
 
 
@@ -430,7 +430,7 @@ class DataHandler:
 
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
         return self
 
 
@@ -800,7 +800,7 @@ class DataHandler:
         - df_train encoded : pd.DataFrame
         """
         categorical_vars, _, _ =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(df)
 
         if ignore_yvar and self._yvar is not None:
             if self._yvar in categorical_vars:
@@ -874,7 +874,7 @@ class DataHandler:
 
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_continuous_vars(self._working_df_train)
 
         return self
 

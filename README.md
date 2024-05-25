@@ -21,7 +21,7 @@ To uninstall TabularMagic:
 python tm-build.py uninstall
 ```
 
-TabularMagic is built on top of the standard Python data science stack (pandas, NumPy, Matplotlib). 
+TabularMagic is built on top of the standard Python data science stack (scikit-learn, statsmodels, pandas, NumPy, Matplotlib). 
 
 
 ## Getting started

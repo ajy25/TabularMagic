@@ -1,6 +1,9 @@
-from ..util.console import color_text
+import numpy as np
+
+from ..util.console import color_text, bold_text, fill_ignore_format
 from ..util.constants import TOSTR_MAX_WIDTH, TOSTR_ROUNDING_N_DECIMALS
-from textwrap import fill
+
+
 
 
 class StatisticalTestResult:
@@ -53,9 +56,13 @@ class StatisticalTestResult:
 
     
     def pval(self):
+        """Returns the p-value."""
         return self._pval
     
+
+
     def statistic(self):
+        """Returns the statistic."""
         return self._statistic
 
 
@@ -72,10 +79,24 @@ class StatisticalTestResult:
         divider_invisible = '\n' + ' '*max_width + '\n'
        
 
-        description_message = fill(f'{self._description}', max_width)
-        pval_message = fill(f'p-value: {round(self._pval, n_dec)}', max_width)
-        statistic_message = fill(
-            f'{self._statistic_description}: {round(self._statistic, n_dec)}', 
+        description_message = fill_ignore_format(
+            bold_text(self._description), max_width)
+        
+
+        pval_str = str(round(self._pval, n_dec))
+        statistic_str = str(round(self._statistic, n_dec))
+        textlen_pval = len(pval_str) + len(statistic_str) + len('p-value: ') +\
+            len(self._statistic_description + ': ')
+        pval_str_message_buffer_left = (max_width - textlen_pval) // 2
+        pval_str_message_buffer_right = int(np.ceil(
+            (max_width - textlen_pval) / 2))
+        statistic_pval_message = fill_ignore_format(
+            bold_text(self._statistic_description + ': ') +\
+            color_text(str(round(self._statistic, n_dec)), 'yellow') +\
+            ' '*pval_str_message_buffer_left +\
+            bold_text('p-value: ')+ \
+            color_text(str(round(self._pval, n_dec)), 'yellow') +\
+            ' '*pval_str_message_buffer_right,
             max_width
         )
 
@@ -83,30 +104,36 @@ class StatisticalTestResult:
         supplementary_message = divider[:-1]
         if self._null_hypothesis_description:
             supplementary_message += '\n'
-            supplementary_message += fill(
-                f'H0: {self._null_hypothesis_description}', max_width)
+            supplementary_message += fill_ignore_format(
+                bold_text('H0: ') +\
+                self._null_hypothesis_description, max_width)
         if self._alternative_hypothesis_description:
             supplementary_message += '\n'
-            supplementary_message += fill(
-                f'HA: {self._alternative_hypothesis_description}', max_width)
+            supplementary_message += fill_ignore_format(
+                bold_text('HA: ') +\
+                self._alternative_hypothesis_description, max_width)
         if self._descriptive_statistic and\
                self._descriptive_statistic_description:
             supplementary_message += '\n'
-            supplementary_message += fill(
-                f'{self._descriptive_statistic_description}: ' +\
-                f'{round(self._descriptive_statistic, n_dec)}', max_width)
+            supplementary_message += fill_ignore_format(
+                bold_text(f'{self._descriptive_statistic_description}: ') +\
+                color_text(str(round(self._descriptive_statistic, n_dec)), 
+                           'yellow'), 
+                max_width)
         if self._degfree:
             supplementary_message += '\n'
-            supplementary_message += fill(
-                'Degrees of freedom: ' +\
-                f'{round(self._degfree, n_dec)}', max_width)
+            supplementary_message += fill_ignore_format(
+                bold_text('Degrees of freedom: ') +\
+                color_text(str(round(self._degfree, n_dec)), 'yellow'), 
+                max_width)
         if self._long_description:
             supplementary_message += divider
-            supplementary_message += self._long_description
+            supplementary_message += fill_ignore_format(
+                self._long_description, subsequent_indent=0)
 
 
         final_message = top_divider + description_message +\
-            divider + statistic_message + '\n' + pval_message +\
+            divider + statistic_pval_message +\
             supplementary_message + bottom_divider
 
 

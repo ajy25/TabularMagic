@@ -3,7 +3,9 @@ import matplotlib.axes as axes
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from scipy.stats import kurtosis, skew, pearsonr, ttest_ind
+from scipy.stats import (
+    kurtosis, skew, pearsonr, ttest_ind, levene, shapiro
+)
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
@@ -251,8 +253,10 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
 
 
-    def plot_continuous_pairs(self, continuous_vars: list[str] = None, 
-        stratify_by: str = None, figsize: Iterable = (7, 7)):
+    def plot_continuous_pairs(self, 
+            continuous_vars: list[str] = None, 
+            stratify_by: str = None, 
+            figsize: Iterable = (7, 7)) -> plt.Figure:
         """
         Plots pairwise relationships between continuous variables. 
 
@@ -325,24 +329,7 @@ class ComprehensiveEDA():
         fig.subplots_adjust(left=0.1, bottom=0.1)
         plt.close(fig)
         return fig
-    
 
-
-    def plot_pairs(self, vars: list[str] = None):
-        """
-        Plots pairwise relationships between variables. 
-
-        Parameters
-        ----------
-        - vars : list[str]. 
-            A list of continuous variables. Default: None. 
-            If None, all continuous variables are considered.
-        - figsize : Iterable.
-
-        Returns
-        -------
-        - Figure
-        """
 
 
 
@@ -355,7 +342,7 @@ class ComprehensiveEDA():
                               'violin', 
                               'violin_swarm', 'box_swarm', 'box'],
             figsize : Iterable = (5, 5), 
-            ax: axes.Axes = None):
+            ax: axes.Axes = None) -> plt.Figure:
         """Plots the distributions (density) of a given continuous variable 
         stratified by a categorical variable. Note that NaNs will be dropped, 
         which may yield different ranges for different 
@@ -461,8 +448,9 @@ class ComprehensiveEDA():
     
 
 
-    def plot_distribution(self, var: str, density: bool = False,
-            figsize: Iterable = (5, 5), ax: axes.Axes = None):
+    def plot_distribution(self, 
+            var: str, density: bool = False,
+            figsize: Iterable = (5, 5), ax: axes.Axes = None) -> plt.Figure:
         """Plots the distribution of the variable.
         
         Parameters
@@ -484,11 +472,12 @@ class ComprehensiveEDA():
 
 
 
-    def plot_pca(self, continuous_vars: list[str], stratify_by: str = None, 
-                 strata: pd.Series = None, 
-                 standardize: bool = True, whiten: bool = False,
-                 three_components: bool = False, figsize: Iterable = (5, 5), 
-                 ax: axes.Axes = None):
+    def plot_pca(self, 
+            continuous_vars: list[str], stratify_by: str = None, 
+            strata: pd.Series = None, 
+            standardize: bool = True, whiten: bool = False,
+            three_components: bool = False, figsize: Iterable = (5, 5), 
+            ax: axes.Axes = None) -> plt.Figure:
         """Plots the first two (or three) principle components, 
         optionally stratified by an additional variable. Drops examples 
         with missing values across the given variables of interest.
@@ -618,19 +607,75 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
     # TESTING
     # --------------------------------------------------------------------------
-    def test_difference_in_means(self, continuous_var: str, 
-                                 stratify_by: str):
-        """Conducts the appropriate statistical test between two groups. 
-        The parameter stratify_by must be the name of a binary variable. 
 
-        Null hypothesis: mu_1 = mu_2.
+
+    def test_equal_var(self, 
+            continuous_var: str,
+            stratify_by: str, 
+            strategy: Literal['auto', 'levene']) -> StatisticalTestResult:
+        """Conducts the appropriate statistical test to 
+        test for equal variances between two groups. 
 
         Parameters
         ----------
         - continuous_var : str. 
-            Continuous var name to be stratified and compared. 
+            Continuous variable name to be stratified and compared.
         - stratify_by : str.
-            Categorical or continuous var name. Must be binary. 
+            Categorical or continuous variable name. Must be binary.
+
+        Returns
+        -------
+        - StatisticalTestResult
+        """
+        if continuous_var not in self._continuous_vars:
+            raise ValueError(
+                f'Invalid input: {continuous_var}. ' + \
+                'Must be a known continuous variable.'
+            )
+        if (stratify_by not in self._categorical_vars) and \
+            (stratify_by not in self._continuous_vars):
+            raise ValueError(
+                f'Invalid input: {stratify_by}. ' + \
+                'Must be a known binary variable.'
+            )
+        
+        local_df = self.df[[continuous_var, stratify_by]].dropna()
+
+        raise NotImplementedError()
+
+
+
+    def ttest(self, 
+            continuous_var: str, 
+            stratify_by: str, 
+            strategy: Literal['auto', 'student', 'welch', 
+                'yuen'] = 'auto') -> StatisticalTestResult:
+        """Conducts the appropriate statistical test to 
+        test for equal means between two groups. 
+        The parameter stratify_by must be the name of a binary variable, i.e. 
+            a categorical or continuous variable with exactly two unique values.
+
+        Null hypothesis: mu_1 = mu_2.
+        Alternative hypothesis: mu_1 != mu_2.
+        This is a two-sided test.
+
+        NaNs in continuous_var and stratify_by
+            are dropped before the test is conducted.
+
+        Parameters
+        ----------
+        - continuous_var : str. 
+            Continuous variable name to be stratified and compared. 
+        - stratify_by : str.
+            Categorical or continuous variable name. Must be binary. 
+        - strategy : Literal['auto', 'student', 'welch', 'yuen'].
+            Default: 'auto'. 
+            If 'auto', the test is conducted using Welch's t-test if the 
+            variances of the two groups are not equal (determined by 
+            Levene's test for equality of variances). 
+            Otherwise, the test is conducted using Student's t-test.
+            Yuen's test is a robust alternative to Welch's t-test when the 
+            data distributions have heavy tails or outliers.
 
         Returns
         -------
@@ -649,7 +694,11 @@ class ComprehensiveEDA():
                 'Must be a known binary variable.'
             )
         
-        categories = np.unique(self.df[stratify_by].to_numpy())
+
+        local_df = self.df[[continuous_var, stratify_by]].dropna()
+
+        
+        categories = np.unique(local_df[stratify_by].to_numpy())
         if len(categories) != 2:
             raise ValueError(
                 f'Invalid stratify_by: {stratify_by}. ' + \
@@ -657,28 +706,95 @@ class ComprehensiveEDA():
             )
         
         group_1 =\
-            self.df.loc[self.df[stratify_by] == categories[0], 
+            local_df.loc[local_df[stratify_by] == categories[0], 
                         continuous_var].to_numpy()
         group_2 =\
-            self.df.loc[self.df[stratify_by] == categories[1], 
+            local_df.loc[self.df[stratify_by] == categories[1], 
                         continuous_var].to_numpy()
 
-        ttest_result = ttest_ind(group_1, group_2, equal_var=False)
+
+        if strategy == 'auto':
+
+            auto_alpha = 0.05
+
+            normality1 = shapiro(group_1)[1] > auto_alpha
+            normality2 = shapiro(group_2)[1] > auto_alpha
+
+            if not normality1 or not normality2:
+                test_type = 'yuen'
+            elif levene(group_1, group_2).pvalue > auto_alpha:
+                test_type = 'student'
+            else:
+                test_type = 'welch'
+
+        elif strategy in ['student', 'welch', 'yuen']:
+            test_type = strategy
+        
+        else:
+            raise ValueError(f'Invalid input: {strategy}.')
 
 
-        return StatisticalTestResult(
-            description='Welch\'s t-test',
-            statistic=ttest_result.statistic,
-            pval=ttest_result.pvalue,
-            descriptive_statistic=float(group_1.mean() - group_2.mean()),
-            degfree=ttest_result.df,
-            statistic_description='t-statistic',
-            descriptive_statistic_description='mu_1 - mu_2',
-            null_hypothesis_description='mu_1 = mu_2',
-            alternative_hypothesis_description='mu_1 != mu_2',
-            long_description=f'Group 1 label: {categories[0]} \n' + \
-                f'Gorup 2 label: {categories[1]}'
-        )
+        if test_type == 'student':
+            ttest_result = ttest_ind(group_1, group_2, equal_var=True, 
+                                     alternative='two-sided')
+            return StatisticalTestResult(
+                description='Student\'s t-test',
+                statistic=ttest_result.statistic,
+                pval=ttest_result.pvalue,
+                descriptive_statistic=float(group_1.mean() - group_2.mean()),
+                degfree=ttest_result.df,
+                statistic_description='t-statistic',
+                descriptive_statistic_description='mu_1 - mu_2',
+                null_hypothesis_description='mu_1 = mu_2',
+                alternative_hypothesis_description='mu_1 != mu_2',
+                long_description=
+                    f'Group 1 label: {categories[0]}. ' + \
+                    f'Group 2 label: {categories[1]}. ' + \
+                    f'Variances of two groups are assumed to be equal.'
+            )
+
+        elif test_type == 'welch':
+            ttest_result = ttest_ind(group_1, group_2, equal_var=False, 
+                                     alternative='two-sided')
+            return StatisticalTestResult(
+                description='Welch\'s t-test',
+                statistic=ttest_result.statistic,
+                pval=ttest_result.pvalue,
+                descriptive_statistic=float(group_1.mean() - group_2.mean()),
+                degfree=ttest_result.df,
+                statistic_description='t-statistic',
+                descriptive_statistic_description='mu_1 - mu_2',
+                null_hypothesis_description='mu_1 = mu_2',
+                alternative_hypothesis_description='mu_1 != mu_2',
+                long_description=
+                    f'Group 1 label: {categories[0]}. ' + \
+                    f'Group 2 label: {categories[1]}. '
+            )
+        
+        elif test_type == 'yuen':
+            ttest_result = ttest_ind(group_1, group_2, equal_var=False, 
+                                     trim=0.1, alternative='two-sided')
+            return StatisticalTestResult(
+                description='Yuen\'s trimmed mean test',
+                statistic=ttest_result.statistic,
+                pval=ttest_result.pvalue,
+                descriptive_statistic=float(group_1.mean() - group_2.mean()),
+                degfree=ttest_result.df,
+                statistic_description='t-statistic',
+                descriptive_statistic_description='mu_1 - mu_2',
+                null_hypothesis_description='mu_1 = mu_2',
+                alternative_hypothesis_description='mu_1 != mu_2',
+                long_description=
+                    f'Group 1 label: {categories[0]}. ' + \
+                    f'Group 2 label: {categories[1]}. ' + \
+                    'Yuen\'s test is a robust alternative to Welch\'s ' +\
+                    't-test when the assumption of homogeneity of variance ' +\
+                    'is violated. ' +\
+                    '10% of the data is trimmed from both tails.'
+            )
+        
+
+
 
 
 
@@ -686,16 +802,16 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def continuous_vars(self):
+    def continuous_vars(self) -> list[str]:
         return self._continuous_vars
     
-    def categorical_vars(self):
+    def categorical_vars(self) -> list[str]:
         return self._categorical_vars
     
-    def categorical_summary_statistics(self):
+    def categorical_summary_statistics(self) -> pd.DataFrame:
         return self._categorical_summary_statistics
     
-    def continuous_summary_statistics(self):
+    def continuous_summary_statistics(self) -> pd.DataFrame:
         return self._continuous_summary_statistics
 
 

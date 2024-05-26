@@ -104,9 +104,11 @@ def len_ignore_format(text: str):
     return base_len
 
 
-def fill_ignore_format(text: str, width: int = TOSTR_MAX_WIDTH, 
-                      initial_indent: int = 0,
-                      subsequent_indent: int = 6):
+
+
+
+def fill_ignore_format_single_line(text: str, width: int = TOSTR_MAX_WIDTH, 
+        initial_indent: int = 0, subsequent_indent: int = 6):
     """Wraps text to a max width of TOSTR_MAX_WIDTH. Text must NOT 
     contain any newline characters.
 
@@ -133,6 +135,23 @@ def fill_ignore_format(text: str, width: int = TOSTR_MAX_WIDTH,
 
     return newstr
 
+
+
+
+
+def fill_ignore_format(text: str, width: int = TOSTR_MAX_WIDTH, 
+                      initial_indent: int = 0,
+                      subsequent_indent: int = 6):
+    """Wraps text to a max width of TOSTR_MAX_WIDTH.
+
+    Parameters
+    ----------
+    - text : str.
+    """
+    return '\n'.join(
+        [fill_ignore_format_single_line(line, width, 
+            initial_indent, subsequent_indent) for line in text.split('\n')]
+    )
 
 
 

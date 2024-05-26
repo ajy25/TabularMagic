@@ -750,99 +750,44 @@ class DataHandler:
     # --------------------------------------------------------------------------
 
     def onehot(self,
-               dropfirst: bool = True, 
-               ignore_yvar: bool = True) -> 'DataHandler':
+               vars: list[str] = None,
+               dropfirst: bool = True) -> 'DataHandler':
         """One-hot encodes all categorical variables in-place.
         
         Parameters
         ----------
+        - vars : list[str]. Default: None.
+            If not None, only one-hot encodes the specified variables.
         - dropfirst : bool. Default: True. 
             If True, the first dummy variable is dropped. 
-        - ignore_yvar : bool. Default: True.
-            If True, the y-variable (if specified) is not one-hot encoded.
 
         Returns
         -------
         - self : DataHandler
         """
+        if vars is None:
+            vars = self.categorical_vars(ignore_yvar=False)
         self._working_df_train = self._onehot(self._working_df_train, 
+                                              vars=vars,
                                               dropfirst=dropfirst, 
-                                              ignore_yvar=ignore_yvar,
+                                              ignore_yvar=False,
                                               fit=True)
         self._working_df_test = self._onehot(self._working_df_test,
+                                             vars=vars,
                                              dropfirst=dropfirst, 
-                                             ignore_yvar=ignore_yvar,
+                                             ignore_yvar=False,
                                              fit=False)
+
+        self._categorical_vars, self._continuous_vars, \
+            self._categorical_to_categories =\
+            self._compute_categorical_continuous_vars(self._working_df_train)        
+
         return self
 
 
-    def _onehot(self, df: pd.DataFrame, 
-                dropfirst: bool = True, 
-                ignore_yvar: bool = True, 
-                fit: bool = True) -> pd.DataFrame:
-        """One-hot encodes all categorical variables with more than 
-        two categories. Optionally does not ignore the set y-variable, 
-        if specified.
-        
-        Parameters
-        ----------
-        - df : pd.DataFrame
-        - dropfirst : bool. Default: True. 
-            If True, the first dummy variable is dropped.
-        - ignore_yvar : bool. Default: True.
-            If True, the y-variable (if specified) is not one-hot encoded.
-        - fit : bool. Default: True.
-            If True, fits the encoder on the training data. Otherwise,
-            only transforms the test data.
 
-        Returns
-        -------
-        - df_train encoded : pd.DataFrame
-        """
-        categorical_vars, _, _ =\
-            self._compute_categorical_continuous_vars(df)
-
-        if ignore_yvar and self._yvar is not None:
-            if self._yvar in categorical_vars:
-                categorical_vars.remove(self._yvar)
-
-        if categorical_vars:
-            if dropfirst:
-                drop = 'first'
-            else:
-                drop = None
-
-            if fit:
-                self._onehot_encoder = \
-                    OneHotEncoder(drop=drop, sparse_output=False, 
-                                  handle_unknown='ignore')
-                encoded = self._onehot_encoder.fit_transform(
-                    df[categorical_vars])
-                feature_names = self._onehot_encoder.get_feature_names_out(
-                    categorical_vars)
-                df_encoded = pd.DataFrame(
-                    encoded, columns=feature_names, index=df.index)
-            
-            else:
-                encoded = ignore_warnings(self._onehot_encoder.transform)(
-                    df[categorical_vars])
-                feature_names = self._onehot_encoder.get_feature_names_out(
-                    categorical_vars)
-                df_encoded = pd.DataFrame(
-                    encoded, columns=feature_names, index=df.index)
-            
-            return pd.concat(
-                    [
-                        df_encoded, 
-                        df.drop(columns=categorical_vars)
-                    ], 
-                    axis=1
-                )
-        else:
-            return df
-
-
-    def drop_highly_missing_vars(self, threshold: float = 0.5) -> 'DataHandler':
+    def drop_highly_missing_vars(self, 
+                                 threshold: float = 0.5) -> 'DataHandler':
         """Drops columns with more than 50% missing values (on train) in-place.
         
         Parameters
@@ -981,7 +926,8 @@ class DataHandler:
 
 
 
-    def scale(self, vars: list[str] = None, 
+    def scale(self, 
+              vars: list[str] = None, 
               strategy: Literal['standardize', 'minmax', 'log', 
                                 'log1p'] = 'standardize') -> 'DataHandler':
         """Scales variables in-place.
@@ -1190,6 +1136,85 @@ class DataHandler:
             categories_dict[var] = df[var].unique().tolist()
         return categories_dict
 
+
+
+
+    def _onehot(self, 
+                df: pd.DataFrame, 
+                vars: list[str] = None,
+                dropfirst: bool = True, 
+                ignore_yvar: bool = True, 
+                fit: bool = True) -> pd.DataFrame:
+        """One-hot encodes all categorical variables with more than 
+        two categories. Optionally does not ignore the set y-variable, 
+        if specified.
+        
+        Parameters
+        ----------
+        - df : pd.DataFrame
+        - vars : list[str]. Default: None.
+            If not None, only one-hot encodes the specified variables.
+        - dropfirst : bool. Default: True. 
+            If True, the first dummy variable is dropped.
+        - ignore_yvar : bool. Default: True.
+            If True, the y-variable (if specified) is not one-hot encoded.
+        - fit : bool. Default: True.
+            If True, fits the encoder on the training data. Otherwise,
+            only transforms the test data.
+
+        Returns
+        -------
+        - df_train encoded : pd.DataFrame
+        """
+        if vars is None:
+            categorical_vars, _, _ =\
+                self._compute_categorical_continuous_vars(df)
+        else:
+            for var in vars:
+                if var not in df.columns:
+                    raise ValueError(f'Invalid variable name: {var}')
+            categorical_vars = vars
+
+
+        if ignore_yvar and self._yvar is not None:
+            if self._yvar in categorical_vars:
+                categorical_vars.remove(self._yvar)
+
+
+        if categorical_vars:
+            if dropfirst:
+                drop = 'first'
+            else:
+                drop = None
+
+            if fit:
+                self._onehot_encoder = \
+                    OneHotEncoder(drop=drop, sparse_output=False, 
+                                  handle_unknown='ignore')
+                encoded = self._onehot_encoder.fit_transform(
+                    df[categorical_vars])
+                feature_names = self._onehot_encoder.get_feature_names_out(
+                    categorical_vars)
+                df_encoded = pd.DataFrame(
+                    encoded, columns=feature_names, index=df.index)
+            
+            else:
+                encoded = ignore_warnings(self._onehot_encoder.transform)(
+                    df[categorical_vars])
+                feature_names = self._onehot_encoder.get_feature_names_out(
+                    categorical_vars)
+                df_encoded = pd.DataFrame(
+                    encoded, columns=feature_names, index=df.index)
+            
+            return pd.concat(
+                    [
+                        df_encoded, 
+                        df.drop(columns=categorical_vars)
+                    ], 
+                    axis=1
+                )
+        else:
+            return df
 
 
 

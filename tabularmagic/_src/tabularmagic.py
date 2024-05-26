@@ -46,11 +46,6 @@ class TabularMagic:
                 TabularMagic function calls.
         - name : str. 
             Identifier for object. 
-
-        Notable kwargs
-        --------------
-        - inner_cv : int | BaseCrossValidator. 
-        - inner_cv_seed : int.
         """
 
         self._verbose = verbose
@@ -91,7 +86,7 @@ class TabularMagic:
         if self._verbose:
             shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
-                'Initialization complete. ' +\
+                f'Initialization complete. ' +\
                 'Shapes of train, test DataFrames: ' + \
                 f'{shapes_dict["train"]}, ' + \
                 f'{shapes_dict["test"]}.',
@@ -102,10 +97,11 @@ class TabularMagic:
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(self, dataset: Literal['train', 'test', 'all'] = 'train') ->\
-            ComprehensiveEDA:
-        """Constructs a ComprehensiveEDA object for either the working train 
-        or the working test DataFrame. 
+    def eda(self, 
+            dataset: Literal['train', 'test', 'all'] = 'train') ->\
+                ComprehensiveEDA:
+        """Constructs a ComprehensiveEDA object for the working train 
+        DataFrame, the working test DataFrame, or both DataFrames combined.
 
         Parameters
         ----------

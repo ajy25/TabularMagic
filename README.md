@@ -30,7 +30,7 @@ We can build a TabularMagic object from a provided dataset. The TabularMagic obj
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
-from tabularmagic import TabularMagic
+from tabularmagic.api import TabularMagic
 from sklearn.datasets import load_diabetes
 
 # load the dataset
@@ -60,31 +60,35 @@ reshow(train_eda.plot_continuous_pairs(['target', 'age', 'bmi', 'bp']))
 
 TabularMagic makes regression analysis easy via R-like formulas.
 ```
-train_reg_report, test_reg_report = tm.lm_rlike('target ~ age + poly(bmi, 2) + exp(bp) + s1 * s2')
-print(train_reg_report.statsmodels_summary())
-reshow(train_reg_report.plot_diagnostics())
+lm_report = tm.lm(
+    formula='target ~ age + bmi'
+)
+lm_report.statsmodels_summary()
+lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
+    show_outliers=True)
 ```
 
 TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could takesome time to run; to disable nested cross validation, simply set `outer_cv = None`.
 ```
-from tabularmagic.ml.models import LinearR, TreeEnsembleR, SVMR
+from tabularmagic.api.mlR import LinearR, TreeEnsembleR, SVMR
 models =[
     LinearR(),
-    LinearR(regularization_type='l1'),
-    LinearR(regularization_type='l2'),
-    TreeEnsembleR(ensemble_type='random_forest', n_jobs=-1),
-    TreeEnsembleR(ensemble_type='adaboost', n_jobs=-1),
-    SVMR(kernel='rbf', n_jobs=-1)
+    LinearR('l1'),
+    LinearR('l2'),
+    TreeEnsembleR('random_forest', n_jobs=-1),
+    TreeEnsembleR('adaboost', n_jobs=-1),
+    SVMR('rbf', n_jobs=-1)
 ]
-train_ml_report, test_ml_report = tm.ml_regression_benchmarking(
+report = tm.ml_regression(
+    models=models   # 5-fold cross validation for hyperparameter search
+    y_var='target',
     X_vars=['age', 'bmi', 'bp', 's1', 's2'],
-    y_var=['target'],
-    models=models,  # 5-fold cross validation for hyperparameter search
     outer_cv=5      # 5-fold cross validation for model evaluation
 )
-print(train_ml_report.fit_statistics())
-print(test_ml_report.fit_statistics())
-reshow(test_ml_report['LinearR(OLS)'].plot_pred_vs_true())
+print(report.fit_statistics('train'))
+print(report.cv_fit_statistics())
+print(report.fit_statistics('test'))
+reshow(report.model_report('TreeEnsembleR(adaboost)').test_report().plot_obs_vs_pred())
 ```
 
 

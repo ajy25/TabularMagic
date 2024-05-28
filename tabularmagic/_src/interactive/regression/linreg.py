@@ -666,6 +666,20 @@ class LinearRegressionReport:
             return self._train_report.fit_statistics()
         else:
             return self._test_report.fit_statistics()
+        
+
+    def stepwise(self) -> 'LinearRegressionReport':
+        """Performs stepwise selection on the model. 
+
+        Parameters
+        ----------
+        - alpha : float. Default is 0.05.
+
+        Returns
+        -------
+        - LinearRegressionReport
+        """
+        raise NotImplementedError()
  
 
     def statsmodels_summary(self):

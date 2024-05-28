@@ -1,4 +1,5 @@
 import statsmodels.api as sm
+from typing import Literal
 from ...metrics.regression_scoring import RegressionScorer
 from ...data.datahandler import DataHandler
 
@@ -75,6 +76,50 @@ class OrdinaryLeastSquares:
             n_predictors=n_predictors,
             name=self._name + '_test'
         )
+
+
+    
+    def _backwards_elimination(self, 
+            criteria: Literal['aic'] = 'aic') -> list[str]:
+        """Performs backwards elimination on the train dataset to identify a
+        subset of predictors that are most likely to be significant. 
+        Returns only the subset of predictors identified.
+
+        Categorical variables will either be included or excluded as a whole.
+
+        Parameters
+        ----------
+        - criteria : str. Default: 'aic'.
+
+        Returns
+        -------
+        - list of str. 
+            The subset of predictors that are most likely to be significant.
+        """
+        local_datahandler = self._datahandler.copy()
+        X_vars = local_datahandler.Xvars()
+        
+        while True:
+            X_train, y_train = local_datahandler.df_train_split(
+                onehotted=True, dropfirst=True, dropna=True)
+            n_predictors = X_train.shape[1]
+            X_train = sm.add_constant(X_train)
+            model = sm.OLS(y_train, X_train).fit(cov_type='HC3')
+            if criteria == 'aic':
+                crit = model.aic
+            elif criteria == 'bic':
+                crit = model.bic
+            else:
+                raise ValueError('Invalid criteria.')
+            max_p = model.pvalues[1:].max()
+            if max_p > 0.05:
+                break
+            else:
+                worst_predictor = model.pvalues[1:].idxmax()
+                X_vars.remove(worst_predictor)
+                local_datahandler.set_Xvars(X_vars)
+
+        
 
 
 

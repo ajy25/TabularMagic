@@ -604,6 +604,26 @@ class DataHandler:
             if self._yvar in out:
                 out.remove(self._yvar)
         return out
+    
+
+    def Xvars(self) -> str | None:
+        """Returns copy of list of predictor variables.
+        
+        Returns
+        -------
+        - str | None. None if no predictor variables are set.
+        """
+        return self._Xvars.copy()
+    
+
+    def yvar(self) -> str | None:
+        """Returns the y-variable.
+        
+        Returns
+        -------
+        - str | None. None if no y-variable is set.
+        """
+        return self._yvar
 
 
     def continuous_vars(self, ignore_yvar: bool = True):

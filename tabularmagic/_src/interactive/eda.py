@@ -4,7 +4,8 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 from scipy.stats import (
-    kurtosis, skew, pearsonr, ttest_ind, levene, shapiro
+    kurtosis, skew, pearsonr, ttest_ind, levene, shapiro, 
+    f_oneway
 )
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
@@ -609,19 +610,27 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
 
 
-    def test_equal_var(self, 
-            continuous_var: str,
-            stratify_by: str, 
-            strategy: Literal['auto', 'levene']) -> StatisticalTestResult:
-        """Conducts the appropriate statistical test to 
-        test for equal variances between two groups. 
+
+    def anova_oneway(self, 
+            continuous_var: str, 
+            stratify_by: str) -> StatisticalTestResult:
+        """Conducts oneway ANOVA to test 
+        for equal means between two or more groups.
+
+        Null hypothesis: All group means are equal.
+        Alternative hypothesis: At least one group mean is different from the
+            others.
+
+        NaNs in continuous_var and stratify_by
+            are dropped before the test is conducted.
 
         Parameters
         ----------
         - continuous_var : str. 
             Continuous variable name to be stratified and compared.
         - stratify_by : str.
-            Categorical or continuous variable name. Must be binary.
+            Categorical variable name.
+        - strategy : Literal['f', 'welch']. Default: 'f'.
 
         Returns
         -------
@@ -632,16 +641,37 @@ class ComprehensiveEDA():
                 f'Invalid input: {continuous_var}. ' + \
                 'Must be a known continuous variable.'
             )
-        if (stratify_by not in self._categorical_vars) and \
-            (stratify_by not in self._continuous_vars):
+        if stratify_by not in self._categorical_vars:
             raise ValueError(
                 f'Invalid input: {stratify_by}. ' + \
-                'Must be a known binary variable.'
+                'Must be a known categorical variable.'
             )
-        
+
         local_df = self.df[[continuous_var, stratify_by]].dropna()
 
-        raise NotImplementedError()
+        categories = np.unique(local_df[stratify_by].to_numpy())
+        
+        groups = []
+        for category in categories:
+            groups.append(
+                local_df.loc[local_df[stratify_by] == category, 
+                             continuous_var].to_numpy()
+            )
+
+        f_stat, p_val = f_oneway(*groups)
+
+        return StatisticalTestResult(
+            description='One-way ANOVA',
+            statistic=f_stat,
+            pval=p_val,
+            descriptive_statistic=None,
+            degfree=None,
+            statistic_description='f-statistic',
+            descriptive_statistic_description=None,
+            null_hypothesis_description='All group means are equal',
+            alternative_hypothesis_description=\
+                'At least one group mean is different from the others'
+        )
 
 
 
@@ -649,7 +679,7 @@ class ComprehensiveEDA():
             continuous_var: str, 
             stratify_by: str, 
             strategy: Literal['auto', 'student', 'welch', 
-                'yuen'] = 'auto') -> StatisticalTestResult:
+                'yuen'] = 'welch') -> StatisticalTestResult:
         """Conducts the appropriate statistical test to 
         test for equal means between two groups. 
         The parameter stratify_by must be the name of a binary variable, i.e. 
@@ -669,10 +699,11 @@ class ComprehensiveEDA():
         - stratify_by : str.
             Categorical or continuous variable name. Must be binary. 
         - strategy : Literal['auto', 'student', 'welch', 'yuen'].
-            Default: 'auto'. 
-            If 'auto', the test is conducted using Welch's t-test if the 
+            Default: 'welch'. 
+            If 'auto', the test is conducted via Welch's t-test if the 
             variances of the two groups are not equal (determined by 
-            Levene's test for equality of variances). 
+            Levene's test for equality of variances), or via Yuen's test
+            if the data distributions are not normal. 
             Otherwise, the test is conducted using Student's t-test.
             Yuen's test is a robust alternative to Welch's t-test when the 
             data distributions have heavy tails or outliers.

@@ -88,7 +88,7 @@ def plot_roc_curve(y_score: np.ndarray, y_true: np.ndarray,
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
-    ax.set_title(f'ROC Curve (AUC = {roc_auc:.3f})')
+    ax.set_title(f'ROC Curve | AUC = {roc_auc:.3f}')
 
     if fig is not None:
         fig.tight_layout()

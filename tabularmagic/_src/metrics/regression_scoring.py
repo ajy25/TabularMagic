@@ -88,7 +88,7 @@ class RegressionScorer:
                     (n - 1)) / (n - \
                     self.n_predictors - 1))
             df.loc['n', self._name] = len(y_true)
-            df.rename_axis('Statistic', axis='rows', inplace=True)
+            df = df.rename_axis('Statistic', axis='rows')
             self._stats_df = df
         elif isinstance(y_pred, list) and isinstance(y_true, list):
             assert len(y_pred) == len(y_true)

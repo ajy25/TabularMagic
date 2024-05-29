@@ -1,4 +1,6 @@
 import pandas as pd
+pd.options.mode.copy_on_write = True
+
 from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
 
@@ -50,8 +52,10 @@ class TabularMagic:
 
         self._verbose = verbose
 
+        df.columns = df.columns.astype(str)
 
         if df_test is not None:
+            df_test.columns = df_test.columns.astype(str)
             self._datahandler = DataHandler(
                 df_train=df,
                 df_test=df_test,
@@ -217,8 +221,8 @@ class TabularMagic:
                 y_series_train).join(X_df_train)
             y_X_df_combined_test = pd.DataFrame(
                 y_series_test).join(X_df_test)
-            y_X_df_combined_train.dropna(inplace=True)
-            y_X_df_combined_test.dropna(inplace=True)
+            y_X_df_combined_train = y_X_df_combined_train.dropna()
+            y_X_df_combined_test = y_X_df_combined_test.dropna()
             y_X_df_combined_train, y_X_df_combined_test =\
                 self._datahandler._force_train_test_var_agreement(
                     y_X_df_combined_train,

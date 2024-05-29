@@ -15,12 +15,12 @@ class LinearC(BaseClassification):
     hyperparameter selection process can be modified by the user.
     """
 
-    def __init__(self, type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'] =\
-                  'no_penalty',
-                 hyperparam_search_method: Literal[None, 'grid', 'random'] = None,
-                 hyperparam_grid_specification: Mapping[str, Iterable] = None,
-                 model_random_state: int = 42,
-                 name: str = None, **kwargs):
+    def __init__(self, 
+            type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'] ='no_penalty',
+            hyperparam_search_method: Literal[None, 'grid', 'random'] = None,
+            hyperparam_grid_specification: Mapping[str, Iterable] = None,
+            model_random_state: int = 42,
+            name: str = None, **kwargs):
         """
         Initializes a LinearC object.
 
@@ -116,8 +116,8 @@ class LinearC(BaseClassification):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'C': np.logspace(-4, 4, 20),
-                    'l1_ratio': np.linspace(0, 1, 20)
+                    'C': np.logspace(-4, 4, 10),
+                    'l1_ratio': np.linspace(0, 1, 10)
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,

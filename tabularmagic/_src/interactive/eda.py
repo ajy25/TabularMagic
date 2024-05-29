@@ -238,6 +238,9 @@ class ComprehensiveEDA():
             var: ContinuousEDA(self.df[var]) \
                 for var in self._continuous_vars
         }
+
+        self._categorical_summary_statistics = None
+        self._continuous_summary_statistics = None
         if len(self._categorical_vars) > 0:
             self._categorical_summary_statistics = pd.concat(
                 [eda.summary_statistics\
@@ -340,8 +343,8 @@ class ComprehensiveEDA():
             strategy: Literal['stacked_kde_density', 
                               'stacked_hist_kde_density', 
                               'stacked_hist_kde_frequency',
-                              'violin', 
-                              'violin_swarm', 'box_swarm', 'box'],
+                              'violin', 'violin_swarm', 'violin_strip',
+                              'box', 'box_swarm', 'box_strip'],
             figsize : Iterable = (5, 5), 
             ax: axes.Axes = None) -> plt.Figure:
         """Plots the distributions (density) of a given continuous variable 
@@ -354,9 +357,10 @@ class ComprehensiveEDA():
         - continuous_var : str. Continuous variable of interest.
         - stratify_by : str. 
         - strategy : Literal['stacked_kde_density', 
-                            'stacked_hist_kde_frequency', 
-                              'violin', 'stacked_hist_kde_density',
-                              'violin_swarm', 'box_swarm', 'box'].
+                              'stacked_hist_kde_density', 
+                              'stacked_hist_kde_frequency',
+                              'violin', 'violin_swarm', 'violin_strip',
+                              'box', 'box_swarm', 'box_strip'].
         - figsize : Iterable.
         - ax : Axes. If not None, does not return a figure; plots the 
             plot directly onto the input Axes. 
@@ -490,6 +494,7 @@ class ComprehensiveEDA():
         - stratify_by : str. Categorical variable from which strata are 
             identified. 
         - strata : Iterable[str].
+            Lables/strata. 
             Must be the same length as the dataset. Index must be compatible 
             with self.df. Overidden by stratify_by if both provided. 
         - standardize : bool. If True, centers and scales each feature to have 
@@ -630,7 +635,6 @@ class ComprehensiveEDA():
             Continuous variable name to be stratified and compared.
         - stratify_by : str.
             Categorical variable name.
-        - strategy : Literal['f', 'welch']. Default: 'f'.
 
         Returns
         -------
@@ -834,15 +838,25 @@ class ComprehensiveEDA():
     # GETTERS
     # --------------------------------------------------------------------------
     def continuous_vars(self) -> list[str]:
+        """Returns a list of the names of all continuous variables."""
         return self._continuous_vars
     
     def categorical_vars(self) -> list[str]:
+        """Returns a list of the names of all categorical variables."""
         return self._categorical_vars
     
-    def categorical_summary_statistics(self) -> pd.DataFrame:
+    def categorical_summary_statistics(self) -> pd.DataFrame | None:
+        """Returns a DataFrame containing summary statistics for all
+        categorical variables. 
+        
+        Returns None if there are no categorical variables."""
         return self._categorical_summary_statistics
     
-    def continuous_summary_statistics(self) -> pd.DataFrame:
+    def continuous_summary_statistics(self) -> pd.DataFrame | None:
+        """Returns a DataFrame containing summary statistics for all
+        continuous variables.
+
+        Returns None if there are no continuous variables."""
         return self._continuous_summary_statistics
 
 

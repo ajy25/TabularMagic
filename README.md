@@ -1,11 +1,14 @@
 # TabularMagic
-TabularMagic is a comprehensive wrapper of scikit-learn and statsmodels algorithms for rapid exploratory statistical and machine learning modeling of tabular data. TabularMagic reduces the headache of exploratory data analysis, regression analysis, and machine learning model benchmarking. Use TabularMagic to quickly explore a dataset, easily conduct regression analysis, and automatically compute baseline performance metrics across several popular machine learning models. 
+TabularMagic is a comprehensive toolkit that seamlessly integrates scikit-learn and statsmodels algorithms, enabling rapid exploratory statistical and machine learning modeling of tabular data. By streamlining the processes of exploratory data analysis, regression analysis, and machine learning model benchmarking, TabularMagic alleviates the common headaches associated with these tasks. Leveraging TabularMagic empowers users to swiftly explore datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. Designed specifically to accelerate data science routines on small clinical datasets such as NHANES, TabularMagic excels in handling datasets with fewer than 10,000 examples. 
 
-TabularMagic is specifically designed for speeding up data science routines on small clinical datasets such as NHANES. As such, TabularMagic works best on smaller datasets (i.e., datasets with fewer than 10000 examples). 
+Under active development.
 
-Currently under development. 
+## Why does TabularMagic exist?
 
-## Installation and Dependencies
+While numerous autoML solutions have emerged to streamline industry-scale data science workflows, user-friendly options tailored for working with small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and perhaps most notably, benchmarking various machine learning models, many of which necessitate intricate hyperparameter tuning. With TabularMagic, say goodbye to the endless need to reference documentation for pandas, scikit-learn, and Matplotlib. 
+
+
+## Installation and dependencies
 
 TabularMagic can be installed via pip. The Python scripts below handle 
 package setup and pip installation. 
@@ -22,6 +25,7 @@ python tm-build.py uninstall
 ```
 
 TabularMagic is built on top of the standard Python data science stack (scikit-learn, statsmodels, pandas, NumPy, Matplotlib). 
+A full list of dependencies is available in ```./requirements.txt```.
 
 
 ## Getting started
@@ -96,7 +100,7 @@ reshow(report.model_report('TreeEnsembleR(adaboost)').test_report().plot_obs_vs_
 ## Demos
 
 To learn more about TabularMagic functionality, check out the demos available in
-the ./demo subdirectory. 
+the ```./demo``` subdirectory. 
 
 
 

@@ -213,8 +213,9 @@ class DataHandler:
         ----------
         - vars : list[str]
         """
-        self._working_df_test.drop(vars, axis='columns', inplace=True)
-        self._working_df_train.drop(vars, axis='columns', inplace=True)
+        self._working_df_test = self._working_df_test.drop(vars, axis='columns')
+        self._working_df_train = self._working_df_train.drop(
+            vars, axis='columns')
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
             self._compute_categorical_continuous_vars(self._working_df_train)
@@ -236,7 +237,8 @@ class DataHandler:
         ----------
         - indices : list.
         """
-        self._working_df_train.drop(indices, axis='index', inplace=True)
+        self._working_df_train = self._working_df_train.drop(
+            indices, axis='index')
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
             self._compute_categorical_continuous_vars(self._working_df_train)
@@ -820,14 +822,12 @@ class DataHandler:
         - self : DataHandler
         """
         prev_vars = self._working_df_train.columns.to_list()
-        self._working_df_train.dropna(axis=1, 
-            thresh=threshold*len(self._working_df_train),
-            inplace=True)
+        self._working_df_train = self._working_df_train.dropna(axis=1, 
+            thresh=threshold*len(self._working_df_train))
         curr_vars = self._working_df_train.columns.to_list()
         vars_dropped = set(prev_vars) - set(curr_vars)
 
-        self._working_df_test.drop(vars_dropped, 
-            axis=1, inplace=True)
+        self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
         
         if self._verbose:
             print_wrapped(
@@ -870,8 +870,8 @@ class DataHandler:
         -------
         - self : DataHandler
         """
-        self._working_df_train.dropna(subset=vars, inplace=True)
-        self._working_df_test.dropna(subset=vars, inplace=True)
+        self._working_df_train = self._working_df_train.dropna(subset=vars)
+        self._working_df_test = self._working_df_test.dropna(subset=vars)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -1068,7 +1068,7 @@ class DataHandler:
                     'in train have been dropped from test.',
                     type='WARNING'
                 )
-            df_test.drop(columns=extra_test_columns, axis=1, inplace=True)
+            df_test = df_test.drop(columns=extra_test_columns, axis=1)
         if len(missing_test_columns) > 0:
             if self._verbose:
                 print_wrapped(

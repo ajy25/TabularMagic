@@ -1,6 +1,6 @@
 import numpy as np
-import torch
-import torch.nn as nn
+# import torch
+# import torch.nn as nn
 from sklearn.model_selection import KFold
 
 from .base_model import BaseGenerativeModel

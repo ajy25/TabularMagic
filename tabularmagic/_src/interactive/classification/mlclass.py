@@ -4,6 +4,7 @@ import matplotlib.figure as figure
 from typing import Iterable, Literal
 from ...ml.discriminative.classification.base_classification import \
     BaseClassification
+from ...metrics.classification_scoring import ClassificationBinaryScorer
 from ...data.datahandler import DataHandler
 from ..visualization import plot_roc_curve
 from ...util.console import print_wrapped
@@ -30,6 +31,8 @@ class SingleModelSingleDatasetMLClassReport:
         - dataset: Literal['train', 'test'].
         """
         self.model = model
+        self._is_binary = isinstance(model.train_scorer, 
+                                     ClassificationBinaryScorer)
         if dataset not in ['train', 'test']:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
@@ -57,6 +60,11 @@ class SingleModelSingleDatasetMLClassReport:
         -------
         - pd.DataFrame
         """
+        if self._is_binary:
+            print_wrapped('Fit statistics by class are not ' +\
+                'available for binary classification.', type='WARNING')
+            return None
+
         if self._dataset == 'train':
             return self.model.train_scorer.stats_by_class_df()
         else:
@@ -74,8 +82,10 @@ class SingleModelSingleDatasetMLClassReport:
         if self._dataset == 'train':
             return self.model.train_scorer.cv_stats_df()
         else:
-            raise ValueError(
-                'Cross-validated statistics are not available for test data.')
+            print_wrapped(
+                'Cross-validated statistics are not available for test data.',
+                type='WARNING')
+            return None
         
 
     def cv_fit_statistics_by_class(self) -> pd.DataFrame:
@@ -86,11 +96,18 @@ class SingleModelSingleDatasetMLClassReport:
         -------
         - pd.DataFrame
         """
+        if self._is_binary:
+            print_wrapped('Cross-validated statistics by class are not ' +\
+                'available for binary classification.', type='WARNING')
+            return None
+
         if self._dataset == 'train':
             return self.model.train_scorer.cv_stats_by_class_df()
         else:
-            raise ValueError(
-                'Cross-validated statistics are not available for test data.')
+            print_wrapped(
+                'Cross-validated statistics are not available for test data.',
+                type='WARNING')
+            return None
         
 
     def plot_roc_curve(self, figsize: Iterable = (5, 5),
@@ -99,13 +116,18 @@ class SingleModelSingleDatasetMLClassReport:
 
         Parameters
         ----------
-        - figsize: Iterable
-        - ax: Axes
+        - figsize: Iterable.
+        - ax: Axes.
 
         Returns
         -------
         - Figure
         """
+        if not self._is_binary:
+            print_wrapped('ROC curve is not available for ' +\
+                'multiclass classification.', type='WARNING')
+            return None
+
         if self._dataset == 'train':
             if self.model.train_overall_scorer is not None:
                 # in case of nested cross validation, use overall scorer
@@ -156,6 +178,7 @@ class SingleModelMLClassReport:
         - SingleModelSingleDatasetMLClassReport
         """
         return SingleModelSingleDatasetMLClassReport(self.model, 'test')
+
 
 
 class MLClassificationReport:

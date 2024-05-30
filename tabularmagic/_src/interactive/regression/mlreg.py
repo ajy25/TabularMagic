@@ -58,8 +58,10 @@ class SingleModelSingleDatasetMLRegReport:
         if self._dataset == 'train':
             return self.model.train_scorer.cv_df()
         else:
-            raise ValueError(
-                'Cross-validated statistics are not available for test data.')
+            print_wrapped(
+                'Cross validation statistics are not available for test data.',
+                type='WARNING')
+            return None
     
     def plot_obs_vs_pred(self, figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None) -> figure.Figure:
@@ -243,8 +245,12 @@ class MLRegressionReport:
 
         Returns
         -------
-        - pd.DataFrame
+        - pd.DataFrame | None. None if cross validation was not conducted.
         """
+        if not self._models[0]._is_cross_validated():
+            print_wrapped('Cross validation statistics are not available ' +\
+                'for models that are not cross-validated.', type='WARNING')
+            return None
         return pd.concat([report.train_report().cv_fit_statistics() \
                           for report in self._id_to_report.values()], 
                           axis=1)

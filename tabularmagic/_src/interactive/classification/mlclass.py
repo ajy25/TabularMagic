@@ -77,13 +77,18 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        - pd.DataFrame
+        - pd.DataFrame | None. None is returned if cross validation 
+            fit statistics are not available.
         """
+        if not self.model._is_cross_validated():
+            print_wrapped('Cross validation statistics are not available ' +\
+                'for models that are not cross-validated.', type='WARNING')
+            return None
         if self._dataset == 'train':
             return self.model.train_scorer.cv_stats_df()
-        else:
+        elif self._dataset == 'test':
             print_wrapped(
-                'Cross-validated statistics are not available for test data.',
+                'Cross validation statistics are not available for test data.',
                 type='WARNING')
             return None
         
@@ -96,8 +101,13 @@ class SingleModelSingleDatasetMLClassReport:
         -------
         - pd.DataFrame
         """
+        if not self.model._is_cross_validated():
+            print_wrapped('Cross validation statistics are not available ' +\
+                'for models that are not cross-validated.', type='WARNING')
+            return None
+
         if self._is_binary:
-            print_wrapped('Cross-validated statistics by class are not ' +\
+            print_wrapped('Cross validation statistics by class are not ' +\
                 'available for binary classification.', type='WARNING')
             return None
 
@@ -105,7 +115,7 @@ class SingleModelSingleDatasetMLClassReport:
             return self.model.train_scorer.cv_stats_by_class_df()
         else:
             print_wrapped(
-                'Cross-validated statistics are not available for test data.',
+                'Cross validation statistics are not available for test data.',
                 type='WARNING')
             return None
         
@@ -143,8 +153,8 @@ class SingleModelSingleDatasetMLClassReport:
 
 
 class SingleModelMLClassReport:
-    """SingleModelMLClassReport: generates classification-relevant plots and
-    tables for a single machine learning model.
+    """SingleModelMLClassReport: simple class for routing to appropriate 
+    SingleModelSingleDatasetMLClassReport object.
     """
 
     def __init__(self, model: BaseClassification):
@@ -285,8 +295,12 @@ class MLClassificationReport:
 
         Returns
         -------
-        - pd.DataFrame
+        - pd.DataFrame | None. None is returned if cross validation
         """
+        if not self._models[0]._is_cross_validated():
+            print_wrapped('Cross validation statistics are not available ' +\
+                'for models that are not cross-validated.', type='WARNING')
+            return None
         return pd.concat([report.train_report().cv_fit_statistics()
                             for report in self._id_to_report.values()],
                             axis=1)

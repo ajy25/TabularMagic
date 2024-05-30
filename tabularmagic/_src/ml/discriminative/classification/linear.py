@@ -41,14 +41,14 @@ class LinearC(BaseClassification):
             If None, the name is set to be the class name.
         - kwargs: Key word arguments are passed directly into the
             initialization of the HyperparameterSearcher class. In particular,
-            inner_cv and inner_random_state can be set via kwargs.
+            inner_cv and inner_cv_seed can be set via kwargs.
 
         Notable kwargs
         --------------
-        - inner_cv: int | BaseCrossValidator.
-        - inner_cv_seed: int.
-        - n_jobs: int. Number of parallel jobs to run.
-        - verbose: int. sklearn verbosity level.
+        - inner_cv : int | BaseCrossValidator. Default is 5.
+        - inner_cv_seed : int.
+        - n_jobs : int. Number of parallel jobs to run.
+        - verbose : int. sklearn verbosity level.
         """
         super().__init__()
         self._dropfirst = True

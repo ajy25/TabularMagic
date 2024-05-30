@@ -51,7 +51,7 @@ class BaseRegression(BaseDiscriminativeModel):
         """Fits the model. Records training metrics, which can be done via 
         nested cross validation.
         """
-        y_scaler = self._datahandler.yscaler()
+        y_scaler = self._datahandler.y_scaler()
 
         if self._datahandlers is None and self._datahandler is not None:
             X_train_df, y_train_series = self._datahandler.df_train_split(
@@ -100,7 +100,7 @@ class BaseRegression(BaseDiscriminativeModel):
                 y_pred=y_preds,
                 y_true=y_trues,
                 n_predictors=X_train.shape[1],
-                name=str(self) + '_train_cv'
+                name=str(self)
             )
 
             # refit on all data
@@ -119,7 +119,7 @@ class BaseRegression(BaseDiscriminativeModel):
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
-                name=str(self) + '_train_no_cv'
+                name=str(self)
             )
 
 
@@ -140,7 +140,7 @@ class BaseRegression(BaseDiscriminativeModel):
             y_pred=y_pred,
             y_true=y_test,
             n_predictors=X_train.shape[1],
-            name=str(self) + '_test'
+            name=str(self)
         )
 
 
@@ -164,6 +164,14 @@ class BaseRegression(BaseDiscriminativeModel):
         """
         return self._hyperparam_searcher
 
+    def _is_cross_validated(self) -> bool:
+        """Returns True if the model is cross-validated. 
+
+        Returns
+        -------
+        - bool
+        """
+        return self._datahandlers is not None
 
 
     def __str__(self):

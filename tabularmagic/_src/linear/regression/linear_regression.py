@@ -38,7 +38,7 @@ class OrdinaryLeastSquares:
     def fit(self):
         """Fits the model based on the data specified.
         """
-        y_scaler = self._datahandler.yscaler()
+        y_scaler = self._datahandler.y_scaler()
 
         X_train, y_train = self._datahandler.df_train_split(
             onehotted=True, dropfirst=True, dropna=True)
@@ -97,7 +97,7 @@ class OrdinaryLeastSquares:
             The subset of predictors that are most likely to be significant.
         """
         local_datahandler = self._datahandler.copy()
-        X_vars = local_datahandler.Xvars()
+        X_vars = local_datahandler.X_vars()
         
         while True:
             X_train, y_train = local_datahandler.df_train_split(
@@ -117,7 +117,7 @@ class OrdinaryLeastSquares:
             else:
                 worst_predictor = model.pvalues[1:].idxmax()
                 X_vars.remove(worst_predictor)
-                local_datahandler.set_Xvars(X_vars)
+                local_datahandler.set_X_vars(X_vars)
 
         
 

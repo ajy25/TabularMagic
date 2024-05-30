@@ -34,7 +34,7 @@ class SVMR(BaseRegression):
             If None, the name is set to be the class name.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
-            inner_cv and inner_random_state can be set via kwargs. 
+            inner_cv and inner_cv_seed can be set via kwargs. 
             
         Notable kwargs
         --------------

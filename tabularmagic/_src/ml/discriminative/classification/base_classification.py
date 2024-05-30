@@ -1,4 +1,5 @@
 from sklearn.base import BaseEstimator
+from sklearn.preprocessing import LabelEncoder
 
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
 from ....data.datahandler import DataHandler
@@ -21,6 +22,7 @@ class BaseClassification(BaseDiscriminativeModel):
     def __init__(self):
         """Initializes a BaseRegression object. Creates copies of the inputs. 
         """
+        self._label_encoder = LabelEncoder()
         self._hyperparam_searcher: HyperparameterSearcher = None
         self._estimator: BaseEstimator = None
         self._datahandler = None
@@ -65,14 +67,20 @@ class BaseClassification(BaseDiscriminativeModel):
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
 
-            if np.isin(np.unique(y_train), [0, 1]).all():
+
+            y_train_encoded = self._label_encoder.fit_transform(y_train)
+
+
+            if np.isin(np.unique(y_train_encoded), [0, 1]).all():
                 is_binary = True
 
-
-            self._hyperparam_searcher.fit(X_train, y_train)
+            self._hyperparam_searcher.fit(X_train, y_train_encoded)
             self._estimator = self._hyperparam_searcher._best_estimator
 
-            y_pred = self._estimator.predict(X_train)
+            y_pred = self._label_encoder.inverse_transform(
+                self._estimator.predict(X_train)
+            )
+
 
             if hasattr(self._estimator, 'predict_proba'):
                 y_pred_score = self._estimator.predict_proba(X_train)
@@ -85,8 +93,9 @@ class BaseClassification(BaseDiscriminativeModel):
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    y_pred_class_order=self._estimator.classes_,
-                    name=str(self) + '_train'
+                    y_pred_class_order=self._label_encoder.inverse_transform(
+                        self._estimator.classes_),
+                    name=str(self)
                 )
 
             else:
@@ -94,7 +103,7 @@ class BaseClassification(BaseDiscriminativeModel):
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    name=str(self) + '_train'
+                    name=str(self)
                 )
 
 
@@ -103,6 +112,8 @@ class BaseClassification(BaseDiscriminativeModel):
             y_trues = []
             y_pred_scores = []
 
+            is_binary = True
+
             for datahandler in self._datahandlers:
                 X_train_df, y_train_series = datahandler.df_train_split(
                     dropfirst=self._dropfirst)
@@ -110,12 +121,21 @@ class BaseClassification(BaseDiscriminativeModel):
                     dropfirst=self._dropfirst)
                 X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
+
+                y_train_encoded: np.ndarray =\
+                    self._label_encoder.fit_transform(y_train)
+
+                if len(np.unique(y_train_encoded)) != 2:
+                    is_binary = is_binary and False
+
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
-                self._hyperparam_searcher.fit(X_train, y_train)
+                
+                self._hyperparam_searcher.fit(X_train, y_train_encoded)
                 fold_estimator = self._hyperparam_searcher._best_estimator
 
-                y_pred = fold_estimator.predict(X_test)
+                y_pred = self._label_encoder.inverse_transform(
+                    fold_estimator.predict(X_test))
 
                 y_preds.append(y_pred)
                 y_trues.append(y_test)
@@ -130,23 +150,21 @@ class BaseClassification(BaseDiscriminativeModel):
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
 
-            if np.isin(np.unique(np.hstack(y_trues)), [0, 1]).all():
-                is_binary = True
-
             if not is_binary:
                 self.train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
-                    y_pred_class_order=fold_estimator.classes_,
-                    name=str(self) + '_train_cv'
+                    y_pred_class_order=self._label_encoder.\
+                        inverse_transform(fold_estimator.classes_),
+                    name=str(self)
                 )
             else:
                 self.train_scorer = ClassificationBinaryScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
-                    name=str(self) + '_train_cv'
+                    name=str(self)
                 )
  
             # refit on all data
@@ -154,11 +172,15 @@ class BaseClassification(BaseDiscriminativeModel):
                 dropfirst=self._dropfirst)
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
-            self._hyperparam_searcher.fit(X_train, y_train)
+
+            y_train_encoded = self._label_encoder.fit_transform(y_train)
+
+            self._hyperparam_searcher.fit(X_train, y_train_encoded)
             self._estimator = self._hyperparam_searcher._best_estimator
 
 
-            y_pred = self._estimator.predict(X_train)
+            y_pred = self._label_encoder.inverse_transform(
+                self._estimator.predict(X_train))
             if hasattr(fold_estimator, 'predict_proba'):
                 y_pred_score = fold_estimator.predict_proba(X_train)
             elif hasattr(self._estimator, 'decision_function'):
@@ -170,15 +192,16 @@ class BaseClassification(BaseDiscriminativeModel):
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    y_pred_class_order=self._estimator.classes_,
-                    name=str(self) + '_train_no_cv'
+                    y_pred_class_order=self._label_encoder.\
+                        inverse_transform(fold_estimator.classes_),
+                    name=str(self)
                 )
             else:
                 self.train_overall_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    name=str(self) + '_train_no_cv'
+                    name=str(self)
                 )
 
         else:
@@ -189,7 +212,8 @@ class BaseClassification(BaseDiscriminativeModel):
         X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()
 
-        y_pred = self._estimator.predict(X_test)
+        y_pred = self._label_encoder.inverse_transform(
+            self._estimator.predict(X_test))
 
 
         y_pred_score = None
@@ -204,8 +228,9 @@ class BaseClassification(BaseDiscriminativeModel):
                 y_pred=y_pred,
                 y_true=y_test,
                 y_pred_score=y_pred_score,
-                y_pred_class_order=self._estimator.classes_,
-                name=str(self) + '_test'
+                y_pred_class_order=self._label_encoder.inverse_transform(
+                    self._estimator.classes_),
+                name=str(self)
             )
 
         else:
@@ -213,7 +238,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 y_pred=y_pred,
                 y_true=y_test,
                 y_pred_score=y_pred_score,
-                name=str(self) + '_test'
+                name=str(self)
             )
 
 
@@ -234,6 +259,16 @@ class BaseClassification(BaseDiscriminativeModel):
         - HyperparameterSearcher
         """
         return self._hyperparam_searcher
+    
+
+    def _is_cross_validated(self) -> bool:
+        """Returns True if the model is cross-validated. 
+
+        Returns
+        -------
+        - bool
+        """
+        return self._datahandlers is not None
 
 
     def __str__(self):

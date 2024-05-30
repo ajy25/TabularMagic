@@ -75,8 +75,10 @@ class HyperparameterSearcher():
             self._searcher = GridSearchCV(estimator, grid, cv=self.inner_cv, 
                                           **kwargs)
         elif method == 'random':
-            self._searcher = RandomizedSearchCV(estimator, grid, 
-                                                cv=self.inner_cv, **kwargs)
+            self._searcher = RandomizedSearchCV(estimator, 
+                                                grid, 
+                                                cv=self.inner_cv, 
+                                                **kwargs)
         else:
             raise ValueError('Invalid input: method.')
 

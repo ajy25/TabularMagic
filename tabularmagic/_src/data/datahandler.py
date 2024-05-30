@@ -3,7 +3,7 @@ import numpy as np
 from typing import Literal
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.utils._testing import ignore_warnings
 from ..util.console import (print_wrapped, color_text, bold_text, 
                             list_to_string, 
@@ -119,7 +119,7 @@ class DataHandler:
                 shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
                     'Working DataFrames reset to checkpoint ' +\
-                    f'"{checkpoint}". ' +\
+                    f'{color_text(checkpoint, "yellow")}. ' +\
                     'Shapes of train, test DataFrames: ' + \
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                     type='UPDATE'
@@ -146,7 +146,8 @@ class DataHandler:
         """
         if self._verbose:
             print_wrapped(
-                f'Saved working data checkpoint "{checkpoint}".',
+                f'Saved working DataFrames checkpoint ' + \
+                f'{color_text(checkpoint, "yellow")}.',
                 type='UPDATE'
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -172,7 +173,8 @@ class DataHandler:
         out_chkpt = self._checkpoint_name_to_df.pop(checkpoint)
         if self._verbose:
             print_wrapped(
-                f'Removed working data checkpoint "{out_chkpt}".',
+                f'Removed working DataFrames checkpoint ' + \
+                f'{color_text(out_chkpt, "yellow")}.',
                 type='UPDATE'
             )
 
@@ -252,13 +254,13 @@ class DataHandler:
             )
 
 
-    def set_yvar(self, y_var: str | None):
-        """Specifies the y-variable. All other variables are treated as 
-        predictors for the y-variable.
+    def set_y_var(self, y_var: str | None):
+        """Specifies the y variable. All other variables are treated as 
+        predictors for the y variable.
 
         Parameters
         ----------
-        - y_var : str. Name of the y-variable.
+        - y_var : str. Name of the y-variable. If None, clears the y variable.
 
         Returns
         -------
@@ -268,7 +270,7 @@ class DataHandler:
             self._yvar = None
             if self._verbose:
                 print_wrapped(
-                    'Cleared y-variable.',
+                    'Cleared y_var.',
                     type='UPDATE'
                 )
             return self
@@ -276,7 +278,7 @@ class DataHandler:
             self._yvar = y_var
             if self._verbose:
                 print_wrapped(
-                    f'Set y-variable to {y_var}.',
+                    f'Set y_var to {color_text(y_var, "purple")}.',
                     type='UPDATE'
                 )
         else:
@@ -284,29 +286,34 @@ class DataHandler:
         return self
 
         
-    def set_Xvars(self, X_vars: list[str] | None):
+    def set_X_vars(self, X_vars: list[str] | None):
         """
-        Specifies the predictor variables. The y-variable if specified 
-        is not included.
+        Specifies the predictor variables. The y variable if specified 
+        is not included even if it is in the input list of X variables.
         
         Parameters
         ----------
-        - X_vars : list[str]. Names of the predictor variables.
+        - X_vars : list[str]. Names of the predictor variables. If None, 
+            clears the X variables.
 
         Returns
         -------
-        - self : DataHandler
+        - self : DataHandler.
         """
         if X_vars is None:
-            X_vars = self.categorical_vars(ignore_yvar=True) +\
-                self.continuous_vars(ignore_yvar=True)
+            X_vars = None
+            if self._verbose:
+                print_wrapped(
+                    'Cleared X_var.',
+                    type='UPDATE'
+                )
         if self._yvar is not None:
             if self._yvar in X_vars:
                 X_vars.remove(self._yvar)
         self._Xvars = X_vars
         if self._verbose:
             print_wrapped(
-                f'Set predictor variables to {list_to_string(X_vars)}.',
+                f'Set X_var to {list_to_string(X_vars)}.',
                 type='UPDATE'
             )
         return self
@@ -314,36 +321,40 @@ class DataHandler:
 
 
 
-    def force_binary(self, vars: list[str], pos_label: str = None, 
+    def force_binary(self, vars: list[str], pos_labels: list[str] = None, 
                      ignore_multiclass: bool = False):
         """Forces variables to be binary (0 and 1 valued continuous variables). 
         Does nothing if the data contains more than two classes unless 
         ignore_multiclass is True and pos_label is specified, 
         in which case all classes except pos_label are labeled with zero.
 
+        The variables will be renamed to the original variable names with 
+        '_{pos_label}_yn' appended.
+
         Parameters
         ----------
         - vars : list[str]. Name of variables.
-        - pos_label : str. Default: None. The positive label. If None, the 
-            first class is the positive label.
+        - pos_labels : list[str]. Default: None. The positive labels. 
+            If None, the first class for each var is the positive label.
         - ignore_multiclass : bool. Default: False. If True, all classes 
-            except pos_label are labeled with zero.
+            except pos_label are labeled with zero. Otherwise raises 
+            ValueError.
         
         Returns
         -------
         - self : DataHandler
         """
-        if pos_label is None and ignore_multiclass:
+        if pos_labels is None and ignore_multiclass:
             raise ValueError(
-                'pos_label must be specified if ignore_multiclass is True.')
+                'pos_labels must be specified if ignore_multiclass is True.')
         
 
-        success_vars = []
-        for var in vars:
+        vars_to_renamed = {}
+        for i, var in enumerate(vars):
             if var not in self._working_df_train.columns:
                 raise ValueError(f'Invalid variable name: {var}.')
             
-            if pos_label is None:
+            if pos_labels is None:
                 unique_vals = self._working_df_train[var].unique()
                 if len(unique_vals) > 2:
                     if self._verbose:
@@ -371,6 +382,7 @@ class DataHandler:
                                 type='WARNING'
                             )
                         continue
+                pos_label = pos_labels[i]
                 self._working_df_train[var] = \
                     self._working_df_train[var].apply(
                         lambda x: 1 if x == pos_label else 0)
@@ -378,19 +390,37 @@ class DataHandler:
                     self._working_df_test[var].apply(
                         lambda x: 1 if x == pos_label else 0)
                 
-            success_vars.append(var)
-            
+            vars_to_renamed[var] = f'{var}_{pos_label}_yn'
+
+        
+        if self._yvar in vars_to_renamed:
+            self._yvar = vars_to_renamed[self._yvar]
+        for xvar in self._Xvars:
+            if xvar in vars_to_renamed:
+                self._Xvars.remove(xvar)
+                self._Xvars.append(vars_to_renamed[xvar])
+        
+
+        self._working_df_train = self._working_df_train.rename(
+            columns=vars_to_renamed)
+        self._working_df_test = self._working_df_test.rename(
+            columns=vars_to_renamed)
+        
+
         if self._verbose:
-            if len(success_vars) == 0:
+            if len(vars_to_renamed) == 0:
                 print_wrapped(
                     'No variables were forced to binary.',
                     type='WARNING'
                 )
             else:
-                colored_text = color_text(
-                    list_to_string(success_vars), "purple")
+                old_vars_txt = color_text(
+                    list_to_string(vars_to_renamed.keys()), "purple")
+                new_vars_txt = color_text(
+                    list_to_string(vars_to_renamed.values()), "purple")
                 print_wrapped(
-                    f'Forced variables {colored_text} to binary.',
+                    f'Forced variables {old_vars_txt} to binary. ' +\
+                    f'Variables renamed to {new_vars_txt}.',
                     type='UPDATE'
                 )
 
@@ -403,15 +433,15 @@ class DataHandler:
 
     def force_categorical(self, vars: list[str]):
         """Forces variables to become categorical. 
-        Example use case: prepare numerically-coded categorical variables 
+        Example use case: create numerically-coded categorical variables.
 
         Parameters
         ----------
-        - vars : list[str]
+        - vars : list[str].
 
         Returns
         -------
-        - self : DataHandler
+        - self : DataHandler.
         """
         if not isinstance(vars, list):
             vars = [vars]
@@ -608,7 +638,7 @@ class DataHandler:
         return out
     
 
-    def Xvars(self) -> str | None:
+    def X_vars(self) -> str | None:
         """Returns copy of list of predictor variables.
         
         Returns
@@ -618,7 +648,7 @@ class DataHandler:
         return self._Xvars.copy()
     
 
-    def yvar(self) -> str | None:
+    def y_var(self) -> str | None:
         """Returns the y-variable.
         
         Returns
@@ -628,12 +658,12 @@ class DataHandler:
         return self._yvar
 
 
-    def continuous_vars(self, ignore_yvar: bool = True):
+    def continuous_vars(self, ignore_yvar: bool = False):
         """Returns copy of list of continuous variables.
         
         Parameters
         ----------
-        - ignore_yvar : bool. Default: True.
+        - ignore_yvar : bool. Default: False.
         """
         out = self._continuous_vars.copy()
         if ignore_yvar and self._yvar is not None:
@@ -641,12 +671,12 @@ class DataHandler:
                 out.remove(self._yvar)
         return out
 
-    def categorical_vars(self, ignore_yvar: bool = True):
+    def categorical_vars(self, ignore_yvar: bool = False):
         """Returns copy of list of categorical variables.
         
         Parameters
         ----------
-        - ignore_yvar : bool. Default: True.
+        - ignore_yvar : bool. Default: False.
         """
         out = self._categorical_vars.copy()
         if ignore_yvar and self._yvar is not None:
@@ -660,7 +690,7 @@ class DataHandler:
         return self._working_df_test.head(n)
     
 
-    def yscaler(self) -> BaseSingleVarScaler | None:
+    def y_scaler(self) -> BaseSingleVarScaler | None:
         """Returns the y-variable scaler, which could be None."""
         if self._yvar is None:
             return None
@@ -750,10 +780,16 @@ class DataHandler:
         if X_vars is None:
             X_vars = self._Xvars
 
-        cv = KFold(n_splits=k, shuffle=shuffle, random_state=seed)
+        if self._working_df_train[y_var].dtype in \
+            ['object', 'category', 'bool']:
+            cv = StratifiedKFold(n_splits=k, shuffle=shuffle, random_state=seed)
+        else:
+            cv = KFold(n_splits=k, shuffle=shuffle, random_state=seed)
+
         out = []
         for i, (train_index, test_index) in enumerate(
-            cv.split(self._working_df_train)):
+            cv.split(self._working_df_train, 
+                     self._working_df_train[y_var])):
             train_df = self._working_df_train.iloc[train_index]
             test_df = self._working_df_train.iloc[test_index]
             new = DataHandler(
@@ -937,8 +973,10 @@ class DataHandler:
             if self._verbose:
                 print_wrapped(
                     'Imputed missing values with ' +\
-                    f'continuous strategy "{continuous_strategy}", ' +\
-                    f'categorical strategy "{categorical_strategy}".',
+                    f'continuous strategy ' +\
+                    f'{color_text(continuous_strategy, "yellow")} and ' +\
+                    f'categorical strategy ' +\
+                    f'{color_text(categorical_strategy, "yellow")}.',
                     type='UPDATE'
                 )
 
@@ -994,7 +1032,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 f'Scaled variables {list_to_string(vars)} ' + \
-                    f'using strategy "{strategy}".',
+                    f'using strategy {color_text(strategy, "yellow")}.',
                 type='UPDATE'
             )
         return self
@@ -1274,21 +1312,25 @@ class DataHandler:
         
         categorical_message = color_text(
             bold_text('Categorical variables:'), 'none') + '\n'
+        
+        categorical_vars = self.categorical_vars(ignore_yvar=False)
         categorical_var_message = ''
-        if len(self.categorical_vars()) == 0:
+        if len(categorical_vars) == 0:
             categorical_var_message += color_text('None', 'yellow')
         else:
-            categorical_var_message += list_to_string(self.categorical_vars())
+            categorical_var_message += list_to_string(categorical_vars)
         categorical_var_message = fill_ignore_format(categorical_var_message, 
             width=max_width, initial_indent=2, subsequent_indent=2)
 
         continuous_message = color_text(
             bold_text('Continuous variables:'), 'none') + '\n'
+        
+        continuous_vars = self.continuous_vars(ignore_yvar=False)
         continuous_var_message = ''
-        if len(self.continuous_vars()) == 0:
+        if len(continuous_vars) == 0:
             continuous_var_message += color_text('None', 'yellow')
         else:
-            continuous_var_message += list_to_string(self.continuous_vars())
+            continuous_var_message += list_to_string(continuous_vars)
         continuous_var_message = fill_ignore_format(
             continuous_var_message, width=max_width, 
             initial_indent=2, subsequent_indent=2)

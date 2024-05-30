@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from ..._src.util.console import print_wrapped
+from ..._src.util.console import print_wrapped, color_text
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 )
@@ -299,7 +299,16 @@ class ClassificationMulticlassScorer:
                         }
                     )
                 except Exception as e:
-                    print_wrapped(str(e), type='WARNING')
+                    print_wrapped(
+                        'Error occured when computing the roc_auc ' + \
+                        'score: ' + color_text(str(e), 'yellow') + \
+                        ' This likely occured because y_var is ' +\
+                        'categorical and binary. ' +\
+                        'For binary classification, transform y_var ' +\
+                        'into a (0,1)-valued continuous variable ' +\
+                        'using the Datahandler.force_binary() method.',
+                        type='WARNING'
+                    )
                     df.loc[len(df)] = pd.Series(
                         {
                             'Statistic': 'roc_auc',
@@ -369,7 +378,16 @@ class ClassificationMulticlassScorer:
                             }
                         )
                     except Exception as e:
-                        print_wrapped(str(e), type='WARNING')
+                        print_wrapped(
+                            'Error occured when computing the roc_auc(ovo) ' + \
+                            'score: ' + color_text(str(e), 'yellow') + \
+                            ' This likely occured because y_var is ' +\
+                            'categorical and binary. ' +\
+                            'For binary classification, transform y_var ' +\
+                            'into a (0,1)-valued continuous variable ' +\
+                            'using the Datahandler.force_binary() method.',
+                            type='WARNING'
+                        )
                         cvdf.loc[len(cvdf)] = pd.Series(
                             {
                                 'Statistic': 'roc_auc(ovo)',

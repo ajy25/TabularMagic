@@ -40,7 +40,7 @@ class LinearR(BaseRegression):
             Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
-            inner_cv and inner_random_state can be set via kwargs. 
+            inner_cv and inner_cv_seed can be set via kwargs. 
 
         Notable kwargs
         --------------
@@ -158,7 +158,7 @@ class RobustLinearR(BaseRegression):
             Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
-            inner_cv and inner_random_state can be set via kwargs. 
+            inner_cv and inner_cv_seed can be set via kwargs. 
 
         Notable kwargs
         --------------

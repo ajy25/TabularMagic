@@ -41,7 +41,7 @@ class TreeR(BaseRegression):
             Default: 42. Random seed for the model.
         - kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
-            inner_cv and inner_random_state can be set via kwargs. 
+            inner_cv and inner_cv_seed can be set via kwargs. 
 
         Notable kwargs
         --------------
@@ -62,8 +62,8 @@ class TreeR(BaseRegression):
             (hyperparam_grid_specification is None):
             hyperparam_search_method = 'grid'
             hyperparam_grid_specification = {
-                'misample_size_split': [2, 0.1, 0.05],
-                'misample_size_leaf': [1, 0.1, 0.05],
+                'min_samples_split': [2, 0.1, 0.05],
+                'min_samples_leaf': [1, 0.1, 0.05],
                 'max_features': ['sqrt', 'log2', None],
             }
         self._hyperparam_searcher = HyperparameterSearcher(
@@ -97,8 +97,9 @@ class TreeEnsembleR(BaseRegression):
 
         Parameters
         ----------
-        - type: Literal['random_forest', 'gradient_boosting', 
+        - type : Literal['random_forest', 'gradient_boosting', 
                     'adaboost', 'bagging', 'xgboost', 'xgboostrf']
+            Default: 'random_forest'. The type of tree ensemble to use.
         - hyperparam_search_method : str. 
             Default: None. If None, a Tree-specific default hyperparameter 
             search is conducted. 
@@ -115,7 +116,7 @@ class TreeEnsembleR(BaseRegression):
 
         Notable kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
+        - inner_cv : int | BaseCrossValidator. Default is 5.
         - inner_cv_seed : int.
         - n_jobs : int. Number of parallel jobs to run.
         - verbose : int. sklearn verbosity level.
@@ -137,8 +138,8 @@ class TreeEnsembleR(BaseRegression):
                     'n_estimators': [50, 100, 200],
                     'min_samples_split': [2, 5, 10],
                     'min_samples_leaf': [1, 2, 4],
-                    'max_features': ['sqrt', 'log2', None],
-                    'max_depth': [5, 10, None]
+                    'max_features': ['sqrt', 'log2'],
+                    'max_depth': [3, 6, 12]
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -153,14 +154,14 @@ class TreeEnsembleR(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'n_estimators': [25, 50, 100],
-                    'learning_rate': [0.01, 0.001],
+                    'n_estimators': [50, 100, 200],
+                    'learning_rate': [1.0, 0.1, 0.01],
                     'estimator': [
-                        DecisionTreeRegressor(max_depth=5, 
+                        DecisionTreeRegressor(max_depth=3, 
                                               random_state=model_random_state), 
-                        DecisionTreeRegressor(max_depth=10, 
+                        DecisionTreeRegressor(max_depth=6, 
                                               random_state=model_random_state),
-                        DecisionTreeRegressor(max_depth=None, 
+                        DecisionTreeRegressor(max_depth=12, 
                                               random_state=model_random_state)
                     ]
                 }
@@ -177,17 +178,17 @@ class TreeEnsembleR(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'n_estimators': [25, 50, 100],
+                    'n_estimators': [50, 100, 200],
                     'max_samples': [1, 0.5],
                     'max_features': [1, 0.5],
                     'bootstrap': [True, False],
                     'bootstrap_features': [True, False],
                     'estimator': [
-                        DecisionTreeRegressor(max_depth=5, 
+                        DecisionTreeRegressor(max_depth=3, 
                                               random_state=model_random_state), 
-                        DecisionTreeRegressor(max_depth=10, 
+                        DecisionTreeRegressor(max_depth=6, 
                                               random_state=model_random_state),
-                        DecisionTreeRegressor(max_depth=None, 
+                        DecisionTreeRegressor(max_depth=12, 
                                               random_state=model_random_state)
                     ]
                 }
@@ -204,10 +205,10 @@ class TreeEnsembleR(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'n_estimators': [25, 50, 100],
+                    'n_estimators': [50, 100, 200],
                     'subsample': [0.2, 0.5, 1.0],
-                    'misample_size_split': [2, 0.1],
-                    'misample_size_leaf': [1, 0.1],
+                    'min_samples_split': [2, 0.1],
+                    'min_samples_leaf': [1, 0.1],
                     'max_depth': [5, 10, None],
                     'max_features': ['sqrt', 'log2', None],
                 }
@@ -223,8 +224,8 @@ class TreeEnsembleR(BaseRegression):
                 (hyperparam_grid_specification is None):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
-                    'learning_rate': [0.01, 0.001],
-                    'n_estimators': [25, 50, 100],
+                    'learning_rate': [0.1, 0.01],
+                    'n_estimators': [50, 100, 200],
                     'max_depth': [3, 6, 12],
                     'lambda': [0, 0.1, 1],
                     'alpha': [0, 0.1, 1],
@@ -244,7 +245,7 @@ class TreeEnsembleR(BaseRegression):
                 hyperparam_search_method = 'grid'
                 hyperparam_grid_specification = {
                     'max_depth': [3, 6, 12],
-                    'n_estimators': [100, 200, 300],
+                    'n_estimators': [50, 100, 200],
                     'colsample_bynode': [0.5, 0.8, 1.0],
                     'min_child_weight': [1, 3, 5],
                     'subsample': [0.5, 0.8, 1.0],

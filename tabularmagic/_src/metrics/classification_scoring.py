@@ -44,7 +44,14 @@ class ClassificationBinaryScorer:
             self._name = name
         self._y_pred = y_pred
         self._y_true = y_true
-        self._y_pred_score = y_pred_score[:, 1]
+
+        if y_pred_score is not None:
+            if isinstance(y_pred_score, np.ndarray):
+                y_pred_score = y_pred_score[:, 1]
+            elif isinstance(y_pred_score, list):
+                y_pred_score = [elem[:, 1] for elem in y_pred_score]
+        self._y_pred_score = y_pred_score
+
         
         self._stats_df = None
         self._cv_stats_df = None
@@ -63,6 +70,7 @@ class ClassificationBinaryScorer:
         y_pred = self._y_pred
         y_true = self._y_true
         y_pred_score = self._y_pred_score
+
         
         df = pd.DataFrame(columns=['Statistic', self._name])
         cvdf = pd.DataFrame(columns=['Fold', 'Statistic', self._name])

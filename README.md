@@ -72,7 +72,7 @@ lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
     show_outliers=True)
 ```
 
-TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could takesome time to run; to disable nested cross validation, simply set `outer_cv = None`.
+TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation, simply set `outer_cv = None`.
 ```
 from tabularmagic.api.mlR import LinearR, TreeEnsembleR, SVMR
 models =[

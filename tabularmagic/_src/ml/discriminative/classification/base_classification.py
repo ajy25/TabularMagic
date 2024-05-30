@@ -99,6 +99,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 )
 
             else:
+
                 self.train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,

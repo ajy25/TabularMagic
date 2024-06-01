@@ -122,7 +122,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
             scorer = r_regression
         selector = SelectKBest(scorer, k=n_target_features)
 
-        X_train, y_train = datahandler.df_train_split()
+        X_train, y_train = datahandler.df_train_Xy()
 
         selector.fit(
             X=X_train,
@@ -195,7 +195,7 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
         - np array ~ (n_features).
             Boolean mask.
         """
-        X_train, y_train = datahandler.df_train_split()
+        X_train, y_train = datahandler.df_train_Xy()
 
         self.model.fit(
             X=X_train.to_numpy(),
@@ -279,7 +279,7 @@ class RFESelectorR(BaseFeatureSelectorR):
         - np array ~ (n_features).
             Boolean mask.
         """
-        X_train, y_train = datahandler.df_train_split()
+        X_train, y_train = datahandler.df_train_Xy()
 
         selector = RFE(estimator=self.model, 
                        n_features_to_select=n_target_features)

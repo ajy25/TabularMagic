@@ -277,12 +277,15 @@ class TabularMagic:
         - report : MLRegressionReport
         """
         if X_vars is None:
-            X_vars = self._datahandler.vars(ignore_yvar=False)
-            X_vars.remove(y_var)
+            X_vars = self._datahandler.vars()
+            if y_var in X_vars:
+                X_vars.remove(y_var)
 
         return MLRegressionReport(
             models=models,
-            datahandler=self._datahandler.copy(y_var, X_vars),
+            datahandler=self._datahandler,
+            y_var=y_var,
+            X_vars=X_vars,
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose

@@ -49,11 +49,11 @@ class SingleDatasetLinRegReport:
         
         if dataset == 'test':
             self.scorer = model.test_scorer
-            self._X_eval_df = self.model._datahandler.df_test_split()[0]
+            self._X_eval_df = self.model._datahandler.df_test_Xy()[0]
             self._is_train = False
         elif dataset == 'train':
             self.scorer = model.train_scorer
-            self._X_eval_df = self.model._datahandler.df_train_split()[0]
+            self._X_eval_df = self.model._datahandler.df_train_Xy()[0]
             self._is_train = True
         else:
             raise ValueError('specification must be either "train" or "test".')

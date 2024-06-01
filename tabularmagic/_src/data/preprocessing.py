@@ -2,6 +2,21 @@ import numpy as np
 from typing import Callable
 
 
+from sklearn.preprocessing import OneHotEncoder
+
+
+class CustomOneHotEncoder(OneHotEncoder):
+    def get_feature_names_out(self, categorical_vars):
+        feature_names = super().get_feature_names_out(categorical_vars)
+        custom_feature_names = []
+        for feature_name in feature_names:
+            split_name = feature_name.split('_')
+            label = split_name[-1]
+            var = '_'.join(split_name[:-1])
+            custom_feature_names.append(f'{label}_TRUE({var})')
+        return custom_feature_names
+
+
 
 class BaseSingleVarScaler():
 

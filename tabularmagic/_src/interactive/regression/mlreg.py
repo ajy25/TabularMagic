@@ -140,6 +140,8 @@ class MLRegressionReport:
     def __init__(self, 
                  models: Iterable[BaseRegression], 
                  datahandler: DataHandler,
+                 y_var: str,
+                 X_vars: Iterable[str],
                  outer_cv: int = None,
                  outer_cv_seed: int = 42,
                  verbose: bool = True):
@@ -152,8 +154,11 @@ class MLRegressionReport:
         - models : Iterable[BaseRegression].
             The BaseRegression models must already be trained. 
         - datahandler : DataHandler.
-            Copy will NOT be made if outer_cv is None.
-            The X and y variables must already be specified.
+            The DataHandler object that contains the data.
+        - y_var : str.
+            The name of the dependent variable.
+        - X_vars : Iterable[str].
+            The names of the independent variables.
         - outer_cv : int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed : int.
@@ -163,12 +168,22 @@ class MLRegressionReport:
         self._models = models
         self._id_to_model = {model._name: model for model in models}
 
-        
-        self._datahandler = datahandler
-        self._datahandlers = None
+        self.y_var = y_var
+        self.X_vars = X_vars
+
+        self._emitter = datahandler.train_test_emitter(
+            y_var=y_var,
+            X_vars=X_vars
+        )
+        self._emitters = None
         if outer_cv is not None:
-            self._datahandlers = datahandler.kfold_copies(k=outer_cv, 
-                                                          seed=outer_cv_seed)
+            self._emitters = datahandler.kfold_emitters(
+                y_var=y_var,
+                X_vars=X_vars,
+                n_folds=outer_cv,
+                shuffle=True,
+                random_state=outer_cv_seed
+            )
 
         self._verbose = verbose
         for model in self._models:
@@ -176,8 +191,8 @@ class MLRegressionReport:
                 print_wrapped(f'Fitting model {model._name}.', 
                             type='UPDATE')
             
-            model.specify_data(datahandler=self._datahandler, 
-                                datahandlers=self._datahandlers)
+            model.specify_data(dataemitter=self._emitter, 
+                               dataemitters=self._emitters)
 
             model.fit()
             if self._verbose:

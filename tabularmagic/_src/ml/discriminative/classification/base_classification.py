@@ -62,7 +62,7 @@ class BaseClassification(BaseDiscriminativeModel):
 
         if self._datahandlers is None and self._datahandler is not None:
 
-            X_train_df, y_train_series = self._datahandler.df_train_split(
+            X_train_df, y_train_series = self._datahandler.df_train_Xy(
                 dropfirst=self._dropfirst)
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
@@ -116,9 +116,9 @@ class BaseClassification(BaseDiscriminativeModel):
             is_binary = True
 
             for datahandler in self._datahandlers:
-                X_train_df, y_train_series = datahandler.df_train_split(
+                X_train_df, y_train_series = datahandler.df_train_Xy(
                     dropfirst=self._dropfirst)
-                X_test_df, y_test_series = datahandler.df_test_split(
+                X_test_df, y_test_series = datahandler.df_test_Xy(
                     dropfirst=self._dropfirst)
                 X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
@@ -169,7 +169,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 )
  
             # refit on all data
-            X_train_df, y_train_series = self._datahandler.df_train_split(
+            X_train_df, y_train_series = self._datahandler.df_train_Xy(
                 dropfirst=self._dropfirst)
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
@@ -208,7 +208,7 @@ class BaseClassification(BaseDiscriminativeModel):
         else:
             raise ValueError('The datahandler must not be None')
 
-        X_test_df, y_test_series = self._datahandler.df_test_split(
+        X_test_df, y_test_series = self._datahandler.df_test_Xy(
             dropfirst=self._dropfirst)
         X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()

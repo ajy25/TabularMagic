@@ -1,7 +1,7 @@
 from sklearn.base import BaseEstimator
 from ....metrics.regression_scoring import RegressionScorer
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
-from ....data.datahandler import DataHandler
+from ....data.datahandler import DataEmitter
 
 
 
@@ -19,8 +19,8 @@ class BaseRegression(BaseDiscriminativeModel):
         """
         self._hyperparam_searcher: HyperparameterSearcher = None
         self._estimator: BaseEstimator = None
-        self._datahandler = None
-        self._datahandlers = None
+        self._dataemitter = None
+        self._dataemitters = None
         self._name = 'BaseRegression'
         self.train_scorer = None
         self.train_overall_scorer = None
@@ -32,40 +32,36 @@ class BaseRegression(BaseDiscriminativeModel):
 
 
     def specify_data(self, 
-                     datahandler: DataHandler, 
-                     datahandlers: list[DataHandler] = None):
+                     dataemitter: DataEmitter, 
+                     dataemitters: list[DataEmitter] = None):
         """Adds a DataHandler object to the model. 
 
         Parameters
         ----------
-        - datahandler : DataHandler containing all data. Copy will be made
-            for this specific model.
-        - datahandlers : list[DataHandler]. 
-            If not None, specifies the datahandlers for nested cross validation.
+        - dataemitter : DataEmitter containing all data.
+        - dataemitters : list[DataEmitter]. 
+            If not None, specifies the DataEmitters for nested cross validation.
         """
-        self._datahandler = datahandler
-        self._datahandlers = datahandlers
+        self._dataemitter = dataemitter
+        self._dataemitters = dataemitters
 
 
     def fit(self):
         """Fits the model. Records training metrics, which can be done via 
         nested cross validation.
         """
-        y_scaler = self._datahandler.y_scaler()
+        y_scaler = self._dataemitter.y_scaler()
 
-        if self._datahandlers is None and self._datahandler is not None:
-            X_train_df, y_train_series = self._datahandler.df_train_split(
-                dropfirst=self._dropfirst)
+        if self._dataemitters is None and self._dataemitter is not None:
+            X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
             self._hyperparam_searcher.fit(X_train, y_train)
             self._estimator = self._hyperparam_searcher._best_estimator
-
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
-
             self.train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
@@ -73,14 +69,12 @@ class BaseRegression(BaseDiscriminativeModel):
                 name=str(self) + '_train'
             )
 
-        elif self._datahandlers is not None and self._datahandler is not None:
+        elif self._dataemitters is not None and self._dataemitter is not None:
             y_preds = []
             y_trues = []
-            for datahandler in self._datahandlers:
-                X_train_df, y_train_series = datahandler.df_train_split(
-                    dropfirst=self._dropfirst)
-                X_test_df, y_test_series = datahandler.df_test_split(
-                    dropfirst=self._dropfirst)
+            for emitter in self._dataemitters:
+                X_train_df, y_train_series, X_test_df, y_test_series = \
+                    emitter.emit_train_test_Xy()
                 X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
                 X_test = X_test_df.to_numpy()
@@ -104,8 +98,7 @@ class BaseRegression(BaseDiscriminativeModel):
             )
 
             # refit on all data
-            X_train_df, y_train_series = self._datahandler.df_train_split(
-                dropfirst=self._dropfirst)
+            X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
             self._hyperparam_searcher.fit(X_train, y_train)
@@ -126,8 +119,7 @@ class BaseRegression(BaseDiscriminativeModel):
         else:
             raise ValueError('The datahandler must not be None')
 
-        X_test_df, y_test_series = self._datahandler.df_test_split(
-            dropfirst=self._dropfirst)
+        X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
         X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()
 
@@ -171,7 +163,7 @@ class BaseRegression(BaseDiscriminativeModel):
         -------
         - bool
         """
-        return self._datahandlers is not None
+        return self._dataemitters is not None
 
 
     def __str__(self):

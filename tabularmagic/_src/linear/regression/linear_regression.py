@@ -40,7 +40,7 @@ class OrdinaryLeastSquares:
         """
         y_scaler = self._datahandler.y_scaler()
 
-        X_train, y_train = self._datahandler.df_train_split(
+        X_train, y_train = self._datahandler.df_train_Xy(
             onehotted=True, dropfirst=True, dropna=True)
         n_predictors = X_train.shape[1]
         X_train = sm.add_constant(X_train)
@@ -60,7 +60,7 @@ class OrdinaryLeastSquares:
             name=self._name + '_train'
         )
 
-        X_test, y_test = self._datahandler.df_test_split(
+        X_test, y_test = self._datahandler.df_test_Xy(
             onehotted=True, dropfirst=True, dropna=True)
         X_test = sm.add_constant(X_test)
 
@@ -100,7 +100,7 @@ class OrdinaryLeastSquares:
         X_vars = local_datahandler.X_vars()
         
         while True:
-            X_train, y_train = local_datahandler.df_train_split(
+            X_train, y_train = local_datahandler.df_train_Xy(
                 onehotted=True, dropfirst=True, dropna=True)
             n_predictors = X_train.shape[1]
             X_train = sm.add_constant(X_train)

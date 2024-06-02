@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator
 import pandas as pd
 from typing import Literal
 
-from ..data.datahandler import DataHandler
+from ..data.datahandler import DataEmitter
 
 
 
@@ -33,7 +33,7 @@ class BaseFeatureSelectorR():
 
 
     def select(self, 
-               datahandler: DataHandler,
+               dataemitter: DataEmitter,
                n_target_features: int):
         """
         Selects the top n_target_features features 
@@ -41,9 +41,7 @@ class BaseFeatureSelectorR():
 
         Parameters
         ----------
-        - datahandler : DataHandler.
-            Copy will NOT be made.
-            The X and y variables must already be specified.
+        - dataemitter : DataEmitter.
         - n_target_features : int. 
             Number of desired features, < n_predictors.
 
@@ -92,7 +90,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
 
 
     def select(self, 
-               datahandler: DataHandler,
+               dataemitter: DataEmitter,
                n_target_features: int):
         """
         Selects the top n_target_features features
@@ -100,9 +98,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - datahandler : DataHandler.
-            Copy will NOT be made.
-            The X and y variables must already be specified.
+        - dataemitter : DataEmitter.
         - n_target_features : int. 
             Number of desired features, < n_predictors.
 
@@ -122,7 +118,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
             scorer = r_regression
         selector = SelectKBest(scorer, k=n_target_features)
 
-        X_train, y_train = datahandler.df_train_Xy()
+        X_train, y_train = dataemitter.emit_train_Xy()
 
         selector.fit(
             X=X_train,
@@ -174,7 +170,7 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
                              f'{regularization_type}')
 
     def select(self, 
-               datahandler: DataHandler,
+               dataemitter: DataEmitter,
                n_target_features: int):
         """
         Selects the (at most) top n_target_features features
@@ -182,9 +178,7 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - datahandler : DataHandler.
-            Copy will NOT be made.
-            The X and y variables must already be specified.
+        - dataemitter : DataEmitter.
         - n_target_features : int. 
             Number of desired features, < n_predictors.
 
@@ -195,7 +189,7 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
         - np array ~ (n_features).
             Boolean mask.
         """
-        X_train, y_train = datahandler.df_train_Xy()
+        X_train, y_train = dataemitter.emit_train_Xy()
 
         self.model.fit(
             X=X_train.to_numpy(),
@@ -219,7 +213,8 @@ class RFESelectorR(BaseFeatureSelectorR):
     recursive feature elimination based on the training data.
     """
 
-    def __init__(self, model: Literal['ols', 'l1', 'l2', 'decision_tree', 
+    def __init__(self, 
+                 model: Literal['ols', 'l1', 'l2', 'decision_tree', 
                     'svm', 'random_forest'] | BaseEstimator, 
                  name: str = None):
         """
@@ -258,17 +253,15 @@ class RFESelectorR(BaseFeatureSelectorR):
 
 
     def select(self, 
-               datahandler: DataHandler,
+               dataemitter: DataEmitter,
                n_target_features: int):
         """
-        Selects (at maximum) the top n_target_features features
+        Selects the (at most) top n_target_features features
         based on the training data.
 
         Parameters
         ----------
-        - datahandler : DataHandler.
-            Copy will NOT be made.
-            The X and y variables must already be specified.
+        - dataemitter : DataEmitter.
         - n_target_features : int. 
             Number of desired features, < n_predictors.
 
@@ -279,7 +272,7 @@ class RFESelectorR(BaseFeatureSelectorR):
         - np array ~ (n_features).
             Boolean mask.
         """
-        X_train, y_train = datahandler.df_train_Xy()
+        X_train, y_train = dataemitter.emit_train_Xy()
 
         selector = RFE(estimator=self.model, 
                        n_features_to_select=n_target_features)

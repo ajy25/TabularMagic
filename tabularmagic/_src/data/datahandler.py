@@ -342,8 +342,9 @@ class DataEmitter:
         """
         continuous_vars = self._continuous_vars
         categorical_vars = self._categorical_vars
-        continuous_vars = list(vars & set(continuous_vars))
-        categorical_vars = list(vars & set(categorical_vars))
+        var_set = set(vars)
+        continuous_vars = list(var_set & set(continuous_vars))
+        categorical_vars = list(var_set & set(categorical_vars))
 
         # impute continuous variables
         if len(continuous_vars) > 0:
@@ -697,6 +698,15 @@ class DataEmitter:
 
 
 
+
+
+
+
+
+
+
+
+
 class DataHandler:
     """DataHandler: handles all aspects of data preprocessing and loading.
     """
@@ -723,17 +733,20 @@ class DataHandler:
             dict[str, tuple[pd.DataFrame, pd.DataFrame]] = dict()
         self._verbose = verbose
 
+
         # verify and set the original DataFrames
         self._verify_input_dfs(df_train, df_test)
-        df_train, df_test = self._remove_spaces_varnames(df_train, df_test)
+
+        self._orig_df_train, self._orig_df_test = self._remove_spaces_varnames(
+            df_train, df_test)
+
         self._orig_df_train, self._orig_df_test =\
-            self._force_train_test_var_agreement(df_train.copy(), 
-                                                 df_test.copy())
+            self._force_train_test_var_agreement(
+                self._orig_df_train, self._orig_df_test)
         
         self._categorical_vars, self._continuous_vars, \
             self._categorical_to_categories =\
             self._compute_categorical_continuous_vars(self._orig_df_train)
-
 
         # set the working DataFrames
         self._working_df_train = self._orig_df_train.copy()
@@ -981,13 +994,27 @@ class DataHandler:
             if var not in self._working_df_train.columns:
                 raise ValueError(f'Invalid variable name: {var}.')
 
-        if self._working_df_train[y_var].dtype in \
-            ['object', 'category', 'bool']:
+        use_stratified = False
+        if y_var in self._orig_df_train.columns:
+            if self._orig_df_train[y_var].dtype in \
+                ['object', 'category', 'bool']:
+                use_stratified = True
+        if use_stratified:
             if shuffle:
-                kf = StratifiedKFold(n_splits=n_folds, random_state=random_state, 
-                                    shuffle=True)
+                kf = StratifiedKFold(n_splits=n_folds, 
+                    random_state=random_state, shuffle=True)
             else:
                 kf = StratifiedKFold(n_splits=n_folds, shuffle=False)
+
+            out = []
+            for train_index, test_index in kf.split(
+                    self._orig_df_train, self._orig_df_train[y_var]):
+                df_train = self._orig_df_train.iloc[train_index]
+                df_test = self._orig_df_train.iloc[test_index]
+                out.append(DataEmitter(df_train, df_test, y_var, 
+                                    X_vars, self._preprocess_step_tracer))
+            return out
+
         else:
             if shuffle:
                 kf = KFold(n_splits=n_folds, random_state=random_state, 
@@ -996,14 +1023,13 @@ class DataHandler:
                 kf = KFold(n_splits=n_folds, shuffle=False)
 
 
-        out = []
-        for train_index, test_index in kf.split(
-                self._orig_df_train, self._orig_df_train[y_var]):
-            df_train = self._orig_df_train.iloc[train_index]
-            df_test = self._orig_df_train.iloc[test_index]
-            out.append(DataEmitter(df_train, df_test, y_var, 
-                                   X_vars, self._preprocess_step_tracer))
-        return out
+            out = []
+            for train_index, test_index in kf.split(self._orig_df_train):
+                df_train = self._orig_df_train.iloc[train_index]
+                df_test = self._orig_df_train.iloc[test_index]
+                out.append(DataEmitter(df_train, df_test, y_var, 
+                                    X_vars, self._preprocess_step_tracer))
+            return out
 
 
     # --------------------------------------------------------------------------
@@ -1290,7 +1316,7 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f'Scaled variables {list_to_string(vars)} ' + \
+                f'Scaled variables {list_to_string(include_vars)} ' + \
                     f'using strategy {color_text(strategy, "yellow")}.',
                 type='UPDATE'
             )
@@ -1582,11 +1608,14 @@ class DataHandler:
         - df1 : pd.DataFrame
         - df2 : pd.DataFrame
         """
-        l1 = set(df1.columns.to_list())
-        l2 = set(df2.columns.to_list())
-        if len(l1.union(l2)) != len(l1):
-            raise RuntimeWarning('The train and test DataFrames' + \
-                ' do not have the same variables.')
+        l1 = df1.columns.to_list()
+        l2 = df2.columns.to_list()
+        vars_not_in_both = list(set(l1) ^ set(l2))
+        if len(vars_not_in_both) > 0:
+            raise ValueError(
+                f'Variables {list_to_string(vars_not_in_both)} ' +\
+                'are not in both train and test DataFrames.'
+            )
 
 
     def _compute_categorical_continuous_vars(self, df: pd.DataFrame):
@@ -1663,8 +1692,7 @@ class DataHandler:
 
     def _remove_spaces_varnames(self, df_train: pd.DataFrame, 
                                 df_test: pd.DataFrame):
-        """Removes spaces from variable names. Necessary for R-like lm()
-        calls.
+        """Removes spaces from variable names.
 
         Parameters
         ----------

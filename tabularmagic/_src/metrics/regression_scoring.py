@@ -172,7 +172,7 @@ class RegressionScorer:
         return self._stats_df
 
 
-    def cv_df(self):
+    def cv_stats_df(self):
         """Outputs a DataFrame that contains the cross validation statistics.
 
         Returns

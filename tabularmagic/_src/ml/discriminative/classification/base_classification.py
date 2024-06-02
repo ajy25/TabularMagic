@@ -2,7 +2,7 @@ from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
-from ....data.datahandler import DataHandler
+from ....data.datahandler import DataEmitter
 from ....metrics.classification_scoring import (
     ClassificationMulticlassScorer, ClassificationBinaryScorer)
 
@@ -14,44 +14,42 @@ class BaseClassification(BaseDiscriminativeModel):
     """A class that provides the framework upon which all regression 
     objects are built. 
 
-    BaseRegression wraps sklearn methods. 
-    The primary purpose of BaseRegression is to automate the scoring and 
+    BaseClassification wraps sklearn methods. 
+    The primary purpose of BaseClassification is to automate the scoring and 
     model selection processes. 
     """
 
     def __init__(self):
-        """Initializes a BaseRegression object. Creates copies of the inputs. 
+        """Initializes a BaseClassification object. Creates copies of the inputs. 
         """
         self._label_encoder = LabelEncoder()
         self._hyperparam_searcher: HyperparameterSearcher = None
         self._estimator: BaseEstimator = None
-        self._datahandler = None
-        self._datahandlers = None
-        self._name = 'BaseRegression'
+        self._dataemitter = None
+        self._dataemitters = None
+        self._name = 'BaseClassification'
         self.train_scorer = None
-        self.train_overall_scorer = None
+        self.cv_scorer = None
         self.test_scorer = None
 
         # By default, the first column is NOT dropped unless binary. For LinearR, 
         # the first column is dropped to avoid multicollinearity.
         self._dropfirst = False
-        
 
 
     def specify_data(self, 
-                     datahandler: DataHandler, 
-                     datahandlers: list[DataHandler] = None):
-        """Adds a DataHandler object to the model. 
+                     dataemitter: DataEmitter, 
+                     dataemitters: list[DataEmitter] = None):
+        """Adds a DataEmitter object to the model. 
 
         Parameters
         ----------
-        - datahandler : DataHandler containing all data. Copy will be made
-            for this specific model.
-        - datahandlers : list[DataHandler]. 
-            If not None, specifies the datahandlers for nested cross validation.
+        - dataemitter : DataEmitter containing all data.
+        - dataemitters : list[DataEmitter]. 
+            If not None, specifies the DataEmitters for nested cross validation.
         """
-        self._datahandler = datahandler
-        self._datahandlers = datahandlers
+        self._dataemitter = dataemitter
+        self._dataemitters = dataemitters
 
 
     def fit(self):
@@ -60,10 +58,9 @@ class BaseClassification(BaseDiscriminativeModel):
         """            
         is_binary = False
 
-        if self._datahandlers is None and self._datahandler is not None:
+        if self._dataemitters is None and self._dataemitter is not None:
 
-            X_train_df, y_train_series = self._datahandler.df_train_Xy(
-                dropfirst=self._dropfirst)
+            X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
 
@@ -71,7 +68,7 @@ class BaseClassification(BaseDiscriminativeModel):
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
 
-            if np.isin(np.unique(y_train_encoded), [0, 1]).all():
+            if np.isin(np.unique(y_train), [0, 1]).all():
                 is_binary = True
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded)
@@ -108,26 +105,24 @@ class BaseClassification(BaseDiscriminativeModel):
                 )
 
 
-        elif self._datahandlers is not None and self._datahandler is not None:
+        elif self._dataemitters is not None and self._dataemitter is not None:
             y_preds = []
             y_trues = []
             y_pred_scores = []
 
             is_binary = True
 
-            for datahandler in self._datahandlers:
-                X_train_df, y_train_series = datahandler.df_train_Xy(
-                    dropfirst=self._dropfirst)
-                X_test_df, y_test_series = datahandler.df_test_Xy(
-                    dropfirst=self._dropfirst)
+            for emitter in self._dataemitters:
+                X_train_df, y_train_series, X_test_df, y_test_series = \
+                    emitter.emit_train_test_Xy()
                 X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
 
                 y_train_encoded: np.ndarray =\
                     self._label_encoder.fit_transform(y_train)
 
-                if len(np.unique(y_train_encoded)) != 2:
-                    is_binary = is_binary and False
+                if not np.isin(np.unique(y_train), [0, 1]).all():
+                    is_binary = False
 
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
@@ -152,7 +147,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 y_pred_scores = None
 
             if not is_binary:
-                self.train_scorer = ClassificationMulticlassScorer(
+                self.cv_scorer = ClassificationMulticlassScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
@@ -161,7 +156,7 @@ class BaseClassification(BaseDiscriminativeModel):
                     name=str(self)
                 )
             else:
-                self.train_scorer = ClassificationBinaryScorer(
+                self.cv_scorer = ClassificationBinaryScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
@@ -169,8 +164,7 @@ class BaseClassification(BaseDiscriminativeModel):
                 )
  
             # refit on all data
-            X_train_df, y_train_series = self._datahandler.df_train_Xy(
-                dropfirst=self._dropfirst)
+            X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
 
@@ -189,7 +183,7 @@ class BaseClassification(BaseDiscriminativeModel):
 
 
             if not is_binary:
-                self.train_overall_scorer = ClassificationMulticlassScorer(
+                self.train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -198,7 +192,7 @@ class BaseClassification(BaseDiscriminativeModel):
                     name=str(self)
                 )
             else:
-                self.train_overall_scorer = ClassificationBinaryScorer(
+                self.train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -208,8 +202,7 @@ class BaseClassification(BaseDiscriminativeModel):
         else:
             raise ValueError('The datahandler must not be None')
 
-        X_test_df, y_test_series = self._datahandler.df_test_Xy(
-            dropfirst=self._dropfirst)
+        X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
         X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()
 
@@ -269,7 +262,7 @@ class BaseClassification(BaseDiscriminativeModel):
         -------
         - bool
         """
-        return self._datahandlers is not None
+        return self._dataemitters is not None
 
 
     def __str__(self):

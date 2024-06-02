@@ -173,7 +173,9 @@ class TabularMagic:
 
 
 
-    def lm(self, y_var: str = None, X_vars: list[str] = None, 
+    def lm(self, 
+           y_var: str = None, 
+           X_vars: list[str] = None, 
            formula: str = None) ->\
                 LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise. 
@@ -198,11 +200,14 @@ class TabularMagic:
 
         elif formula is None:
             if X_vars is None:
-                X_vars = self._datahandler.vars(ignore_yvar=False)
-                X_vars.remove(y_var)
+                X_vars = self._datahandler.vars()
+                if y_var in X_vars:
+                    X_vars.remove(y_var)
             return LinearRegressionReport(
                 OrdinaryLeastSquares(),
-                self._datahandler.copy(y_var, X_vars),
+                self._datahandler,
+                y_var,
+                X_vars
             )
         
         else:
@@ -234,13 +239,15 @@ class TabularMagic:
             
             datahandler = DataHandler(
                 y_X_df_combined_train, 
-                y_X_df_combined_test, 
+                y_X_df_combined_test,
                 verbose=False)
             datahandler._continuous_var_to_scaler[y_var] = y_scaler
 
             return LinearRegressionReport(
                 OrdinaryLeastSquares(), 
-                datahandler.copy(y_var, X_vars),
+                datahandler,
+                y_var,
+                X_vars
             )
 
 
@@ -317,14 +324,16 @@ class TabularMagic:
         -------
         - report MLClassificationReport
         """
-
         if X_vars is None:
-            X_vars = self._datahandler.vars(ignore_yvar=False)
-            X_vars.remove(y_var)
+            X_vars = self._datahandler.vars()
+            if y_var in X_vars:
+                X_vars.remove(y_var)
         
         return MLClassificationReport(
             models=models,
-            datahandler=self._datahandler.copy(y_var, X_vars),
+            datahandler=self._datahandler,
+            y_var=y_var,
+            X_vars=X_vars,
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose

@@ -16,6 +16,8 @@ class RegressionVotingSelectionReport():
     def __init__(self, 
                  selectors: Iterable[BaseFeatureSelectorR], 
                  datahandler: DataHandler,
+                 y_var: str,
+                 X_vars: list[str],
                  n_target_features: int, 
                  verbose: bool = True):
         """
@@ -25,24 +27,27 @@ class RegressionVotingSelectionReport():
         - selectors : Iterable[BaseSelector].
             Each BaseSelector decides on the top n_target_features. 
         - datahandler : DataHandler.
-            Copy will be made.
-            The X and y variables must already be specified.
+            The DataHandler object that contains the data.
+        - y_var : str.
+            The name of the dependent variable.
+        - X_vars : Iterable[str].
+            The names of the independent variables.
         - n_target_features : int. 
             Number of desired features, < n_predictors.
         - verbose : bool.
             If true, prints progress.
         """
         self._selector_to_support = {}
-
-        self._datahandler = datahandler.copy()
-        X_vars = self._datahandler._Xvars
+        self._emitter = datahandler.train_test_emitter(
+            y_var=y_var, X_vars=X_vars
+        )
 
         for i, selector in enumerate(selectors):
             if verbose:
                 print_wrapped(
                     f'Task {i+1} of {len(selectors)}.\tFitting {selector}.', 
                     type='UPDATE')
-            _, support = selector.select(self._datahandler, n_target_features)
+            _, support = selector.select(self._emitter, n_target_features)
             self._selector_to_support[str(selector)] = support
 
         self._votes_df = pd.DataFrame.from_dict(self._selector_to_support, 

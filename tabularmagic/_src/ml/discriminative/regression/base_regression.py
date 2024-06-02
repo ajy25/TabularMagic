@@ -23,7 +23,7 @@ class BaseRegression(BaseDiscriminativeModel):
         self._dataemitters = None
         self._name = 'BaseRegression'
         self.train_scorer = None
-        self.train_overall_scorer = None
+        self.cv_scorer = None
         self.test_scorer = None
 
         # By default, the first column is NOT dropped. For LinearR, 
@@ -34,7 +34,7 @@ class BaseRegression(BaseDiscriminativeModel):
     def specify_data(self, 
                      dataemitter: DataEmitter, 
                      dataemitters: list[DataEmitter] = None):
-        """Adds a DataHandler object to the model. 
+        """Adds a DataEmitter object to the model. 
 
         Parameters
         ----------
@@ -66,7 +66,7 @@ class BaseRegression(BaseDiscriminativeModel):
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
-                name=str(self) + '_train'
+                name=str(self)
             )
 
         elif self._dataemitters is not None and self._dataemitter is not None:
@@ -90,7 +90,7 @@ class BaseRegression(BaseDiscriminativeModel):
                 y_preds.append(y_pred)
                 y_trues.append(y_test)
 
-            self.train_scorer = RegressionScorer(
+            self.cv_scorer = RegressionScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
                 n_predictors=X_train.shape[1],
@@ -108,7 +108,7 @@ class BaseRegression(BaseDiscriminativeModel):
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
 
-            self.train_overall_scorer = RegressionScorer(
+            self.train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
@@ -131,10 +131,9 @@ class BaseRegression(BaseDiscriminativeModel):
         self.test_scorer = RegressionScorer(
             y_pred=y_pred,
             y_true=y_test,
-            n_predictors=X_train.shape[1],
+            n_predictors=X_test.shape[1],
             name=str(self)
         )
-
 
 
     def sklearn_estimator(self):

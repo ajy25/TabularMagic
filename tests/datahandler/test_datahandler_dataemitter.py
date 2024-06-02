@@ -43,6 +43,16 @@ class TestDataEmitter(unittest.TestCase):
         )
 
 
+        self.df_house = pd.read_csv(
+            f'{parent_dir}/demo/regression/house_price_data/data.csv'
+        )
+        self.df_house_train, self.df_house_test = train_test_split(
+            self.df_house, test_size=0.2, random_state=42
+        )
+
+
+
+
     def test_basic_init(self):
         """Test basic initialization DataEmitter functionality."""
 
@@ -300,6 +310,185 @@ class TestDataEmitter(unittest.TestCase):
             self.assertEqual(
                 idx1, idx2
             )
+
+
+    def test_scale(self):
+        """Test scaling of continuous variables."""
+        dh = DataHandler(self.df_iris_train, self.df_iris_test, 
+            verbose=False)
+        dh.scale(strategy='minmax')
+        self.assertAlmostEqual(
+            dh._working_df_train['sepallength(cm)'].min(),
+            0
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['sepallength(cm)'].max(),
+            1
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['petallength(cm)'].min(),
+            0
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['petallength(cm)'].max(),
+            1
+        )
+
+        dh_emitter = dh.train_test_emitter('target', 
+            ['sepallength(cm)', 'petallength(cm)', 'petalwidth(cm)'])
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['sepallength(cm)'].min(),
+            0
+        )
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['sepallength(cm)'].max(),
+            1
+        )
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['petallength(cm)'].min(),
+            0
+        )
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['petallength(cm)'].max(),
+            1
+        )
+
+
+        dh = DataHandler(self.df_iris_train, self.df_iris_test, 
+            verbose=False)
+        dh.scale(strategy='standardize')
+        self.assertAlmostEqual(
+            dh._working_df_train['sepallength(cm)'].mean(),
+            0,
+            places=2
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['sepallength(cm)'].std(),
+            1,
+            places=2
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['petallength(cm)'].mean(),
+            0,
+            places=2
+        )
+        self.assertAlmostEqual(
+            dh._working_df_train['petallength(cm)'].std(),
+            1,
+            places=2
+        )
+
+
+        dh_emitter = dh.train_test_emitter('target',
+            ['sepallength(cm)', 'petallength(cm)', 'petalwidth(cm)'])
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['sepallength(cm)'].mean(),
+            0,
+            places=2
+        )
+        self.assertAlmostEqual(
+            dh_emitter._working_df_train['sepallength(cm)'].std(),
+            1,
+            places=2
+        )
+
+
+        dh_emitters = dh.kfold_emitters(
+            'target', ['sepallength(cm)', 'petallength(cm)', 'petalwidth(cm)']
+        )
+        for emitter in dh_emitters:
+            self.assertAlmostEqual(
+                emitter._working_df_train['sepallength(cm)'].mean(),
+                0,
+                places=2
+            )
+            self.assertAlmostEqual(
+                emitter._working_df_train['sepallength(cm)'].std(),
+                1,
+                places=1
+            )
+
+
+
+
+    def test_drop_vars(self):
+        """Test dropping variables."""
+        dh = DataHandler(self.df_iris_train, self.df_iris_test, 
+            verbose=False)
+        dh.drop_vars(['sepallength(cm)'])
+        self.assertFalse(
+            'sepallength(cm)' in dh._working_df_train.columns
+        )
+        self.assertFalse(
+            'sepallength(cm)' in dh._working_df_test.columns
+        )
+
+        dh_emitter = dh.train_test_emitter('target', 
+            ['petallength(cm)', 'petalwidth(cm)'])
+        self.assertFalse(
+            'sepallength(cm)' in dh_emitter._working_df_train.columns
+        )
+        self.assertFalse(
+            'sepallength(cm)' in dh_emitter._working_df_test.columns
+        )
+
+
+
+
+    def test_impute(self):
+        """Test imputing missing values."""
+        dh = DataHandler(self.df_house_train, 
+                         self.df_house_test, 
+                         verbose=False)
+        dh.impute(continuous_strategy='mean', 
+                  categorical_strategy='most_frequent')
+        for col in dh._working_df_train.columns:
+            self.assertFalse(
+                dh._working_df_train[col].isnull().any()
+            )
+        for col in dh._working_df_test.columns:
+            self.assertFalse(
+                dh._working_df_test[col].isnull().any()
+            )
+        dh_emitter = dh.train_test_emitter('SalePrice',
+            ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond'])
+        for col in dh_emitter._working_df_train.columns:
+            self.assertFalse(
+                dh_emitter._working_df_train[col].isnull().any()
+            )
+        for col in dh_emitter._working_df_test.columns:
+            self.assertFalse(
+                dh_emitter._working_df_test[col].isnull().any()
+            )
+        
+        dh_emitters = dh.kfold_emitters('SalePrice',
+            ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond'])
+        for emitter in dh_emitters:
+            for col in emitter._working_df_train.columns:
+                self.assertFalse(
+                    emitter._working_df_train[col].isnull().any()
+                )
+            for col in emitter._working_df_test.columns:
+                self.assertFalse(
+                    emitter._working_df_test[col].isnull().any()
+                )
+
+
+        self.assertTrue(self.df_house_train['LotFrontage'].isnull().any())
+        self.assertTrue(self.df_house_train['MasVnrArea'].isnull().any())
+        dh = DataHandler(self.df_house_train, 
+                         self.df_house_test, 
+                         verbose=False)
+        dh.impute(
+            include_vars=['LotFrontage', 'MasVnrArea', 'BsmtFinSF1'],
+            exclude_vars=['LotFrontage']
+        )
+        self.assertTrue(dh._working_df_train['LotFrontage'].isnull().any())
+        self.assertFalse(dh._working_df_train['MasVnrArea'].isnull().any())
+        self.assertTrue(self.df_house_train['MasVnrArea'].isnull().any())
+        
+        
+
 
 
     def test_kfold_basic_init(self):

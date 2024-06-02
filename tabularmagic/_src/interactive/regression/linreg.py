@@ -34,7 +34,8 @@ class SingleDatasetLinRegReport:
     plots and tables for a single linear regression model. 
     """
     
-    def __init__(self, model: OrdinaryLeastSquares, 
+    def __init__(self, 
+                 model: OrdinaryLeastSquares, 
                  dataset: Literal['train', 'test']):
         """
         Initializes a RegressionReport object. 
@@ -49,11 +50,11 @@ class SingleDatasetLinRegReport:
         
         if dataset == 'test':
             self.scorer = model.test_scorer
-            self._X_eval_df = self.model._datahandler.df_test_Xy()[0]
+            self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
             self._is_train = False
         elif dataset == 'train':
             self.scorer = model.train_scorer
-            self._X_eval_df = self.model._datahandler.df_train_Xy()[0]
+            self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
             self._is_train = True
         else:
             raise ValueError('specification must be either "train" or "test".')
@@ -599,7 +600,9 @@ class LinearRegressionReport:
 
     def __init__(self, 
                  model: OrdinaryLeastSquares,
-                 datahandler: DataHandler):
+                 datahandler: DataHandler,
+                 y_var: str,
+                 X_vars: Iterable[str]):
         """LinearRegressionReport.  
         Fits the model based on provided DataHandler.
         Wraps train and test SingleDatasetLinRegReport objects.
@@ -607,12 +610,18 @@ class LinearRegressionReport:
         Parameters
         ----------
         - model : OrdinaryLeastSquares. 
-        - datahandler : DataHandler. 
-            X and y variables must be specified.
+        - datahandler : DataHandler.
+            The DataHandler object that contains the data.
+        - y_var : str.
+            The name of the dependent variable.
+        - X_vars : Iterable[str].
+            The names of the independent variables.
         """
         self._model = model
         self._datahandler = datahandler
-        self._model.specify_data(self._datahandler)
+        self._dataemitter = self._datahandler.train_test_emitter(
+            y_var, X_vars)
+        self._model.specify_data(self._dataemitter)
         self._model.fit()
 
         self._train_report = SingleDatasetLinRegReport(model, 'train')

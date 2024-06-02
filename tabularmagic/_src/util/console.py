@@ -53,7 +53,7 @@ def print_wrapped(text: str,
 
 
 def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow', 
-                'purple', 'none'] = 'purple'):
+                'purple', 'none'] = 'purple') -> str:
     """
     Converts a Python list to a string representation with 
     elements separated by commas.

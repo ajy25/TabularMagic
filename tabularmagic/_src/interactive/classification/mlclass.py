@@ -71,9 +71,15 @@ class SingleModelSingleDatasetMLClassReport:
             return self.model.test_scorer.stats_by_class_df()
 
 
-    def cv_fit_statistics(self) -> pd.DataFrame:
+    def cv_fit_statistics(self, 
+                          averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated evaluation metrics
         for the model on the specified data.
+
+        Parameters
+        ----------
+        - averaged_across_folds : bool. If True, returns a DataFrame 
+            containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
@@ -85,7 +91,10 @@ class SingleModelSingleDatasetMLClassReport:
                 'for models that are not cross-validated.', type='WARNING')
             return None
         if self._dataset == 'train':
-            return self.model.train_scorer.cv_stats_df()
+            if averaged_across_folds:
+                return self.model.cv_scorer.stats_df()
+            else:
+                return self.model.cv_scorer.cv_stats_df()
         elif self._dataset == 'test':
             print_wrapped(
                 'Cross validation statistics are not available for test data.',
@@ -93,7 +102,8 @@ class SingleModelSingleDatasetMLClassReport:
             return None
         
 
-    def cv_fit_statistics_by_class(self) -> pd.DataFrame:
+    def cv_fit_statistics_by_class(self, 
+                                   averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated evaluation metrics
         for the model on the specified data, broken down by class.
 
@@ -112,7 +122,10 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
         if self._dataset == 'train':
-            return self.model.train_scorer.cv_stats_by_class_df()
+            if averaged_across_folds:
+                return self.model.cv_scorer.stats_by_class_df()
+            else:
+                return self.model.cv_scorer.cv_stats_by_class_df()
         else:
             print_wrapped(
                 'Cross validation statistics are not available for test data.',
@@ -197,8 +210,11 @@ class MLClassificationReport:
     Wraps train and test SingleDatasetMLClassReport objects.
     """
 
-    def __init__(self, models: Iterable[BaseClassification],
+    def __init__(self, 
+                 models: Iterable[BaseClassification],
                  datahandler: DataHandler,
+                 y_var: str,
+                 X_vars: Iterable[str],
                  outer_cv: int = None,
                  outer_cv_seed: int = 42,
                  verbose: bool = True):
@@ -211,28 +227,44 @@ class MLClassificationReport:
         - models: Iterable[BaseClassification].
             The BaseClassification models must already be trained.
         - datahandler: DataHandler.
+            The DataHandler object that contains the data.
+        - y_var : str.
+            The name of the dependent variable.
+        - X_vars : Iterable[str].
+            The names of the independent variables.
         - outer_cv: int.
             If not None, reports training scores via nested k-fold CV.
         - outer_cv_seed: int.
             The random seed for the outer cross validation loop.
         - verbose: bool.
         """
-        self._models = models
+        self._models: list[BaseClassification] = models
         self._id_to_model = {model._name: model for model in models}
 
-        self._datahandler = datahandler
-        self._datahandlers = None
+        self.y_var = y_var
+        self.X_vars = X_vars
+
+        self._emitter = datahandler.train_test_emitter(
+            y_var=y_var,
+            X_vars=X_vars
+        )
+        self._emitters = None
         if outer_cv is not None:
-            self._datahandlers = datahandler.kfold_copies(k=outer_cv, 
-                                                          seed=outer_cv_seed)
+            self._emitters = datahandler.kfold_emitters(
+                y_var=y_var,
+                X_vars=X_vars,
+                n_folds=outer_cv,
+                shuffle=True,
+                random_state=outer_cv_seed
+            )
             
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
                 print_wrapped(f'Fitting model {model._name}.',
                                type='UPDATE')
-            model.specify_data(datahandler=self._datahandler,
-                               datahandlers=self._datahandlers)
+            model.specify_data(dataemitter=self._emitter, 
+                               dataemitters=self._emitters)
             model.fit()
             if self._verbose:
                 print_wrapped(f'Fitted model {model._name}.',
@@ -241,6 +273,7 @@ class MLClassificationReport:
         self._id_to_report = {model._name: SingleModelMLClassReport(model)
                               for model in models}
 
+    
     def model_report(self, model_id: str) -> SingleModelMLClassReport:
         """Returns the SingleModelMLClassReport object for the specified model.
 
@@ -253,6 +286,7 @@ class MLClassificationReport:
         - SingleModelMLClassReport
         """
         return self._id_to_report[model_id]
+    
 
     def model(self, model_id: str) -> BaseClassification:
         """Returns the model with the specified id.
@@ -288,10 +322,16 @@ class MLClassificationReport:
                               for report in self._id_to_report.values()],
                               axis=1)
         
-    def cv_fit_statistics(self) -> pd.DataFrame:
+    def cv_fit_statistics(self, 
+                          averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics for
         all models on the training data. Cross validation must have been 
         specified; otherwise an error will be thrown.
+
+        Parameters
+        ----------
+        - averaged_across_folds : bool. If True, returns a DataFrame 
+            containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
@@ -301,7 +341,8 @@ class MLClassificationReport:
             print_wrapped('Cross validation statistics are not available ' +\
                 'for models that are not cross-validated.', type='WARNING')
             return None
-        return pd.concat([report.train_report().cv_fit_statistics()
+        return pd.concat([report.train_report().\
+                          cv_fit_statistics(averaged_across_folds) \
                             for report in self._id_to_report.values()],
                             axis=1)
 

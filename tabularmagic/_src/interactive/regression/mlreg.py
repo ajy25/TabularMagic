@@ -34,11 +34,12 @@ class SingleModelSingleDatasetMLRegReport:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
 
+
     def fit_statistics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model on the specified data.
 
-        Parameters
+        Returns
         ----------
         - pd.DataFrame
         """
@@ -47,22 +48,36 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             return self.model.test_scorer.stats_df()
         
-    def cv_fit_statistics(self) -> pd.DataFrame:
+
+    def cv_fit_statistics(self, 
+                          averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated goodness-of-fit 
         statistics for the model on the specified data.
 
         Parameters
         ----------
+        - av
+
+        Returns
+        ----------
         - pd.DataFrame
         """
+        if not self.model._is_cross_validated():
+            print_wrapped('Cross validation statistics are not available ' +\
+                'for models that are not cross-validated.', type='WARNING')
+            return None
         if self._dataset == 'train':
-            return self.model.train_scorer.cv_df()
+            if averaged_across_folds:
+                return self.model.cv_scorer.stats_df()
+            else:
+                return self.model.cv_scorer.cv_stats_df()
         else:
             print_wrapped(
                 'Cross validation statistics are not available for test data.',
                 type='WARNING')
             return None
     
+
     def plot_obs_vs_pred(self, figsize: Iterable = (5, 5), 
                           ax: axes.Axes = None) -> figure.Figure:
         """Returns a figure that is a scatter plot of the observed (y-axis) and 
@@ -78,13 +93,8 @@ class SingleModelSingleDatasetMLRegReport:
         - Figure
         """
         if self._dataset == 'train':
-            if self.model.train_overall_scorer is not None:
-                # in case of nested cross validation, use overall scorer
-                y_pred = self.model.train_overall_scorer._y_pred
-                y_true = self.model.train_overall_scorer._y_true
-            else:
-                y_pred = self.model.train_scorer._y_pred
-                y_true = self.model.train_scorer._y_true
+            y_pred = self.model.train_scorer._y_pred
+            y_true = self.model.train_scorer._y_true
         else:
             y_pred = self.model.test_scorer._y_pred
             y_true = self.model.test_scorer._y_true
@@ -165,7 +175,7 @@ class MLRegressionReport:
             The random seed for the outer cross validation loop.
         - verbose : bool.
         """
-        self._models = models
+        self._models: list[BaseRegression] = models
         self._id_to_model = {model._name: model for model in models}
 
         self.y_var = y_var
@@ -253,10 +263,17 @@ class MLRegressionReport:
                               for report in self._id_to_report.values()], 
                               axis=1)
         
-    def cv_fit_statistics(self) -> pd.DataFrame:
+        
+    def cv_fit_statistics(self, 
+                          averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated goodness-of-fit 
         statistics for all models on the training data. Cross validation must 
         have been conducted.
+        
+        Parameters
+        ----------
+        - averaged_across_folds : bool. If True, returns a DataFrame 
+            containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
@@ -266,7 +283,8 @@ class MLRegressionReport:
             print_wrapped('Cross validation statistics are not available ' +\
                 'for models that are not cross-validated.', type='WARNING')
             return None
-        return pd.concat([report.train_report().cv_fit_statistics() \
+        return pd.concat([report.train_report().\
+                          cv_fit_statistics(averaged_across_folds) \
                           for report in self._id_to_report.values()], 
                           axis=1)
 

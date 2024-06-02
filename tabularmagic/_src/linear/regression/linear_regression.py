@@ -1,7 +1,7 @@
 import statsmodels.api as sm
 from typing import Literal
 from ...metrics.regression_scoring import RegressionScorer
-from ...data.datahandler import DataHandler
+from ...data.datahandler import DataEmitter
 
 
 class OrdinaryLeastSquares:
@@ -24,7 +24,7 @@ class OrdinaryLeastSquares:
             self._name = f'OrdinaryLeastSquares'
     
 
-    def specify_data(self, datahandler: DataHandler):
+    def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataHandler object to the model. 
 
         Parameters
@@ -32,16 +32,15 @@ class OrdinaryLeastSquares:
         - datahandler : DataHandler containing all data. X and y variables 
             must be specified.
         """
-        self._datahandler = datahandler
+        self._dataemitter = dataemitter
 
 
     def fit(self):
         """Fits the model based on the data specified.
         """
-        y_scaler = self._datahandler.y_scaler()
+        y_scaler = self._dataemitter.y_scaler()
 
-        X_train, y_train = self._datahandler.df_train_Xy(
-            onehotted=True, dropfirst=True, dropna=True)
+        X_train, y_train = self._dataemitter.emit_train_Xy()
         n_predictors = X_train.shape[1]
         X_train = sm.add_constant(X_train)
         self.estimator = sm.OLS(y_train, X_train).fit(cov_type='HC3')
@@ -60,8 +59,7 @@ class OrdinaryLeastSquares:
             name=self._name + '_train'
         )
 
-        X_test, y_test = self._datahandler.df_test_Xy(
-            onehotted=True, dropfirst=True, dropna=True)
+        X_test, y_test = self._dataemitter.emit_test_Xy()
         X_test = sm.add_constant(X_test)
 
 
@@ -69,6 +67,7 @@ class OrdinaryLeastSquares:
         if y_scaler is not None:
             y_pred_test = y_scaler.inverse_transform(y_pred_test)
             y_test = y_scaler.inverse_transform(y_test)
+
 
         self.test_scorer = RegressionScorer(
             y_pred=y_pred_test,
@@ -96,30 +95,8 @@ class OrdinaryLeastSquares:
         - list of str. 
             The subset of predictors that are most likely to be significant.
         """
-        local_datahandler = self._datahandler.copy()
-        X_vars = local_datahandler.X_vars()
-        
-        while True:
-            X_train, y_train = local_datahandler.df_train_Xy(
-                onehotted=True, dropfirst=True, dropna=True)
-            n_predictors = X_train.shape[1]
-            X_train = sm.add_constant(X_train)
-            model = sm.OLS(y_train, X_train).fit(cov_type='HC3')
-            if criteria == 'aic':
-                crit = model.aic
-            elif criteria == 'bic':
-                crit = model.bic
-            else:
-                raise ValueError('Invalid criteria.')
-            max_p = model.pvalues[1:].max()
-            if max_p > 0.05:
-                break
-            else:
-                worst_predictor = model.pvalues[1:].idxmax()
-                X_vars.remove(worst_predictor)
-                local_datahandler.set_X_vars(X_vars)
-
-        
+        raise NotImplementedError(
+            'Backwards elimination is not yet implemented.')
 
 
 

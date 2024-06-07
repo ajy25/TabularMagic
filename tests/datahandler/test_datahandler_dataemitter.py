@@ -7,7 +7,7 @@ sys.path.append(parent_dir)
 import pandas as pd
 import numpy as np
 
-from tabularmagic._src.data.datahandler import (DataEmitter, DataHandler, 
+from tabularmagic.src.data.datahandler import (DataEmitter, DataHandler, 
                                                 PreprocessStepTracer)
 
 

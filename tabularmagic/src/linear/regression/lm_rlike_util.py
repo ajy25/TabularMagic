@@ -6,9 +6,9 @@ from ...data.preprocessing\
     import LogTransformSingleVar, CustomFunctionSingleVar
 
 
-def is_continuous(var: str, df: pd.DataFrame):
+def is_numerical(var: str, df: pd.DataFrame):
     """
-    Checks if a variable in a DataFrame is continuous.
+    Checks if a variable in a DataFrame is numerical.
     
     Parameters
     ----------
@@ -17,7 +17,7 @@ def is_continuous(var: str, df: pd.DataFrame):
     
     Returns
     -------
-    - bool. True if the variable is continuous, False otherwise.
+    - bool. True if the variable is numerical, False otherwise.
     """
     dtype = df[var].dtype
     if pd.api.types.is_numeric_dtype(dtype):
@@ -174,7 +174,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
         raise ValueError('Error in formula when parsing poly().')
 
     else:
-        if is_continuous(expression, df):
+        if is_numerical(expression, df):
             return df[[expression]]
         else:
             output = pd.get_dummies(df[[expression]], drop_first=True)

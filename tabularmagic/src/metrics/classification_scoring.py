@@ -313,7 +313,7 @@ class ClassificationMulticlassScorer:
                         ' This likely occured because y_var is ' +\
                         'categorical and binary. ' +\
                         'For binary classification, transform y_var ' +\
-                        'into a (0,1)-valued continuous variable ' +\
+                        'into a (0,1)-valued numerical variable ' +\
                         'using the Datahandler.force_binary() method.',
                         type='WARNING'
                     )
@@ -392,7 +392,7 @@ class ClassificationMulticlassScorer:
                             ' This likely occured because y_var is ' +\
                             'categorical and binary. ' +\
                             'For binary classification, transform y_var ' +\
-                            'into a (0,1)-valued continuous variable ' +\
+                            'into a (0,1)-valued numerical variable ' +\
                             'using the Datahandler.force_binary() method.',
                             type='WARNING'
                         )

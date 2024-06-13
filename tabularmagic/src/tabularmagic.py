@@ -146,7 +146,7 @@ class TabularMagic:
             The variable to be predicted. 
         - X_vars : list[str].
             A list of features from which n_target_features are to be selected.
-            If None, all continuous variables except y_var will be used. 
+            If None, all numerical variables except y_var will be used. 
         - n_target_features : int. 
             Number of desired features, < len(X_vars). Default 10. 
         - update_working_dfs : bool.
@@ -157,7 +157,7 @@ class TabularMagic:
         - RegressionVotingSelectionReport
         """
         if X_vars is None:
-            X_vars = self._datahandler.continuous_vars(True)
+            X_vars = self._datahandler.numerical_vars(True)
         report = RegressionVotingSelectionReport(
             selectors=selectors,
             datahandler=self._datahandler.copy(y_var, X_vars),
@@ -240,7 +240,7 @@ class TabularMagic:
                 y_X_df_combined_train, 
                 y_X_df_combined_test,
                 verbose=False)
-            datahandler._continuous_var_to_scaler[y_var] = y_scaler
+            datahandler._numerical_var_to_scaler[y_var] = y_scaler
 
             return LinearRegressionReport(
                 OrdinaryLeastSquares(), 

@@ -102,9 +102,9 @@ class DataEmitter:
 
         self._yscaler = None
 
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         
         self._forward()
 
@@ -119,8 +119,8 @@ class DataEmitter:
                 self._scale(**step['kwargs'])
             elif step['step'] == 'drop_highly_missing_vars':
                 self._drop_highly_missing_vars(**step['kwargs'])
-            elif step['step'] == 'force_continuous':
-                self._force_continuous(**step['kwargs'])
+            elif step['step'] == 'force_numerical':
+                self._force_numerical(**step['kwargs'])
             elif step['step'] == 'force_binary':
                 self._force_binary(**step['kwargs'])
             elif step['step'] == 'force_categorical':
@@ -263,9 +263,9 @@ class DataEmitter:
                                              vars=vars,
                                              dropfirst=dropfirst, 
                                              fit=False)
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)        
+            self._compute_categorical_numerical_vars(self._working_df_train)        
         return self
 
 
@@ -289,9 +289,9 @@ class DataEmitter:
         vars_dropped = set(prev_vars) - set(curr_vars)
 
         self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
 
@@ -316,18 +316,18 @@ class DataEmitter:
 
     def _impute(self, 
                 vars: list[str],
-               continuous_strategy: Literal['median', 'mean', '5nn'] = \
+                numerical_strategy: Literal['median', 'mean', '5nn'] = \
                     'median', 
-               categorical_strategy: Literal['most_frequent'] = \
+                categorical_strategy: Literal['most_frequent'] = \
                     'most_frequent') -> 'DataHandler':
         """Imputes missing values in-place.
         
         Parameters
         ----------
         - vars : list[str].
-        - continuous_strategy : Literal['median', 'mean', '5nn']. 
+        - numerical_strategy : Literal['median', 'mean', '5nn']. 
             Default: 'median'.
-            Strategy for imputing missing values in continuous variables.
+            Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
@@ -340,23 +340,23 @@ class DataEmitter:
         -------
         - self : DataHandler
         """
-        continuous_vars = self._continuous_vars
+        numerical_vars = self._numerical_vars
         categorical_vars = self._categorical_vars
         var_set = set(vars)
-        continuous_vars = list(var_set & set(continuous_vars))
+        numerical_vars = list(var_set & set(numerical_vars))
         categorical_vars = list(var_set & set(categorical_vars))
 
-        # impute continuous variables
-        if len(continuous_vars) > 0:
-            if continuous_strategy == '5nn':
+        # impute numerical variables
+        if len(numerical_vars) > 0:
+            if numerical_strategy == '5nn':
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
             else:
-                imputer = SimpleImputer(strategy=continuous_strategy, 
+                imputer = SimpleImputer(strategy=numerical_strategy, 
                                         keep_empty_features=True)
-            self._working_df_train[continuous_vars] =\
-                imputer.fit_transform(self._working_df_train[continuous_vars])
-            self._working_df_test[continuous_vars] =\
-                imputer.transform(self._working_df_test[continuous_vars])
+            self._working_df_train[numerical_vars] =\
+                imputer.fit_transform(self._working_df_train[numerical_vars])
+            self._working_df_test[numerical_vars] =\
+                imputer.transform(self._working_df_test[numerical_vars])
         
         # impute categorical variables
         if len(categorical_vars) > 0:
@@ -380,7 +380,7 @@ class DataEmitter:
         Parameters
         ----------
         - vars : list[str]. 
-            List of variables to scale. If None, scales all continuous 
+            List of variables to scale. If None, scales all numerical 
             variables.
         - strategy : Literal['standardize', 'minmax', 'log', 'log1p'].
 
@@ -389,9 +389,9 @@ class DataEmitter:
         - self : DataHandler
         """
         for var in vars:
-            if var not in self._continuous_vars:
+            if var not in self._numerical_vars:
                 print_wrapped(
-                    f'Variable {var} is not continuous. Skipping.',
+                    f'Variable {var} is not numerical. Skipping.',
                     type='WARNING'
                 )
                 continue
@@ -433,9 +433,9 @@ class DataEmitter:
         """
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
 
@@ -454,15 +454,15 @@ class DataEmitter:
         self._working_df_test = self._working_df_test.drop(vars, axis='columns')
         self._working_df_train = self._working_df_train.drop(
             vars, axis='columns')
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
 
 
-    def _force_continuous(self, vars: list[str]) -> 'DataHandler':
-        """Forces variables to continuous (floats).
+    def _force_numerical(self, vars: list[str]) -> 'DataHandler':
+        """Forces variables to numerical (floats).
         
         Parameters
         ----------
@@ -491,7 +491,7 @@ class DataEmitter:
 
     def _force_binary(self, vars: list[str], pos_labels: list[str] = None, 
                      ignore_multiclass: bool = False) -> 'DataHandler':
-        """Forces variables to be binary (0 and 1 valued continuous variables). 
+        """Forces variables to be binary (0 and 1 valued numerical variables). 
         Does nothing if the data contains more than two classes unless 
         ignore_multiclass is True and pos_label is specified, 
         in which case all classes except pos_label are labeled with zero.
@@ -550,9 +550,9 @@ class DataEmitter:
         self._working_df_test = self._working_df_test.rename(
             columns=vars_to_renamed)
 
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
 
@@ -578,9 +578,9 @@ class DataEmitter:
             self._working_df_test[var] = self._working_df_test[var].apply(
                 lambda x: str(x) if pd.notna(x) else np.nan
             )
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
     def _compute_categories(self, 
@@ -673,8 +673,8 @@ class DataEmitter:
             return df
         
 
-    def _compute_categorical_continuous_vars(self, df: pd.DataFrame):
-        """Returns the categorical and continuous column values. 
+    def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
+        """Returns the categorical and numerical columns. 
         Also returns the categorical variables mapped to their categories.
         
         Parameters
@@ -684,15 +684,15 @@ class DataEmitter:
         Returns
         -------
         - categorical_vars : list[str]
-        - continuous_vars : list[str]
+        - numerical_vars : list[str]
         - categorical_mapped : dict
         """
         categorical_vars = df.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
-        continuous_vars = df.select_dtypes(
+        numerical_vars = df.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
         categorical_mapped = self._compute_categories(df, categorical_vars)
-        return categorical_vars, continuous_vars, categorical_mapped
+        return categorical_vars, numerical_vars, categorical_mapped
 
 
 
@@ -744,17 +744,17 @@ class DataHandler:
             self._force_train_test_var_agreement(
                 self._orig_df_train, self._orig_df_test)
         
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._orig_df_train)
+            self._compute_categorical_numerical_vars(self._orig_df_train)
 
         # set the working DataFrames
         self._working_df_train = self._orig_df_train.copy()
         self._working_df_test = self._orig_df_test.copy()
 
         # keep track of scalers
-        self._continuous_var_to_scaler = {
-            var: None for var in self._continuous_vars
+        self._numerical_var_to_scaler = {
+            var: None for var in self._numerical_vars
         }
 
         # set the name
@@ -792,8 +792,8 @@ class DataHandler:
         if checkpoint is None:
             self._working_df_test = self._orig_df_test.copy()
             self._working_df_train = self._orig_df_train.copy()
-            self._continuous_var_to_scaler = {
-                var: None for var in self._continuous_vars
+            self._numerical_var_to_scaler = {
+                var: None for var in self._numerical_vars
             }
             self._preprocess_step_tracer = PreprocessStepTracer()
             if self._verbose:
@@ -809,7 +809,7 @@ class DataHandler:
                 self._checkpoint_name_to_df[checkpoint][0].copy()
             self._working_df_train =\
                 self._checkpoint_name_to_df[checkpoint][1].copy()
-            self._continuous_var_to_scaler =\
+            self._numerical_var_to_scaler =\
                 self._checkpoint_name_to_df[checkpoint][2].copy()
             self._preprocess_step_tracer: PreprocessStepTracer =\
                 self._checkpoint_name_to_df[checkpoint][3].copy()
@@ -822,9 +822,9 @@ class DataHandler:
                     f'{shapes_dict["train"]}, {shapes_dict["test"]}.', 
                     type='UPDATE'
                 )
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         
         return self
 
@@ -851,7 +851,7 @@ class DataHandler:
         self._checkpoint_name_to_df[checkpoint] = (
             self._working_df_test.copy(),
             self._working_df_train.copy(),
-            self._continuous_var_to_scaler.copy(),
+            self._numerical_var_to_scaler.copy(),
             self._preprocess_step_tracer.copy()
         )
 
@@ -914,9 +914,9 @@ class DataHandler:
         return out
 
 
-    def continuous_vars(self) -> list[str]:
-        """Returns copy of list of continuous variables."""
-        out = self._continuous_vars.copy()
+    def numerical_vars(self) -> list[str]:
+        """Returns copy of list of numerical variables."""
+        out = self._numerical_vars.copy()
         return out
     
 
@@ -932,13 +932,13 @@ class DataHandler:
     
 
     def scaler(self, var: str) -> BaseSingleVarScaler | None:
-        """Returns the scaler for a continuous variable, which could be None.
+        """Returns the scaler for a numerical variable, which could be None.
         
         Parameters
         ----------
         - var : str
         """
-        return self._continuous_var_to_scaler[var]
+        return self._numerical_var_to_scaler[var]
     
 
 
@@ -1111,9 +1111,9 @@ class DataHandler:
                                              dropfirst=dropfirst, 
                                              fit=False)
 
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         
         if self._verbose:
             print_wrapped(
@@ -1160,9 +1160,9 @@ class DataHandler:
                 'missing values.',
                 type='UPDATE'
             )
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         self._preprocess_step_tracer.add_step(
             'drop_highly_missing_vars',
             {
@@ -1175,7 +1175,7 @@ class DataHandler:
     def impute(self, 
                include_vars: list[str] = None,
                exclude_vars: list[str] = None,
-               continuous_strategy: Literal['median', 'mean', '5nn'] = \
+               numerical_strategy: Literal['median', 'mean', '5nn'] = \
                     'median', 
                categorical_strategy: Literal['most_frequent'] = \
                     'most_frequent') -> 'DataHandler':
@@ -1190,9 +1190,9 @@ class DataHandler:
         - exclude_vars : list[str]. Default: None.
             List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
-        - continuous_strategy : Literal['median', 'mean', '5nn']. 
+        - numerical_strategy : Literal['median', 'mean', '5nn']. 
             Default: 'median'.
-            Strategy for imputing missing values in continuous variables.
+            Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
@@ -1205,28 +1205,28 @@ class DataHandler:
         -------
         - self : DataHandler
         """
-        continuous_vars = self.continuous_vars()
+        numerical_vars = self.numerical_vars()
         categorical_vars = self.categorical_vars()
         if include_vars is not None:
             include_vars_set = set(include_vars)
-            continuous_vars = list(include_vars_set & set(continuous_vars))
+            numerical_vars = list(include_vars_set & set(numerical_vars))
             categorical_vars = list(include_vars_set & set(categorical_vars))
         if exclude_vars is not None:
             exclude_vars_set = set(exclude_vars)
-            continuous_vars = list(set(continuous_vars) - exclude_vars_set)
+            numerical_vars = list(set(numerical_vars) - exclude_vars_set)
             categorical_vars = list(set(categorical_vars) - exclude_vars_set)
 
-        # impute continuous variables
-        if len(continuous_vars) > 0:
-            if continuous_strategy == '5nn':
+        # impute numerical variables
+        if len(numerical_vars) > 0:
+            if numerical_strategy == '5nn':
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
             else:
-                imputer = SimpleImputer(strategy=continuous_strategy, 
+                imputer = SimpleImputer(strategy=numerical_strategy, 
                                         keep_empty_features=True)
-            self._working_df_train[continuous_vars] =\
-                imputer.fit_transform(self._working_df_train[continuous_vars])
-            self._working_df_test[continuous_vars] =\
-                imputer.transform(self._working_df_test[continuous_vars])
+            self._working_df_train[numerical_vars] =\
+                imputer.fit_transform(self._working_df_train[numerical_vars])
+            self._working_df_test[numerical_vars] =\
+                imputer.transform(self._working_df_test[numerical_vars])
         
         # impute categorical variables
         if len(categorical_vars) > 0:
@@ -1241,8 +1241,8 @@ class DataHandler:
             if self._verbose:
                 print_wrapped(
                     'Imputed missing values with ' +\
-                    f'continuous strategy ' +\
-                    f'{color_text(continuous_strategy, "yellow")} and ' +\
+                    f'numerical strategy ' +\
+                    f'{color_text(numerical_strategy, "yellow")} and ' +\
                     f'categorical strategy ' +\
                     f'{color_text(categorical_strategy, "yellow")}.',
                     type='UPDATE'
@@ -1251,8 +1251,8 @@ class DataHandler:
         self._preprocess_step_tracer.add_step(
             'impute',
             {
-                'vars': continuous_vars + categorical_vars,
-                'continuous_strategy': continuous_strategy,
+                'vars': numerical_vars + categorical_vars,
+                'numerical_strategy': numerical_strategy,
                 'categorical_strategy': categorical_strategy
             }
         )
@@ -1282,15 +1282,15 @@ class DataHandler:
         - self : DataHandler
         """
         if include_vars is None:
-            include_vars = self.continuous_vars()
+            include_vars = self.numerical_vars()
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
 
         
         for var in include_vars:
-            if var not in self._continuous_vars:
+            if var not in self._numerical_vars:
                 print_wrapped(
-                    f'Variable {var} is not continuous. Skipping.',
+                    f'Variable {var} is not numerical. Skipping.',
                     type='WARNING'
                 )
                 continue
@@ -1311,7 +1311,7 @@ class DataHandler:
                 self._working_df_train[var].to_numpy())
             self._working_df_test[var] = scaler.transform(
                 self._working_df_test[var].to_numpy())
-            self._continuous_var_to_scaler[var] = scaler
+            self._numerical_var_to_scaler[var] = scaler
             
 
         if self._verbose:
@@ -1345,9 +1345,9 @@ class DataHandler:
         """
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -1382,9 +1382,9 @@ class DataHandler:
         self._working_df_test = self._working_df_test.drop(vars, axis='columns')
         self._working_df_train = self._working_df_train.drop(
             vars, axis='columns')
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
@@ -1403,8 +1403,8 @@ class DataHandler:
 
         return self
 
-    def force_continuous(self, vars: list[str]) -> 'DataHandler':
-        """Forces variables to continuous (floats).
+    def force_numerical(self, vars: list[str]) -> 'DataHandler':
+        """Forces variables to numerical (floats).
         
         Parameters
         ----------
@@ -1428,19 +1428,19 @@ class DataHandler:
                 if self._verbose:
                     print_wrapped(
                         f'Unable to force variable ' +\
-                        f'{color_text(var, "purple")} to continuous.',
+                        f'{color_text(var, "purple")} to numerical.',
                         type='WARNING'
                     )
 
             if self._verbose:
                 print_wrapped(
                     f'Forced variable {color_text(var, "purple")} ' +\
-                        'to continuous.',
+                        'to numerical.',
                     type='UPDATE'
                 )
 
         self._preprocess_step_tracer.add_step(
-            'force_continuous',
+            'force_numerical',
             {
                 'vars': vars
             }
@@ -1453,7 +1453,7 @@ class DataHandler:
 
     def force_binary(self, vars: list[str], pos_labels: list[str] = None, 
                      ignore_multiclass: bool = False) -> 'DataHandler':
-        """Forces variables to be binary (0 and 1 valued continuous variables). 
+        """Forces variables to be binary (0 and 1 valued numerical variables). 
         Does nothing if the data contains more than two classes unless 
         ignore_multiclass is True and pos_label is specified, 
         in which case all classes except pos_label are labeled with zero.
@@ -1540,9 +1540,9 @@ class DataHandler:
                     f'Variables renamed to {new_vars_txt}.',
                     type='UPDATE'
                 )
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         self._preprocess_step_tracer.add_step(
             'force_binary',
             {
@@ -1582,9 +1582,9 @@ class DataHandler:
                 type='UPDATE'
             )
 
-        self._categorical_vars, self._continuous_vars, \
+        self._categorical_vars, self._numerical_vars, \
             self._categorical_to_categories =\
-            self._compute_categorical_continuous_vars(self._working_df_train)
+            self._compute_categorical_numerical_vars(self._working_df_train)
         
         self._preprocess_step_tracer.add_step(
             'force_categorical',
@@ -1618,8 +1618,8 @@ class DataHandler:
             )
 
 
-    def _compute_categorical_continuous_vars(self, df: pd.DataFrame):
-        """Returns the categorical and continuous column values. 
+    def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
+        """Returns the categorical and numerical column values. 
         Also returns the categorical variables mapped to their categories.
         
         Parameters
@@ -1629,15 +1629,15 @@ class DataHandler:
         Returns
         -------
         - categorical_vars : list[str]
-        - continuous_vars : list[str]
+        - numerical_vars : list[str]
         - categorical_mapped : dict
         """
         categorical_vars = df.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
-        continuous_vars = df.select_dtypes(
+        numerical_vars = df.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
         categorical_mapped = self._compute_categories(df, categorical_vars)
-        return categorical_vars, continuous_vars, categorical_mapped
+        return categorical_vars, numerical_vars, categorical_mapped
         
 
     def _force_train_test_var_agreement(
@@ -1783,7 +1783,7 @@ class DataHandler:
         """
         if vars is None:
             categorical_vars, _, _ =\
-                self._compute_categorical_continuous_vars(df)
+                self._compute_categorical_numerical_vars(df)
         else:
             for var in vars:
                 if var not in df.columns:
@@ -1872,17 +1872,17 @@ class DataHandler:
         categorical_var_message = fill_ignore_format(categorical_var_message, 
             width=max_width, initial_indent=2, subsequent_indent=2)
 
-        continuous_message = color_text(
-            bold_text('Continuous variables:'), 'none') + '\n'
+        numerical_message = color_text(
+            bold_text('Numerical variables:'), 'none') + '\n'
         
-        continuous_vars = self.continuous_vars()
-        continuous_var_message = ''
-        if len(continuous_vars) == 0:
-            continuous_var_message += color_text('None', 'yellow')
+        numerical_vars = self.numerical_vars()
+        numerical_var_message = ''
+        if len(numerical_vars) == 0:
+            numerical_var_message += color_text('None', 'yellow')
         else:
-            continuous_var_message += list_to_string(continuous_vars)
-        continuous_var_message = fill_ignore_format(
-            continuous_var_message, width=max_width, 
+            numerical_var_message += list_to_string(numerical_vars)
+        numerical_var_message = fill_ignore_format(
+            numerical_var_message, width=max_width, 
             initial_indent=2, subsequent_indent=2)
 
         bottom_divider = '\n' + color_text('='*max_width, 'none')
@@ -1892,8 +1892,8 @@ class DataHandler:
 
         final_message = top_divider + title_message + divider +\
             shapes_message + divider + categorical_message +\
-            categorical_var_message + divider_invisible + continuous_message +\
-            continuous_var_message + bottom_divider
+            categorical_var_message + divider_invisible + numerical_message +\
+            numerical_var_message + bottom_divider
         
         return final_message
 

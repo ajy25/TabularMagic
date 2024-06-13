@@ -105,13 +105,13 @@ class CategoricalEDA:
         return self._var_series.value_counts(normalize=False)
 
 
-class ContinuousEDA():
-    """ContinuousEDA: generates EDA-relevant plots and tables for a 
-    single continuous-valued variable."""
+class NumericalEDA():
+    """NumericalEDA: generates EDA-relevant plots and tables for a 
+    single numerical-valued variable."""
 
     def __init__(self, var_series: pd.Series):
         """
-        Initializes a ContinuousEDA object.
+        Initializes a NumericalEDA object.
 
         Parameters
         ----------
@@ -228,27 +228,27 @@ class ComprehensiveEDA():
         self.df = df.copy()
         self._categorical_vars = df.select_dtypes(
             include=['object', 'category', 'bool']).columns.to_list()
-        self._continuous_vars = df.select_dtypes(
+        self._numerical_vars = df.select_dtypes(
             exclude=['object', 'category', 'bool']).columns.to_list()
         self._categorical_eda_dict = {
             var: CategoricalEDA(self.df[var]) \
                 for var in self._categorical_vars
         }
-        self._continuous_eda_dict = {
-            var: ContinuousEDA(self.df[var]) \
-                for var in self._continuous_vars
+        self._numerical_eda_dict = {
+            var: NumericalEDA(self.df[var]) \
+                for var in self._numerical_vars
         }
 
         self._categorical_summary_statistics = None
-        self._continuous_summary_statistics = None
+        self._numerical_summary_statistics = None
         if len(self._categorical_vars) > 0:
             self._categorical_summary_statistics = pd.concat(
                 [eda.summary_statistics\
                 for eda in self._categorical_eda_dict.values()], axis=1)
-        if len(self._continuous_vars) > 0:
-            self._continuous_summary_statistics = pd.concat(
+        if len(self._numerical_vars) > 0:
+            self._numerical_summary_statistics = pd.concat(
                 [eda.summary_statistics\
-                for eda in self._continuous_eda_dict.values()], axis=1) 
+                for eda in self._numerical_eda_dict.values()], axis=1) 
             
 
 
@@ -257,18 +257,18 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
 
 
-    def plot_continuous_pairs(self, 
-            continuous_vars: list[str] = None, 
+    def plot_numerical_pairs(self, 
+            numerical_vars: list[str] = None, 
             stratify_by: str = None, 
             figsize: Iterable = (7, 7)) -> plt.Figure:
         """
-        Plots pairwise relationships between continuous variables. 
+        Plots pairwise relationships between numerical variables. 
 
         Parameters
         ----------
-        - continuous_vars : list[str]. 
-            A list of continuous variables. Default: None. 
-            If None, all continuous variables are considered.
+        - cnumerical_vars : list[str]. 
+            A list of numerical variables. Default: None. 
+            If None, all numerical variables are considered.
         - stratify_by : str.
             Categorical var name. 
         - figsize : Iterable.
@@ -277,18 +277,18 @@ class ComprehensiveEDA():
         -------
         - Figure
         """
-        if continuous_vars is None:
-            continuous_vars = self._continuous_vars
-        if len(continuous_vars) > 6:
-            raise ValueError('No more than 6 continuous variables may be ' + \
+        if numerical_vars is None:
+            numerical_vars = self._numerical_vars
+        if len(numerical_vars) > 6:
+            raise ValueError('No more than 6 numerical variables may be ' + \
                              'plotted at the same time.')
         
         if stratify_by is None: 
-            grid = sns.PairGrid(self.df[continuous_vars].dropna())
+            grid = sns.PairGrid(self.df[numerical_vars].dropna())
             right_adjust = None
         else:
             grid = sns.PairGrid(
-                self.df[continuous_vars + [stratify_by]].dropna(), 
+                self.df[numerical_vars + [stratify_by]].dropna(), 
                 hue=stratify_by, palette=sns.color_palette()\
                     [:len(self.df[stratify_by].unique())])
             right_adjust = 0.85
@@ -338,7 +338,7 @@ class ComprehensiveEDA():
 
 
     def plot_distribution_stratified(self, 
-            continuous_var: str, 
+            numerical_var: str, 
             stratify_by: str, 
             strategy: Literal['stacked_kde_density', 
                               'stacked_hist_kde_density', 
@@ -347,14 +347,14 @@ class ComprehensiveEDA():
                               'box', 'box_swarm', 'box_strip'],
             figsize : Iterable = (5, 5), 
             ax: axes.Axes = None) -> plt.Figure:
-        """Plots the distributions (density) of a given continuous variable 
+        """Plots the distributions (density) of a given numerical variable 
         stratified by a categorical variable. Note that NaNs will be dropped, 
         which may yield different ranges for different 
         stratify_by inputs, depending on their levels of missingness. 
         
         Parameters
         ----------
-        - continuous_var : str. Continuous variable of interest.
+        - numerical_var : str. Numerical variable of interest.
         - stratify_by : str. 
         - strategy : Literal['stacked_kde_density', 
                               'stacked_hist_kde_density', 
@@ -373,7 +373,7 @@ class ComprehensiveEDA():
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        local_df = self.df[[continuous_var, stratify_by]].dropna()
+        local_df = self.df[[numerical_var, stratify_by]].dropna()
 
 
         if strategy in ['stacked_hist_kde_frequency', 
@@ -382,18 +382,18 @@ class ComprehensiveEDA():
             for i, category in enumerate(local_df[stratify_by].unique()):
                 subset = local_df[local_df[stratify_by] == category]
                 if strategy == 'stacked_hist_kde_density':
-                    sns.histplot(subset[continuous_var], bins='auto', kde=True, 
+                    sns.histplot(subset[numerical_var], bins='auto', kde=True, 
                                 label=str(category), alpha=0.2, stat='density', 
                                 ax=ax, color=sns.color_palette()[i], 
                                 edgecolor='none')
                 elif strategy == 'stacked_hist_kde_frequency':
-                    sns.histplot(subset[continuous_var], bins='auto', kde=True, 
+                    sns.histplot(subset[numerical_var], bins='auto', kde=True, 
                                 label=str(category), alpha=0.2, 
                                 stat='frequency', 
                                 ax=ax, color=sns.color_palette()[i], 
                                 edgecolor='none')
                 elif strategy == 'stacked_kde_density':
-                    sns.kdeplot(subset[continuous_var], 
+                    sns.kdeplot(subset[numerical_var], 
                                 label=str(category), ax=ax)
 
                     
@@ -404,37 +404,37 @@ class ComprehensiveEDA():
 
 
         elif strategy == 'violin_swarm':
-            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.violinplot(data=local_df, x=stratify_by, y=numerical_var, 
                            ax=ax, color='black', edgecolor='none', alpha=0.2)
-            sns.swarmplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.swarmplot(data=local_df, x=stratify_by, y=numerical_var, 
                 color='black', size=2, ax=ax)
             
             
         elif strategy == 'violin':
-            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.violinplot(data=local_df, x=stratify_by, y=numerical_var, 
                            ax=ax, color='black', edgecolor='none', alpha=0.2)
             
         elif strategy == 'violin_strip':
-            sns.violinplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.violinplot(data=local_df, x=stratify_by, y=numerical_var, 
                            ax=ax, color='black', edgecolor='none', alpha=0.2)
-            sns.stripplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.stripplot(data=local_df, x=stratify_by, y=numerical_var, 
                 color='black', size=2, ax=ax)
             
 
         elif strategy == 'box_swarm':
-            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.boxplot(data=local_df, x=stratify_by, y=numerical_var, 
                         ax=ax, color='black', fill=False, linewidth=0.5)
-            sns.swarmplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.swarmplot(data=local_df, x=stratify_by, y=numerical_var, 
                 color='black', size=2, ax=ax)
             
         elif strategy == 'box_strip':
-            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.boxplot(data=local_df, x=stratify_by, y=numerical_var, 
                         ax=ax, color='black', fill=False, linewidth=0.5)
-            sns.stripplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.stripplot(data=local_df, x=stratify_by, y=numerical_var, 
                 color='black', size=2, ax=ax)
             
         elif strategy == 'box':
-            sns.boxplot(data=local_df, x=stratify_by, y=continuous_var, 
+            sns.boxplot(data=local_df, x=stratify_by, y=numerical_var, 
                         ax=ax, color='black', fill=False, linewidth=0.5)
             
         
@@ -444,7 +444,7 @@ class ComprehensiveEDA():
 
 
         ax.ticklabel_format(style='sci', axis='y', scilimits=(-3, 3))
-        ax.set_title(f'Distribution of {continuous_var}')
+        ax.set_title(f'Distribution of {numerical_var}')
 
         if fig is not None:
             fig.tight_layout()
@@ -478,7 +478,7 @@ class ComprehensiveEDA():
 
 
     def plot_pca(self, 
-            continuous_vars: list[str], stratify_by: str = None, 
+            numerical_vars: list[str], stratify_by: str = None, 
             strata: pd.Series = None, 
             standardize: bool = True, whiten: bool = False,
             three_components: bool = False, figsize: Iterable = (5, 5), 
@@ -489,7 +489,7 @@ class ComprehensiveEDA():
         
         Parameters
         ----------
-        - continuous_vars : list[str]. List of continuous variables across 
+        - numerical_vars : list[str]. List of numerical variables across 
             which the PCA will be performed
         - stratify_by : str. Categorical variable from which strata are 
             identified. 
@@ -534,9 +534,9 @@ class ComprehensiveEDA():
             pca = PCA(n_components=2, whiten=whiten)
 
         if stratify_by is not None:
-            X_y = self.df[continuous_vars].join(
+            X_y = self.df[numerical_vars].join(
                 self.df[stratify_by]).dropna()
-            X = X_y[continuous_vars].to_numpy()
+            X = X_y[numerical_vars].to_numpy()
             if standardize:
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
             components = pca.fit_transform(X)
@@ -557,8 +557,8 @@ class ComprehensiveEDA():
             legend = ax.legend()
             legend.set_title(stratify_by)
         elif strata is not None:
-            X_y = self.df[continuous_vars].join(strata).dropna()
-            X = X_y[continuous_vars].to_numpy()
+            X_y = self.df[numerical_vars].join(strata).dropna()
+            X = X_y[numerical_vars].to_numpy()
             if standardize:
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
             components = pca.fit_transform(X)
@@ -580,7 +580,7 @@ class ComprehensiveEDA():
             legend = ax.legend()
             legend.set_title(labels_name)
         else:
-            X = self.df[continuous_vars].dropna().to_numpy()
+            X = self.df[numerical_vars].dropna().to_numpy()
             if standardize:
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
             components = pca.fit_transform(X)
@@ -596,7 +596,7 @@ class ComprehensiveEDA():
                 ax.set_xlabel('Principle Component 1')
                 ax.set_ylabel('Principle Component 2')
 
-        title_str = ', '.join(continuous_vars)
+        title_str = ', '.join(numerical_vars)
         ax.set_title(f'PCA({title_str})', wrap=True)
         ax.ticklabel_format(style='sci', axis='both', scilimits=(-3, 3))
         
@@ -617,7 +617,7 @@ class ComprehensiveEDA():
 
 
     def anova_oneway(self, 
-            continuous_var: str, 
+            numerical_var: str, 
             stratify_by: str) -> StatisticalTestResult:
         """Conducts oneway ANOVA to test 
         for equal means between two or more groups.
@@ -626,13 +626,13 @@ class ComprehensiveEDA():
         Alternative hypothesis: At least one group mean is different from the
             others.
 
-        NaNs in continuous_var and stratify_by
+        NaNs in numerical_var and stratify_by
             are dropped before the test is conducted.
 
         Parameters
         ----------
-        - continuous_var : str. 
-            Continuous variable name to be stratified and compared.
+        - numerical_var : str. 
+            Numerical variable name to be stratified and compared.
         - stratify_by : str.
             Categorical variable name.
 
@@ -640,10 +640,10 @@ class ComprehensiveEDA():
         -------
         - StatisticalTestResult
         """
-        if continuous_var not in self._continuous_vars:
+        if numerical_var not in self._numerical_vars:
             raise ValueError(
-                f'Invalid input: {continuous_var}. ' + \
-                'Must be a known continuous variable.'
+                f'Invalid input: {numerical_var}. ' + \
+                'Must be a known numerical variable.'
             )
         if stratify_by not in self._categorical_vars:
             raise ValueError(
@@ -651,7 +651,7 @@ class ComprehensiveEDA():
                 'Must be a known categorical variable.'
             )
 
-        local_df = self.df[[continuous_var, stratify_by]].dropna()
+        local_df = self.df[[numerical_var, stratify_by]].dropna()
 
         categories = np.unique(local_df[stratify_by].to_numpy())
         
@@ -659,7 +659,7 @@ class ComprehensiveEDA():
         for category in categories:
             groups.append(
                 local_df.loc[local_df[stratify_by] == category, 
-                             continuous_var].to_numpy()
+                             numerical_var].to_numpy()
             )
 
         f_stat, p_val = f_oneway(*groups)
@@ -680,28 +680,28 @@ class ComprehensiveEDA():
 
 
     def ttest(self, 
-            continuous_var: str, 
+            numerical_var: str, 
             stratify_by: str, 
             strategy: Literal['auto', 'student', 'welch', 
                 'yuen'] = 'welch') -> StatisticalTestResult:
         """Conducts the appropriate statistical test to 
         test for equal means between two groups. 
         The parameter stratify_by must be the name of a binary variable, i.e. 
-            a categorical or continuous variable with exactly two unique values.
+            a categorical or numerical variable with exactly two unique values.
 
         Null hypothesis: mu_1 = mu_2.
         Alternative hypothesis: mu_1 != mu_2.
         This is a two-sided test.
 
-        NaNs in continuous_var and stratify_by
+        NaNs in numerical_var and stratify_by
             are dropped before the test is conducted.
 
         Parameters
         ----------
-        - continuous_var : str. 
-            Continuous variable name to be stratified and compared. 
+        - numerical_var : str. 
+            Numerical variable name to be stratified and compared. 
         - stratify_by : str.
-            Categorical or continuous variable name. Must be binary. 
+            Categorical or numerical variable name. Must be binary. 
         - strategy : Literal['auto', 'student', 'welch', 'yuen'].
             Default: 'welch'. 
             If 'auto', the test is conducted via Welch's t-test if the 
@@ -717,20 +717,20 @@ class ComprehensiveEDA():
         - StatisticalTestResult
         """
 
-        if continuous_var not in self._continuous_vars:
+        if numerical_var not in self._numerical_vars:
             raise ValueError(
-                f'Invalid input: {continuous_var}. ' + \
-                'Must be a known continuous variable.'
+                f'Invalid input: {numerical_var}. ' + \
+                'Must be a known numerical variable.'
             )
         if (stratify_by not in self._categorical_vars) and \
-            (stratify_by not in self._continuous_vars):
+            (stratify_by not in self._numerical_vars):
             raise ValueError(
                 f'Invalid input: {stratify_by}. ' + \
                 'Must be a known binary variable.'
             )
         
 
-        local_df = self.df[[continuous_var, stratify_by]].dropna()
+        local_df = self.df[[numerical_var, stratify_by]].dropna()
 
         
         categories = np.unique(local_df[stratify_by].to_numpy())
@@ -742,10 +742,10 @@ class ComprehensiveEDA():
         
         group_1 =\
             local_df.loc[local_df[stratify_by] == categories[0], 
-                        continuous_var].to_numpy()
+                        numerical_var].to_numpy()
         group_2 =\
             local_df.loc[self.df[stratify_by] == categories[1], 
-                        continuous_var].to_numpy()
+                        numerical_var].to_numpy()
 
 
         if strategy == 'auto':
@@ -837,9 +837,9 @@ class ComprehensiveEDA():
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def continuous_vars(self) -> list[str]:
-        """Returns a list of the names of all continuous variables."""
-        return self._continuous_vars
+    def numerical_vars(self) -> list[str]:
+        """Returns a list of the names of all numerical variables."""
+        return self._numerical_vars
     
     def categorical_vars(self) -> list[str]:
         """Returns a list of the names of all categorical variables."""
@@ -852,18 +852,18 @@ class ComprehensiveEDA():
         Returns None if there are no categorical variables."""
         return self._categorical_summary_statistics
     
-    def continuous_summary_statistics(self) -> pd.DataFrame | None:
+    def numerical_summary_statistics(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
-        continuous variables.
+        numerical variables.
 
-        Returns None if there are no continuous variables."""
-        return self._continuous_summary_statistics
-
-
+        Returns None if there are no numerical variables."""
+        return self._numerical_summary_statistics
 
 
-    def specific(self, var: str) -> CategoricalEDA | ContinuousEDA:
-        """Returns either a CategoricalEDA or ContinuousEDA object.
+
+
+    def specific(self, var: str) -> CategoricalEDA | NumericalEDA:
+        """Returns either a CategoricalEDA or NumericalEDA object.
         
         Parameters
         ----------
@@ -871,19 +871,19 @@ class ComprehensiveEDA():
 
         Returns
         -------
-        - CategoricalEDA | ContinuousEDA
+        - CategoricalEDA | NumericalEDA
         """
         if var in self._categorical_vars:
             return self._categorical_eda_dict[var]
-        elif var in self._continuous_vars:
-            return self._continuous_eda_dict[var]
+        elif var in self._numerical_vars:
+            return self._numerical_eda_dict[var]
         else:
             raise ValueError(f'Invalid input: {var}. ' + \
                              'Must be a known variable in the input df.')
 
 
 
-    def __getitem__(self, index: str) -> CategoricalEDA | ContinuousEDA:
+    def __getitem__(self, index: str) -> CategoricalEDA | NumericalEDA:
         """Indexes into ComprehensiveRegressionReport. 
 
         Parameters
@@ -892,13 +892,13 @@ class ComprehensiveEDA():
 
         Returns
         -------
-        - CategoricalEDA | ContinuousEDA. 
+        - CategoricalEDA | NumericalEDA. 
         """
         if isinstance(index, str):
             if index in self._categorical_vars:
                 return self._categorical_eda_dict[index]
-            elif index in self._continuous_vars:
-                return self._continuous_eda_dict[index]
+            elif index in self._numerical_vars:
+                return self._numerical_eda_dict[index]
             else:
                 raise ValueError(f'Invalid input: {index}. Index must be a ' + \
                                  'variable name in the input df.')

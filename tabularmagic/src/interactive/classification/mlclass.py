@@ -152,13 +152,8 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
         if self._dataset == 'train':
-            if self.model.train_overall_scorer is not None:
-                # in case of nested cross validation, use overall scorer
-                y_score = self.model.train_overall_scorer._y_pred_score
-                y_true = self.model.train_overall_scorer._y_true
-            else:
-                y_score = self.model.train_scorer._y_pred_score
-                y_true = self.model.train_scorer._y_true
+            y_score = self.model.train_scorer._y_pred_score
+            y_true = self.model.train_scorer._y_true
         else:
             y_score = self.model.test_scorer._y_pred_score
             y_true = self.model.test_scorer._y_true

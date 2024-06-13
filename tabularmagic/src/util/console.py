@@ -69,6 +69,7 @@ def list_to_string(lst, color: Literal['red', 'blue', 'green', 'yellow',
     
     msg = ''
     for i, elem in enumerate(lst):
+        elem = f'\'{elem}\''
         if i == len(lst) - 1:
             msg += color_text(elem, color)
         else:

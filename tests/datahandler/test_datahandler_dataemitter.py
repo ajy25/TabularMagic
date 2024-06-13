@@ -25,7 +25,7 @@ class TestDataEmitter(unittest.TestCase):
                 'binary_var': [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
                 'categorical_var': ['A', 'B', 'C', 'A', 'B', 
                                     'C', 'A', 'B', 'C', 'A'],
-                'continuous_var': [5.2, 3.7, 8.1, 2.5, 6.9, 
+                'numerical_var': [5.2, 3.7, 8.1, 2.5, 6.9, 
                                    4.3, 7.8, 1.1, 3.4, 5.7]
             }
         )
@@ -59,10 +59,10 @@ class TestDataEmitter(unittest.TestCase):
         dh = DataHandler(self.df_simple_train, self.df_simple_test, 
                          verbose=False)
         de = DataEmitter(self.df_simple_train, self.df_simple_test, 
-                         'binary_var', ['categorical_var', 'continuous_var'], 
+                         'binary_var', ['categorical_var', 'numerical_var'], 
                          PreprocessStepTracer())
         dh_emitter = dh.train_test_emitter(
-                'binary_var', ['categorical_var', 'continuous_var']
+                'binary_var', ['categorical_var', 'numerical_var']
             )
         self.assertEqual(
             dh_emitter._working_df_test.shape,
@@ -80,17 +80,17 @@ class TestDataEmitter(unittest.TestCase):
 
     
     def test_force_categorical(self):
-        """Test force categorical encoding of continuous or binary
+        """Test force categorical encoding of numerical or binary
         variables."""
 
         dh = DataHandler(self.df_simple_train, self.df_simple_test, 
                          verbose=False)
         de = DataEmitter(self.df_simple_train, self.df_simple_test, 
-                         'binary_var', ['categorical_var', 'continuous_var'], 
+                         'binary_var', ['categorical_var', 'numerical_var'], 
                          PreprocessStepTracer())
         dh.force_categorical(['binary_var'])
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['categorical_var', 'continuous_var'])
+            ['categorical_var', 'numerical_var'])
         self.assertEqual(
             dh_emitter._working_df_train['binary_var'].dtype,
             'object'
@@ -105,17 +105,17 @@ class TestDataEmitter(unittest.TestCase):
         )
 
 
-    def test_force_continuous(self):
-        """Test force continuous encoding of categorical variables."""
+    def test_force_numerical(self):
+        """Test force numerical encoding of categorical variables."""
 
         dh = DataHandler(self.df_simple_train, self.df_simple_test, 
                          verbose=False)
         de = DataEmitter(self.df_simple_train, self.df_simple_test, 
-                         'binary_var', ['categorical_var', 'continuous_var'], 
+                         'binary_var', ['categorical_var', 'numerical_var'], 
                          PreprocessStepTracer())
-        dh.force_continuous(['binary_var'])
+        dh.force_numerical(['binary_var'])
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['categorical_var', 'continuous_var'])
+            ['categorical_var', 'numerical_var'])
         self.assertEqual(
             dh_emitter._working_df_train['binary_var'].dtype,
             'float64'
@@ -131,20 +131,20 @@ class TestDataEmitter(unittest.TestCase):
     
 
     def test_force_binary(self):
-        """Test force binary encoding of continuous or categorical 
+        """Test force binary encoding of numerical or categorical 
         variables."""
 
         dh = DataHandler(self.df_simple_train, self.df_simple_test, 
                          verbose=False)
         de = DataEmitter(self.df_simple_train, self.df_simple_test, 
-                         'binary_var', ['categorical_var', 'continuous_var'], 
+                         'binary_var', ['categorical_var', 'numerical_var'], 
                          PreprocessStepTracer())
-        dh.force_binary(['continuous_var'])
+        dh.force_binary(['numerical_var'])
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['categorical_var', 'continuous_var'])
+            ['categorical_var', 'numerical_var'])
         self.assertEqual(
-            dh_emitter._working_df_train['continuous_var'].dtype,
-            de._working_df_train['continuous_var'].dtype
+            dh_emitter._working_df_train['numerical_var'].dtype,
+            de._working_df_train['numerical_var'].dtype
         )
         self.assertEqual(
             dh_emitter._working_df_test.shape,
@@ -158,14 +158,14 @@ class TestDataEmitter(unittest.TestCase):
         dh = DataHandler(self.df_simple_train, self.df_simple_test, 
                          verbose=False)
         de = DataEmitter(self.df_simple_train, self.df_simple_test, 
-                         'binary_var', ['categorical_var', 'continuous_var'], 
+                         'binary_var', ['categorical_var', 'numerical_var'], 
                          PreprocessStepTracer())
         de._force_binary(['categorical_var'], pos_labels=['A'], 
                         ignore_multiclass=True)
         dh.force_binary(['categorical_var'], pos_labels=['A'], 
                         ignore_multiclass=True)
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['A_TRUE(categorical_var)', 'continuous_var'])
+            ['A_TRUE(categorical_var)', 'numerical_var'])
         self.assertEqual(
             dh_emitter._working_df_train['A_TRUE(categorical_var)'].dtype,
             de._working_df_train['A_TRUE(categorical_var)'].dtype
@@ -180,12 +180,12 @@ class TestDataEmitter(unittest.TestCase):
         )
 
 
-        dh.force_binary(['continuous_var'], pos_labels=[5.2],
+        dh.force_binary(['numerical_var'], pos_labels=[5.2],
                         ignore_multiclass=True)
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['A_TRUE(categorical_var)', '5.2_TRUE(continuous_var)'])
+            ['A_TRUE(categorical_var)', '5.2_TRUE(numerical_var)'])
         self.assertEqual(
-            dh._working_df_train['5.2_TRUE(continuous_var)'].dtype,
+            dh._working_df_train['5.2_TRUE(numerical_var)'].dtype,
             'int64'
         )
         self.assertEqual(
@@ -217,7 +217,7 @@ class TestDataEmitter(unittest.TestCase):
 
         dh_emitter = dh.train_test_emitter('binary_var', 
             ['A_TRUE(categorical_var)', 'B_TRUE(categorical_var)', 
-             'C_TRUE(categorical_var)', 'continuous_var'])
+             'C_TRUE(categorical_var)', 'numerical_var'])
         self.assertTrue(
             ('A_TRUE(categorical_var)' in \
                 dh_emitter._working_df_test.columns) and \
@@ -260,7 +260,7 @@ class TestDataEmitter(unittest.TestCase):
             'A_TRUE(categorical_var)' in dh._working_df_train.columns
         )
 
-        dh_emitter = dh.train_test_emitter('continuous_var', 
+        dh_emitter = dh.train_test_emitter('numerical_var', 
             ['B_TRUE(categorical_var)', 
              'C_TRUE(categorical_var)', '1_TRUE(binary_var)'])
         self.assertTrue(
@@ -313,7 +313,7 @@ class TestDataEmitter(unittest.TestCase):
 
 
     def test_scale(self):
-        """Test scaling of continuous variables."""
+        """Test scaling of numerical variables."""
         dh = DataHandler(self.df_iris_train, self.df_iris_test, 
             verbose=False)
         dh.scale(strategy='minmax')
@@ -440,7 +440,7 @@ class TestDataEmitter(unittest.TestCase):
         dh = DataHandler(self.df_house_train, 
                          self.df_house_test, 
                          verbose=False)
-        dh.impute(continuous_strategy='mean', 
+        dh.impute(numerical_strategy='mean', 
                   categorical_strategy='most_frequent')
         for col in dh._working_df_train.columns:
             self.assertFalse(

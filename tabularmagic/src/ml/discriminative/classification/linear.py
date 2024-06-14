@@ -10,13 +10,13 @@ from .base import BaseC, HyperparameterSearcher
 class LinearC(BaseC):
     """Logistic Regression classifier.
 
-    Like all BaseClassification-derived classes, hyperparameter selection is
+    Like all BaseC-derived classes, hyperparameter selection is
     performed automatically during training. The cross-validation and
     hyperparameter selection process can be modified by the user.
     """
 
     def __init__(self, 
-            type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'] ='no_penalty',
+            type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'] ='l2',
             hyperparam_search_method: Literal[None, 'grid', 'random'] = None,
             hyperparam_grid_specification: Mapping[str, Iterable] = None,
             model_random_state: int = 42,
@@ -26,7 +26,7 @@ class LinearC(BaseC):
 
         Parameters
         ----------
-        - type: Literal['l1', 'l2'].
+        - type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'].
             Default: 'l2'.
         - hyperparam_search_method: Literal[None, 'grid', 'random'].
             Default: None. If None, a classification-specific default hyperparameter

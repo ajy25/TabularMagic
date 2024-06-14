@@ -34,9 +34,8 @@ class TestDataEmitter(unittest.TestCase):
         )
         iris = datasets.load_iris()
         data = pd.DataFrame(iris.data, columns=iris.feature_names)
-        target = pd.Series(iris.target)
+        target = pd.Series(iris.target, name='target')
         self.df_iris = pd.concat([data, target], axis=1)
-        self.df_iris.columns.values[-1] = 'target'
 
         self.df_iris_train, self.df_iris_test = train_test_split(
             self.df_iris, test_size=0.2, random_state=42

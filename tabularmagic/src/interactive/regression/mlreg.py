@@ -272,8 +272,11 @@ class MLRegressionReport:
         
         Parameters
         ----------
-        - averaged_across_folds : bool. If True, returns a DataFrame 
-            containing goodness-of-fit statistics across all folds.
+        - averaged_across_folds : bool. 
+            If True, returns a DataFrame 
+            containing goodness-of-fit statistics averaged across all folds.
+            Otherwise, returns a DataFrame containing goodness-of-fit
+            statistics for each fold.
 
         Returns
         -------

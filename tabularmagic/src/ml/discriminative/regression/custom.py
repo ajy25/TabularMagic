@@ -1,5 +1,6 @@
 from sklearn.model_selection._search import BaseSearchCV
 from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 from .base import BaseR
 from ....metrics.regression_scoring import RegressionScorer
 
@@ -13,11 +14,14 @@ class CustomR(BaseR):
     """
 
     def __init__(self, 
-                 estimator: BaseEstimator | BaseSearchCV,
+                 estimator: BaseEstimator | BaseSearchCV | Pipeline,
                  name: str = None):
         super().__init__()
-        self._estimator: BaseSearchCV | BaseEstimator = estimator
-        self._name = name
+        self._estimator: BaseSearchCV | BaseEstimator | Pipeline = estimator
+        if name is None:
+            self._name = str(estimator)
+        else:
+            self._name = name
         
         
     def fit(self):

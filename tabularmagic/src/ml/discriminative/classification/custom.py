@@ -204,7 +204,7 @@ class CustomC(BaseC):
 
 
     def hyperparam_searcher(self):
-        """Raises NotImplementedError. Not implemented for CustomR."""
+        """Raises NotImplementedError. Not implemented for CustomC."""
         raise NotImplementedError('CustomR has no HyperparameterSearcher.')
         
 

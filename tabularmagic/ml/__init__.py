@@ -1,14 +1,22 @@
-from ..src.ml.discriminative.regression import (
+from .._src.ml.discriminative.regression import (
     LinearR, RobustLinearR, TreeR, TreeEnsembleR, MLPR, SVMR, CustomR
 )
-from ..src.feature_selection import (
+from .._src.feature_selection import (
     RFESelectorR, KBestSelectorR, SimpleLinearSelectorR
 )
-from ..src.interactive.regression.mlreg import MLRegressionReport
+from .._src.interactive.regression.mlreg import MLRegressionReport
 
 
-from ..src.interactive.classification.mlclass import MLClassificationReport
-from ..src.ml.discriminative.classification import (
+from .._src.interactive.classification.mlclass import MLClassificationReport
+from .._src.ml.discriminative.classification import (
     LinearC, TreeC, TreeEnsembleC, CustomC
 )
+
+
+__all__ = [
+    'LinearR', 'RobustLinearR', 'TreeR', 'TreeEnsembleR', 'MLPR', 'SVMR', 
+    'CustomR', 'RFESelectorR', 'KBestSelectorR', 'SimpleLinearSelectorR',
+    'MLRegressionReport', 'MLClassificationReport', 'LinearC', 'TreeC',
+    'TreeEnsembleC', 'CustomC'
+]
 

@@ -27,7 +27,7 @@ def remove_dsstore(directory_path: str):
 if __name__ == '__main__':
     remove_pycache('../tabularmagic')
     remove_dsstore('../tabularmagic')
-    
+
 
 
 

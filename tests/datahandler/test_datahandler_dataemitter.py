@@ -1,19 +1,18 @@
 import unittest
 import pathlib
 import sys
+import pandas as pd
+import numpy as np
+from tabularmagic._src.data.datahandler import (DataEmitter, DataHandler, 
+                                                PreprocessStepTracer)
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
+
+
+
 parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
 sys.path.append(parent_dir)
 
-import pandas as pd
-import numpy as np
-
-from tabularmagic.src.data.datahandler import (DataEmitter, DataHandler, 
-                                                PreprocessStepTracer)
-
-
-
-from sklearn.model_selection import train_test_split
-from sklearn import datasets
 
 
 

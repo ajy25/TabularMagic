@@ -1,11 +1,13 @@
 # TabularMagic
-TabularMagic is a comprehensive toolkit that seamlessly integrates scikit-learn and statsmodels algorithms, enabling rapid exploratory statistical and machine learning modeling of tabular data. By streamlining the processes of exploratory data analysis, regression analysis, and machine learning model benchmarking, TabularMagic alleviates the common headaches associated with these tasks. Leveraging TabularMagic empowers users to swiftly explore datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. Designed specifically to accelerate data science routines on small clinical datasets such as NHANES, TabularMagic excels in handling datasets with fewer than 10,000 examples. 
+
+TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide-form tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
 
 Under active development.
 
+
 ## Why does TabularMagic exist?
 
-While numerous autoML solutions have emerged to streamline industry-scale data science workflows, user-friendly options tailored for working with small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and perhaps most notably, benchmarking various machine learning models, many of which necessitate intricate hyperparameter tuning. With TabularMagic, say goodbye to the endless need to reference documentation for pandas, scikit-learn, and Matplotlib. 
+While numerous autoML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and benchmarking various machine learning models, many of which require hyperparameter tuning.
 
 
 ## Installation and dependencies
@@ -16,6 +18,7 @@ package setup and pip installation.
 To install TabularMagic: 
 ```
 git clone https://github.com/ajy25/TabularMagic.git
+cd tabularmagic
 python tm-build.py install
 ```
 
@@ -34,7 +37,7 @@ We can build a TabularMagic object from a provided dataset. The TabularMagic obj
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
-from tabularmagic.api import TabularMagic
+from tabularmagic import TabularMagic
 from sklearn.datasets import load_diabetes
 
 # load the dataset
@@ -74,7 +77,7 @@ lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
 
 TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation, simply set `outer_cv = None`.
 ```
-from tabularmagic.api.mlR import LinearR, TreeEnsembleR, SVMR
+from tabularmagic.ml import LinearR, TreeEnsembleR, SVMR
 models =[
     LinearR(),
     LinearR('l1'),
@@ -103,6 +106,8 @@ To learn more about TabularMagic functionality, check out the demos available in
 the ```./demo``` subdirectory. 
 
 
+
+## Design notes
 
 
 

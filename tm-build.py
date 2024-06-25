@@ -1,9 +1,10 @@
 import subprocess
 import shutil
 import pathlib
-directory_path = str(pathlib.Path('__notebook__').parent.resolve())
 import os
 import sys
+directory_path = str(pathlib.Path('__notebook__').parent.resolve())
+
 
 
 def delete_folder(folder_path):

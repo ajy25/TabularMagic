@@ -1,18 +1,19 @@
 import unittest
-import pathlib
-import sys
 import pandas as pd
 import numpy as np
-from tabularmagic._src.data.datahandler import (DataEmitter, DataHandler, 
-                                                PreprocessStepTracer)
-from sklearn.model_selection import train_test_split
 from sklearn import datasets
+from sklearn.model_selection import train_test_split
+import pathlib
+import sys
+from tabularmagic._src.data.datahandler import (
+    DataEmitter, DataHandler, PreprocessStepTracer
+)
+
 
 
 
 parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
 sys.path.append(parent_dir)
-
 
 
 
@@ -163,10 +164,10 @@ class TestDataEmitter(unittest.TestCase):
         dh.force_binary(['categorical_var'], pos_labels=['A'], 
                         ignore_multiclass=True)
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['A_TRUE(categorical_var)', 'numerical_var'])
+            ['A_yn(categorical_var)', 'numerical_var'])
         self.assertEqual(
-            dh_emitter._working_df_train['A_TRUE(categorical_var)'].dtype,
-            de._working_df_train['A_TRUE(categorical_var)'].dtype
+            dh_emitter._working_df_train['A_yn(categorical_var)'].dtype,
+            de._working_df_train['A_yn(categorical_var)'].dtype
         )
         self.assertEqual(
             dh_emitter._working_df_test.shape,
@@ -181,9 +182,9 @@ class TestDataEmitter(unittest.TestCase):
         dh.force_binary(['numerical_var'], pos_labels=[5.2],
                         ignore_multiclass=True)
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['A_TRUE(categorical_var)', '5.2_TRUE(numerical_var)'])
+            ['A_yn(categorical_var)', '5.2_yn(numerical_var)'])
         self.assertEqual(
-            dh._working_df_train['5.2_TRUE(numerical_var)'].dtype,
+            dh._working_df_train['5.2_yn(numerical_var)'].dtype,
             'int64'
         )
         self.assertEqual(
@@ -202,34 +203,34 @@ class TestDataEmitter(unittest.TestCase):
                          verbose=False)
         dh.onehot(['categorical_var'], dropfirst=False)
         self.assertTrue(
-            ('A_TRUE(categorical_var)' in dh._working_df_train.columns) and \
-            ('B_TRUE(categorical_var)' in dh._working_df_train.columns) and \
-            ('C_TRUE(categorical_var)' in dh._working_df_train.columns)
+            ('A_yn(categorical_var)' in dh._working_df_train.columns) and \
+            ('B_yn(categorical_var)' in dh._working_df_train.columns) and \
+            ('C_yn(categorical_var)' in dh._working_df_train.columns)
         )
         self.assertTrue(
-            ('A_TRUE(categorical_var)' in dh._working_df_test.columns) and \
-            ('B_TRUE(categorical_var)' in dh._working_df_test.columns) and \
-            ('C_TRUE(categorical_var)' in dh._working_df_test.columns)
+            ('A_yn(categorical_var)' in dh._working_df_test.columns) and \
+            ('B_yn(categorical_var)' in dh._working_df_test.columns) and \
+            ('C_yn(categorical_var)' in dh._working_df_test.columns)
         )
 
 
         dh_emitter = dh.train_test_emitter('binary_var', 
-            ['A_TRUE(categorical_var)', 'B_TRUE(categorical_var)', 
-             'C_TRUE(categorical_var)', 'numerical_var'])
+            ['A_yn(categorical_var)', 'B_yn(categorical_var)', 
+             'C_yn(categorical_var)', 'numerical_var'])
         self.assertTrue(
-            ('A_TRUE(categorical_var)' in \
+            ('A_yn(categorical_var)' in \
                 dh_emitter._working_df_test.columns) and \
-            ('B_TRUE(categorical_var)' in \
+            ('B_yn(categorical_var)' in \
                 dh_emitter._working_df_test.columns) and \
-            ('C_TRUE(categorical_var)' in \
+            ('C_yn(categorical_var)' in \
                 dh_emitter._working_df_test.columns)
         )
         self.assertTrue(
-            ('A_TRUE(categorical_var)' in \
+            ('A_yn(categorical_var)' in \
                 dh_emitter._working_df_train.columns) and \
-            ('B_TRUE(categorical_var)' in \
+            ('B_yn(categorical_var)' in \
                 dh_emitter._working_df_train.columns) and \
-            ('C_TRUE(categorical_var)' in \
+            ('C_yn(categorical_var)' in \
                 dh_emitter._working_df_train.columns)
         )
         self.assertEqual(
@@ -247,30 +248,30 @@ class TestDataEmitter(unittest.TestCase):
                          verbose=False)
         dh.onehot(['categorical_var', 'binary_var'], dropfirst=True)
         self.assertTrue(
-            ('B_TRUE(categorical_var)' in dh._working_df_train.columns) and \
-            ('C_TRUE(categorical_var)' in dh._working_df_train.columns)
+            ('B_yn(categorical_var)' in dh._working_df_train.columns) and \
+            ('C_yn(categorical_var)' in dh._working_df_train.columns)
         )
         self.assertTrue(
-            ('B_TRUE(categorical_var)' in dh._working_df_test.columns) and \
-            ('C_TRUE(categorical_var)' in dh._working_df_test.columns)
+            ('B_yn(categorical_var)' in dh._working_df_test.columns) and \
+            ('C_yn(categorical_var)' in dh._working_df_test.columns)
         )
         self.assertFalse(
-            'A_TRUE(categorical_var)' in dh._working_df_train.columns
+            'A_yn(categorical_var)' in dh._working_df_train.columns
         )
 
         dh_emitter = dh.train_test_emitter('numerical_var', 
-            ['B_TRUE(categorical_var)', 
-             'C_TRUE(categorical_var)', '1_TRUE(binary_var)'])
+            ['B_yn(categorical_var)', 
+             'C_yn(categorical_var)', '1_yn(binary_var)'])
         self.assertTrue(
-            ('B_TRUE(categorical_var)' in \
+            ('B_yn(categorical_var)' in \
                 dh_emitter._working_df_test.columns) and \
-            ('C_TRUE(categorical_var)' in \
+            ('C_yn(categorical_var)' in \
                 dh_emitter._working_df_test.columns)
         )
         self.assertTrue(
-            ('B_TRUE(categorical_var)' in \
+            ('B_yn(categorical_var)' in \
                 dh_emitter._working_df_train.columns) and \
-            ('C_TRUE(categorical_var)' in \
+            ('C_yn(categorical_var)' in \
                 dh_emitter._working_df_train.columns)
         )
         self.assertEqual(
@@ -520,7 +521,7 @@ class TestDataEmitter(unittest.TestCase):
         dh.scale(['sepallength(cm)'], strategy='minmax')
         dh.drop_vars(['sepalwidth(cm)'])
         emitters = dh.kfold_emitters(
-            'sepallength(cm)', ['1_TRUE(target)', '2_TRUE(target)', 
+            'sepallength(cm)', ['1_yn(target)', '2_yn(target)', 
                                 'petallength(cm)', 'petalwidth(cm)'],
             n_folds=5,
             shuffle=True,

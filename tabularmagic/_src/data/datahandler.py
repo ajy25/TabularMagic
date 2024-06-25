@@ -545,7 +545,7 @@ class DataEmitter:
                     self._working_df_test[var].apply(
                         lambda x: 1 if x == pos_label else 0)
                 
-            vars_to_renamed[var] = f'{pos_label}_TRUE({var})'
+            vars_to_renamed[var] = f'{pos_label}_yn({var})'
 
         self._working_df_train = self._working_df_train.rename(
             columns=vars_to_renamed)

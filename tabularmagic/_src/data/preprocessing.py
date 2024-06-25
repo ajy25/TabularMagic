@@ -13,7 +13,7 @@ class CustomOneHotEncoder(OneHotEncoder):
             split_name = feature_name.split('_')
             label = split_name[-1]
             var = '_'.join(split_name[:-1])
-            custom_feature_names.append(f'{label}_TRUE({var})')
+            custom_feature_names.append(f'{label}_yn({var})')
         return custom_feature_names
 
 

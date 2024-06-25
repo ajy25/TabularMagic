@@ -176,8 +176,8 @@ class BaseC(BaseDiscriminativeModel):
 
             y_pred = self._label_encoder.inverse_transform(
                 self._estimator.predict(X_train))
-            if hasattr(fold_estimator, 'predict_proba'):
-                y_pred_score = fold_estimator.predict_proba(X_train)
+            if hasattr(self._estimator, 'predict_proba'):
+                y_pred_score = self._estimator.predict_proba(X_train)
             elif hasattr(self._estimator, 'decision_function'):
                 y_pred_score = self._estimator.decision_function(X_train)
 
@@ -188,7 +188,7 @@ class BaseC(BaseDiscriminativeModel):
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.\
-                        inverse_transform(fold_estimator.classes_),
+                        inverse_transform(self._estimator.classes_),
                     name=str(self)
                 )
             else:

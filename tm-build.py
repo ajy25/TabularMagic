@@ -3,7 +3,7 @@ import shutil
 import pathlib
 import os
 import sys
-directory_path = str(pathlib.Path('__notebook__').parent.resolve())
+directory_path = pathlib.Path('__notebook__').parent.resolve()
 
 
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if other_arguments[0] == 'install':
         try:
             subprocess.check_call(
-                ['python', f'{directory_path}/setup.py', 'sdist'])
+                ['python', str(directory_path / 'setup.py'), 'sdist'])
             subprocess.check_call(['pip', 'install', f'{directory_path}'])
             print('Successfully installed tabularmagic')
         except subprocess.CalledProcessError as e:
@@ -44,9 +44,9 @@ if __name__ == '__main__':
         except subprocess.CalledProcessError as e:
             print(f'Failed to uninstall package "tabularmagic": {e}')
 
-        delete_folder(f'{directory_path}/build')
-        delete_folder(f'{directory_path}/dist')
-        delete_folder(f'{directory_path}/tabularmagic.egg-info')
+        delete_folder(str(directory_path / 'build'))
+        delete_folder(str(directory_path / 'dist'))
+        delete_folder(str(directory_path / 'tabularmagic.egg-info'))
 
     else:
         raise RuntimeError('Invalid command line argument. ' + \

@@ -5,9 +5,10 @@ from .base import BaseR
 from ....metrics.regression_scoring import RegressionScorer
 
 
+
 class CustomR(BaseR):
     """TabularMagic-compatible wrapper for user-designed scikit-learn 
-    estimators/searches.
+    estimators/searches/pipelines.
     
     Hyperparameter search is not conducted unless provided by the 
     estimator. 
@@ -16,6 +17,18 @@ class CustomR(BaseR):
     def __init__(self, 
                  estimator: BaseEstimator | BaseSearchCV | Pipeline,
                  name: str = None):
+        """Initializes a CustomR object.
+        
+        Parameters
+        ----------
+        estimator : BaseEstimator | BaseSearchCV | Pipeline.
+            The estimator to be used. Must have a fit method and a 
+            predict method.
+        name : str.
+            Default: None. 
+            The name of the model. If None, the estimator's 
+            __str__() implementation is used.
+        """
         super().__init__()
         self._estimator: BaseSearchCV | BaseEstimator | Pipeline = estimator
         if name is None:
@@ -112,5 +125,8 @@ class CustomR(BaseR):
     def hyperparam_searcher(self):
         """Raises NotImplementedError. Not implemented for CustomR."""
         raise NotImplementedError('CustomR has no HyperparameterSearcher.')
+    
+
+
 
 

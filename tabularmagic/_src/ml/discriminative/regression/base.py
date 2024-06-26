@@ -6,16 +6,15 @@ from ....data.datahandler import DataEmitter
 
 
 class BaseR(BaseDiscriminativeModel):
-    """A class that provides the framework upon which all regression 
-    objects are built. 
+    """Class that provides the framework that all TabularMagic regression 
+    classes inherit. 
 
-    BaseR wraps sklearn methods. 
     The primary purpose of BaseR is to automate the scoring and 
     model selection processes. 
     """
 
     def __init__(self):
-        """Initializes a BaseR object. Creates copies of the inputs. 
+        """Initializes a BaseR object.
         """
         self._hyperparam_searcher: HyperparameterSearcher = None
         self._estimator: BaseEstimator = None
@@ -38,8 +37,10 @@ class BaseR(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - dataemitter : DataEmitter containing all data.
-        - dataemitters : list[DataEmitter]. 
+        dataemitter : DataEmitter. 
+            DataEmitter that contains the data.
+        dataemitters : list[DataEmitter]. 
+            Default: None. 
             If not None, specifies the DataEmitters for nested cross validation.
         """
         self._dataemitter = dataemitter
@@ -117,7 +118,7 @@ class BaseR(BaseDiscriminativeModel):
 
 
         else:
-            raise ValueError('The datahandler must not be None')
+            raise ValueError('DataEmitter or DataEmitters not specified.')
 
         X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
         X_test = X_test_df.to_numpy()
@@ -136,12 +137,12 @@ class BaseR(BaseDiscriminativeModel):
         )
 
 
-    def sklearn_estimator(self):
+    def sklearn_estimator(self) -> BaseEstimator:
         """Returns the sklearn estimator object. 
 
         Returns
         -------
-        - BaseEstimator
+        BaseEstimator
         """
         return self._estimator
     
@@ -151,7 +152,7 @@ class BaseR(BaseDiscriminativeModel):
         
         Returns
         -------
-        - HyperparameterSearcher
+        HyperparameterSearcher
         """
         return self._hyperparam_searcher
 
@@ -160,7 +161,7 @@ class BaseR(BaseDiscriminativeModel):
 
         Returns
         -------
-        - bool
+        bool
         """
         return self._dataemitters is not None
 

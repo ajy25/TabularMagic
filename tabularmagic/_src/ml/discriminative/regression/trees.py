@@ -11,7 +11,7 @@ import xgboost as xgb
 
 
 class TreeR(BaseR):
-    """A simple decision tree regressor. 
+    """Class for tree-based regression.
     
     Like all BaseR-derived classes, hyperparameter selection is 
     performed automatically during training. The cross validation and 

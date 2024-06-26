@@ -7,9 +7,9 @@ from .base import BaseR, HyperparameterSearcher
 
 
 class LinearR(BaseR):
-    """(Regularized) Least Squares regressor. 
+    """Class for linear regression (optionally with penalty).
     
-    Like all BaseRegression-derived classes, hyperparameter selection is 
+    Like all BaseR-derived classes, hyperparameter selection is 
     performed automatically during training. The cross validation and 
     hyperparameter selection process can be modified by the user. 
     """
@@ -25,29 +25,33 @@ class LinearR(BaseR):
 
         Parameters
         ----------
-        - type : Literal['ols', 'l1', 'l2']. 
-            Default: 'ols'.
-        - hyperparam_search_method : str. 
+        type : Literal['ols', 'l1', 'l2', 'elasticnet']. 
+            Default: 'ols'. The type of linear regression to be used.
+        hyperparam_search_method : Literal[None, 'grid', 'random']. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - hyperparam_grid_specification : Mapping[str, list]. 
+        hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - name : str. 
+        model_random_state : int.
+            Default: 42. Random seed for the model.
+        name : str. 
             Default: None. Determines how the model shows up in the reports. 
             If None, the name is set to be the class name.
-        - model_random_state : int.
-            Default: 42. Random seed for the model.
-        - kwargs : Key word arguments are passed directly into the 
+        kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
             inner_cv and inner_cv_seed can be set via kwargs. 
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int. 
+            Default: 1. Number of parallel jobs to run.
+        verbose : int. 
+            Default: 0. scikit-learn verbosity level.
         """
         super().__init__()
         self._dropfirst = True
@@ -119,13 +123,13 @@ class LinearR(BaseR):
                 **kwargs
             )
         else:
-            raise ValueError('Invalid value for type')
+            raise ValueError(f'Invalid value for type: {type}.')
 
 
 
 
 class RobustLinearR(BaseR):
-    """Robust linear regression.
+    """Class for robust linear regression.
 
     Like all classes extending BaseRegression, hyperparameter selection is 
     performed automatically during training. The cross validation and 
@@ -143,30 +147,35 @@ class RobustLinearR(BaseR):
 
         Parameters
         ----------
-        - type : Literal['huber', 'ransac']. 
+        type : Literal['huber', 'ransac'].
             Default: 'huber'.
-        - hyperparam_search_method : Literal[None, 'grid', 'random']. 
+        hyperparam_search_method : Literal[None, 'grid', 'random']. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - hyperparam_grid_specification : Mapping[str, list]. 
+        hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - name : str. 
+        model_random_state : int.
+            Default: 42. Random seed for the model.
+        name : str. 
             Default: None. Determines how the model shows up in the reports. 
             If None, the name is set to be the class name.
-        - model_random_state : int.
-            Default: 42. Random seed for the model.
-        - kwargs : Key word arguments are passed directly into the 
+        kwargs : Key word arguments are passed directly into the 
             intialization of the HyperparameterSearcher class. In particular, 
             inner_cv and inner_cv_seed can be set via kwargs. 
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int. 
+            Default: 1. Number of parallel jobs to run.
+        verbose : int. 
+            Default: 0. scikit-learn verbosity level.
         """
+
         super().__init__()
         self._dropfirst = True
 
@@ -210,5 +219,6 @@ class RobustLinearR(BaseR):
             )
 
         else:
-            raise ValueError('Invalid value for type')
+            raise ValueError(f'Invalid value for type: {type}.')
         
+

@@ -4,9 +4,9 @@ from .base import BaseR, HyperparameterSearcher
 
 
 class MLPR(BaseR):
-    """Multi-layer Perceptron regressor.
+    """Class for multi-layer perceptron regression.
     
-    Like all BaseRegression-derived classes, hyperparameter selection is 
+    Like all BaseR-derived classes, hyperparameter selection is 
     performed automatically during training. The cross validation and 
     hyperparameter selection process can be modified by the user. 
     """
@@ -20,24 +20,31 @@ class MLPR(BaseR):
 
         Parameters
         ----------
-        - hyperparam_search_method : str. 
+        hyperparam_search_method : str. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - hyperparam_grid_specification : Mapping[str, list]. 
+        hyperparam_grid_specification : Mapping[str, list]. 
             Default: None. If None, a regression-specific default hyperparameter 
             search is conducted. 
-        - name : str. 
+        name : str. 
             Default: None. Determines how the model shows up in the reports. 
             If None, the name is set to be the class name.
-        - kwargs : Key word arguments are passed directly into the 
-            intialization of the hyperparameter search method. 
+        model_random_state : int.
+            Default: 42. Random seed for the model.
+        kwargs : Key word arguments are passed directly into the 
+            intialization of the HyperparameterSearcher class. In particular, 
+            inner_cv and inner_cv_seed can be set via kwargs. 
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int. 
+            Default: 1. Number of parallel jobs to run.
+        verbose : int. 
+            Default: 0. scikit-learn verbosity level.
         """
         super().__init__()
 

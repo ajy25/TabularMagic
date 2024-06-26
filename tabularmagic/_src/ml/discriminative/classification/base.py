@@ -11,11 +11,10 @@ import numpy as np
 
 
 class BaseC(BaseDiscriminativeModel):
-    """A class that provides the framework upon which all regression 
-    objects are built. 
+    """Class that provides the framework that all TabularMagic classification 
+    classes inherit. 
 
-    BaseC wraps sklearn methods. 
-    The primary purpose of BaseC is to automate the scoring and 
+    The primary purpose of BaseR is to automate the scoring and 
     model selection processes. 
     """
 
@@ -44,8 +43,10 @@ class BaseC(BaseDiscriminativeModel):
 
         Parameters
         ----------
-        - dataemitter : DataEmitter containing all data.
-        - dataemitters : list[DataEmitter]. 
+        dataemitter : DataEmitter. 
+            DataEmitter that contains the data.
+        dataemitters : list[DataEmitter]. 
+            Default: None. 
             If not None, specifies the DataEmitters for nested cross validation.
         """
         self._dataemitter = dataemitter

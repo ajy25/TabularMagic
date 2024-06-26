@@ -88,11 +88,11 @@ class OrdinaryLeastSquares:
 
         Parameters
         ----------
-        - criteria : str. Default: 'aic'.
+        criteria : str. Default: 'aic'.
 
         Returns
         -------
-        - list of str. 
+        list of str. 
             The subset of predictors that are most likely to be significant.
         """
         raise NotImplementedError(

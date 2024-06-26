@@ -1,9 +1,9 @@
 import statsmodels.api as sm
 from typing import Literal
-from ...metrics.regression_scoring import RegressionScorer
+from ...metrics.classification_scoring import ClassificationBinaryScorer
 from ...data.datahandler import DataEmitter
 
-class GLM:
+class GeneralizedLinearModel:
 
     """Statsmodels GLM wrapper
     """
@@ -47,15 +47,27 @@ class GLM:
         X_train = sm.add_constant(X_train)
 
         # Fit the model depending on the family and link function chosen 
-        if(family == 'binomial'):
-            self.estimator = sm.families.Binomial(link=sm.families.links.logit())
-        elif(True):
+        if family == 'binomial':
+            family_obj = sm.families.Binomial(
+                link=sm.families.links.Logit())
+        elif family == 'gamma':
+            family_obj = sm.families.Gamma()
+        elif family == 'gaussian':
+            family_obj = sm.families.Gaussian()
+        elif family == 'poisson':
+            family_obj = sm.families.Poisson()
+        else:
             raise NotImplementedError(
-            'Family not yet implemented / does not exist')
+                'Family not yet implemented / does not exist')
+        self.estimator = sm.GLM(y_train, X_train, family=family_obj).fit()
 
-        y_pred_train = self.estimator.predict(X_train).to_numpy()
 
-        self.train_scorer = RegressionScorer(
+        y_pred_train = self.estimator.predict(exog=X_train).to_numpy()
+
+        print(y_pred_train.shape)
+        print(y_train.shape)
+
+        self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train,
             y_true=y_train.to_numpy(),
             n_predictors=n_predictors,
@@ -69,7 +81,7 @@ class GLM:
         y_pred_test = self.estimator.predict(X_test).to_numpy()
 
 
-        self.test_scorer = RegressionScorer(
+        self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test,
             y_true=y_test.to_numpy(),
             n_predictors=n_predictors,

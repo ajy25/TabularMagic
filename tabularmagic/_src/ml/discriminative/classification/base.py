@@ -14,7 +14,7 @@ class BaseC(BaseDiscriminativeModel):
     """Class that provides the framework that all TabularMagic classification 
     classes inherit. 
 
-    The primary purpose of BaseR is to automate the scoring and 
+    The primary purpose of BaseC is to automate the scoring and 
     model selection processes. 
     """
 

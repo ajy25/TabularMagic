@@ -7,7 +7,7 @@ Under active development.
 
 ## Why does TabularMagic exist?
 
-While numerous autoML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and benchmarking various machine learning models, many of which require hyperparameter tuning.
+While numerous autoML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and proper cross-validation benchmarking of various machine learning models, many of which require hyperparameter tuning.
 
 
 ## Installation and dependencies
@@ -33,7 +33,7 @@ A full list of dependencies is available in ```./requirements.txt```.
 
 ## Getting started
 
-We can build a TabularMagic object from a provided dataset. The TabularMagic object allows for rapid exploratory data analysis. 
+We can build a TabularMagic object on a given dataset.
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -60,9 +60,9 @@ def reshow(fig: plt.Figure):
     plt.show()
 
 train_eda = tm.eda()
-print(train_eda.continuous_summary_statistics())
+print(train_eda.numerical_summary_statistics())
 reshow(train_eda.plot_distribution('target'))
-reshow(train_eda.plot_continuous_pairs(['target', 'age', 'bmi', 'bp']))
+reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
 ```
 
 TabularMagic makes regression analysis easy via R-like formulas.
@@ -87,7 +87,7 @@ models =[
     SVMR('rbf', n_jobs=-1)
 ]
 report = tm.ml_regression(
-    models=models   # 5-fold cross validation for hyperparameter search
+    models=models,   # 5-fold cross validation for hyperparameter search
     y_var='target',
     X_vars=['age', 'bmi', 'bp', 's1', 's2'],
     outer_cv=5      # 5-fold cross validation for model evaluation
@@ -103,7 +103,7 @@ reshow(report.model_report('TreeEnsembleR(adaboost)').test_report().plot_obs_vs_
 ## Demos
 
 To learn more about TabularMagic functionality, check out the demos available in
-the ```./demo``` subdirectory. 
+the `./demo` subdirectory. 
 
 
 

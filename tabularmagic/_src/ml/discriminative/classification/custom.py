@@ -1,5 +1,6 @@
 from sklearn.model_selection._search import BaseSearchCV
 from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 import numpy as np
 from .base import BaseC
 from ....metrics.classification_scoring import (ClassificationMulticlassScorer, 
@@ -8,18 +9,33 @@ from ....metrics.classification_scoring import (ClassificationMulticlassScorer,
 
 class CustomC(BaseC):
     """TabularMagic-compatible wrapper for user-designed scikit-learn 
-    estimators/searches.
+    estimators/searches/pipelines.
     
     Hyperparameter search is not conducted unless provided by the 
     estimator. 
     """
 
     def __init__(self, 
-                 estimator: BaseEstimator | BaseSearchCV,
+                 estimator: BaseEstimator | BaseSearchCV | Pipeline,
                  name: str = None):
+        """Initializes a CustomC object.
+        
+        Parameters
+        ----------
+        estimator : BaseEstimator | BaseSearchCV | Pipeline.
+            The estimator to be used. Must have a fit method and a 
+            predict method.
+        name : str.
+            Default: None. 
+            The name of the model. If None, the estimator's 
+            __str__() implementation is used.
+        """
         super().__init__()
-        self._estimator: BaseSearchCV | BaseEstimator = estimator
-        self._name = name
+        self._estimator: BaseSearchCV | BaseEstimator | Pipeline = estimator
+        if name is None:
+            self._name = str(estimator)
+        else:
+            self._name = name
         
 
     def fit(self):

@@ -3,8 +3,8 @@ from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
 from .ml.discriminative.regression.base import BaseR
 from .ml.discriminative.classification.base import BaseC
-from .linear.regression.linear_regression import OrdinaryLeastSquares
-from .linear.regression.lm_rlike_util import parse_and_transform_rlike
+from .linear.lm import OrdinaryLeastSquares
+from .linear.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (MLRegressionReport, 
     ComprehensiveEDA, RegressionVotingSelectionReport, 
     LinearRegressionReport, MLClassificationReport)

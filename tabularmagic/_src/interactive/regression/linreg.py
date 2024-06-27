@@ -6,7 +6,7 @@ from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.regression.linear_regression import OrdinaryLeastSquares
+from ...linear.lm import OrdinaryLeastSquares
 from ...util.console import print_wrapped
 from adjustText import adjust_text
 

@@ -1,7 +1,7 @@
 import statsmodels.api as sm
 from typing import Literal
-from ...metrics.regression_scoring import RegressionScorer
-from ...data.datahandler import DataEmitter
+from ..metrics.regression_scoring import RegressionScorer
+from ..data.datahandler import DataEmitter
 
 
 class OrdinaryLeastSquares:

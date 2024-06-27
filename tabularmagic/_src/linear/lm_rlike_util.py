@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import itertools
-from ...data.preprocessing\
+from ..data.preprocessing\
     import LogTransformSingleVar, CustomFunctionSingleVar
 
 

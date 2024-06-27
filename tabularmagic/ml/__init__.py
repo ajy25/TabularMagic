@@ -9,7 +9,7 @@ from .._src.interactive.regression.mlreg import MLRegressionReport
 
 from .._src.interactive.classification.mlclass import MLClassificationReport
 from .._src.ml.discriminative.classification import (
-    LinearC, TreeC, TreeEnsembleC, CustomC
+    LinearC, TreeC, TreeEnsembleC, MLPC, SVMC, CustomC
 )
 
 
@@ -17,6 +17,6 @@ __all__ = [
     'LinearR', 'RobustLinearR', 'TreeR', 'TreeEnsembleR', 'MLPR', 'SVMR', 
     'CustomR', 'RFESelectorR', 'KBestSelectorR', 'SimpleLinearSelectorR',
     'MLRegressionReport', 'MLClassificationReport', 'LinearC', 'TreeC',
-    'TreeEnsembleC', 'CustomC'
+    'TreeEnsembleC', 'CustomC', 'MLPC', 'SVMC'
 ]
 

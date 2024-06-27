@@ -1,8 +1,8 @@
 import statsmodels.api as sm
 from typing import Literal
 import numpy as np
-from ...metrics.classification_scoring import ClassificationBinaryScorer
-from ...data.datahandler import DataEmitter
+from ..metrics.classification_scoring import ClassificationBinaryScorer
+from ..data.datahandler import DataEmitter
 
 class GeneralizedLinearModel:
 

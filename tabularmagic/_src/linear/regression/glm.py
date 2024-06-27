@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 from typing import Literal
+import numpy as np
 from ...metrics.classification_scoring import ClassificationBinaryScorer
 from ...data.datahandler import DataEmitter
 
@@ -59,18 +60,28 @@ class GeneralizedLinearModel:
         else:
             raise NotImplementedError(
                 'Family not yet implemented / does not exist')
-        self.estimator = sm.GLM(y_train, X_train, family=family_obj).fit()
+        
+        self.estimator = sm.GLM(y_train, X_train, family=family_obj).fit(cov_type='HC3')
+
+        #self.estimator = sm.GLM(y_train, X_train, family=family_obj, 
+        #    cov_kwds={'use_correction': True}).fit(cov_type='HC3')
 
 
-        y_pred_train = self.estimator.predict(exog=X_train).to_numpy()
+        y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
 
-        print(y_pred_train.shape)
-        print(y_train.shape)
+
+
+        threshold = 0.5
+
+        y_pred_train_binary = (y_pred_train >= threshold).astype(int)
+
+
 
         self.train_scorer = ClassificationBinaryScorer(
-            y_pred=y_pred_train,
+            y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
-            n_predictors=n_predictors,
+            y_pred_score = np.hstack([np.zeros(shape=(len(y_pred_train), 1)),
+                                       y_pred_train.reshape(-1, 1)]),
             name=self._name
         )
 
@@ -79,12 +90,19 @@ class GeneralizedLinearModel:
 
 
         y_pred_test = self.estimator.predict(X_test).to_numpy()
+        y_pred_test_binary = (y_pred_test >= threshold).astype(int)
 
 
         self.test_scorer = ClassificationBinaryScorer(
-            y_pred=y_pred_test,
+            y_pred=y_pred_test_binary,
             y_true=y_test.to_numpy(),
-            n_predictors=n_predictors,
+            y_pred_score = np.hstack([np.zeros(shape=(len(y_pred_test), 1)),
+                                       y_pred_test.reshape(-1, 1)]),
             name=self._name
+            
         )
+
+        def __str__(self):
+            return self._name
+
 

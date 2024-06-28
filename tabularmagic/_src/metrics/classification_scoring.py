@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from ..._src.util.console import print_wrapped, color_text
+from ..display.print_utils import print_wrapped, color_text
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 )

@@ -1,6 +1,6 @@
 # TabularMagic
 
-TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide-form tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
+TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide format tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
 
 Under active development.
 
@@ -19,12 +19,12 @@ To install TabularMagic:
 ```
 git clone https://github.com/ajy25/TabularMagic.git
 cd tabularmagic
-python tm-build.py install
+python tmbuild.py install
 ```
 
 To uninstall TabularMagic:
 ```
-python tm-build.py uninstall
+python tmbuild.py uninstall
 ```
 
 TabularMagic is built on top of the standard Python data science stack (scikit-learn, statsmodels, pandas, NumPy, Matplotlib). 

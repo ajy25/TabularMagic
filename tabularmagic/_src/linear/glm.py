@@ -44,7 +44,7 @@ class GeneralizedLinearModel:
         """
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
-        n_predictors = X_train.shape[1]
+        # n_predictors = X_train.shape[1]
         X_train = sm.add_constant(X_train)
 
         # Fit the model depending on the family and link function chosen 

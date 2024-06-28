@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..util.console import color_text, bold_text, fill_ignore_format
-from ..util.constants import TOSTR_MAX_WIDTH, TOSTR_ROUNDING_N_DECIMALS
+from ..display.print_utils import color_text, bold_text, fill_ignore_format
+from ..display.print_options import print_options
 
 
 
@@ -77,8 +77,8 @@ class StatisticalTestResult:
     def __str__(self):
         """Returns data and metadata in string form."""
         
-        max_width = TOSTR_MAX_WIDTH
-        n_dec = TOSTR_ROUNDING_N_DECIMALS
+        max_width = print_options.max_line_width
+        n_dec = print_options.n_decimals
 
         top_divider = color_text('='*max_width, 'none') + '\n'
         bottom_divider = '\n' + color_text('='*max_width, 'none')

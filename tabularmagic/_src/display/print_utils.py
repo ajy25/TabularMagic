@@ -1,5 +1,6 @@
 from typing import Literal
-from .constants import TOSTR_MAX_WIDTH
+from .print_options import print_options
+
 
 
 
@@ -28,12 +29,13 @@ def bold_text(text):
 
 def print_wrapped(text: str, 
                   type: Literal['WARNING', 'UPDATE', None] = None):
-    """Prints text to terminal/console.
+    """Logs text.
 
     Parameters
     ----------
-    - text : str.
-    - type : Literal['WARNING', 'UPDATE', None].
+    text : str.
+    type : Literal['WARNING', 'UPDATE', None].
+        Default: None.
     """
     base_message = text
     if type == 'WARNING':
@@ -41,10 +43,11 @@ def print_wrapped(text: str,
     elif type == 'UPDATE':
         base_message = color_text('INFO: ', 'green') + base_message
 
-    print(
+
+    print_options._log_info(
         fill_ignore_format(
             base_message, 
-            width=TOSTR_MAX_WIDTH
+            width=print_options.max_line_width
         )
     )
 
@@ -108,7 +111,8 @@ def len_ignore_format(text: str):
 
 
 
-def fill_ignore_format_single_line(text: str, width: int = TOSTR_MAX_WIDTH, 
+def fill_ignore_format_single_line(text: str, 
+        width: int = print_options.max_line_width, 
         initial_indent: int = 0, subsequent_indent: int = 6):
     """Wraps text to a max width of TOSTR_MAX_WIDTH. Text must NOT 
     contain any newline characters.
@@ -140,7 +144,8 @@ def fill_ignore_format_single_line(text: str, width: int = TOSTR_MAX_WIDTH,
 
 
 
-def fill_ignore_format(text: str, width: int = TOSTR_MAX_WIDTH, 
+def fill_ignore_format(text: str, 
+                       width: int = print_options.max_line_width, 
                       initial_indent: int = 0,
                       subsequent_indent: int = 6):
     """Wraps text to a max width of TOSTR_MAX_WIDTH.

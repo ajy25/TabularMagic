@@ -1,6 +1,6 @@
 import pathlib
 from setuptools import setup, find_packages
-directory_path = str(pathlib.Path('__notebook__').parent.resolve())
+directory_path = str(pathlib.Path(__file__).parent.resolve())
 
 
 def parse_requirements(file_path):

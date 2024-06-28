@@ -8,7 +8,7 @@ from .linear.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (MLRegressionReport, 
     ComprehensiveEDA, RegressionVotingSelectionReport, 
     LinearRegressionReport, MLClassificationReport)
-from .util.console import print_wrapped
+from .display.print_utils import print_wrapped
 from .feature_selection import BaseFeatureSelectorR
 from .data.datahandler import DataHandler
 
@@ -138,9 +138,9 @@ class TabularMagic:
         n_target_features: int = 10, 
         update_working_dfs: bool = False
     ) -> RegressionVotingSelectionReport:
-        """Supervised feature selection via methods voting based on
-        training dataset. 
-        Also returns a RegressionVotingSelectionReport object. 
+        """Supervised feature selection via voting. Feature selection methods 
+        are trained on the training dataset. 
+        Returns a RegressionVotingSelectionReport object. 
         Can automatically update the working train and working test
         datasets so that only the selected features remain if 
         update_working_dfs is True.
@@ -169,7 +169,7 @@ class TabularMagic:
             X_vars = self._datahandler.numerical_vars(True)
         report = RegressionVotingSelectionReport(
             selectors=selectors,
-            datahandler=self._datahandler.copy(y_var, X_vars),
+            datahandler=self._datahandler,
             n_target_features=n_target_features, 
             verbose=self._verbose
         )

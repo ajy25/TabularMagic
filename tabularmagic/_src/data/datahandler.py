@@ -4,13 +4,13 @@ from typing import Literal
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
-from ..util.console import (print_wrapped, color_text, bold_text, 
+from ..display.print_utils import (print_wrapped, color_text, bold_text, 
                             list_to_string, 
                             fill_ignore_format)
 from .preprocessing import (BaseSingleVarScaler, Log1PTransformSingleVar, 
     LogTransformSingleVar, MinMaxSingleVar, StandardizeSingleVar, 
     CustomOneHotEncoder)
-from ..util.constants import TOSTR_MAX_WIDTH
+from ..display.print_options import print_options
 
 
 
@@ -1412,6 +1412,9 @@ class DataHandler:
         )
 
         return self
+    
+
+    # def feature_selection(self, )
 
 
     def drop_vars(self, vars: list[str]) -> 'DataHandler':
@@ -1893,7 +1896,7 @@ class DataHandler:
         working_df_test = self._working_df_test
         working_df_train = self._working_df_train
 
-        max_width = TOSTR_MAX_WIDTH
+        max_width = print_options.max_line_width
 
         textlen_shapes = len(str(working_df_train.shape) +\
             str(working_df_test.shape)) + 25

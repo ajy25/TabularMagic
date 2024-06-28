@@ -5,15 +5,14 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 import pathlib
 import sys
-from tabularmagic._src.data.datahandler import (
-    DataEmitter, DataHandler, PreprocessStepTracer
-)
-
-
-
 
 parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
 sys.path.append(parent_dir)
+
+
+from tabularmagic._src.data.datahandler import (
+    DataEmitter, DataHandler, PreprocessStepTracer
+)
 
 
 
@@ -542,6 +541,9 @@ class TestDataEmitter(unittest.TestCase):
             )
         self.assertEqual(emitters[0].y_scaler().min, 4.3)
         self.assertNotEqual(emitters[2].y_scaler().min, 4.3)
+
+
+
 
 
 

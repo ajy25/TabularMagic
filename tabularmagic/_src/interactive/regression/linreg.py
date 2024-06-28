@@ -7,7 +7,7 @@ from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.lm import OrdinaryLeastSquares
-from ...util.console import print_wrapped
+from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 
 

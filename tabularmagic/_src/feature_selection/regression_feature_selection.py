@@ -132,7 +132,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
 
 
 
-class SimpleLinearSelectorR(BaseFeatureSelectorR):
+class LassoSelectorR(BaseFeatureSelectorR):
     """Selects the (at most) k best features via Lasso regression model-inherent 
     feature selection based on the training data.
     """
@@ -140,7 +140,7 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
     def __init__(self, regularization_type: Literal[None, 'l1', 'l2'] = None, 
                  alpha = 0.0, name: str = None):
         """
-        Constructs a SimpleLinearSelectorR.
+        Constructs a LassoSelectorR.
 
         Parameters
         ----------
@@ -176,15 +176,15 @@ class SimpleLinearSelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - dataemitter : DataEmitter.
-        - n_target_features : int. 
+        dataemitter : DataEmitter.
+        n_target_features : int. 
             Number of desired features, < n_predictors.
 
         Returns
         -------
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Selected features.
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Boolean mask.
         """
         X_train, y_train = dataemitter.emit_train_Xy()
@@ -220,13 +220,9 @@ class RFESelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - model : str | BaseEstimator.
-        - nickname : str.
+        model : str | BaseEstimator.
+        name : str.
             Default: None. If None, then outputs the class name. 
-
-        Returns
-        -------
-        - None
         """
         super().__init__(name)
         if self._name is None:
@@ -259,15 +255,15 @@ class RFESelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - dataemitter : DataEmitter.
-        - n_target_features : int. 
+        dataemitter : DataEmitter.
+        n_target_features : int. 
             Number of desired features, < n_predictors.
 
         Returns
         -------
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Selected features.
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Boolean mask.
         """
         X_train, y_train = dataemitter.emit_train_Xy()

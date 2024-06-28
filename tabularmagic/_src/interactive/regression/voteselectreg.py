@@ -4,13 +4,11 @@ from typing import Iterable
 from ...feature_selection.regression_feature_selection \
     import BaseFeatureSelectorR
 from ...data.datahandler import DataHandler
-from ...util.console import print_wrapped
+from ...display.print_utils import print_wrapped
 
 
 class RegressionVotingSelectionReport():
-    """
-    RegressionVotingSelectionReport: 
-    generates feature selection-relevant tables.
+    """Class for generating feature selection-relevant tables.
     """
 
     def __init__(self, 
@@ -20,8 +18,7 @@ class RegressionVotingSelectionReport():
                  X_vars: list[str],
                  n_target_features: int, 
                  verbose: bool = True):
-        """
-        Initializes a RegressionVotingSelectionReport object. 
+        """Initializes a RegressionVotingSelectionReport object. 
         RegressionVotingSelectionReport selects features via voting selection.
 
         Parameters
@@ -35,7 +32,7 @@ class RegressionVotingSelectionReport():
         X_vars : Iterable[str].
             The names of the independent variables.
         n_target_features : int. 
-            Number of desired features, < n_predictors.
+            Number of desired features. 0 < n_target_features < n_predictors.
         verbose : bool.
             Default: True. If True, prints progress.
         """
@@ -44,11 +41,9 @@ class RegressionVotingSelectionReport():
             y_var=y_var, X_vars=X_vars
         )
 
-        for i, selector in enumerate(selectors):
+        for selector in selectors:
             if verbose:
-                print_wrapped(
-                    f'Task {i+1} of {len(selectors)}.\tFitting {selector}.', 
-                    type='UPDATE')
+                print_wrapped(f'Fitting {selector}.', type='UPDATE')
             _, support = selector.select(self._emitter, n_target_features)
             self._selector_to_support[str(selector)] = support
 
@@ -67,6 +62,8 @@ class RegressionVotingSelectionReport():
         """Returns a list of top features determined by the voting 
         selectors."""
         return self._top_features
+    
+
     
     def votes_df(self) -> pd.DataFrame:
         """Returns a DataFrame that describes the distribution of 

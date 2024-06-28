@@ -4,7 +4,7 @@ from typing import Iterable, Literal
 from ...ml.discriminative.regression.base import BaseR
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred
-from ...util.console import print_wrapped
+from ...display.print_utils import print_wrapped
 
 
 

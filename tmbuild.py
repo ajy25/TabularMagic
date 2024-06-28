@@ -3,7 +3,7 @@ import shutil
 import pathlib
 import os
 import sys
-directory_path = pathlib.Path('__notebook__').parent.resolve()
+directory_path = pathlib.Path(__file__).parent.resolve()
 
 
 
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     other_arguments = arguments[1:]
     if len(other_arguments) != 1:
         raise RuntimeError('Invalid command line argument. ' + \
-            'Please call "python tm-build.py install" to install, ' + \
-            'or "python tm-build.py uninstall" to uninstall.')
+            'Please call "python tmbuild.py install" to install, ' + \
+            'or "python tmbuild.py uninstall" to uninstall.')
 
     if other_arguments[0] == 'install':
         try:
@@ -50,6 +50,6 @@ if __name__ == '__main__':
 
     else:
         raise RuntimeError('Invalid command line argument. ' + \
-            'Please call "python tm-build.py install" to install, ' + \
-            'or "python tm-build.py uninstall" to uninstall.')
+            'Please call "python tmbuild.py install" to install, ' + \
+            'or "python tmbuild.py uninstall" to uninstall.')
 

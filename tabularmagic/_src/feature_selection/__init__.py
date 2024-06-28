@@ -1,10 +1,10 @@
 from .regression_feature_selection import (
-    KBestSelectorR, SimpleLinearSelectorR, RFESelectorR, BaseFeatureSelectorR
+    KBestSelectorR, LassoSelectorR, RFESelectorR, BaseFeatureSelectorR
 )
 
 
 __all__ = [
-    'KBestSelectorR', 'SimpleLinearSelectorR', 'RFESelectorR', 
+    'KBestSelectorR', 'LassoSelectorR', 'RFESelectorR', 
     'BaseFeatureSelectorR'
 ]
 

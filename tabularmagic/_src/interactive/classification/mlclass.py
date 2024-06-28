@@ -6,7 +6,7 @@ from ...ml.discriminative.classification.base import \
 from ...metrics.classification_scoring import ClassificationBinaryScorer
 from ...data.datahandler import DataHandler
 from ..visualization import plot_roc_curve
-from ...util.console import print_wrapped
+from ...display.print_utils import print_wrapped
 
 
 

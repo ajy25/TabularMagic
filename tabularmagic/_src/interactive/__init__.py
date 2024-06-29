@@ -6,8 +6,9 @@ from .classification.mlclass import MLClassificationReport
 
 
 __all__ = [
-    'ComprehensiveEDA', 'RegressionVotingSelectionReport', 'MLRegressionReport',
-    'LinearRegressionReport', 'MLClassificationReport'
+    "ComprehensiveEDA",
+    "RegressionVotingSelectionReport",
+    "MLRegressionReport",
+    "LinearRegressionReport",
+    "MLClassificationReport",
 ]
-
-

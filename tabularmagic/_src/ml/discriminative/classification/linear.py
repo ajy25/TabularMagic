@@ -1,10 +1,9 @@
-import numpy as np 
+import numpy as np
 from sklearn.linear_model import LogisticRegression
 from typing import Mapping, Literal, Iterable
 
 
 from .base import BaseC, HyperparameterSearcher
-
 
 
 class LinearC(BaseC):
@@ -15,12 +14,15 @@ class LinearC(BaseC):
     hyperparameter selection process can be modified by the user.
     """
 
-    def __init__(self, 
-            type: Literal['no_penalty', 'l1', 'l2', 'elasticnet'] ='l2',
-            hyperparam_search_method: Literal[None, 'grid', 'random'] = None,
-            hyperparam_grid_specification: Mapping[str, Iterable] = None,
-            model_random_state: int = 42,
-            name: str = None, **kwargs):
+    def __init__(
+        self,
+        type: Literal["no_penalty", "l1", "l2", "elasticnet"] = "l2",
+        hyperparam_search_method: Literal[None, "grid", "random"] = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] = None,
+        model_random_state: int = 42,
+        name: str = None,
+        **kwargs,
+    ):
         """
         Initializes a LinearC object.
 
@@ -54,81 +56,76 @@ class LinearC(BaseC):
         self._dropfirst = True
 
         if name is None:
-            self._name = f'LinearC({type})'
+            self._name = f"LinearC({type})"
         else:
             self._name = name
 
+        if type == "no_penalty":
+            self._estimator = LogisticRegression(
+                penalty=None, random_state=model_random_state
+            )
+            if (hyperparam_search_method is None) or (
+                hyperparam_grid_specification is None
+            ):
+                hyperparam_search_method = "grid"
+                hyperparam_grid_specification = {"fit_intercept": [True]}
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self._estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs,
+            )
 
-        if type == 'no_penalty':
-            self._estimator = LogisticRegression(penalty=None,
-                random_state=model_random_state)
-            if (hyperparam_search_method is None) or \
-                (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'grid'
+        elif type == "l1":
+            self._estimator = LogisticRegression(
+                penalty="l1", random_state=model_random_state, solver="liblinear"
+            )
+            if (hyperparam_search_method is None) or (
+                hyperparam_grid_specification is None
+            ):
+                hyperparam_search_method = "grid"
+                hyperparam_grid_specification = {"C": np.logspace(-4, 4, 20)}
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self._estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs,
+            )
+
+        elif type == "l2":
+            self._estimator = LogisticRegression(
+                penalty="l2", random_state=model_random_state
+            )
+            if (hyperparam_search_method is None) or (
+                hyperparam_grid_specification is None
+            ):
+                hyperparam_search_method = "grid"
+                hyperparam_grid_specification = {"C": np.logspace(-4, 4, 20)}
+            self._hyperparam_searcher = HyperparameterSearcher(
+                estimator=self._estimator,
+                method=hyperparam_search_method,
+                grid=hyperparam_grid_specification,
+                **kwargs,
+            )
+
+        elif type == "elasticnet":
+            self._estimator = LogisticRegression(
+                penalty="elasticnet", random_state=model_random_state, solver="saga"
+            )
+            if (hyperparam_search_method is None) or (
+                hyperparam_grid_specification is None
+            ):
+                hyperparam_search_method = "grid"
                 hyperparam_grid_specification = {
-                    'fit_intercept': [True]
+                    "C": np.logspace(-4, 4, 10),
+                    "l1_ratio": np.linspace(0, 1, 10),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
                 grid=hyperparam_grid_specification,
-                **kwargs
+                **kwargs,
             )
 
-        elif type == 'l1':
-            self._estimator = LogisticRegression(penalty='l1',
-                random_state=model_random_state,
-                solver='liblinear')
-            if (hyperparam_search_method is None) or \
-                (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'grid'
-                hyperparam_grid_specification = {
-                    'C': np.logspace(-4, 4, 20)
-                }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
-                **kwargs
-            )
-
-        elif type == 'l2':
-            self._estimator = LogisticRegression(penalty='l2',
-                random_state=model_random_state)
-            if (hyperparam_search_method is None) or \
-                (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'grid'
-                hyperparam_grid_specification = {
-                    'C': np.logspace(-4, 4, 20)
-                }
-            self._hyperparam_searcher = HyperparameterSearcher( 
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
-                **kwargs
-            )
-
-        elif type == 'elasticnet':
-            self._estimator = LogisticRegression(penalty='elasticnet', 
-                random_state=model_random_state,
-                solver='saga')
-            if (hyperparam_search_method is None) or \
-                (hyperparam_grid_specification is None):
-                hyperparam_search_method = 'grid'
-                hyperparam_grid_specification = {
-                    'C': np.logspace(-4, 4, 10),
-                    'l1_ratio': np.linspace(0, 1, 10)
-                }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
-                **kwargs
-            )
-        
         else:
-            raise ValueError('Invalid value for type')
-
-
-
-
+            raise ValueError("Invalid value for type")

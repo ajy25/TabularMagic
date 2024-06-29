@@ -4,10 +4,10 @@ import numpy as np
 from ..metrics.classification_scoring import ClassificationBinaryScorer
 from ..data.datahandler import DataEmitter
 
+
 class GeneralizedLinearModel:
 
-    """Statsmodels GLM wrapper
-    """
+    """Statsmodels GLM wrapper"""
 
     def __init__(self, name: str = None):
         """
@@ -15,26 +15,26 @@ class GeneralizedLinearModel:
 
         Parameters
         ----------
-        name : str. 
-            Default: None. Determines how the model shows up in the reports. 
+        name : str.
+            Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
         """
         self.estimator = None
         self._name = name
         if self._name is None:
-            self._name = 'GLM'
-    
+            self._name = "GLM"
+
     def specify_data(self, dataemitter: DataEmitter):
-        """Adds a DataEmitter object to the model. 
+        """Adds a DataEmitter object to the model.
 
         Parameters
         ----------
-        dataemitter : DataEmitter containing all data. X and y variables 
+        dataemitter : DataEmitter containing all data. X and y variables
             must be specified.
         """
         self._dataemitter = dataemitter
 
-    def fit(self, family: Literal['binomial', 'gamma', 'gaussian', 'poisson']):
+    def fit(self, family: Literal["binomial", "gamma", "gaussian", "poisson"]):
         """Fits the model based on the data specified.
 
         Parameters
@@ -47,62 +47,52 @@ class GeneralizedLinearModel:
         # n_predictors = X_train.shape[1]
         X_train = sm.add_constant(X_train)
 
-        # Fit the model depending on the family and link function chosen 
-        if family == 'binomial':
-            family_obj = sm.families.Binomial(
-                link=sm.families.links.Logit())
-        elif family == 'gamma':
+        # Fit the model depending on the family and link function chosen
+        if family == "binomial":
+            family_obj = sm.families.Binomial(link=sm.families.links.Logit())
+        elif family == "gamma":
             family_obj = sm.families.Gamma()
-        elif family == 'gaussian':
+        elif family == "gaussian":
             family_obj = sm.families.Gaussian()
-        elif family == 'poisson':
+        elif family == "poisson":
             family_obj = sm.families.Poisson()
         else:
-            raise NotImplementedError(
-                'Family not yet implemented / does not exist')
-        
-        self.estimator = sm.GLM(y_train, X_train, family=family_obj).fit(cov_type='HC3')
+            raise NotImplementedError("Family not yet implemented / does not exist")
 
-        #self.estimator = sm.GLM(y_train, X_train, family=family_obj, 
+        self.estimator = sm.GLM(y_train, X_train, family=family_obj).fit(cov_type="HC3")
+
+        # self.estimator = sm.GLM(y_train, X_train, family=family_obj,
         #    cov_kwds={'use_correction': True}).fit(cov_type='HC3')
 
-
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
-
-
 
         threshold = 0.5
 
         y_pred_train_binary = (y_pred_train >= threshold).astype(int)
 
-
-
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
-            y_pred_score = np.hstack([np.zeros(shape=(len(y_pred_train), 1)),
-                                       y_pred_train.reshape(-1, 1)]),
-            name=self._name
+            y_pred_score=np.hstack(
+                [np.zeros(shape=(len(y_pred_train), 1)), y_pred_train.reshape(-1, 1)]
+            ),
+            name=self._name,
         )
 
         X_test, y_test = self._dataemitter.emit_test_Xy()
         X_test = sm.add_constant(X_test)
 
-
         y_pred_test = self.estimator.predict(X_test).to_numpy()
         y_pred_test_binary = (y_pred_test >= threshold).astype(int)
-
 
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
             y_true=y_test.to_numpy(),
-            y_pred_score = np.hstack([np.zeros(shape=(len(y_pred_test), 1)),
-                                       y_pred_test.reshape(-1, 1)]),
-            name=self._name
-            
+            y_pred_score=np.hstack(
+                [np.zeros(shape=(len(y_pred_test), 1)), y_pred_test.reshape(-1, 1)]
+            ),
+            name=self._name,
         )
 
         def __str__(self):
             return self._name
-
-

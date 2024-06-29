@@ -6,9 +6,11 @@ from .custom import CustomR
 
 
 __all__ = [
-    'LinearR', 'RobustLinearR', 'TreeR', 'TreeEnsembleR', 'MLPR', 'SVMR', 
-    'CustomR'
+    "LinearR",
+    "RobustLinearR",
+    "TreeR",
+    "TreeEnsembleR",
+    "MLPR",
+    "SVMR",
+    "CustomR",
 ]
-
-
-

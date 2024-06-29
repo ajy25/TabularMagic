@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 from ..display.print_utils import print_wrapped, color_text
 from sklearn.metrics import (
-    accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 
 
@@ -11,35 +15,38 @@ class ClassificationBinaryScorer:
     classification models that predict two classes.
     Only inputs are predicted and true values.
     Capable of scoring cross-validation outputs.
-    
+
     ClassificationBinaryScorer is indexable by integers in the following order:
         (Accuracy, F1 Score, Precision, Recall, ROC AUC).
-        
+
     ClassificationBinaryScorer also is indexable by a string key similar to the
     dictionary: {'accuracy': Accuracy, 'f1': F1 Score, 'precision': Precision,
                  'recall': Recall, 'roc_auc': ROC AUC}.
     """
 
-    def __init__(self, y_pred: np.ndarray | list, 
-                 y_true: np.ndarray | list, 
-                 y_pred_score: np.ndarray | list = None, 
-                 name: str = None):
+    def __init__(
+        self,
+        y_pred: np.ndarray | list,
+        y_true: np.ndarray | list,
+        y_pred_score: np.ndarray | list = None,
+        name: str = None,
+    ):
         """
         Initializes a ClassificationBinaryScorer object.
-        
+
         Parameters
         ----------
         y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
         y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        y_pred_score : np.ndarray ~ (sample_size) | 
+        y_pred_score : np.ndarray ~ (sample_size) |
         list[np.ndarray ~ (sample_size)].
             Default: None.
         name : str.
             Default: None.
         """
-        
+
         if name is None:
-            self._name = 'Model'
+            self._name = "Model"
         else:
             self._name = name
         self._y_pred = y_pred
@@ -52,128 +59,105 @@ class ClassificationBinaryScorer:
                 y_pred_score = [elem[:, 1] for elem in y_pred_score]
         self._y_pred_score = y_pred_score
 
-        
         self._stats_df = None
         self._cv_stats_df = None
         self._set_stats_df()
 
-
-        
     def _set_stats_df(self):
         """
         Creates statistics DataFrames given y_pred and y_true. If y_pred and
-        y_true are lists, then the elements are treated as 
-        cross-validation folds, and the statistics are averaged 
+        y_true are lists, then the elements are treated as
+        cross-validation folds, and the statistics are averaged
         across all folds.
         """
         y_pred = self._y_pred
         y_true = self._y_true
         y_pred_score = self._y_pred_score
 
-        
-        df = pd.DataFrame(columns=['Statistic', self._name])
-        cvdf = pd.DataFrame(columns=['Fold', 'Statistic', self._name])
-        
+        df = pd.DataFrame(columns=["Statistic", self._name])
+        cvdf = pd.DataFrame(columns=["Fold", "Statistic", self._name])
+
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
             df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'accuracy',
-                    self._name: accuracy_score(y_true, y_pred)
-                }
+                {"Statistic": "accuracy", self._name: accuracy_score(y_true, y_pred)}
+            )
+            df.loc[len(df)] = pd.Series(
+                {"Statistic": "f1", self._name: f1_score(y_true, y_pred)}
             )
             df.loc[len(df)] = pd.Series(
                 {
-                    'Statistic': 'f1',
-                    self._name: f1_score(y_true, y_pred)
+                    "Statistic": "precision",
+                    self._name: precision_score(y_true, y_pred, zero_division=np.nan),
                 }
             )
             df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'precision',
-                    self._name: precision_score(y_true, y_pred, 
-                                                zero_division=np.nan)
-                }
-            )
-            df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'recall',
-                    self._name: recall_score(y_true, y_pred)
-                }
+                {"Statistic": "recall", self._name: recall_score(y_true, y_pred)}
             )
             if y_pred_score is not None:
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Statistic': 'roc_auc',
-                        self._name: roc_auc_score(y_true, y_pred_score)
+                        "Statistic": "roc_auc",
+                        self._name: roc_auc_score(y_true, y_pred_score),
                     }
                 )
-            df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'n',
-                    self._name: len(y_pred)
-                }
-            )
+            df.loc[len(df)] = pd.Series({"Statistic": "n", self._name: len(y_pred)})
 
-            self._stats_df = df.set_index('Statistic')
+            self._stats_df = df.set_index("Statistic")
 
         elif isinstance(y_pred, list) and isinstance(y_true, list):
-                
             for i, (y_pred_elem, y_true_elem) in enumerate(zip(y_pred, y_true)):
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'accuracy',
+                        "Statistic": "accuracy",
                         self._name: accuracy_score(y_true_elem, y_pred_elem),
-                        'Fold': i
+                        "Fold": i,
                     }
                 )
-                
+
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'f1',
+                        "Statistic": "f1",
                         self._name: f1_score(y_true_elem, y_pred_elem),
-                        'Fold': i
+                        "Fold": i,
                     }
                 )
-                
+
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'precision',
-                        self._name: precision_score(y_true_elem, y_pred_elem, 
-                                                    zero_division=np.nan),
-                        'Fold': i
+                        "Statistic": "precision",
+                        self._name: precision_score(
+                            y_true_elem, y_pred_elem, zero_division=np.nan
+                        ),
+                        "Fold": i,
                     }
                 )
-                
+
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'recall',
+                        "Statistic": "recall",
                         self._name: recall_score(y_true_elem, y_pred_elem),
-                        'Fold': i
+                        "Fold": i,
                     }
                 )
-                
+
                 if y_pred_score is not None:
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Statistic': 'roc_auc',
-                            self._name: roc_auc_score(y_true_elem, 
-                                                      y_pred_score[i]),
-                            'Fold': i
+                            "Statistic": "roc_auc",
+                            self._name: roc_auc_score(y_true_elem, y_pred_score[i]),
+                            "Fold": i,
                         }
                     )
-                
+
                 cvdf.loc[len(cvdf)] = pd.Series(
-                    {
-                        'Statistic': 'n',
-                        self._name: len(y_pred_elem),
-                        'Fold': i
-                    }
+                    {"Statistic": "n", self._name: len(y_pred_elem), "Fold": i}
                 )
-            
-            self._cv_stats_df = cvdf.set_index(['Fold', 'Statistic'])
-            self._stats_df = cvdf.groupby(['Statistic'])[[self._name]].\
-                mean().reindex(
-                ['accuracy', 'f1', 'precision', 'recall', 'roc_auc', 'n']
+
+            self._cv_stats_df = cvdf.set_index(["Fold", "Statistic"])
+            self._stats_df = (
+                cvdf.groupby(["Statistic"])[[self._name]]
+                .mean()
+                .reindex(["accuracy", "f1", "precision", "recall", "roc_auc", "n"])
             )
 
     def stats_df(self) -> pd.DataFrame:
@@ -184,9 +168,9 @@ class ClassificationBinaryScorer:
         pd.DataFrame.
         """
         return self._stats_df
-    
+
     def cv_stats_df(self) -> pd.DataFrame:
-        """Outputs a DataFrame that contains the cross-validation 
+        """Outputs a DataFrame that contains the cross-validation
         evaluation metrics.
 
         Returns
@@ -196,28 +180,30 @@ class ClassificationBinaryScorer:
         return self._cv_stats_df
 
 
-
 class ClassificationMulticlassScorer:
-    """Class built for scoring of 
+    """Class built for scoring of
     classification models that predict multiple classes.
     Only inputs are predicted and true values.
     Capable of scoring cross-validation outputs.
 
-    ClassificationMulticlassScorer is indexable by integers in the 
+    ClassificationMulticlassScorer is indexable by integers in the
         following order:
         (Accuracy, F1 Score, Precision, Recall, ROC AUC).
 
-    ClassificationMulticlassScorer also is indexable by a string key 
+    ClassificationMulticlassScorer also is indexable by a string key
     similar to the
     dictionary: {'accuracy': Accuracy, 'f1': F1 Score, 'precision': Precision,
                  'recall': Recall, 'roc_auc': ROC AUC}.
     """
 
-    def __init__(self, y_pred: np.ndarray | list, 
-                 y_true: np.ndarray | list, 
-                 y_pred_score: np.ndarray | list = None, 
-                 y_pred_class_order: np.ndarray = None,
-                 name: str = None):
+    def __init__(
+        self,
+        y_pred: np.ndarray | list,
+        y_true: np.ndarray | list,
+        y_pred_score: np.ndarray | list = None,
+        y_pred_class_order: np.ndarray = None,
+        name: str = None,
+    ):
         """
         Initializes a ClassificationMulticlassScorer object.
 
@@ -235,7 +221,7 @@ class ClassificationMulticlassScorer:
         """
 
         if name is None:
-            self._name = 'Model'
+            self._name = "Model"
         else:
             self._name = name
         self._y_pred = y_pred
@@ -247,18 +233,15 @@ class ClassificationMulticlassScorer:
         self._cv_stats_df = None
         self._set_stats_df()
 
-
         self._stats_by_class_df = None
         self._cv_stats_by_class_df = None
         self._set_stats_by_class_df()
 
-
-
     def _set_stats_df(self):
         """
         Creates statistics DataFrames given y_pred and y_true. If y_pred and
-        y_true are lists, then the elements are treated as 
-        cross-validation folds, and the statistics are averaged 
+        y_true are lists, then the elements are treated as
+        cross-validation folds, and the statistics are averaged
         across all folds.
         """
 
@@ -266,110 +249,111 @@ class ClassificationMulticlassScorer:
         y_true = self._y_true
         y_pred_score = self._y_pred_score
 
-        df = pd.DataFrame(columns=['Statistic', self._name])
-        cvdf = pd.DataFrame(columns=['Fold', 'Statistic', self._name])
+        df = pd.DataFrame(columns=["Statistic", self._name])
+        cvdf = pd.DataFrame(columns=["Fold", "Statistic", self._name])
 
         if isinstance(y_pred, np.ndarray) and isinstance(y_true, np.ndarray):
             df.loc[len(df)] = pd.Series(
+                {"Statistic": "accuracy", self._name: accuracy_score(y_true, y_pred)}
+            )
+            df.loc[len(df)] = pd.Series(
                 {
-                    'Statistic': 'accuracy',
-                    self._name: accuracy_score(y_true, y_pred)
+                    "Statistic": "f1",
+                    self._name: f1_score(y_true, y_pred, average="macro"),
                 }
             )
             df.loc[len(df)] = pd.Series(
                 {
-                    'Statistic': 'f1',
-                    self._name: f1_score(y_true, y_pred, average='macro')
+                    "Statistic": "precision",
+                    self._name: precision_score(
+                        y_true, y_pred, average="macro", zero_division=np.nan
+                    ),
                 }
             )
             df.loc[len(df)] = pd.Series(
                 {
-                    'Statistic': 'precision',
-                    self._name: precision_score(y_true, y_pred, average='macro', 
-                                                zero_division=np.nan)
-                }
-            )
-            df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'recall',
-                    self._name: recall_score(y_true, y_pred, average='macro')
+                    "Statistic": "recall",
+                    self._name: recall_score(y_true, y_pred, average="macro"),
                 }
             )
             if y_pred_score is not None:
                 try:
                     df.loc[len(df)] = pd.Series(
                         {
-                            'Statistic': 'roc_auc(ovo)',
+                            "Statistic": "roc_auc(ovo)",
                             self._name: roc_auc_score(
-                                y_true, 
-                                y_pred_score, 
-                                average='macro', 
-                                multi_class='ovo', 
-                                labels=self._y_pred_class_order)
+                                y_true,
+                                y_pred_score,
+                                average="macro",
+                                multi_class="ovo",
+                                labels=self._y_pred_class_order,
+                            ),
                         }
                     )
                 except Exception as e:
                     print_wrapped(
-                        'Error occured when computing the roc_auc ' + \
-                        'score: ' + color_text(str(e), 'yellow') + \
-                        ' This likely occured because y_var is ' +\
-                        'categorical and binary. ' +\
-                        'For binary classification, transform y_var ' +\
-                        'into a (0,1)-valued numerical variable ' +\
-                        'using the Datahandler.force_binary() method.',
-                        type='WARNING'
+                        "Error occured when computing the roc_auc "
+                        + "score: "
+                        + color_text(str(e), "yellow")
+                        + " This likely occured because y_var is "
+                        + "categorical and binary. "
+                        + "For binary classification, transform y_var "
+                        + "into a (0,1)-valued numerical variable "
+                        + "using the Datahandler.force_binary() method.",
+                        type="WARNING",
                     )
                     df.loc[len(df)] = pd.Series(
-                        {
-                            'Statistic': 'roc_auc',
-                            self._name: np.nan
-                        }
+                        {"Statistic": "roc_auc", self._name: np.nan}
                     )
-            df.loc[len(df)] = pd.Series(
-                {
-                    'Statistic': 'n',
-                    self._name: len(y_pred)
-                }
-            )
-            self._stats_df = df.set_index('Statistic')
-
+            df.loc[len(df)] = pd.Series({"Statistic": "n", self._name: len(y_pred)})
+            self._stats_df = df.set_index("Statistic")
 
         elif isinstance(y_pred, list) and isinstance(y_true, list):
-
             for i, (y_pred_elem, y_true_elem) in enumerate(zip(y_pred, y_true)):
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'accuracy',
+                        "Statistic": "accuracy",
                         self._name: accuracy_score(y_true_elem, y_pred_elem),
-                        'Fold': i
+                        "Fold": i,
                     }
                 )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'f1',
-                        self._name: f1_score(y_true_elem, 
-                            y_pred_elem, average='macro', zero_division=np.nan),
-                        'Fold': i
+                        "Statistic": "f1",
+                        self._name: f1_score(
+                            y_true_elem,
+                            y_pred_elem,
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
+                        "Fold": i,
                     }
                 )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'precision',
-                        self._name: precision_score(y_true_elem, 
-                            y_pred_elem, average='macro', 
-                            zero_division=np.nan),
-                        'Fold': i
+                        "Statistic": "precision",
+                        self._name: precision_score(
+                            y_true_elem,
+                            y_pred_elem,
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
+                        "Fold": i,
                     }
                 )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        'Statistic': 'recall',
-                        self._name: recall_score(y_true_elem, 
-                            y_pred_elem, average='macro', zero_division=np.nan),
-                        'Fold': i
+                        "Statistic": "recall",
+                        self._name: recall_score(
+                            y_true_elem,
+                            y_pred_elem,
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
+                        "Fold": i,
                     }
                 )
 
@@ -377,52 +361,46 @@ class ClassificationMulticlassScorer:
                     try:
                         cvdf.loc[len(cvdf)] = pd.Series(
                             {
-                                'Statistic': 'roc_auc(ovo)',
+                                "Statistic": "roc_auc(ovo)",
                                 self._name: roc_auc_score(
-                                    y_true_elem, 
-                                    y_pred_score[i], 
-                                    average='macro', 
-                                    multi_class='ovo',
-                                    labels=self._y_pred_class_order),
-                                'Fold': i
+                                    y_true_elem,
+                                    y_pred_score[i],
+                                    average="macro",
+                                    multi_class="ovo",
+                                    labels=self._y_pred_class_order,
+                                ),
+                                "Fold": i,
                             }
                         )
                     except Exception as e:
                         print_wrapped(
-                            'Error occured when computing the roc_auc(ovo) ' + \
-                            'score: ' + color_text(str(e), 'yellow') + \
-                            ' This likely occured because y_var is ' +\
-                            'categorical and binary. ' +\
-                            'For binary classification, transform y_var ' +\
-                            'into a (0,1)-valued numerical variable ' +\
-                            'using the Datahandler.force_binary() method.',
-                            type='WARNING'
+                            "Error occured when computing the roc_auc(ovo) "
+                            + "score: "
+                            + color_text(str(e), "yellow")
+                            + " This likely occured because y_var is "
+                            + "categorical and binary. "
+                            + "For binary classification, transform y_var "
+                            + "into a (0,1)-valued numerical variable "
+                            + "using the Datahandler.force_binary() method.",
+                            type="WARNING",
                         )
                         cvdf.loc[len(cvdf)] = pd.Series(
-                            {
-                                'Statistic': 'roc_auc(ovo)',
-                                self._name: np.nan,
-                                'Fold': i
-                            }
+                            {"Statistic": "roc_auc(ovo)", self._name: np.nan, "Fold": i}
                         )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
-                    {
-                        'Statistic': 'n',
-                        self._name: len(y_pred_elem),
-                        'Fold': i
-                    }
+                    {"Statistic": "n", self._name: len(y_pred_elem), "Fold": i}
                 )
-            
-            self._cv_stats_df = cvdf.set_index(['Fold', 'Statistic'])
-            self._stats_df = cvdf.groupby(['Statistic'])[[self._name]].\
-                mean().reindex(
-                ['accuracy', 'f1', 'precision', 'recall', 'roc_auc(ovo)', 'n']
+
+            self._cv_stats_df = cvdf.set_index(["Fold", "Statistic"])
+            self._stats_df = (
+                cvdf.groupby(["Statistic"])[[self._name]]
+                .mean()
+                .reindex(["accuracy", "f1", "precision", "recall", "roc_auc(ovo)", "n"])
             )
 
         else:
-            raise ValueError('Input types for y_pred and y_true are invalid.')
-        
+            raise ValueError("Input types for y_pred and y_true are invalid.")
 
     def _set_stats_by_class_df(self):
         """Creates statistics DataFrames given y_pred and y_true. If y_pred and
@@ -430,73 +408,84 @@ class ClassificationMulticlassScorer:
         cross-validation folds, and the statistics are averaged
         across all folds.
 
-        Unlike _set_stats_df, this method creates DataFrames that contain 
-        statistics for each class, rather than overall (averaged) statistics 
+        Unlike _set_stats_df, this method creates DataFrames that contain
+        statistics for each class, rather than overall (averaged) statistics
         across all classes.
         """
 
+        df = pd.DataFrame(columns=["Class", "Statistic", self._name])
+        cvdf = pd.DataFrame(columns=["Fold", "Class", "Statistic", self._name])
 
-        df = pd.DataFrame(columns=['Class', 'Statistic', self._name])
-        cvdf = pd.DataFrame(columns=['Fold', 'Class', 'Statistic', self._name])
-
-        if isinstance(self._y_pred, np.ndarray) and \
-            isinstance(self._y_true, np.ndarray):
+        if isinstance(self._y_pred, np.ndarray) and isinstance(
+            self._y_true, np.ndarray
+        ):
             try:
-                roc_auc = roc_auc_score(self._y_true, self._y_pred_score, 
-                        multi_class='ovr', average=None)
+                roc_auc = roc_auc_score(
+                    self._y_true, self._y_pred_score, multi_class="ovr", average=None
+                )
             except Exception:
                 roc_auc = np.nan
-        elif isinstance(self._y_pred, list) and \
-            isinstance(self._y_true, list):
+        elif isinstance(self._y_pred, list) and isinstance(self._y_true, list):
             try:
-                roc_auc = [roc_auc_score(y_true_elem, y_pred_score_elem, 
-                            multi_class='ovr', average=None) 
-                            for y_true_elem, y_pred_score_elem in 
-                            zip(self._y_true, self._y_pred_score)]
+                roc_auc = [
+                    roc_auc_score(
+                        y_true_elem, y_pred_score_elem, multi_class="ovr", average=None
+                    )
+                    for y_true_elem, y_pred_score_elem in zip(
+                        self._y_true, self._y_pred_score
+                    )
+                ]
             except Exception:
                 roc_auc = np.nan
-
 
         for i, pos_label in enumerate(self._y_pred_class_order):
-
             if isinstance(self._y_pred, np.ndarray) and isinstance(
-                self._y_true, np.ndarray):
-
+                self._y_true, np.ndarray
+            ):
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Class': pos_label,
-                        'Statistic': 'accuracy',
-                        self._name: accuracy_score(self._y_true, self._y_pred)
+                        "Class": pos_label,
+                        "Statistic": "accuracy",
+                        self._name: accuracy_score(self._y_true, self._y_pred),
                     }
                 )
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Class': pos_label,
-                        'Statistic': 'f1',
-                        self._name: f1_score(self._y_true, self._y_pred, 
-                                             labels=[pos_label],
-                                             average='macro',
-                                             zero_division=np.nan)
+                        "Class": pos_label,
+                        "Statistic": "f1",
+                        self._name: f1_score(
+                            self._y_true,
+                            self._y_pred,
+                            labels=[pos_label],
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
                     }
                 )
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Class': pos_label,
-                        'Statistic': 'precision',
-                        self._name: precision_score(self._y_true, self._y_pred,
-                                                    labels=[pos_label],
-                                                    average='macro',
-                                                    zero_division=np.nan)
+                        "Class": pos_label,
+                        "Statistic": "precision",
+                        self._name: precision_score(
+                            self._y_true,
+                            self._y_pred,
+                            labels=[pos_label],
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
                     }
                 )
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Class': pos_label,
-                        'Statistic': 'recall',
-                        self._name: recall_score(self._y_true, self._y_pred, 
-                                                 labels=[pos_label],
-                                                 average='macro',
-                                                 zero_division=np.nan)
+                        "Class": pos_label,
+                        "Statistic": "recall",
+                        self._name: recall_score(
+                            self._y_true,
+                            self._y_pred,
+                            labels=[pos_label],
+                            average="macro",
+                            zero_division=np.nan,
+                        ),
                     }
                 )
                 if self._y_pred_score is not None:
@@ -506,67 +495,72 @@ class ClassificationMulticlassScorer:
                         roc_auc_elem = np.nan
                     df.loc[len(df)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'roc_auc(ovr)',
-                            self._name: roc_auc_elem
+                            "Class": pos_label,
+                            "Statistic": "roc_auc(ovr)",
+                            self._name: roc_auc_elem,
                         }
                     )
                 df.loc[len(df)] = pd.Series(
                     {
-                        'Class': pos_label,
-                        'Statistic': 'n',
-                        self._name: len(self._y_pred)
+                        "Class": pos_label,
+                        "Statistic": "n",
+                        self._name: len(self._y_pred),
                     }
                 )
-                self._stats_by_class_df = df.set_index(['Class', 'Statistic'])
+                self._stats_by_class_df = df.set_index(["Class", "Statistic"])
 
-
-            elif isinstance(self._y_pred, list) and \
-                isinstance(self._y_true, list):
-
+            elif isinstance(self._y_pred, list) and isinstance(self._y_true, list):
                 for j, (y_pred_elem, y_true_elem) in enumerate(
-                    zip(self._y_pred, self._y_true)):
-
+                    zip(self._y_pred, self._y_true)
+                ):
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'accuracy',
-                            self._name: accuracy_score(y_true_elem, 
-                                                       y_pred_elem),
-                            'Fold': j
+                            "Class": pos_label,
+                            "Statistic": "accuracy",
+                            self._name: accuracy_score(y_true_elem, y_pred_elem),
+                            "Fold": j,
                         }
                     )
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'f1',
-                            self._name: f1_score(y_true_elem, 
-                                y_pred_elem, labels=[pos_label], 
-                                average='macro',
-                                zero_division=np.nan),
-                            'Fold': j
+                            "Class": pos_label,
+                            "Statistic": "f1",
+                            self._name: f1_score(
+                                y_true_elem,
+                                y_pred_elem,
+                                labels=[pos_label],
+                                average="macro",
+                                zero_division=np.nan,
+                            ),
+                            "Fold": j,
                         }
                     )
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'precision',
-                            self._name: precision_score(y_true_elem, 
-                                y_pred_elem, labels=[pos_label], 
-                                average='macro',
-                                zero_division=np.nan),
-                            'Fold': j
+                            "Class": pos_label,
+                            "Statistic": "precision",
+                            self._name: precision_score(
+                                y_true_elem,
+                                y_pred_elem,
+                                labels=[pos_label],
+                                average="macro",
+                                zero_division=np.nan,
+                            ),
+                            "Fold": j,
                         }
                     )
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'recall',
-                            self._name: recall_score(y_true_elem, 
-                                y_pred_elem, labels=[pos_label], 
-                                average='macro',
-                                zero_division=np.nan),
-                            'Fold': j
+                            "Class": pos_label,
+                            "Statistic": "recall",
+                            self._name: recall_score(
+                                y_true_elem,
+                                y_pred_elem,
+                                labels=[pos_label],
+                                average="macro",
+                                zero_division=np.nan,
+                            ),
+                            "Fold": j,
                         }
                     )
                     if self._y_pred_score is not None:
@@ -576,25 +570,26 @@ class ClassificationMulticlassScorer:
                             roc_auc_elem = np.nan
                         cvdf.loc[len(cvdf)] = pd.Series(
                             {
-                                'Class': pos_label,
-                                'Statistic': 'roc_auc(ovr)',
+                                "Class": pos_label,
+                                "Statistic": "roc_auc(ovr)",
                                 self._name: roc_auc_elem,
-                                'Fold': j
+                                "Fold": j,
                             }
                         )
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
-                            'Class': pos_label,
-                            'Statistic': 'n',
+                            "Class": pos_label,
+                            "Statistic": "n",
                             self._name: len(y_pred_elem),
-                            'Fold': j
+                            "Fold": j,
                         }
                     )
                 self._cv_stats_by_class_df = cvdf.set_index(
-                    ['Class', 'Fold', 'Statistic'])
-                self._stats_by_class_df = cvdf.groupby(['Class', 
-                    'Statistic'])[[self._name]].mean()
-
+                    ["Class", "Fold", "Statistic"]
+                )
+                self._stats_by_class_df = cvdf.groupby(["Class", "Statistic"])[
+                    [self._name]
+                ].mean()
 
     def stats_df(self) -> pd.DataFrame:
         """Outputs a DataFrame that contains the model's evaluation metrics.
@@ -605,9 +600,8 @@ class ClassificationMulticlassScorer:
         """
         return self._stats_df
 
-
     def cv_stats_df(self) -> pd.DataFrame:
-        """Outputs a DataFrame that contains the cross-validation 
+        """Outputs a DataFrame that contains the cross-validation
         evaluation metrics.
 
         Returns
@@ -615,10 +609,9 @@ class ClassificationMulticlassScorer:
         pd.DataFrame.
         """
         return self._cv_stats_df
-    
 
     def stats_by_class_df(self) -> pd.DataFrame:
-        """Outputs a DataFrame that contains the model's evaluation metrics 
+        """Outputs a DataFrame that contains the model's evaluation metrics
         for each class.
 
         Returns
@@ -626,10 +619,9 @@ class ClassificationMulticlassScorer:
         pd.DataFrame.
         """
         return self._stats_by_class_df
-    
 
     def cv_stats_by_class_df(self) -> pd.DataFrame:
-        """Outputs a DataFrame that contains the cross-validated 
+        """Outputs a DataFrame that contains the cross-validated
         evaluation metrics for each class.
 
         Returns
@@ -637,5 +629,3 @@ class ClassificationMulticlassScorer:
         pd.DataFrame.
         """
         return self._cv_stats_by_class_df
-
-

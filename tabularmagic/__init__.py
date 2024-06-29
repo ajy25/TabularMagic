@@ -10,8 +10,8 @@ Provides:
 
 Exposed Classes
 ---------------
-TabularMagic.
-    Give a TabularMagic object a DataFrame, get an easy-to-use Python 
+Analyzer.
+    Give a Analyzer object a DataFrame, get an easy-to-use Python 
     interface for exploring the DataFrame.
 DataHandler.
     The data-handling class. 
@@ -34,14 +34,10 @@ with fewer than 10,000 examples.
 """
 
 
-
-from ._src.tabularmagic import TabularMagic
+from ._src.analyzer import Analyzer
 from ._src.data.datahandler import DataHandler
 from . import ml
 from . import options
 
 
-
-__all__ = ['TabularMagic', 'DataHandler', 'ml', 'options']
-
-
+__all__ = ["Analyzer", "DataHandler", "ml", "options"]

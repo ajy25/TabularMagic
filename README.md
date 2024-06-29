@@ -1,16 +1,20 @@
 # TabularMagic
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide format tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
 
 Under active development.
 
 
-## Why does TabularMagic exist?
+### Why does TabularMagic exist?
 
-While numerous autoML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and proper cross-validation benchmarking of various machine learning models, many of which require hyperparameter tuning.
+Though numerous auto-ML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and proper cross-validation benchmarking of various machine learning models, many of which require hyperparameter tuning.
 
 
-## Installation and dependencies
+## Getting started
+
+### Installation and dependencies
 
 TabularMagic can be installed via pip. The Python scripts below handle 
 package setup and pip installation. 
@@ -31,23 +35,23 @@ TabularMagic is built on top of the standard Python data science stack (scikit-l
 A full list of dependencies is available in ```./requirements.txt```.
 
 
-## Getting started
+### Usage
 
 We can build a TabularMagic object on a given dataset.
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
-from tabularmagic import TabularMagic
+import tabularmagic as tm
 from sklearn.datasets import load_diabetes
 
 # load the dataset
 diabetes_data = load_diabetes()
 df = pd.DataFrame(data=diabetes_data.data, columns=diabetes_data.feature_names)
-df['target'] = diabetes_data.target
+df["target"] = diabetes_data.target
 
-# create a TabularMagic object
-tm = TabularMagic(df, test_size=0.2, split_seed=42)
-print(tm)
+# create a Analyzer object
+analyzer = tm.Analyzer(df, test_size=0.2, split_seed=42)
+print(analyzer)
 ```
 
 TabularMagic makes exploratory data analysis easy. Note that all TabularMagic plotting methods close figures before returning them for easier use with IPython notebooks. When working outside of IPython notebooks, returned figures must be reshown. 
@@ -59,16 +63,16 @@ def reshow(fig: plt.Figure):
     fig.set_canvas(new_manager.canvas)
     plt.show()
 
-train_eda = tm.eda()
+train_eda = analyzer.eda()
 print(train_eda.numerical_summary_statistics())
-reshow(train_eda.plot_distribution('target'))
-reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
+reshow(train_eda.plot_distribution("target"))
+reshow(train_eda.plot_numerical_pairs(["target", "age", "bmi", "bp"]))
 ```
 
-TabularMagic makes regression analysis easy via R-like formulas.
+TabularMagic makes regression analysis easy (though admittedly not by much).
 ```
-lm_report = tm.lm(
-    formula='target ~ age + bmi'
+lm_report = analyzer.lm(
+    formula="target ~ age + bmi"
 )
 lm_report.statsmodels_summary()
 lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
@@ -80,34 +84,34 @@ TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross
 from tabularmagic.ml import LinearR, TreeEnsembleR, SVMR
 models =[
     LinearR(),
-    LinearR('l1'),
-    LinearR('l2'),
-    TreeEnsembleR('random_forest', n_jobs=-1),
-    TreeEnsembleR('adaboost', n_jobs=-1),
-    SVMR('rbf', n_jobs=-1)
+    LinearR("l1"),
+    LinearR("l2"),
+    TreeEnsembleR("random_forest", n_jobs=-1),
+    TreeEnsembleR("adaboost", n_jobs=-1),
+    SVMR("rbf", n_jobs=-1)
 ]
-report = tm.ml_regression(
+report = analyzer.ml_regression(
     models=models,   # 5-fold cross validation for hyperparameter search
-    y_var='target',
-    X_vars=['age', 'bmi', 'bp', 's1', 's2'],
+    y_var="target",
+    X_vars=["age", "bmi", "bp", "s1", "s2"],
     outer_cv=5      # 5-fold cross validation for model evaluation
 )
-print(report.fit_statistics('train'))
+print(report.fit_statistics("train"))
 print(report.cv_fit_statistics())
-print(report.fit_statistics('test'))
-reshow(report.model_report('TreeEnsembleR(adaboost)').test_report().plot_obs_vs_pred())
+print(report.fit_statistics("test"))
+reshow(report.model_report("TreeEnsembleR(adaboost)").test_report().plot_obs_vs_pred())
 ```
 
 
 
-## Demos
+### Demos
 
 To learn more about TabularMagic functionality, check out the demos available in
 the `./demo` subdirectory. 
 
 
 
-## Design notes
+## Development notes
 
 
 

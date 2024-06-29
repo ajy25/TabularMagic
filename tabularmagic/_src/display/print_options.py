@@ -3,9 +3,8 @@ import pathlib
 import sys
 
 
-
 def make_default_logger() -> logging.Logger:
-    logger = logging.Logger(name='Default TabularMagic Logger')
+    logger = logging.Logger(name="Default TabularMagic Logger")
     logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setLevel(logging.INFO)
@@ -13,16 +12,8 @@ def make_default_logger() -> logging.Logger:
     return logger
 
 
-
-
-
-
-
-
-
 class _PrintOptions:
     """Class for setting and tracking options for printing and logging."""
-
 
     def __init__(self):
         """Initializes the a _ConsoleOptions object with default settings."""
@@ -32,20 +23,16 @@ class _PrintOptions:
         self.n_decimals = 3
         self.max_line_width = 80
 
-
     def _log_info(self, msg: str):
         if not self._muted:
             self._logger.info(msg)
-
 
     def _log_debug(self, msg: str):
         if not self._muted:
             self._logger.debug(msg)
 
-
-
     def reset_logger(self, logger: logging.Logger = None):
-        """Sets a new logger. 
+        """Sets a new logger.
 
         Parameters
         ----------
@@ -57,9 +44,7 @@ class _PrintOptions:
         else:
             self._logger = logger
 
-
-    def add_log_file(self, path: pathlib.Path | str, 
-                     level: int = logging.DEBUG):
+    def add_log_file(self, path: pathlib.Path | str, level: int = logging.DEBUG):
         """Adds a file handler to the logger.
 
         Parameters
@@ -73,7 +58,6 @@ class _PrintOptions:
         file_handler.setLevel(level)
         self._logger.addHandler(file_handler)
 
-
     def mute(self):
         self._muted = True
 
@@ -81,11 +65,4 @@ class _PrintOptions:
         self._muted = False
 
 
-
-
-
 print_options = _PrintOptions()
-
-
-
-

@@ -5,8 +5,4 @@ from .mlp import MLPC
 from .svm import SVMC
 
 
-__all__ = [
-    'LinearC', 'TreeC', 'TreeEnsembleC', 'CustomC', 'MLPC', 'SVMC'
-]
-
-
+__all__ = ["LinearC", "TreeC", "TreeEnsembleC", "CustomC", "MLPC", "SVMC"]

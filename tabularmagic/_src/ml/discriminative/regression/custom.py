@@ -5,28 +5,27 @@ from .base import BaseR
 from ....metrics.regression_scoring import RegressionScorer
 
 
-
 class CustomR(BaseR):
-    """TabularMagic-compatible wrapper for user-designed scikit-learn 
+    """TabularMagic-compatible wrapper for user-designed scikit-learn
     estimators/searches/pipelines.
-    
-    Hyperparameter search is not conducted unless provided by the 
-    estimator. 
+
+    Hyperparameter search is not conducted unless provided by the
+    estimator.
     """
 
-    def __init__(self, 
-                 estimator: BaseEstimator | BaseSearchCV | Pipeline,
-                 name: str = None):
+    def __init__(
+        self, estimator: BaseEstimator | BaseSearchCV | Pipeline, name: str = None
+    ):
         """Initializes a CustomR object.
-        
+
         Parameters
         ----------
         estimator : BaseEstimator | BaseSearchCV | Pipeline.
-            The estimator to be used. Must have a fit method and a 
+            The estimator to be used. Must have a fit method and a
             predict method.
         name : str.
-            Default: None. 
-            The name of the model. If None, the estimator's 
+            Default: None.
+            The name of the model. If None, the estimator's
             __str__() implementation is used.
         """
         super().__init__()
@@ -35,10 +34,9 @@ class CustomR(BaseR):
             self._name = str(estimator)
         else:
             self._name = name
-        
-        
+
     def fit(self):
-        """Fits the model. Records training metrics, which can be done via 
+        """Fits the model. Records training metrics, which can be done via
         nested cross validation.
         """
         y_scaler = self._dataemitter.y_scaler()
@@ -56,15 +54,19 @@ class CustomR(BaseR):
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
-                name=str(self)
+                name=str(self),
             )
 
         elif self._dataemitters is not None and self._dataemitter is not None:
             y_preds = []
             y_trues = []
             for emitter in self._dataemitters:
-                X_train_df, y_train_series, X_test_df, y_test_series = \
-                    emitter.emit_train_test_Xy()
+                (
+                    X_train_df,
+                    y_train_series,
+                    X_test_df,
+                    y_test_series,
+                ) = emitter.emit_train_test_Xy()
                 X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
                 X_test = X_test_df.to_numpy()
@@ -82,7 +84,7 @@ class CustomR(BaseR):
                 y_pred=y_preds,
                 y_true=y_trues,
                 n_predictors=X_train.shape[1],
-                name=str(self)
+                name=str(self),
             )
 
             # refit on all data
@@ -99,12 +101,11 @@ class CustomR(BaseR):
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
-                name=str(self)
+                name=str(self),
             )
 
-
         else:
-            raise ValueError('The datahandler must not be None')
+            raise ValueError("The datahandler must not be None")
 
         X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
         X_test = X_test_df.to_numpy()
@@ -114,19 +115,11 @@ class CustomR(BaseR):
         if y_scaler is not None:
             y_pred = y_scaler.inverse_transform(y_pred)
             y_test = y_scaler.inverse_transform(y_test)
-        
+
         self.test_scorer = RegressionScorer(
-            y_pred=y_pred,
-            y_true=y_test,
-            n_predictors=X_test.shape[1],
-            name=str(self)
+            y_pred=y_pred, y_true=y_test, n_predictors=X_test.shape[1], name=str(self)
         )
 
     def hyperparam_searcher(self):
         """Raises NotImplementedError. Not implemented for CustomR."""
-        raise NotImplementedError('CustomR has no HyperparameterSearcher.')
-    
-
-
-
-
+        raise NotImplementedError("CustomR has no HyperparameterSearcher.")

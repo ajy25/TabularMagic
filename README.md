@@ -35,9 +35,9 @@ TabularMagic is built on top of the standard Python data science stack (scikit-l
 A full list of dependencies is available in ```./requirements.txt```.
 
 
-### Usage
+### Example usage
 
-We can build a TabularMagic object on a given dataset.
+We can build an Analyzer object on a given dataset.
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -81,14 +81,13 @@ lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
 
 TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation, simply set `outer_cv = None`.
 ```
-from tabularmagic.ml import LinearR, TreeEnsembleR, SVMR
 models =[
-    LinearR(),
-    LinearR("l1"),
-    LinearR("l2"),
-    TreeEnsembleR("random_forest", n_jobs=-1),
-    TreeEnsembleR("adaboost", n_jobs=-1),
-    SVMR("rbf", n_jobs=-1)
+    tm.ml.LinearR(),
+    tm.ml.LinearR("l1"),
+    tm.ml.LinearR("l2"),
+    tm.ml.TreeEnsembleR("random_forest", n_jobs=-1),
+    tm.ml.TreeEnsembleR("adaboost", n_jobs=-1),
+    tm.ml.SVMR("rbf", n_jobs=-1)
 ]
 report = analyzer.ml_regression(
     models=models,   # 5-fold cross validation for hyperparameter search

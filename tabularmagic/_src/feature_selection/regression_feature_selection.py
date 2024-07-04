@@ -202,8 +202,10 @@ class RFESelectorR(BaseFeatureSelectorR):
 
     def __init__(
         self,
-        model: Literal["ols", "l1", "l2", "decision_tree", "svm", "random_forest"]
-        | BaseEstimator,
+        model: (
+            Literal["ols", "l1", "l2", "decision_tree", "svm", "random_forest"]
+            | BaseEstimator
+        ),
         name: str = None,
     ):
         """

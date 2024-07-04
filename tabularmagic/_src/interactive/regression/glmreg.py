@@ -10,6 +10,7 @@ from ...linear.glm import GeneralizedLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 
+
 def reverse_argsort(indices):
     n = len(indices)
     reverse_indices = [0] * n
@@ -22,14 +23,17 @@ MAX_N_OUTLIERS_TEXT = 20
 train_only_message = "This function is only available for training data."
 
 
-#Currently copy pasted linRegReport. Need to create custom GLM report
+# Currently copy pasted linRegReport. Need to create custom GLM report
+
 
 class SingleDatasetLinRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
     """
 
-    def __init__(self, model: GeneralizedLinearModel, dataset: Literal["train", "test"]):
+    def __init__(
+        self, model: GeneralizedLinearModel, dataset: Literal["train", "test"]
+    ):
         """
         Initializes a RegressionReport object.
 
@@ -691,7 +695,7 @@ class GLMRegressionReport:
         datahandler: DataHandler,
         y_var: str,
         X_vars: Iterable[str],
-        input_family = str
+        input_family=str,
     ):
         """GLMRegressionReport.
         Fits the model based on provided DataHandler.
@@ -711,7 +715,7 @@ class GLMRegressionReport:
         self._datahandler = datahandler
         self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
         self._model.specify_data(self._dataemitter)
-        self._model.fit(family = input_family)
+        self._model.fit(family=input_family)
 
         self._train_report = SingleDatasetLinRegReport(model, "train")
         self._test_report = SingleDatasetLinRegReport(model, "test")

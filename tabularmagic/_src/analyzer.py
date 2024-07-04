@@ -251,10 +251,13 @@ class Analyzer:
             return LinearRegressionReport(
                 OrdinaryLeastSquares(), datahandler, y_var, X_vars
             )
-        
+
     def glm(
-        self, y_var: str = None, X_vars: list[str] = None, formula: str = None,
-        family: str = None
+        self,
+        y_var: str = None,
+        X_vars: list[str] = None,
+        formula: str = None,
+        family: str = None,
     ) -> GLMRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
@@ -284,8 +287,11 @@ class Analyzer:
                 if y_var in X_vars:
                     X_vars.remove(y_var)
             return GLMRegressionReport(
-                GeneralizedLinearModel(), self._datahandler, y_var, X_vars,
-                input_family = family
+                GeneralizedLinearModel(),
+                self._datahandler,
+                y_var,
+                X_vars,
+                input_family=family,
             )
 
         else:

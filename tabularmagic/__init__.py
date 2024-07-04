@@ -33,7 +33,6 @@ popular machine learning models. TabularMagic excels in handling datasets
 with fewer than 10,000 examples. 
 """
 
-
 from ._src.analyzer import Analyzer
 from ._src.data.datahandler import DataHandler
 from . import ml

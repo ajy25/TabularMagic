@@ -7,7 +7,6 @@ from ..data.datahandler import DataEmitter
 
 
 class GeneralizedLinearModel:
-
     """Statsmodels GLM wrapper"""
 
     def __init__(self, name: str = None):
@@ -66,21 +65,23 @@ class GeneralizedLinearModel:
 
         X_test, y_test = self._dataemitter.emit_test_Xy()
         X_test = sm.add_constant(X_test)
-        
-        #Binary Classification follows different steps
+
+        # Binary Classification follows different steps
         if family == "binomial":
-            threshold = 0.5 #Optimize this
+            threshold = 0.5  # Optimize this
             y_pred_train_binary = (y_pred_train >= threshold).astype(int)
 
             self.train_scorer = ClassificationBinaryScorer(
                 y_pred=y_pred_train_binary,
                 y_true=y_train.to_numpy(),
                 y_pred_score=np.hstack(
-                    [np.zeros(shape=(len(y_pred_train), 1)), y_pred_train.reshape(-1, 1)]
+                    [
+                        np.zeros(shape=(len(y_pred_train), 1)),
+                        y_pred_train.reshape(-1, 1),
+                    ]
                 ),
                 name=self._name,
             )
-
 
             y_pred_test = self.estimator.predict(X_test).to_numpy()
             y_pred_test_binary = (y_pred_test >= threshold).astype(int)
@@ -94,7 +95,7 @@ class GeneralizedLinearModel:
                 name=self._name,
             )
         elif family == "poisson":
-            
+
             n_predictors = X_train.shape[1]
 
             self.train_scorer = RegressionScorer(
@@ -103,7 +104,7 @@ class GeneralizedLinearModel:
                 n_predictors=n_predictors,
                 name=self._name,
             )
-            
+
             y_pred_test = self.estimator.predict(X_test).to_numpy()
             self.test_scorer = RegressionScorer(
                 y_pred=y_pred_test,
@@ -111,8 +112,6 @@ class GeneralizedLinearModel:
                 n_predictors=n_predictors,
                 name=self._name,
             )
-
-            
 
         def __str__(self):
             return self._name

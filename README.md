@@ -4,8 +4,6 @@
 
 TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide format tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
 
-Under active development.
-
 
 ### Why does TabularMagic exist?
 
@@ -37,7 +35,7 @@ A full list of dependencies is available in ```./requirements.txt```.
 
 ### Example usage
 
-We can build an Analyzer object on a given dataset.
+We can build an Analyzer object on top of a given dataset.
 ```
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -69,7 +67,7 @@ reshow(train_eda.plot_distribution("target"))
 reshow(train_eda.plot_numerical_pairs(["target", "age", "bmi", "bp"]))
 ```
 
-TabularMagic makes regression analysis easy (though admittedly not by much).
+TabularMagic makes regression analysis easy.
 ```
 lm_report = analyzer.lm(
     formula="target ~ age + bmi"
@@ -79,15 +77,32 @@ lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
     show_outliers=True)
 ```
 
-TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are evaluated on the withheld testing data as well. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation, simply set `outer_cv = None`.
+TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are then further evaluated on the withheld testing data. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation (i.e., only compute train and test fit statistics), simply set `outer_cv = None`.
 ```
-models =[
+from sklearn.linear_model import Lasso
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest
+from sklearn.model_selection import GridSearchCV
+
+models = [
     tm.ml.LinearR(),
     tm.ml.LinearR("l1"),
     tm.ml.LinearR("l2"),
     tm.ml.TreeEnsembleR("random_forest", n_jobs=-1),
     tm.ml.TreeEnsembleR("adaboost", n_jobs=-1),
-    tm.ml.SVMR("rbf", n_jobs=-1)
+    tm.ml.SVMR("rbf", n_jobs=-1),
+    tm.ml.CustomR(
+        estimator=Pipeline(
+            steps=[
+                ('feature_selection', SelectKBest(k=2)),
+                ('regression', GridSearchCV(
+                    estimator=Lasso(alpha=0.5),
+                    param_grid={'alpha': np.logspace(-4, 4, 10)}
+                ))
+            ]
+        ),
+        name='pipeline example'
+    )
 ]
 report = analyzer.ml_regression(
     models=models,   # 5-fold cross validation for hyperparameter search
@@ -112,7 +127,7 @@ the `./demo` subdirectory.
 
 ## Development notes
 
-
+Under active development.
 
 
 

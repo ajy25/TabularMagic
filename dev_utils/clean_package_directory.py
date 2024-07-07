@@ -1,5 +1,6 @@
 import os
 import shutil
+import pathlib
 
 
 def remove_pycache(directory_path: str):
@@ -37,7 +38,22 @@ def remove_ruff(directory_path: str):
         dirs[:] = [d for d in dirs if d != ".ruff_cache"]
 
 
+def remove_pytest(directory_path: str):
+    """Recursively traverses the provided directory and removes all .pytest_cache
+    directories.
+    """
+    for root, dirs, files in os.walk(directory_path):
+        if ".pytest_cache" in dirs:
+            pycache_path = os.path.join(root, ".pytest_cache")
+            print("Removing:", pycache_path)
+            shutil.rmtree(pycache_path)
+        dirs[:] = [d for d in dirs if d != ".pytest_cache"]
+
+
 if __name__ == "__main__":
-    remove_pycache("../tabularmagic")
-    remove_dsstore("../tabularmagic")
-    remove_ruff("../tabularmagic")
+    project_dir = pathlib.Path(__file__).resolve().parent.parent
+    remove_pycache(project_dir)
+    remove_dsstore(project_dir)
+    remove_ruff(project_dir)
+    remove_pytest(project_dir)
+

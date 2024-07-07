@@ -95,7 +95,6 @@ class GeneralizedLinearModel:
                 name=self._name,
             )
         elif family == "poisson":
-
             n_predictors = X_train.shape[1]
 
             self.train_scorer = RegressionScorer(

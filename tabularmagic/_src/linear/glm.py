@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 from typing import Literal
+from sklearn.metrics import f1_score
 import numpy as np
 from ..metrics.classification_scoring import ClassificationBinaryScorer
 from ..metrics.regression_scoring import RegressionScorer
@@ -68,8 +69,20 @@ class GeneralizedLinearModel:
 
         # Binary Classification follows different steps
         if family == "binomial":
-            threshold = 0.5  # Optimize this
-            y_pred_train_binary = (y_pred_train >= threshold).astype(int)
+
+            best_score = None
+            best_threshold = None
+            for temp_threshold in np.linspace(0.0, 1.0, num=21):
+                y_pred_train_binary = (y_pred_train > temp_threshold).astype(int)
+                curr_score = f1_score(y_train, y_pred_train_binary)
+                if best_score == None or curr_score > best_score:
+                    best_score = curr_score
+                    best_threshold = temp_threshold
+
+            # Delete Later:
+            print(f"Threshold found: {best_threshold}. F1 Score: {best_score}")
+
+            y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
 
             self.train_scorer = ClassificationBinaryScorer(
                 y_pred=y_pred_train_binary,
@@ -84,7 +97,7 @@ class GeneralizedLinearModel:
             )
 
             y_pred_test = self.estimator.predict(X_test).to_numpy()
-            y_pred_test_binary = (y_pred_test >= threshold).astype(int)
+            y_pred_test_binary = (y_pred_test >= best_threshold).astype(int)
 
             self.test_scorer = ClassificationBinaryScorer(
                 y_pred=y_pred_test_binary,

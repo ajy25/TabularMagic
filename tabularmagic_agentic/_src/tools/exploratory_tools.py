@@ -8,16 +8,5 @@ from langchain.callbacks.manager import (
 from typing import Type, Optional, Literal
 
 
-
-
-
-
 class TTest_Tool(BaseTool):
-    """LangChain tool for conducting ttests.
-    """
-
-
-
-
-
-
+    """LangChain tool for conducting ttests."""

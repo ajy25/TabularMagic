@@ -25,4 +25,3 @@ setup(
     install_requires=parse_requirements("requirements.txt"),
     python_requires=">=3.11.5",
 )
-

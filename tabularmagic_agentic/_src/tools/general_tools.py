@@ -14,6 +14,7 @@ class DataOverview_Input(BaseModel):
         "Either 'train' or 'test'."
     )
 
+
 class DataOverview_Tool(BaseTool):
     """LangChain tool for retrieving an overview of a TabularMagic dataset."""
 
@@ -35,9 +36,9 @@ class DataOverview_Tool(BaseTool):
         self._tm_analyzer = tm_analyzer
 
     def _run(
-        self, 
-        dataset: Literal["train", "test"], 
-        run_manager: Optional[CallbackManagerForToolRun] = None
+        self,
+        dataset: Literal["train", "test"],
+        run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> str:
         """Use the tool."""
         output = ""
@@ -47,31 +48,24 @@ class DataOverview_Tool(BaseTool):
         elif dataset == "test":
             eda = self._tm_analyzer.eda("test")
         else:
-            raise ValueError("Invalid input for parameter 'dataset'. "
-                             "Must be either 'train' or 'test'. ")
-        
+            raise ValueError(
+                "Invalid input for parameter 'dataset'. "
+                "Must be either 'train' or 'test'. "
+            )
+
         n_examples, n_vars = eda.df.shape
         output += f"The {dataset} dataset has {n_examples} examples (rows) and "
         f"{n_vars} variables (columns). "
-        
+
         num_vars = ", ".join(eda.numerical_vars())
         cat_vars = ", ".join(eda.categorical_vars())
         output += f"The numerical variables are: {num_vars}. "
         output += f"The categorical variables are: {cat_vars}. "
-    
+
     async def _arun(
         self,
-        dataset: str, 
+        dataset: str,
         run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
     ) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError(f"{self.name} does not support async.")
-
-
-
-
-
-
-
-
-

@@ -19,10 +19,10 @@ setup(
     packages=find_packages(where=directory_path),
     author="Andrew Yang",
     license=pathlib.Path("LICENSE").read_text(),
-    description="""TabularMagic is a wrapper of scikit-learn and statsmodels 
-        algorithms for rapid exploratory statistical and machine 
-        learning modeling of tabular data.""",
+    description="""TabularMagic is a Python package for rapid exploratory 
+    statistical and machine learning modeling of wide format tabular data.""",
     long_description=pathlib.Path("README.md").read_text(),
     install_requires=parse_requirements("requirements.txt"),
     python_requires=">=3.11.5",
 )
+

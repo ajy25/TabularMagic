@@ -56,4 +56,3 @@ if __name__ == "__main__":
     remove_dsstore(project_dir)
     remove_ruff(project_dir)
     remove_pytest(project_dir)
-

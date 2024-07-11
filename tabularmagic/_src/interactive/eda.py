@@ -43,9 +43,10 @@ class CategoricalEDA:
         ).set_index("Statistic")
 
     def plot_distribution(
-        self, density: bool = False, 
-        figsize: Iterable = (5, 5), 
-        ax: plt.Axes | None = None
+        self,
+        density: bool = False,
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a bar plot of the relative frequencies
         of the data.
@@ -725,9 +726,7 @@ class ComprehensiveEDA:
     # --------------------------------------------------------------------------
 
     def anova_oneway(
-        self, 
-        numerical_var: str, 
-        stratify_by: str
+        self, numerical_var: str, stratify_by: str
     ) -> StatisticalTestResult:
         """Conducts a oneway ANOVA to test
         for equal means between two or more groups.

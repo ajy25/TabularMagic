@@ -129,5 +129,3 @@ class LinearC(BaseC):
 
         else:
             raise ValueError("Invalid value for type")
-
-

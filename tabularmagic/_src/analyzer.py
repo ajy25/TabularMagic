@@ -183,10 +183,10 @@ class Analyzer:
         return report
 
     def lm(
-        self, 
-        y_var: str | None = None, 
-        X_vars: list[str] | None = None, 
-        formula: str | None = None
+        self,
+        y_var: str | None = None,
+        X_vars: list[str] | None = None,
+        formula: str | None = None,
     ) -> LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
@@ -444,6 +444,3 @@ class Analyzer:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
-
-
-

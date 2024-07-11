@@ -71,5 +71,3 @@ class MLPC(BaseC):
             grid=hyperparam_grid_specification,
             **kwargs
         )
-
-

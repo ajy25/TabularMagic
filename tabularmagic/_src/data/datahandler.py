@@ -232,9 +232,7 @@ class DataEmitter:
         return X_test_df, working_df_test[self._yvar]
 
     def _onehot(
-        self, 
-        vars: list[str] | None = None, 
-        dropfirst: bool = True
+        self, vars: list[str] | None = None, dropfirst: bool = True
     ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place.
 
@@ -730,9 +728,9 @@ class DataHandler:
         - verbose : bool.
             If True, prints updates and warnings.
         """
-        self._checkpoint_name_to_df: dict[str, tuple[pd.DataFrame, pd.DataFrame]] = (
-            dict()
-        )
+        self._checkpoint_name_to_df: dict[
+            str, tuple[pd.DataFrame, pd.DataFrame]
+        ] = dict()
         self._verbose = verbose
 
         # verify and set the original DataFrames
@@ -1032,9 +1030,9 @@ class DataHandler:
     # --------------------------------------------------------------------------
 
     def dropna(
-        self, 
-        include_vars: list[str] | None = None, 
-        exclude_vars: list[str] | None = None
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
     ) -> "DataHandler":
         """Drops rows with missing values in-place on both the working train
         and test DataFrames.
@@ -1077,9 +1075,7 @@ class DataHandler:
         return self
 
     def onehot(
-        self, 
-        vars: list[str] | None = None, 
-        dropfirst: bool = True
+        self, vars: list[str] | None = None, dropfirst: bool = True
     ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place. Encoder is
         fit on train DataFrame and transforms both train and test DataFrames.

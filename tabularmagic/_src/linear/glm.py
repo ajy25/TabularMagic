@@ -69,7 +69,6 @@ class GeneralizedLinearModel:
 
         # Binary Classification follows different steps
         if family == "binomial":
-
             best_score = None
             best_threshold = None
             for temp_threshold in np.linspace(0.0, 1.0, num=21):

@@ -18,9 +18,9 @@ class CustomC(BaseC):
     """
 
     def __init__(
-        self, 
-        estimator: BaseEstimator | BaseSearchCV | Pipeline, 
-        name: str | None = None
+        self,
+        estimator: BaseEstimator | BaseSearchCV | Pipeline,
+        name: str | None = None,
     ):
         """Initializes a CustomC object.
 

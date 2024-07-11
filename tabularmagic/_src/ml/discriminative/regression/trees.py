@@ -21,7 +21,7 @@ class TreeR(BaseR):
     def __init__(
         self,
         hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable]| None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,

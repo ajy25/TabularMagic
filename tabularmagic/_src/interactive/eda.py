@@ -1,3 +1,4 @@
+import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -725,6 +726,36 @@ class ComprehensiveEDA:
     # TESTING
     # --------------------------------------------------------------------------
 
+    def test_equal_means(
+        self, numerical_var: str, stratify_by: str
+    ) -> StatisticalTestResult:
+        """Conducts the appropriate statistical test to
+        test for equal means between two ore more groups (null hypothesis).
+        
+        Parameters
+        ----------
+        numerical_var : str.
+            Numerical variable name to be stratified and compared.
+        stratify_by : str.
+            Categorical variable name.
+        """
+        if stratify_by not in self._categorical_vars:
+            raise ValueError(
+                f"Invalid input: {stratify_by}. "
+                "Must be a known categorical variable."
+            )
+        groups = self.df.groupby(stratify_by)[numerical_var].apply(list).to_dict()
+        if len(groups) < 2:
+            raise ValueError(
+                "Invalid input: stratify_by. Must have at least two unique values."
+            )
+        elif len(groups) == 2:
+            return self.ttest(numerical_var, stratify_by, 'welch')
+        else:
+            return self.anova_oneway(numerical_var, stratify_by)
+
+
+
     def anova_oneway(
         self, numerical_var: str, stratify_by: str
     ) -> StatisticalTestResult:
@@ -752,12 +783,12 @@ class ComprehensiveEDA:
         if numerical_var not in self._numerical_vars:
             raise ValueError(
                 f"Invalid input: {numerical_var}. "
-                + "Must be a known numerical variable."
+                "Must be a known numerical variable."
             )
         if stratify_by not in self._categorical_vars:
             raise ValueError(
                 f"Invalid input: {stratify_by}. "
-                + "Must be a known categorical variable."
+                "Must be a known categorical variable."
             )
 
         local_df = self.df[[numerical_var, stratify_by]].dropna()
@@ -975,6 +1006,19 @@ class ComprehensiveEDA:
             raise ValueError(
                 f"Invalid input: {var}. " + "Must be a known variable in the input df."
             )
+        
+    def _agentic_describe_json_str(self) -> str:
+        """Returns a jsonified string representation of the dataset."""
+        output = {}
+        output["categorical variable summary statistics"] =\
+            self._categorical_summary_statistics.to_dict()
+        output["numerical variable summary statistics"] =\
+            self._numerical_summary_statistics.to_dict()
+        output["number of numerical variables"] = len(self._numerical_vars)
+        output["number of categorical variables"] = len(self._categorical_vars)
+        output["number of examples/rows"] = len(self.df)
+        return json.dumps(output)
+
 
     def __getitem__(self, index: str) -> CategoricalEDA | NumericalEDA:
         """Indexes into ComprehensiveRegressionReport.

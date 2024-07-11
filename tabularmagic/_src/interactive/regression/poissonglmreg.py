@@ -6,7 +6,7 @@ from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.glm import GeneralizedLinearModel
+from ...linear.poissonglm import GeneralizedLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 

@@ -68,7 +68,7 @@ class SingleDatasetLinRegReport:
         self,
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
         values.
@@ -120,7 +120,7 @@ class SingleDatasetLinRegReport:
         standardized: bool = False,
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
@@ -195,7 +195,7 @@ class SingleDatasetLinRegReport:
         standardized: bool = False,
         show_outliers: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
@@ -274,7 +274,7 @@ class SingleDatasetLinRegReport:
         standardized: bool = False,
         density: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
 
@@ -336,7 +336,7 @@ class SingleDatasetLinRegReport:
         self,
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
         sqrt of the residuals versus the fitted.
@@ -407,7 +407,7 @@ class SingleDatasetLinRegReport:
         standardized: bool = True,
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the residuals versus leverage.
 
@@ -491,7 +491,7 @@ class SingleDatasetLinRegReport:
         standardized: bool = True,
         show_outliers: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a quantile-quantile plot.
 

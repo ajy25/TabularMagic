@@ -22,10 +22,10 @@ class TreeC(BaseC):
 
     def __init__(
         self,
-        hyperparam_search_method: str = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] = None,
+        hyperparam_search_method: Literal[None, "grid", "random"] = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
         model_random_state: int = 42,
-        name: str = None,
+        name: str | None = None,
         **kwargs,
     ):
         """
@@ -99,9 +99,9 @@ class TreeEnsembleC(BaseC):
             "xgboostrf",
         ] = "random_forest",
         hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
         model_random_state: int = 42,
-        name: str = None,
+        name: str | None = None,
         **kwargs,
     ):
         """

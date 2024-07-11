@@ -19,7 +19,7 @@ from ..data.datahandler import DataEmitter
 class BaseFeatureSelectorR:
     """A feature selection class."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         """
         Constructs a BaseFeatureSelectorR.
 
@@ -65,7 +65,7 @@ class KBestSelectorR(BaseFeatureSelectorR):
     def __init__(
         self,
         scorer: Literal["f_regression", "r_regression", "mutual_info_regression"],
-        name: str = None,
+        name: str | None = None,
     ):
         """
         Constructs a KBestSelectorR.
@@ -133,7 +133,7 @@ class LassoSelectorR(BaseFeatureSelectorR):
         self,
         regularization_type: Literal[None, "l1", "l2"] = None,
         alpha=0.0,
-        name: str = None,
+        name: str | None = None,
     ):
         """
         Constructs a LassoSelectorR.
@@ -206,7 +206,7 @@ class RFESelectorR(BaseFeatureSelectorR):
             Literal["ols", "l1", "l2", "decision_tree", "svm", "random_forest"]
             | BaseEstimator
         ),
-        name: str = None,
+        name: str | None = None,
     ):
         """
         Constructs a RFESelectorR.

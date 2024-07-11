@@ -43,8 +43,10 @@ class CategoricalEDA:
         ).set_index("Statistic")
 
     def plot_distribution(
-        self, density: bool = False, figsize: Iterable = (5, 5), ax: plt.Axes = None
-    ):
+        self, density: bool = False, 
+        figsize: Iterable = (5, 5), 
+        ax: plt.Axes | None = None
+    ) -> plt.Figure:
         """Returns a figure that is a bar plot of the relative frequencies
         of the data.
 
@@ -140,8 +142,8 @@ class NumericalEDA:
         ] = None,
         density: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
-    ):
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
         """Returns a figure that is a histogram.
 
         Parameters
@@ -259,8 +261,8 @@ class ComprehensiveEDA:
 
     def plot_numerical_pairs(
         self,
-        numerical_vars: list[str] = None,
-        stratify_by: str = None,
+        numerical_vars: list[str] | None = None,
+        stratify_by: str | None = None,
         figsize: Iterable = (7, 7),
     ) -> plt.Figure:
         """
@@ -361,7 +363,7 @@ class ComprehensiveEDA:
             "box_strip",
         ],
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the distributions (density) of a given numerical variable
         stratified by a categorical variable. Note that NaNs will be dropped,
@@ -546,7 +548,7 @@ class ComprehensiveEDA:
         var: str,
         density: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the distribution of the variable.
 
@@ -570,13 +572,13 @@ class ComprehensiveEDA:
     def plot_pca(
         self,
         numerical_vars: list[str],
-        stratify_by: str = None,
-        strata: pd.Series = None,
+        stratify_by: str | None = None,
+        strata: pd.Series | None = None,
         standardize: bool = True,
         whiten: bool = False,
         three_components: bool = False,
         figsize: Iterable = (5, 5),
-        ax: plt.Axes = None,
+        ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the first two (or three) principle components,
         optionally stratified by an additional variable. Drops examples
@@ -723,7 +725,9 @@ class ComprehensiveEDA:
     # --------------------------------------------------------------------------
 
     def anova_oneway(
-        self, numerical_var: str, stratify_by: str
+        self, 
+        numerical_var: str, 
+        stratify_by: str
     ) -> StatisticalTestResult:
         """Conducts a oneway ANOVA to test
         for equal means between two or more groups.

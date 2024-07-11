@@ -7,7 +7,7 @@ from ..data.datahandler import DataEmitter
 class OrdinaryLeastSquares:
     """Statsmodels OLS wrapper."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         """
         Initializes a OrdinaryLeastSquares object. Regresses y on X.
 
@@ -88,3 +88,5 @@ class OrdinaryLeastSquares:
 
     def __str__(self):
         return self._name
+
+

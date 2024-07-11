@@ -12,13 +12,13 @@ class StatisticalTestResult:
         description: str,
         statistic: float,
         pval: float,
-        descriptive_statistic: float = None,
-        degfree: float = None,
-        statistic_description: str = None,
-        descriptive_statistic_description: str = None,
-        null_hypothesis_description: str = None,
-        alternative_hypothesis_description: str = None,
-        long_description: str = None,
+        descriptive_statistic: float | None = None,
+        degfree: float | None = None,
+        statistic_description: str | None = None,
+        descriptive_statistic_description: str | None = None,
+        null_hypothesis_description: str | None = None,
+        alternative_hypothesis_description: str | None = None,
+        long_description: str | None = None,
     ):
         """
         Parameters

@@ -23,8 +23,8 @@ class RegressionScorer:
         self,
         y_pred: np.ndarray | list,
         y_true: np.ndarray | list,
-        n_predictors: int = None,
-        name: str = None,
+        n_predictors: int | None = None,
+        name: str | None = None,
     ):
         """
         Initializes a RegressionScorer object.

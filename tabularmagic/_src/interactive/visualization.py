@@ -15,7 +15,7 @@ def plot_obs_vs_pred(
     y_pred: np.ndarray,
     y_true: np.ndarray,
     figsize: Iterable = (5, 5),
-    ax: axes.Axes = None,
+    ax: axes.Axes | None = None,
 ) -> plt.Figure:
     """Returns a figure that is a scatter plot of the observed and predicted y
     values. Predicted values on x axis, observed values on y axis.
@@ -74,8 +74,8 @@ def plot_roc_curve(
     y_score: np.ndarray,
     y_true: np.ndarray,
     figsize: Iterable = (5, 5),
-    ax: axes.Axes = None,
-):
+    ax: axes.Axes | None = None,
+) -> plt.Figure:
     """Returns a figure that is the ROC curve for the model.
 
     Parameters

@@ -15,9 +15,9 @@ class SVMR(BaseR):
     def __init__(
         self,
         type: Literal["linear", "poly", "rbf"] = "rbf",
-        hyperparam_search_method: str = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] = None,
-        name: str = None,
+        hyperparam_search_method: Literal[None, "grid", "random"] = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        name: str | None = None,
         **kwargs,
     ):
         """

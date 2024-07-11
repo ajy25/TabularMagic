@@ -21,7 +21,7 @@ class _PrintOptions:
         self._muted = False
 
         self.n_decimals = 3
-        self.max_line_width = 80
+        self.max_line_width = 88    # consistent with Python Black
 
     def _log_info(self, msg: str):
         if not self._muted:

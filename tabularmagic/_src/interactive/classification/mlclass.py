@@ -145,7 +145,7 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
     def plot_roc_curve(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes = None
+        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
         """Returns a figure that is the ROC curve for the model.
 
@@ -224,7 +224,7 @@ class MLClassificationReport:
         datahandler: DataHandler,
         y_var: str,
         X_vars: Iterable[str],
-        outer_cv: int = None,
+        outer_cv: int | None = None,
         outer_cv_seed: int = 42,
         verbose: bool = True,
     ):

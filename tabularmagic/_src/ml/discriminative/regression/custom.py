@@ -14,7 +14,9 @@ class CustomR(BaseR):
     """
 
     def __init__(
-        self, estimator: BaseEstimator | BaseSearchCV | Pipeline, name: str = None
+        self, 
+        estimator: BaseEstimator | BaseSearchCV | Pipeline, 
+        name: str | None = None
     ):
         """Initializes a CustomR object.
 

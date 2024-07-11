@@ -7,7 +7,7 @@ from ..data.datahandler import DataEmitter
 class BaseFeatureSelectorR:
     """A feature selection class."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         """
         Constructs a BaseFeatureSelectorR.
 

@@ -28,8 +28,8 @@ class ClassificationBinaryScorer:
         self,
         y_pred: np.ndarray | list,
         y_true: np.ndarray | list,
-        y_pred_score: np.ndarray | list = None,
-        name: str = None,
+        y_pred_score: np.ndarray | list | None = None,
+        name: str | None = None,
     ):
         """
         Initializes a ClassificationBinaryScorer object.
@@ -200,9 +200,9 @@ class ClassificationMulticlassScorer:
         self,
         y_pred: np.ndarray | list,
         y_true: np.ndarray | list,
-        y_pred_score: np.ndarray | list = None,
-        y_pred_class_order: np.ndarray = None,
-        name: str = None,
+        y_pred_score: np.ndarray | list | None = None,
+        y_pred_class_order: np.ndarray | None = None,
+        name: str | None = None,
     ):
         """
         Initializes a ClassificationMulticlassScorer object.

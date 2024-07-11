@@ -36,7 +36,7 @@ class BaseC(BaseDiscriminativeModel):
         self._dropfirst = False
 
     def specify_data(
-        self, dataemitter: DataEmitter, dataemitters: list[DataEmitter] = None
+        self, dataemitter: DataEmitter, dataemitters: list[DataEmitter] | None = None
     ):
         """Adds a DataEmitter object to the model.
 

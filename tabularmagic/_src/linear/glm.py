@@ -10,7 +10,7 @@ from ..data.datahandler import DataEmitter
 class GeneralizedLinearModel:
     """Statsmodels GLM wrapper"""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str | None = None):
         """
         Initializes a GLM object. Regresses y on X.
 

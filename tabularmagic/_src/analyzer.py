@@ -18,7 +18,7 @@ from .display.print_utils import print_wrapped
 from .feature_selection import BaseFeatureSelectorR
 from .data.datahandler import DataHandler
 
-
+# set copy_on_write to True for future-proofing for pandas v3
 pd.options.mode.copy_on_write = True
 
 
@@ -30,7 +30,7 @@ class Analyzer:
     def __init__(
         self,
         df: pd.DataFrame,
-        df_test: pd.DataFrame = None,
+        df_test: pd.DataFrame | None = None,
         test_size: float = 0.0,
         split_seed: int = 42,
         verbose: bool = True,
@@ -138,7 +138,7 @@ class Analyzer:
         self,
         selectors: Iterable[BaseFeatureSelectorR],
         y_var: str,
-        X_vars: list[str] = None,
+        X_vars: list[str] | None = None,
         n_target_features: int = 10,
         update_working_dfs: bool = False,
     ) -> RegressionVotingSelectionReport:
@@ -183,7 +183,10 @@ class Analyzer:
         return report
 
     def lm(
-        self, y_var: str = None, X_vars: list[str] = None, formula: str = None
+        self, 
+        y_var: str | None = None, 
+        X_vars: list[str] | None = None, 
+        formula: str | None = None
     ) -> LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
@@ -254,10 +257,10 @@ class Analyzer:
 
     def glm(
         self,
-        y_var: str = None,
-        X_vars: list[str] = None,
-        formula: str = None,
-        family: str = None,
+        y_var: str | None = None,
+        X_vars: list[str] | None = None,
+        formula: str | None = None,
+        family: str | None = None,
     ) -> GLMRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
@@ -338,8 +341,8 @@ class Analyzer:
         self,
         models: Iterable[BaseR],
         y_var: str,
-        X_vars: list[str] = None,
-        outer_cv: int = None,
+        X_vars: list[str] | None = None,
+        outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise.
@@ -383,8 +386,8 @@ class Analyzer:
         self,
         models: Iterable[BaseC],
         y_var: str,
-        X_vars: list[str] = None,
-        outer_cv: int = None,
+        X_vars: list[str] | None = None,
+        outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLClassificationReport:
         """Conducts a comprehensive classification benchmarking exercise.
@@ -441,3 +444,6 @@ class Analyzer:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
+
+
+

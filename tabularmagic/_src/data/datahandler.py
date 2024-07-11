@@ -231,7 +231,11 @@ class DataEmitter:
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
         return X_test_df, working_df_test[self._yvar]
 
-    def _onehot(self, vars: list[str] = None, dropfirst: bool = True) -> "DataHandler":
+    def _onehot(
+        self, 
+        vars: list[str] | None = None, 
+        dropfirst: bool = True
+    ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place.
 
         Parameters
@@ -482,7 +486,7 @@ class DataEmitter:
     def _force_binary(
         self,
         vars: list[str],
-        pos_labels: list[str] = None,
+        pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
     ) -> "DataHandler":
         """Forces variables to be binary (0 and 1 valued numerical variables).
@@ -598,7 +602,7 @@ class DataEmitter:
     def _onehot_helper(
         self,
         df: pd.DataFrame,
-        vars: list[str] = None,
+        vars: list[str] | None = None,
         dropfirst: bool = True,
         fit: bool = True,
     ) -> pd.DataFrame:
@@ -710,7 +714,7 @@ class DataHandler:
         self,
         df_train: pd.DataFrame,
         df_test: pd.DataFrame,
-        name: str = None,
+        name: str | None = None,
         verbose: bool = True,
     ):
         """Initializes a DataHandler object.
@@ -770,7 +774,7 @@ class DataHandler:
     # --------------------------------------------------------------------------
     # CHECKPOINT HANDLING
     # --------------------------------------------------------------------------
-    def load_data_checkpoint(self, checkpoint: str = None) -> "DataHandler":
+    def load_data_checkpoint(self, checkpoint: str | None = None) -> "DataHandler":
         """The working train and working test DataFrames are reset to the
         original input DataFrames given at object initialization.
 
@@ -1028,7 +1032,9 @@ class DataHandler:
     # --------------------------------------------------------------------------
 
     def dropna(
-        self, include_vars: list[str] = None, exclude_vars: list[str] = None
+        self, 
+        include_vars: list[str] | None = None, 
+        exclude_vars: list[str] | None = None
     ) -> "DataHandler":
         """Drops rows with missing values in-place on both the working train
         and test DataFrames.
@@ -1070,7 +1076,11 @@ class DataHandler:
         )
         return self
 
-    def onehot(self, vars: list[str] = None, dropfirst: bool = True) -> "DataHandler":
+    def onehot(
+        self, 
+        vars: list[str] | None = None, 
+        dropfirst: bool = True
+    ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place. Encoder is
         fit on train DataFrame and transforms both train and test DataFrames.
 
@@ -1152,8 +1162,8 @@ class DataHandler:
 
     def impute(
         self,
-        include_vars: list[str] = None,
-        exclude_vars: list[str] = None,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
         numerical_strategy: Literal["median", "mean", "5nn"] = "median",
         categorical_strategy: Literal["most_frequent"] = "most_frequent",
     ) -> "DataHandler":
@@ -1244,8 +1254,8 @@ class DataHandler:
 
     def scale(
         self,
-        include_vars: list[str] = None,
-        exclude_vars: list[str] = None,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
         strategy: Literal["standardize", "minmax", "log", "log1p"] = "standardize",
     ) -> "DataHandler":
         """Scales variable values.
@@ -1436,7 +1446,7 @@ class DataHandler:
     def force_binary(
         self,
         vars: list[str],
-        pos_labels: list[str] = None,
+        pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
     ) -> "DataHandler":
         """Forces variables to be binary (0 and 1 valued numerical variables).
@@ -1728,7 +1738,7 @@ class DataHandler:
     def _onehot_helper(
         self,
         df: pd.DataFrame,
-        vars: list[str] = None,
+        vars: list[str] | None = None,
         dropfirst: bool = True,
         fit: bool = True,
     ) -> pd.DataFrame:

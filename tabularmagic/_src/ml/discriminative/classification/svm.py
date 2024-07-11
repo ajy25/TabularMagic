@@ -15,9 +15,9 @@ class SVMC(BaseC):
     def __init__(
         self,
         type: Literal["linear", "poly", "rbf"] = "rbf",
-        hyperparam_search_method: str = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] = None,
-        name: str = None,
+        hyperparam_search_method: Literal[None, "grid", "random"] = None,
+        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        name: str | None = None,
         **kwargs,
     ):
         """
@@ -79,6 +79,8 @@ class SVMC(BaseC):
                     "C": np.logspace(-4, 2, 10),
                     "gamma": np.logspace(-4, 2, 10),
                 }
+            else:
+                raise ValueError("Invalid kernel type.")
 
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,

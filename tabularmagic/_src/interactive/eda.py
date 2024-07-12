@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from scipy.stats import kurtosis, skew, pearsonr, ttest_ind, levene, shapiro, f_oneway
+import scipy.stats as stats
 from typing import Literal, Iterable
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
 from .stattests import StatisticalTestResult
+from ..display.print_utils import print_wrapped
 
 
 class CategoricalEDA:
@@ -123,8 +124,8 @@ class NumericalEDA:
             "mean": self._var_series.mean(),
             "std": self._var_series.std(),
             "variance": self._var_series.var(),
-            "skew": skew(self._var_series.dropna().to_numpy()),
-            "kurtosis": kurtosis(self._var_series.dropna().to_numpy()),
+            "skew": stats.skew(self._var_series.dropna().to_numpy()),
+            "kurtosis": stats.kurtosis(self._var_series.dropna().to_numpy()),
             "q1": self._var_series.quantile(q=0.25),
             "median": self._var_series.median(),
             "q3": self._var_series.quantile(q=0.75),
@@ -312,8 +313,8 @@ class ComprehensiveEDA:
                 lambda x, y, **kwargs: plt.text(
                     0.5,
                     0.5,
-                    f"ρ = {round(pearsonr(x, y)[0], 3)}\n"
-                    + f"p = {round(pearsonr(x, y)[1], 5)}",
+                    f"ρ = {round(stats.pearsonr(x, y)[0], 3)}\n"
+                    + f"p = {round(stats.pearsonr(x, y)[1], 5)}",
                     ha="center",
                     va="center",
                     transform=plt.gca().transAxes,
@@ -750,18 +751,20 @@ class ComprehensiveEDA:
                 "Invalid input: stratify_by. Must have at least two unique values."
             )
         elif len(groups) == 2:
-            return self.ttest(numerical_var, stratify_by, "welch")
+            return self.ttest(numerical_var, stratify_by, "auto")
         else:
-            return self.anova_oneway(numerical_var, stratify_by)
+            return self.anova(numerical_var, stratify_by)
 
-    def anova_oneway(
-        self, numerical_var: str, stratify_by: str
+    def anova(
+        self, 
+        numerical_var: str, 
+        stratify_by: str, 
+        strategy: Literal['auto', 'anova_oneway', 'kruskal'] = "auto"
     ) -> StatisticalTestResult:
-        """Conducts a oneway ANOVA to test
-        for equal means between two or more groups.
+        """Tests for equal means between three or more groups.
 
         Null hypothesis: All group means are equal.
-        Alternative hypothesis: At least one group mean is different from the
+        Alternative hypothesis: At least one group's mean is different from the
             others.
 
         NaNs in numerical_var and stratify_by
@@ -773,6 +776,15 @@ class ComprehensiveEDA:
             Numerical variable name to be stratified and compared.
         stratify_by : str.
             Categorical variable name.
+        strategy : Literal['auto', 'anova_oneway', 'kruskal'].
+            Default: 'auto'.
+            If 'auto', a test is selected as follows:
+                - If the data in any group is not normally distributed or not 
+                    homoskedastic, 
+                    then the Kruskal-Wallis test is used.
+                - Otherwise, the one-way ANOVA test is used. ANOVA is somewhat 
+                    robust to heteroscedasticity and violations of the normality 
+                    assumption.
 
         Returns
         -------
@@ -793,6 +805,12 @@ class ComprehensiveEDA:
 
         categories = np.unique(local_df[stratify_by].to_numpy())
 
+        if len(categories) < 3:
+            raise ValueError(
+                f"Invalid stratify_by: {stratify_by}. "
+                "Must have at least three unique values."
+            )
+
         groups = []
         for category in categories:
             groups.append(
@@ -801,33 +819,70 @@ class ComprehensiveEDA:
                 ].to_numpy()
             )
 
-        f_stat, p_val = f_oneway(*groups)
+        auto_alpha = 0.05
+        is_normal = True
+        is_homoskedastic = stats.bartlett(*groups)[1] > auto_alpha
 
-        return StatisticalTestResult(
-            description="One-way ANOVA",
-            statistic=f_stat,
-            pval=p_val,
-            descriptive_statistic=None,
-            degfree=None,
-            statistic_description="f-statistic",
-            descriptive_statistic_description=None,
-            null_hypothesis_description="All group means are equal",
-            alternative_hypothesis_description="At least one group mean is different from the others",
-        )
+        for group in groups:
+            if stats.shapiro(group)[1] <= auto_alpha:
+                is_normal = False
+                break
+
+        if strategy == "auto":
+            if is_normal and is_homoskedastic:
+                strategy = "anova_oneway"
+            else:
+                strategy = "kruskal"
+
+        if strategy == "kruskal":
+            h_stat, p_val = stats.kruskal(*groups)
+            return StatisticalTestResult(
+                description="Kruskal-Wallis test",
+                statistic=h_stat,
+                pval=p_val,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="H-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="All group means are equal",
+                alternative_hypothesis_description="At least one group's mean is "
+                    "different from the others",
+            )
+
+        elif strategy == "anova_oneway":
+
+            f_stat, p_val = stats.f_oneway(*groups)
+
+            return StatisticalTestResult(
+                description="One-way ANOVA",
+                statistic=f_stat,
+                pval=p_val,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="f-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="All group means are equal",
+                alternative_hypothesis_description="At least one group's mean is "
+                    "different from the others",
+                assumptions_description="1. Data in each group are normally "
+                "distributed. 2. Variances of each group are equal. "
+                "3. Samples are independent.",
+            )
+    
 
     def ttest(
         self,
         numerical_var: str,
         stratify_by: str,
-        strategy: Literal["auto", "student", "welch", "yuen"] = "welch",
+        strategy: Literal["auto", "student", "welch", "yuen", "mann-whitney"] = "welch",
     ) -> StatisticalTestResult:
-        """Conducts the appropriate statistical test to
+        """Conducts the appropriate statistical test to 
         test for equal means between two groups.
         The parameter stratify_by must be the name of a binary variable, i.e.
             a categorical or numerical variable with exactly two unique values.
 
         Null hypothesis: mu_1 = mu_2.
-        Alternative hypothesis: mu_1 != mu_2.
+        Alternative hypothesis: mu_1 != mu_2
         This is a two-sided test.
 
         NaNs in numerical_var and stratify_by
@@ -839,15 +894,18 @@ class ComprehensiveEDA:
             Numerical variable name to be stratified and compared.
         stratify_by : str.
             Categorical or numerical variable name. Must be binary.
-        strategy : Literal['auto', 'student', 'welch', 'yuen'].
+        strategy : Literal['auto', 'student', 'welch', 'yuen', 'mann-whitney'].
             Default: 'welch'.
-            If 'auto', the test is conducted via Welch's t-test if the
-            variances of the two groups are not equal (determined by
-            Levene's test for equality of variances), or via Yuen's test
-            if the data distributions are not normal.
-            Otherwise, the test is conducted using Student's t-test.
-            Yuen's test is a robust alternative to Welch's t-test when the
-            data distributions have heavy tails or outliers.
+            If 'auto', a test is selected as follows:
+                - If the data in either group is not normally distributed, 
+                    and the variances are not equal, then Yuen's
+                    (20% trimmed mean) t-test is used.
+                - If the data in either group is not normally distributed,
+                    but the variances are equal, then the Mann-Whitney U test
+                    is used.
+                - If the data in both groups are normally distributed but the
+                    variances are not equal, Welch's t-test is used.
+                - Otherwise, Student's t-test is used.
 
         Returns
         -------
@@ -885,24 +943,46 @@ class ComprehensiveEDA:
         if strategy == "auto":
             auto_alpha = 0.05
 
-            normality1 = shapiro(group_1)[1] > auto_alpha
-            normality2 = shapiro(group_2)[1] > auto_alpha
+            try:
+                normality1 = stats.shapiro(group_1)[1] > auto_alpha
+                normality2 = stats.shapiro(group_2)[1] > auto_alpha
+                is_normal = normality1 and normality2
+            except Exception as e:
+                print_wrapped(
+                    f"Shapiro-Wilk test failed; assuming not normal: {e}.",
+                    type="WARNING"
+                )
+                is_normal = False
 
-            if not normality1 or not normality2:
-                test_type = "yuen"
-            elif levene(group_1, group_2).pvalue > auto_alpha:
-                test_type = "student"
+            try:
+                is_equal_var = stats.levene(group_1, group_2).pvalue > auto_alpha
+            except Exception as e:
+                print_wrapped(
+                    f"Levene test failed; assuming unequal variances: {e}.",
+                    type="WARNING"
+                )
+                is_equal_var = False
+
+
+            if is_equal_var:
+                if is_normal:
+                    test_type = "student"
+                else:
+                    test_type = "welch"
             else:
-                test_type = "welch"
+                if is_normal:
+                    test_type = "yuen"
+                else:
+                    test_type = "mann-whitney"
 
-        elif strategy in ["student", "welch", "yuen"]:
+        elif strategy in ["student", "welch", "yuen", "mann-whitney"]:
             test_type = strategy
 
         else:
             raise ValueError(f"Invalid input: {strategy}.")
 
         if test_type == "student":
-            ttest_result = ttest_ind(
+            ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=True, alternative="two-sided"
             )
             return StatisticalTestResult(
@@ -915,13 +995,15 @@ class ComprehensiveEDA:
                 descriptive_statistic_description="mu_1 - mu_2",
                 null_hypothesis_description="mu_1 = mu_2",
                 alternative_hypothesis_description="mu_1 != mu_2",
-                long_description=f"Group 1 label: {categories[0]}. "
-                + f"Group 2 label: {categories[1]}. "
-                + "Variances of two groups are assumed to be equal.",
+                assumptions_description="1. Var(Group 1) = Var(Group 2). "
+                "2. Data in both groups are normally distributed.",
+                long_description=f"Group 1 label: '{categories[0]}'. "
+                f"Group 2 label: '{categories[1]}'. "
+                "Variances of two groups are assumed to be equal.",
             )
 
         elif test_type == "welch":
-            ttest_result = ttest_ind(
+            ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=False, alternative="two-sided"
             )
             return StatisticalTestResult(
@@ -934,16 +1016,17 @@ class ComprehensiveEDA:
                 descriptive_statistic_description="mu_1 - mu_2",
                 null_hypothesis_description="mu_1 = mu_2",
                 alternative_hypothesis_description="mu_1 != mu_2",
-                long_description=f"Group 1 label: {categories[0]}. "
-                + f"Group 2 label: {categories[1]}. ",
+                assumptions_description="Data in both groups are normally distributed.",
+                long_description=f"Group 1 label: '{categories[0]}'. "
+                f"Group 2 label: '{categories[1]}'.",
             )
 
         elif test_type == "yuen":
-            ttest_result = ttest_ind(
+            ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=False, trim=0.1, alternative="two-sided"
             )
             return StatisticalTestResult(
-                description="Yuen's trimmed mean test",
+                description="Yuen's (20% trimmed mean) t-test",
                 statistic=ttest_result.statistic,
                 pval=ttest_result.pvalue,
                 descriptive_statistic=float(group_1.mean() - group_2.mean()),
@@ -952,13 +1035,37 @@ class ComprehensiveEDA:
                 descriptive_statistic_description="mu_1 - mu_2",
                 null_hypothesis_description="mu_1 = mu_2",
                 alternative_hypothesis_description="mu_1 != mu_2",
-                long_description=f"Group 1 label: {categories[0]}. "
-                + f"Group 2 label: {categories[1]}. "
-                + "Yuen's test is a robust alternative to Welch's "
-                + "t-test when the assumption of homogeneity of variance "
-                + "is violated. "
-                + "10% of the data is trimmed from both tails.",
+                long_description=f"Group 1 label: '{categories[0]}'. "
+                f"Group 2 label: '{categories[1]}'. "
+                "Yuen's test is a robust alternative to Welch's "
+                "t-test when the assumption of homogeneity of variance "
+                "is violated. "
+                "10% of the data is trimmed from each tail.",
             )
+        
+        elif test_type == "mann-whitney":
+            u_stat, p_val = stats.mannwhitneyu(
+                group_1, group_2, alternative="two-sided"
+            )
+            return StatisticalTestResult(
+                description="Mann-Whitney U test",
+                statistic=u_stat,
+                pval=p_val,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="U-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="mu_1 = mu_2",
+                alternative_hypothesis_description="mu_1 != mu_2",
+                assumptions_description="Var(Group 1) = Var(Group 2).",
+                long_description=f"Group 1 label: '{categories[0]}'. "
+                f"Group 2 label: '{categories[1]}'. "
+                "Mann-Whitney U test is a non-parametric test for "
+                "testing the null hypothesis that the distributions "
+                "of two independent samples are equal.",
+            )
+
+
 
     # --------------------------------------------------------------------------
     # GETTERS

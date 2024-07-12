@@ -18,6 +18,7 @@ class StatisticalTestResult:
         descriptive_statistic_description: str | None = None,
         null_hypothesis_description: str | None = None,
         alternative_hypothesis_description: str | None = None,
+        assumptions_description: str | None = None,
         long_description: str | None = None,
     ):
         """
@@ -42,6 +43,8 @@ class StatisticalTestResult:
             Default: None. Description of the null hypothesis.
         alternative_hypothesis_description : str.
             Default: None. Description of the alternative hypothesis.
+        assumptions_description : str.
+            Default: None. Description of the assumptions of the test.
         long_description : str.
             Default: None. A long description of the test.
         """
@@ -55,6 +58,7 @@ class StatisticalTestResult:
         self._statistic_description = statistic_description
         self._null_hypothesis_description = null_hypothesis_description
         self._alternative_hypothesis_description = alternative_hypothesis_description
+        self._assumptions_description = assumptions_description
         self._long_description = long_description
 
     def pval(self):
@@ -78,6 +82,7 @@ class StatisticalTestResult:
                 "descriptive_statistic_description": self._descriptive_statistic_description,
                 "null_hypothesis_description": self._null_hypothesis_description,
                 "alternative_hypothesis_description": self._alternative_hypothesis_description,
+                "assumptions_description": self._assumptions_description,
                 "long_description": self._long_description,
             }
         )
@@ -97,7 +102,8 @@ class StatisticalTestResult:
             bold_text(self._description), max_width
         )
 
-        pval_str = str(round(self._pval, n_dec))
+
+        pval_str = f"{self._pval:.{n_dec}e}"
         statistic_str = str(round(self._statistic, n_dec))
         textlen_pval = (
             len(pval_str)
@@ -109,43 +115,58 @@ class StatisticalTestResult:
         pval_str_message_buffer_right = int(np.ceil((max_width - textlen_pval) / 2))
         statistic_pval_message = fill_ignore_format(
             bold_text(self._statistic_description + ": ")
-            + color_text(str(round(self._statistic, n_dec)), "yellow")
+            + color_text(statistic_str, "yellow")
             + " " * pval_str_message_buffer_left
             + bold_text("p-value: ")
-            + color_text(str(round(self._pval, n_dec)), "yellow")
+            + color_text(pval_str, "yellow")
             + " " * pval_str_message_buffer_right,
             max_width,
         )
 
         supplementary_message = divider[:-1]
-        if self._null_hypothesis_description:
+        if self._null_hypothesis_description is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("H0: ") + self._null_hypothesis_description, max_width
+                bold_text("H0: ") + color_text(
+                    self._null_hypothesis_description, "yellow"), 
+                max_width
             )
-        if self._alternative_hypothesis_description:
+        if self._alternative_hypothesis_description is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("HA: ") + self._alternative_hypothesis_description, max_width
+                bold_text("HA: ") + color_text(
+                    self._alternative_hypothesis_description, "yellow"),
+                max_width
             )
-        if self._descriptive_statistic and self._descriptive_statistic_description:
+        if self._descriptive_statistic  is not None and \
+            self._descriptive_statistic_description is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
                 bold_text(f"{self._descriptive_statistic_description}: ")
                 + color_text(str(round(self._descriptive_statistic, n_dec)), "yellow"),
                 max_width,
             )
-        if self._degfree:
+        if self._degfree is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
                 bold_text("Degrees of freedom: ")
                 + color_text(str(round(self._degfree, n_dec)), "yellow"),
                 max_width,
             )
-        if self._long_description:
+        if self._assumptions_description is not None:
+            supplementary_message += "\n"
+            supplementary_message += fill_ignore_format(
+                bold_text("Assumptions: ")
+                + color_text(self._assumptions_description, "yellow"),
+                max_width,
+                subsequent_indent=13
+            )
+        if self._long_description is not None:
             supplementary_message += divider
             supplementary_message += fill_ignore_format(
-                self._long_description, subsequent_indent=0
+                bold_text("More info: ")
+                + color_text(self._long_description, "yellow"), 
+                subsequent_indent=11
             )
 
         final_message = (

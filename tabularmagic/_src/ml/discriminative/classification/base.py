@@ -117,7 +117,8 @@ class BaseC(BaseDiscriminativeModel):
 
                 y_train_encoded: np.ndarray = self._label_encoder.fit_transform(y_train)
 
-                if not np.isin(np.unique(y_train), [0, 1]).all():
+                # if not np.isin(np.unique(y_train), [0, 1]).all():
+                if len(np.unique(y_train)) > 2:
                     is_binary = False
 
                 X_test = X_test_df.to_numpy()

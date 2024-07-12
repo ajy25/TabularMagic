@@ -2,64 +2,26 @@ from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classi
 from typing import Literal
 
 from ..data.datahandler import DataEmitter
+from .base_feature_selection import BaseFeatureSelector
 
 
-class BaseFeatureSelectorR:
-    """A feature selection class."""
-
-    def __init__(self, name: str | None = None):
-        """
-        Constructs a BaseFeatureSelectorR.
-
-        Parameters
-        ----------
-        - nickname
-
-        Returns
-        -------
-        - None
-        """
-        self._name = name
-
-    def select(self, dataemitter: DataEmitter, n_target_features: int):
-        """
-        Selects the top n_target_features features
-        based on the training data.
-
-        Parameters
-        ----------
-        - dataemitter : DataEmitter.
-        - n_target_features : int.
-            Number of desired features, < n_predictors.
-
-        Returns
-        -------
-        - np array ~ (n_features).
-            Selected features.
-        - np array ~ (n_features).
-            Boolean mask.
-        """
-        return None, None
-
-    def __str__(self):
-        return self._name
-
-
-class KBestSelectorR(BaseFeatureSelectorR):
+class KBestSelectorC(BaseFeatureSelector):
     """Selects the k best features based on the f_regression or mutual info
     regression score.
     """
 
     def __init__(
-        self, scorer: Literal["f_classif", "mutual_info_classif"], name: str = None
+        self, 
+        scorer: Literal["f_classif", "mutual_info_classif"], 
+        name: str | None = None
     ):
         """
-        Constructs a KBestSelectorR.
+        Constructs a KBestSelectorC.
 
         Parameters
         ----------
-        - scorer : Literal['f_classif', 'mutual_info_classif'].
-        - nickname : str.
+        scorer : Literal['f_classif', 'mutual_info_classif'].
+        nickname : str.
             Default: None. If None, then outputs the class name.
 
         Returns
@@ -78,15 +40,15 @@ class KBestSelectorR(BaseFeatureSelectorR):
 
         Parameters
         ----------
-        - dataemitter : DataEmitter.
-        - n_target_features : int.
+        dataemitter : DataEmitter.
+        n_target_features : int.
             Number of desired features, < n_predictors.
 
         Returns
         -------
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Selected features.
-        - np array ~ (n_features).
+        np.ndarray ~ (n_features).
             Boolean mask.
         """
         scorer = None
@@ -105,3 +67,6 @@ class KBestSelectorR(BaseFeatureSelectorR):
         self.support = selector.get_support()
         self.selected_feature_scores = selector.scores_[self.support]
         return self.selected_features, self.support
+
+
+

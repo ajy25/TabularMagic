@@ -7,7 +7,6 @@ from .._src.ml.discriminative.regression import (
     SVMR,
     CustomR,
 )
-from .._src.feature_selection import RFESelectorR, KBestSelectorR, LassoSelectorR
 from .._src.interactive.regression.mlreg import MLRegressionReport
 
 
@@ -30,9 +29,6 @@ __all__ = [
     "MLPR",
     "SVMR",
     "CustomR",
-    "RFESelectorR",
-    "KBestSelectorR",
-    "LassoSelectorR",
     "MLRegressionReport",
     "MLClassificationReport",
     "LinearC",
@@ -42,3 +38,5 @@ __all__ = [
     "MLPC",
     "SVMC",
 ]
+
+

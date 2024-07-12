@@ -64,23 +64,25 @@ class StatisticalTestResult:
     def statistic(self):
         """Returns the statistic."""
         return self._statistic
+    
 
-    def _agentic_describe_json_str(self):
+    def _agentic_describe_json_str(self) -> str:
         """Returns a JSON string for the agentic agent."""
-        return json.dumps(
-            {
-                "description": self._description,
-                "statistic": self._statistic,
-                "p_value": self._pval,
-                "descriptive_statistic": self._descriptive_statistic,
-                "degrees_of_freedom": self._degfree,
-                "statistic_description": self._statistic_description,
-                "descriptive_statistic_description": self._descriptive_statistic_description,
-                "null_hypothesis_description": self._null_hypothesis_description,
-                "alternative_hypothesis_description": self._alternative_hypothesis_description,
-                "long_description": self._long_description,
-            }
-        )
+        return json.dumps({
+            "description": self._description,
+            "statistic": self._statistic,
+            "p_value": self._pval,
+            "descriptive_statistic": self._descriptive_statistic,
+            "degrees_of_freedom": self._degfree,
+            "statistic_description": self._statistic_description,
+            "descriptive_statistic_description": \
+                self._descriptive_statistic_description,
+            "null_hypothesis_description": self._null_hypothesis_description,
+            "alternative_hypothesis_description": \
+                self._alternative_hypothesis_description,
+            "long_description": self._long_description,
+        })
+
 
     def __str__(self):
         """Returns data and metadata in string form."""

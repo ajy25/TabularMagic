@@ -9,34 +9,31 @@ TabularMagic is a Python package for rapid exploratory statistical and machine l
 
 Though numerous auto-ML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and proper cross-validation benchmarking of various machine learning models, many of which require hyperparameter tuning.
 
-
-## Getting started
-
-### Installation and dependencies
+## Installation and dependencies
 
 TabularMagic can be installed via pip. The Python scripts below handle 
 package setup and pip installation. 
 
 To install TabularMagic: 
-```
+```bash
 git clone https://github.com/ajy25/TabularMagic.git
 cd tabularmagic
 python tmbuild.py install
 ```
 
 To uninstall TabularMagic:
-```
+```bash
 python tmbuild.py uninstall
 ```
 
-TabularMagic is built on top of the standard Python data science stack (scikit-learn, statsmodels, pandas, NumPy, Matplotlib). 
-A full list of dependencies is available in ```./requirements.txt```.
+TabularMagic is built on top of the Python data science stack. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
 
+## Getting started
 
-### Example usage
+### Example Python API usage
 
 We can build an Analyzer object on top of a given dataset.
-```
+```python
 import pandas as pd
 import matplotlib.pyplot as plt
 import tabularmagic as tm
@@ -53,7 +50,7 @@ print(analyzer)
 ```
 
 TabularMagic makes exploratory data analysis easy. Note that all TabularMagic plotting methods close figures before returning them for easier use with IPython notebooks. When working outside of IPython notebooks, returned figures must be reshown. 
-```
+```python
 def reshow(fig: plt.Figure):
     new_fig = plt.figure(figsize=fig.get_size_inches())
     new_manager = new_fig.canvas.manager
@@ -68,7 +65,7 @@ reshow(train_eda.plot_numerical_pairs(["target", "age", "bmi", "bp"]))
 ```
 
 TabularMagic makes regression analysis easy.
-```
+```python
 lm_report = analyzer.lm(
     formula="target ~ age + bmi"
 )
@@ -78,7 +75,7 @@ lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
 ```
 
 TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are then further evaluated on the withheld testing data. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation (i.e., only compute train and test fit statistics), simply set `outer_cv = None`.
-```
+```python
 from sklearn.linear_model import Lasso
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
@@ -116,6 +113,10 @@ print(report.fit_statistics("test"))
 reshow(report.model_report("TreeEnsembleR(adaboost)").test_report().plot_obs_vs_pred())
 ```
 
+### Example UI + AI agent usage
+
+TBD
+
 
 
 ### Demos
@@ -127,7 +128,7 @@ the `./demo` subdirectory.
 
 ## Development notes
 
-Under active development.
+Under active development. 
 
 
 

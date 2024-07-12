@@ -4,14 +4,16 @@ from sklearn.model_selection import train_test_split
 from .ml.discriminative.regression.base import BaseR
 from .ml.discriminative.classification.base import BaseC
 from .linear.lm import OrdinaryLeastSquares
-# from .linear.poissonglm import GeneralizedLinearModel
+from .linear.poissonglm import PoissonLinearModel
+from .linear.binomialglm import BinomialLinearModel
 from .linear.lm_rlike_util import parse_and_transform_rlike
 from .interactive import (
     MLRegressionReport,
     ComprehensiveEDA,
     RegressionVotingSelectionReport,
     LinearRegressionReport,
-    # GLMRegressionReport,
+    PoissonRegressionReport,
+    BinomialRegressionReport,
     MLClassificationReport,
 )
 from .display.print_utils import print_wrapped
@@ -251,78 +253,91 @@ class Analyzer:
             return LinearRegressionReport(
                 OrdinaryLeastSquares(), datahandler, y_var, X_vars
             )
-        
-    # def glm(
-    #     self, y_var: str = None, X_vars: list[str] = None, formula: str = None,
-    #     family: str = None
-    # ) -> GLMRegressionReport:
-    #     """Conducts a simple OLS regression analysis exercise.
-    #     If formula is provided, performs regression with OLS via formula.
-    #     Examples with missing data will be dropped.
 
-    #     Parameters
-    #     ----------
-    #     y_var : str.
-    #         Default: None. The variable to be predicted.
-    #     X_vars : list[str].
-    #         Default: None.
-    #         If None, all variables except y_var will be used as predictors.
-    #     formula : str.
-    #         Default: None. If not None, uses formula to specify the regression
-    #         (overrides y_var and X_vars).
+    def glm(
+        self,
+        y_var: str | None = None,
+        X_vars: list[str] = None,
+        formula: str | None = None,
+        family: Literal["poisson", "binomial"] = None,
+    ) -> PoissonRegressionReport | BinomialRegressionReport:
+        """Conducts a generalized linear regression exercise.
+        If formula is provided, performs linear regression with link
+        function depending on specified family via formula.
+        Examples with missing data will be dropped.
 
-    #     Returns
-    #     -------
-    #     LinearRegressionReport
-    #     """
-    #     if formula is None and y_var is None:
-    #         raise ValueError("y_var must be specified if formula is None.")
+        Parameters
+        ----------
+        y_var : str.
+            Default: None. The variable to be predicted.
+        X_vars : list[str].
+            Default: None.
+            If None, all variables except y_var will be used as predictors.
+        formula : str.
+            Default: None. If not None, uses formula to specify the regression
+            (overrides y_var and X_vars).
 
-    #     elif formula is None:
-    #         if X_vars is None:
-    #             X_vars = self._datahandler.vars()
-    #             if y_var in X_vars:
-    #                 X_vars.remove(y_var)
-    #         return GLMRegressionReport(
-    #             GeneralizedLinearModel(), self._datahandler, y_var, X_vars, 
-    #             family
-    #         )
+        Returns
+        -------
+        PoissonRegressionReport or BinomialRegressionReport
+        """
+        if formula is None and y_var is None:
+            raise ValueError("y_var must be specified if formula is None.")
 
-    #     else:
-    #         try:
-    #             y_series_train, y_scaler, X_df_train = parse_and_transform_rlike(
-    #                 formula, self._datahandler.df_train()
-    #             )
-    #             y_series_test, _, X_df_test = parse_and_transform_rlike(
-    #                 formula, self._datahandler.df_test()
-    #             )
-    #         except Exception as e:
-    #             raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
+        elif formula is None:
+            if X_vars is None:
+                X_vars = self._datahandler.vars()
+                if y_var in X_vars:
+                    X_vars.remove(y_var)
+            if family == "poisson":
+                return PoissonRegressionReport(
+                    PoissonLinearModel(), self._datahandler, y_var, X_vars
+                )
+            else:
+                return BinomialRegressionReport(
+                    BinomialLinearModel(), self._datahandler, y_var, X_vars
+                )
 
-    #         # ensure missing values are dropped
-    #         y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
-    #         y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
-    #         y_X_df_combined_train = y_X_df_combined_train.dropna()
-    #         y_X_df_combined_test = y_X_df_combined_test.dropna()
-    #         (
-    #             y_X_df_combined_train,
-    #             y_X_df_combined_test,
-    #         ) = self._datahandler._force_train_test_var_agreement(
-    #             y_X_df_combined_train, y_X_df_combined_test
-    #         )
+        else:
+            try:
+                y_series_train, y_scaler, X_df_train = parse_and_transform_rlike(
+                    formula, self._datahandler.df_train()
+                )
+                y_series_test, _, X_df_test = parse_and_transform_rlike(
+                    formula, self._datahandler.df_test()
+                )
+            except Exception as e:
+                raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
 
-    #         X_vars = y_X_df_combined_train.columns.to_list()
-    #         y_var = y_series_train.name
-    #         X_vars.remove(y_var)
+            # ensure missing values are dropped
+            y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
+            y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
+            y_X_df_combined_train = y_X_df_combined_train.dropna()
+            y_X_df_combined_test = y_X_df_combined_test.dropna()
+            (
+                y_X_df_combined_train,
+                y_X_df_combined_test,
+            ) = self._datahandler._force_train_test_var_agreement(
+                y_X_df_combined_train, y_X_df_combined_test
+            )
 
-    #         datahandler = DataHandler(
-    #             y_X_df_combined_train, y_X_df_combined_test, verbose=False
-    #         )
-    #         datahandler.add_scaler(y_scaler, y_var)
+            X_vars = y_X_df_combined_train.columns.to_list()
+            y_var = y_series_train.name
+            X_vars.remove(y_var)
 
-    #         return GLMRegressionReport(
-    #             GeneralizedLinearModel(), datahandler, y_var, X_vars, family
-    #         )
+            datahandler = DataHandler(
+                y_X_df_combined_train, y_X_df_combined_test, verbose=False
+            )
+            datahandler.add_scaler(y_scaler, y_var)
+
+            if family == "poisson":
+                return PoissonRegressionReport(
+                    PoissonLinearModel(), self._datahandler, y_var, X_vars
+                )
+            else:
+                return BinomialRegressionReport(
+                    BinomialLinearModel(), self._datahandler, y_var, X_vars
+                )
 
     # --------------------------------------------------------------------------
     # MACHINE LEARNING

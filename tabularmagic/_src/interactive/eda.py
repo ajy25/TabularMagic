@@ -731,7 +731,7 @@ class ComprehensiveEDA:
     ) -> StatisticalTestResult:
         """Conducts the appropriate statistical test to
         test for equal means between two ore more groups (null hypothesis).
-        
+
         Parameters
         ----------
         numerical_var : str.
@@ -750,11 +750,9 @@ class ComprehensiveEDA:
                 "Invalid input: stratify_by. Must have at least two unique values."
             )
         elif len(groups) == 2:
-            return self.ttest(numerical_var, stratify_by, 'welch')
+            return self.ttest(numerical_var, stratify_by, "welch")
         else:
             return self.anova_oneway(numerical_var, stratify_by)
-
-
 
     def anova_oneway(
         self, numerical_var: str, stratify_by: str
@@ -1006,19 +1004,20 @@ class ComprehensiveEDA:
             raise ValueError(
                 f"Invalid input: {var}. " + "Must be a known variable in the input df."
             )
-        
+
     def _agentic_describe_json_str(self) -> str:
         """Returns a jsonified string representation of the dataset."""
         output = {}
-        output["categorical variable summary statistics"] =\
+        output["categorical variable summary statistics"] = (
             self._categorical_summary_statistics.to_dict()
-        output["numerical variable summary statistics"] =\
+        )
+        output["numerical variable summary statistics"] = (
             self._numerical_summary_statistics.to_dict()
+        )
         output["number of numerical variables"] = len(self._numerical_vars)
         output["number of categorical variables"] = len(self._categorical_vars)
         output["number of examples/rows"] = len(self.df)
         return json.dumps(output)
-
 
     def __getitem__(self, index: str) -> CategoricalEDA | NumericalEDA:
         """Indexes into ComprehensiveRegressionReport.

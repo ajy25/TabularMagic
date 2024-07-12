@@ -6,7 +6,7 @@ from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
 from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.poissonglm import GeneralizedLinearModel
+from ...linear.poissonglm import PoissonLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 
@@ -23,17 +23,12 @@ MAX_N_OUTLIERS_TEXT = 20
 train_only_message = "This function is only available for training data."
 
 
-# Currently copy pasted linRegReport. Need to create custom GLM report
-
-
-class SingleDatasetLinRegReport:
+class SingleDatasetPoisRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
     """
 
-    def __init__(
-        self, model: GeneralizedLinearModel, dataset: Literal["train", "test"]
-    ):
+    def __init__(self, model: PoissonLinearModel, dataset: Literal["train", "test"]):
         """
         Initializes a RegressionReport object.
 
@@ -627,7 +622,7 @@ class SingleDatasetLinRegReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetLinRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetPoisRegReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -683,27 +678,26 @@ class SingleDatasetLinRegReport:
             self._include_text = True
 
 
-class GLMRegressionReport:
-    """LinearRegressionReport.
+class PoissonRegressionReport:
+    """PoissonRegressionReport.
     Fits the model based on provided DataHandler.
-    Wraps train and test SingleDatasetLinRegReport objects.
+    Wraps train and test SingleDatasetPoisRegReport objects.
     """
 
     def __init__(
         self,
-        model: GeneralizedLinearModel,
+        model: PoissonLinearModel,
         datahandler: DataHandler,
         y_var: str,
         X_vars: Iterable[str],
-        input_family=str,
     ):
-        """GLMRegressionReport.
+        """PoissonRegressionReport.
         Fits the model based on provided DataHandler.
-        Wraps train and test SingleDatasetLinRegReport objects.
+        Wraps train and test SingleDatasetPoisRegReport objects.
 
         Parameters
         ----------
-        model : OrdinaryLeastSquares.
+        model : PoissonLinearModel.
         datahandler : DataHandler.
             The DataHandler object that contains the data.
         y_var : str.
@@ -715,30 +709,30 @@ class GLMRegressionReport:
         self._datahandler = datahandler
         self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
         self._model.specify_data(self._dataemitter)
-        self._model.fit(family=input_family)
+        self._model.fit()
 
-        self._train_report = SingleDatasetLinRegReport(model, "train")
-        self._test_report = SingleDatasetLinRegReport(model, "test")
+        self._train_report = SingleDatasetPoisRegReport(model, "train")
+        self._test_report = SingleDatasetPoisRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetLinRegReport:
-        """Returns an LinearRegressionReport object for the train dataset
+    def train_report(self) -> SingleDatasetPoisRegReport:
+        """Returns an PoissonRegressionReport object for the train dataset
 
         Returns
         -------
-        report : LinearRegressionReport.
+        report : PoissonRegressionReport.
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetLinRegReport:
-        """Returns an LinearRegressionReport object for the test dataset
+    def test_report(self) -> SingleDatasetPoisRegReport:
+        """Returns an PoissonRegressionReport object for the test dataset
 
         Returns
         -------
-        report : LinearRegressionReport.
+        report : PoissonRegressionReport.
         """
         return self._test_report
 
-    def model(self) -> GeneralizedLinearModel:
+    def model(self) -> PoissonLinearModel:
         """Returns the fitted GeneralizedLinearModel object.
 
         Returns
@@ -767,7 +761,7 @@ class GLMRegressionReport:
         else:
             return self._test_report.fit_statistics()
 
-    def stepwise(self) -> "GeneralizedLinearModel":
+    def stepwise(self) -> "PoissonLinearModel":
         """Performs stepwise selection on the model.
 
         Parameters

@@ -11,9 +11,9 @@ class KBestSelectorC(BaseFeatureSelector):
     """
 
     def __init__(
-        self, 
-        scorer: Literal["f_classif", "mutual_info_classif"], 
-        name: str | None = None
+        self,
+        scorer: Literal["f_classif", "mutual_info_classif"],
+        name: str | None = None,
     ):
         """
         Constructs a KBestSelectorC.
@@ -67,6 +67,3 @@ class KBestSelectorC(BaseFeatureSelector):
         self.support = selector.get_support()
         self.selected_feature_scores = selector.scores_[self.support]
         return self.selected_features, self.support
-
-
-

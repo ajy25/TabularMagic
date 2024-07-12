@@ -14,11 +14,13 @@ class _DataOverview_ToolArgs(BaseModel):
         description="Specifies which dataset to provide the overview on. "
         "Either 'train' or 'test'."
     )
+
+
 @tool("data_overview_tool", args_schema=_DataOverview_ToolArgs)
 def data_overview_tool(dataset: Literal["train", "test"]) -> str:
     """Returns variable information for the dataset in as a json-formatted string."""
-    return shared_analyzer.get_shared_analyzer().eda(dataset=dataset).\
-        _agentic_describe_json_str()
-
-
-
+    return (
+        shared_analyzer.get_shared_analyzer()
+        .eda(dataset=dataset)
+        ._agentic_describe_json_str()
+    )

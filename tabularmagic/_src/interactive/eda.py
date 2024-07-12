@@ -1008,12 +1008,12 @@ class ComprehensiveEDA:
     def _agentic_describe_json_str(self) -> str:
         """Returns a jsonified string representation of the dataset."""
         output = {}
-        output["categorical variable summary statistics"] = (
-            self._categorical_summary_statistics.to_dict()
-        )
-        output["numerical variable summary statistics"] = (
-            self._numerical_summary_statistics.to_dict()
-        )
+        output[
+            "categorical variable summary statistics"
+        ] = self._categorical_summary_statistics.to_dict()
+        output[
+            "numerical variable summary statistics"
+        ] = self._numerical_summary_statistics.to_dict()
         output["number of numerical variables"] = len(self._numerical_vars)
         output["number of categorical variables"] = len(self._categorical_vars)
         output["number of examples/rows"] = len(self.df)

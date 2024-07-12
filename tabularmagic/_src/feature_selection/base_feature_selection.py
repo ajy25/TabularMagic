@@ -1,5 +1,6 @@
 from ..data.datahandler import DataEmitter
 
+
 class BaseFeatureSelector:
     """A feature selection class."""
 
@@ -39,5 +40,3 @@ class BaseFeatureSelector:
 
     def __str__(self):
         return self._name
-    
-

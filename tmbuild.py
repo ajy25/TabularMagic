@@ -33,9 +33,7 @@ if __name__ == "__main__":
             subprocess.check_call(
                 ["python", str(directory_path / "setup_tm.py"), "sdist"]
             )
-            subprocess.check_call(
-                ["pip", "install", str(directory_path)]
-            )
+            subprocess.check_call(["pip", "install", str(directory_path)])
             print("Successfully installed tabularmagic")
         except subprocess.CalledProcessError as e:
             print(f"Failed to install tabularmagic: {e}")
@@ -57,6 +55,3 @@ if __name__ == "__main__":
             + 'Please call "python tmbuild.py install" to install, '
             + 'or "python tmbuild.py uninstall" to uninstall.'
         )
-
-
-

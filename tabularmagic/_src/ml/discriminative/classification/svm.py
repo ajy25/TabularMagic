@@ -2,6 +2,12 @@ import numpy as np
 from sklearn.svm import SVC
 from typing import Mapping, Iterable, Literal
 from .base import BaseC, HyperparameterSearcher
+from optuna.distributions import (
+    FloatDistribution,
+    IntDistribution,
+    CategoricalDistribution,
+    BaseDistribution,
+)
 
 
 class SVMC(BaseC):
@@ -25,29 +31,36 @@ class SVMC(BaseC):
 
         Parameters
         ----------
-        - type : Literal['linear', 'poly', 'rbf'].
+        type : Literal['linear', 'poly', 'rbf'].
             Default: 'rbf'. The type of kernel to use.
-        - hyperparam_search_method : str.
-            Default: None. If None, a
-            classification-specific default hyperparameter
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
+            Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        - hyperparam_grid_specification : Mapping[str, list].
-            Default: None. If None, a
-            classification-specific default hyperparameter
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+            Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        - name : str.
+        name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        - kwargs : Key word arguments are passed directly into the
+        model_random_state : int.
+            Default: 42. Random seed for the model.
+        kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int.
+            Default: 1. Number of parallel jobs to run.
+        verbose : int.
+            Default: 0. scikit-learn verbosity level.
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
 
@@ -61,26 +74,27 @@ class SVMC(BaseC):
         if (hyperparam_search_method is None) or (
             hyperparam_grid_specification is None
         ):
-            hyperparam_search_method = "grid"
+            hyperparam_search_method = "optuna"
 
             if type == "linear":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-2, 2, 10),
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
                 }
             elif type == "poly":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-2, 2, 5),
-                    "degree": [2, 3, 4, 5],
-                    "gamma": np.logspace(-2, 2, 5),
-                    "coef0": [0, 1, 2, 3],
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
+                    "degree": IntDistribution(2, 5),
+                    "coef0": IntDistribution(0, 10),
+                    "gamma": CategoricalDistribution(["scale", "auto"]),
                 }
             elif type == "rbf":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-4, 2, 10),
-                    "gamma": np.logspace(-4, 2, 10),
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
+                    "gamma": CategoricalDistribution(["scale", "auto"]),
                 }
-            else:
-                raise ValueError("Invalid kernel type.")
 
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,

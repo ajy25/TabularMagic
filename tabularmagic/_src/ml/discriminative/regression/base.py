@@ -43,9 +43,14 @@ class BaseR(BaseDiscriminativeModel):
         self._dataemitter = dataemitter
         self._dataemitters = dataemitters
 
-    def fit(self):
+    def fit(self, verbose: bool = False):
         """Fits the model. Records training metrics, which can be done via
         nested cross validation.
+
+        Parameters
+        ----------
+        verbose : bool.
+            Default: False. If True, prints progress.
         """
         y_scaler = self._dataemitter.y_scaler()
 
@@ -53,7 +58,7 @@ class BaseR(BaseDiscriminativeModel):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
-            self._hyperparam_searcher.fit(X_train, y_train)
+            self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:
@@ -80,7 +85,7 @@ class BaseR(BaseDiscriminativeModel):
                 y_train = y_train_series.to_numpy()
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
-                self._hyperparam_searcher.fit(X_train, y_train)
+                self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
                 fold_estimator = self._hyperparam_searcher._best_estimator
 
                 y_pred = fold_estimator.predict(X_test)
@@ -102,7 +107,7 @@ class BaseR(BaseDiscriminativeModel):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
-            self._hyperparam_searcher.fit(X_train, y_train)
+            self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:

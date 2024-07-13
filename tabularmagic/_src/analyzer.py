@@ -347,8 +347,8 @@ class Analyzer:
         self,
         models: Iterable[BaseR],
         y_var: str,
-        X_vars: list[str] = None,
-        outer_cv: int = None,
+        X_vars: list[str] | None = None,
+        outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLRegressionReport:
         """Conducts a comprehensive regression benchmarking exercise.
@@ -392,8 +392,8 @@ class Analyzer:
         self,
         models: Iterable[BaseC],
         y_var: str,
-        X_vars: list[str] = None,
-        outer_cv: int = None,
+        X_vars: list[str] | None = None,
+        outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLClassificationReport:
         """Conducts a comprehensive classification benchmarking exercise.

@@ -7,53 +7,66 @@ from sklearn.ensemble import (
 )
 import xgboost as xgb
 from typing import Mapping, Literal, Iterable
-
-
 from .base import BaseC, HyperparameterSearcher
+from optuna.distributions import (
+    FloatDistribution,
+    CategoricalDistribution,
+    IntDistribution,
+    BaseDistribution,
+)
+
 
 
 class TreeC(BaseC):
-    """A simple decision tree classifier.
+    """Decision tree classifier.
 
-    Like all BaseClassification-derived classes, hyperparameter selection is
+    Like all BaseC-derived classes, hyperparameter selection is
     performed automatically during training. The cross validation and
     hyperparameter selection process can be modified by the user.
     """
 
     def __init__(
         self,
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
     ):
         """
-        Initializes a TreeR object.
+        Initializes a TreeC object.
 
         Parameters
         ----------
-        - hyperparam_search_method : str.
-            Default: None. If None, a regression-specific default hyperparameter
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
+            Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        - hyperparam_grid_specification : Mapping[str, list].
-            Default: None. If None, a regression-specific default hyperparameter
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+            Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        - name : str.
+        model_random_state : int.
+            Default: 42. Random seed for the model.
+        name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        - model_random_state : int.
-            Default: 42. Random seed for the model.
-        - kwargs : Key word arguments are passed directly into the
+        kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int.
+            Default: 1. Number of parallel jobs to run.
+        verbose : int.
+            Default: 0. scikit-learn verbosity level.
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
 
@@ -66,11 +79,12 @@ class TreeC(BaseC):
         if (hyperparam_search_method is None) or (
             hyperparam_grid_specification is None
         ):
-            hyperparam_search_method = "grid"
+            hyperparam_search_method = "optuna"
             hyperparam_grid_specification = {
-                "min_samples_split": [2, 0.1, 0.05],
-                "min_samples_leaf": [1, 0.1, 0.05],
-                "max_features": ["sqrt", "log2", None],
+                "max_depth": CategoricalDistribution([3, 6, 12, None]),
+                "min_samples_split": FloatDistribution(0.1, 0.5),
+                "min_samples_leaf": FloatDistribution(0.1, 0.5),
+                "max_features": CategoricalDistribution(["sqrt", "log2", "auto"]),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
@@ -83,7 +97,7 @@ class TreeC(BaseC):
 class TreeEnsembleC(BaseC):
     """Tree ensemble classifier.
 
-    Like all BaseClassification-derived classes, hyperparameter selection is
+    Like all BaseC-derived classes, hyperparameter selection is
     performed automatically during training. The cross-validation and
     hyperparameter selection process can be modified by the user.
     """
@@ -98,8 +112,9 @@ class TreeEnsembleC(BaseC):
             "xgboost",
             "xgboostrf",
         ] = "random_forest",
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -109,30 +124,37 @@ class TreeEnsembleC(BaseC):
 
         Parameters
         ----------
-        - type : Literal['random_forest', 'gradient_boosting',
-                    'adaboost', 'bagging', 'xgboost', 'xgboostrf'].
+        type : Literal['random_forest', 'gradient_boosting',
+                    'adaboost', 'bagging', 'xgboost', 'xgboostrf']
             Default: 'random_forest'. The type of tree ensemble to use.
-        - hyperparam_search_method : Literal[None, 'grid', 'random'].
-            Default: None. If None, a classification-specific default
-            hyperparameter search is conducted.
-        - hyperparam_grid_specification : Mapping[str, Iterable].
-            Default: None. If None, a classification-specific default
-            hyperparameter search is conducted.
-        - model_random_state : int.
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
+            Default: None. If None, a regression-specific default hyperparameter
+            search is conducted.
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+            Default: None. If None, a regression-specific default hyperparameter
+            search is conducted.
+        model_random_state : int.
             Default: 42. Random seed for the model.
-        - name : str.
+        name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        - kwargs : Key word arguments are passed directly into the
-            initialization of the HyperparameterSearcher class. In particular,
+        kwargs : Key word arguments are passed directly into the
+            intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
 
-        Notable kwargs
+        **kwargs
         --------------
-        - inner_cv : int | BaseCrossValidator. Default is 5.
-        - inner_cv_seed : int.
-        - n_jobs : int. Number of parallel jobs to run.
-        - verbose : int. sklearn verbosity level.
+        inner_cv : int | BaseCrossValidator.
+            Default: 5.
+        inner_cv_seed : int.
+            Default: 42.
+        n_jobs : int.
+            Default: 1. Number of parallel jobs to run.
+        verbose : int.
+            Default: 0. Verbosity level.
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
         self._dropfirst = True
@@ -147,13 +169,13 @@ class TreeEnsembleC(BaseC):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "n_estimators": [50, 100, 200],
-                    "min_samples_split": [2, 5, 10],
-                    "min_samples_leaf": [1, 2, 4],
-                    "max_features": ["sqrt", "log2"],
-                    "max_depth": [3, 6, 12],
+                    "n_estimators": CategoricalDistribution([50, 100, 200, 400]),
+                    "min_samples_split": CategoricalDistribution([2, 5, 10]),
+                    "min_samples_leaf": CategoricalDistribution([1, 2, 4]),
+                    "max_features": CategoricalDistribution(["sqrt", "log2"]),
+                    "max_depth": IntDistribution(3, 15, step=2),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -166,21 +188,26 @@ class TreeEnsembleC(BaseC):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "n_estimators": [50, 100, 200],
-                    "learning_rate": [1.0, 0.1, 0.01],
-                    "estimator": [
-                        DecisionTreeClassifier(
-                            max_depth=3, random_state=model_random_state
-                        ),
-                        DecisionTreeClassifier(
-                            max_depth=6, random_state=model_random_state
-                        ),
-                        DecisionTreeClassifier(
-                            max_depth=12, random_state=model_random_state
-                        ),
-                    ],
+                    "n_estimators": CategoricalDistribution([50, 100, 200]),
+                    "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
+                    "estimator": CategoricalDistribution(
+                        [
+                            DecisionTreeClassifier(
+                                max_depth=3, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=5, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=8, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=12, random_state=model_random_state
+                            ),
+                        ]
+                    ),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -195,22 +222,27 @@ class TreeEnsembleC(BaseC):
             ):
                 hyperparam_search_method = "grid"
                 hyperparam_grid_specification = {
-                    "n_estimators": [50, 100, 200],
-                    "max_samples": [1, 0.5],
-                    "max_features": [1, 0.5],
-                    "bootstrap": [True, False],
-                    "bootstrap_features": [True, False],
-                    "estimator": [
-                        DecisionTreeClassifier(
-                            max_depth=3, random_state=model_random_state
-                        ),
-                        DecisionTreeClassifier(
-                            max_depth=6, random_state=model_random_state
-                        ),
-                        DecisionTreeClassifier(
-                            max_depth=12, random_state=model_random_state
-                        ),
-                    ],
+                    "n_estimators": CategoricalDistribution([50, 100, 200]),
+                    "max_samples": FloatDistribution(0.1, 1.0),
+                    "max_features": FloatDistribution(0.1, 1.0),
+                    "bootstrap": CategoricalDistribution([True, False]),
+                    "bootstrap_features": CategoricalDistribution([True, False]),
+                    "estimator": CategoricalDistribution(
+                        [
+                            DecisionTreeClassifier(
+                                max_depth=3, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=5, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=8, random_state=model_random_state
+                            ),
+                            DecisionTreeClassifier(
+                                max_depth=12, random_state=model_random_state
+                            ),
+                        ]
+                    ),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -225,14 +257,14 @@ class TreeEnsembleC(BaseC):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "n_estimators": [50, 100, 200],
-                    "subsample": [0.2, 0.5, 1.0],
-                    "min_samples_split": [2, 0.1],
-                    "min_samples_leaf": [1, 0.1],
-                    "max_depth": [5, 10, None],
-                    "max_features": ["sqrt", "log2", None],
+                    "n_estimators": CategoricalDistribution([50, 100, 200, 400]),
+                    "subsample": FloatDistribution(0.1, 1.0),
+                    "min_samples_split": FloatDistribution(0.1, 0.5),
+                    "min_samples_leaf": FloatDistribution(0.1, 0.5),
+                    "max_depth": IntDistribution(3, 9, step=2),
+                    "max_features": CategoricalDistribution(["sqrt", "log2", "auto"]),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -245,14 +277,16 @@ class TreeEnsembleC(BaseC):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "learning_rate": [0.1, 0.01],
-                    "n_estimators": [50, 100, 200],
-                    "max_depth": [3, 6, 12],
-                    "lambda": [0, 0.1, 1],
-                    "alpha": [0, 0.1, 1],
-                    "colsample_bytree": [1, 0.8, 0.5],
+                    "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
+                    "n_estimators": CategoricalDistribution([50, 100, 200]),
+                    "max_depth": IntDistribution(3, 9, step=2),
+                    "reg_lambda": FloatDistribution(1e-5, 1e0, log=True),
+                    "reg_alpha": FloatDistribution(1e-5, 1e0, log=True),
+                    "subsample": FloatDistribution(0.6, 1.0),
+                    "colsample_bytree": FloatDistribution(0.6, 1.0),
+                    "min_child_weight": CategoricalDistribution([1, 3, 5]),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
@@ -265,14 +299,16 @@ class TreeEnsembleC(BaseC):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "max_depth": [3, 6, 12],
-                    "n_estimators": [50, 100, 200],
-                    "colsample_bynode": [0.5, 0.8, 1.0],
-                    "min_child_weight": [1, 3, 5],
-                    "subsample": [0.5, 0.8, 1.0],
-                    "reg_lambda": [0.1, 1.0, 10.0],
+                    "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
+                    "max_depth": IntDistribution(3, 9, step=2),
+                    "n_estimators": CategoricalDistribution([50, 100, 200]),
+                    "min_child_weight": CategoricalDistribution([1, 3, 5]),
+                    "subsample": FloatDistribution(0.6, 1.0),
+                    "colsample_bytree": FloatDistribution(0.6, 1.0),
+                    "reg_lambda": FloatDistribution(1e-5, 1e0, log=True),
+                    "reg_alpha": FloatDistribution(1e-5, 1e0, log=True),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,

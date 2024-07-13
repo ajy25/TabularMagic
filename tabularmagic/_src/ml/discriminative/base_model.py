@@ -12,7 +12,7 @@ import optuna
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 import warnings
 
-warnings.filterwarnings("ignore", category=optuna.exceptions.ExperimentalWarning)
+
 from ...display.print_utils import print_wrapped
 
 
@@ -38,31 +38,39 @@ class HyperparameterSearcher:
         self,
         estimator: BaseEstimator,
         method: Literal["optuna", "grid"],
-        hyperparam_grid: Mapping[str, Iterable],
+        hyperparam_grid: Mapping[str, Iterable | optuna.distributions.BaseDistribution],
         inner_cv: int | BaseCrossValidator = 5,
         inner_cv_seed: int = 42,
+        estimator_name: str | None = None,
         **kwargs
     ):
         """Initializes a HyperparameterSearch object.
 
         Parameters
         ----------
-        - estimator : sklearn.base.BaseEstimator.
-        - method : str.
+        estimator : sklearn.base.BaseEstimator.
+        method : str.
             Must be an element in ['optuna', 'grid'].
-        - hyperparam_grid : dict.
+        hyperparam_grid : Mapping[str, Iterable | BaseDistribution].
             Specification of the set/distribution of hyperparameters to
             search through.
-        - inner_cv : int | BaseCrossValidator.
+        inner_cv : int | BaseCrossValidator.
             Default: 5-fold cross validation.
-        - inner_cv_seed : int.
+        inner_cv_seed : int.
             Default: 42.
-        - kwargs.
+        estimator_name : str.
+            Default: None. Name of the estimator.
+        kwargs.
             Key word arguments are passed directly into the intialization of the
             hyperparameter search method.
         """
 
         self._best_estimator = None
+        if estimator_name is None:
+            self._estimator_name = estimator.__class__.__name__
+        else:
+            self._estimator_name = estimator_name
+            
         if isinstance(inner_cv, int):
             self.inner_cv = KFold(
                 n_splits=inner_cv, random_state=inner_cv_seed, shuffle=True
@@ -71,6 +79,8 @@ class HyperparameterSearcher:
             self.inner_cv = inner_cv
         else:
             raise ValueError("Invalid input: inner_cv.")
+
+        self._fit_message = ""
 
         if method == "optuna":
             if "n_trials" not in kwargs:
@@ -88,15 +98,32 @@ class HyperparameterSearcher:
                         optuna.logging.set_verbosity(optuna.logging.INFO)
                     else:
                         optuna.logging.set_verbosity(optuna.logging.WARNING)
-            self._searcher = optuna.integration.OptunaSearchCV(
-                estimator=estimator,
-                param_distributions=hyperparam_grid,
-                cv=self.inner_cv,
-                random_state=inner_cv_seed + 1,
-                **kwargs
-            )
+            self._fit_message = f'Search method: optuna ({kwargs["n_trials"]} trials).'
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore", 
+                    category=optuna.exceptions.ExperimentalWarning
+                )
+                warnings.filterwarnings("ignore", category=UserWarning)
+                self._searcher = optuna.integration.OptunaSearchCV(
+                    estimator=estimator,
+                    param_distributions=hyperparam_grid,
+                    cv=self.inner_cv,
+                    enable_pruning=False,
+                    random_state=inner_cv_seed + 1,
+                    **kwargs
+                )
 
         elif method == "grid":
+            n_fits = 1
+            for key in hyperparam_grid.keys():
+                if not isinstance(hyperparam_grid[key], Iterable):
+                    raise ValueError("Invalid input: hyperparam_grid.")
+                n_fits *= len(hyperparam_grid[key])
+            
+            self._fit_message = f'Search method: grid ({n_fits} fits per fold, '
+            self._fit_message += f'{n_fits * self.inner_cv.get_n_splits()} total fits).'
             self._searcher = GridSearchCV(
                 estimator=estimator,
                 param_grid=hyperparam_grid,
@@ -106,19 +133,26 @@ class HyperparameterSearcher:
         else:
             raise ValueError("Invalid input: method.")
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> BaseEstimator:
+    def fit(self, X: np.ndarray, y: np.ndarray, verbose: bool = False) -> BaseEstimator:
         """Cross validation search of optimal hyperparameters. Idenfities
         best estimator.
 
         Parameters
         ----------
-        - X : np.ndarray ~ (sample_size, n_predictors).
-        - y : np.ndarray ~ (sample_size).
+        X : np.ndarray ~ (sample_size, n_predictors).
+        y : np.ndarray ~ (sample_size).
+        verbose : bool.
+            Default: False. If True, prints progress.
 
         Returns
         -------
-        - best_estimator : BaseEstimator.
+        best_estimator : BaseEstimator.
         """
+        if verbose:
+            print_wrapped(
+                f'Fitting {self._estimator_name}. ' + self._fit_message,
+                type="UPDATE",
+            )
         ignore_warnings(self._searcher.fit)(X, y)
         self._best_estimator = self._searcher.best_estimator_
         self._best_params = self._searcher.best_params_

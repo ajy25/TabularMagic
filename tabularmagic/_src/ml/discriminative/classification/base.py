@@ -20,7 +20,7 @@ class BaseC(BaseDiscriminativeModel):
     """
 
     def __init__(self):
-        """Initializes a BaseC object. Creates copies of the inputs."""
+        """Initializes a BaseC object."""
         self._label_encoder = LabelEncoder()
         self._hyperparam_searcher: HyperparameterSearcher = None
         self._estimator: BaseEstimator = None

@@ -197,13 +197,14 @@ class MLRegressionReport:
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
-                print_wrapped(f"Fitting model {model._name}.", type="UPDATE")
-
+                print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
             model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
-
-            model.fit()
+            model.fit(verbose=self._verbose)
             if self._verbose:
-                print_wrapped(f"Fitted model {model._name}.", type="UPDATE")
+                print_wrapped(
+                    f"Successfully evaluated model {model._name}.", 
+                    type="UPDATE"
+                )
 
         self._id_to_report = {
             model._name: SingleModelMLRegReport(model) for model in models

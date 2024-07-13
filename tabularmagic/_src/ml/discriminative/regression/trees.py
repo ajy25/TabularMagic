@@ -14,13 +14,11 @@ from optuna.distributions import (
     IntDistribution,
     BaseDistribution,
 )
-import warnings
 
-warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class TreeR(BaseR):
-    """Class for tree-based regression.
+    """Decision tree regressor.
 
     Like all BaseR-derived classes, hyperparameter selection is
     performed automatically during training. The cross validation and
@@ -65,7 +63,7 @@ class TreeR(BaseR):
         n_jobs : int.
             Default: 1. Number of parallel jobs to run.
         verbose : int.
-            Default: 0. scikit-learn verbosity level.
+            Default: 0. Verbosity level.
         n_trials : int.
             Default: 100. Number of trials for hyperparameter optimization. Only
             used if hyperparam_search_method is 'optuna'.
@@ -84,9 +82,9 @@ class TreeR(BaseR):
             hyperparam_search_method = "optuna"
             hyperparam_grid_specification = {
                 "max_depth": CategoricalDistribution([3, 6, 12, None]),
-                "min_samples_split": FloatDistribution(0.1, 0.5),
-                "min_samples_leaf": FloatDistribution(0.1, 0.5),
-                "max_features": CategoricalDistribution(["sqrt", "log2", "auto"]),
+                "min_samples_split": FloatDistribution(0.0, 0.5),
+                "min_samples_leaf": FloatDistribution(0.0, 0.5),
+                "max_features": CategoricalDistribution(["sqrt", "log2"]),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
@@ -97,10 +95,9 @@ class TreeR(BaseR):
 
 
 class TreeEnsembleR(BaseR):
-    """Ensemble of trees regressor. Includes random forest, gradient boosting,
-    and bagging.
+    """Tree ensemble regressor.
 
-    Like all BaseRegression-derived classes, hyperparameter selection is
+    Like all BaseR-derived classes, hyperparameter selection is
     performed automatically during training. The cross validation and
     hyperparameter selection process can be modified by the user.
     """
@@ -154,7 +151,7 @@ class TreeEnsembleR(BaseR):
         n_jobs : int.
             Default: 1. Number of parallel jobs to run.
         verbose : int.
-            Default: 0. scikit-learn verbosity level.
+            Default: 0. Verbosity level.
         n_trials : int.
             Default: 100. Number of trials for hyperparameter optimization. Only
             used if hyperparam_search_method is 'optuna'.
@@ -264,7 +261,7 @@ class TreeEnsembleR(BaseR):
                     "min_samples_split": FloatDistribution(0.1, 0.5),
                     "min_samples_leaf": FloatDistribution(0.1, 0.5),
                     "max_depth": IntDistribution(3, 9, step=2),
-                    "max_features": CategoricalDistribution(["sqrt", "log2", "auto"]),
+                    "max_features": CategoricalDistribution(["sqrt", "log2"]),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,

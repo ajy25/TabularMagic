@@ -2,6 +2,12 @@ import numpy as np
 from sklearn.svm import SVR
 from typing import Mapping, Iterable, Literal
 from .base import BaseR, HyperparameterSearcher
+from optuna.distributions import (
+    FloatDistribution,
+    IntDistribution,
+    CategoricalDistribution,
+    BaseDistribution,
+)
 
 
 class SVMR(BaseR):
@@ -15,8 +21,9 @@ class SVMR(BaseR):
     def __init__(
         self,
         type: Literal["linear", "poly", "rbf"] = "rbf",
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         name: str | None = None,
         **kwargs,
     ):
@@ -27,10 +34,10 @@ class SVMR(BaseR):
         ----------
         type : Literal['linear', 'poly', 'rbf'].
             Default: 'rbf'. The type of kernel to use.
-        hyperparam_search_method : str.
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, list].
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
         name : str.
@@ -52,9 +59,11 @@ class SVMR(BaseR):
             Default: 1. Number of parallel jobs to run.
         verbose : int.
             Default: 0. scikit-learn verbosity level.
-        super().__init__()
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
-
+        super().__init__()
         if name is None:
             self._name = f"SVMR({type})"
         else:
@@ -65,28 +74,31 @@ class SVMR(BaseR):
         if (hyperparam_search_method is None) or (
             hyperparam_grid_specification is None
         ):
-            hyperparam_search_method = "grid"
+            hyperparam_search_method = "optuna"
 
             if type == "linear":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-2, 2, 10),
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
                 }
             elif type == "poly":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-2, 2, 5),
-                    "degree": [2, 3, 4, 5],
-                    "gamma": np.logspace(-2, 2, 5),
-                    "coef0": [0, 1, 2, 3],
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
+                    "degree": IntDistribution(2, 5),
+                    "coef0": IntDistribution(0, 10),
+                    "gamma": CategoricalDistribution(["scale", "auto"]),
                 }
             elif type == "rbf":
                 hyperparam_grid_specification = {
-                    "C": np.logspace(-4, 2, 10),
-                    "gamma": np.logspace(-4, 2, 10),
+                    "C": FloatDistribution(1e-2, 1e2, log=True),
+                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
+                    "gamma": CategoricalDistribution(["scale", "auto"]),
                 }
 
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_grid_specification,
             **kwargs,
         )

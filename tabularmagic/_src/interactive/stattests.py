@@ -102,7 +102,6 @@ class StatisticalTestResult:
             bold_text(self._description), max_width
         )
 
-
         pval_str = f"{self._pval:.{n_dec}e}"
         statistic_str = str(round(self._statistic, n_dec))
         textlen_pval = (
@@ -127,19 +126,21 @@ class StatisticalTestResult:
         if self._null_hypothesis_description is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("H0: ") + color_text(
-                    self._null_hypothesis_description, "yellow"), 
-                max_width
+                bold_text("H0: ")
+                + color_text(self._null_hypothesis_description, "yellow"),
+                max_width,
             )
         if self._alternative_hypothesis_description is not None:
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("HA: ") + color_text(
-                    self._alternative_hypothesis_description, "yellow"),
-                max_width
+                bold_text("HA: ")
+                + color_text(self._alternative_hypothesis_description, "yellow"),
+                max_width,
             )
-        if self._descriptive_statistic  is not None and \
-            self._descriptive_statistic_description is not None:
+        if (
+            self._descriptive_statistic is not None
+            and self._descriptive_statistic_description is not None
+        ):
             supplementary_message += "\n"
             supplementary_message += fill_ignore_format(
                 bold_text(f"{self._descriptive_statistic_description}: ")
@@ -159,14 +160,13 @@ class StatisticalTestResult:
                 bold_text("Assumptions: ")
                 + color_text(self._assumptions_description, "yellow"),
                 max_width,
-                subsequent_indent=13
+                subsequent_indent=13,
             )
         if self._long_description is not None:
             supplementary_message += divider
             supplementary_message += fill_ignore_format(
-                bold_text("More info: ")
-                + color_text(self._long_description, "yellow"), 
-                subsequent_indent=11
+                bold_text("More info: ") + color_text(self._long_description, "yellow"),
+                subsequent_indent=11,
             )
 
         final_message = (

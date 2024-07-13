@@ -68,6 +68,6 @@ class MLPC(BaseC):
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_grid_specification,
             **kwargs
         )

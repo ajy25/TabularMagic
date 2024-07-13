@@ -25,7 +25,11 @@ def bold_text(text):
     return "\033[1m" + text + "\033[0m"
 
 
-def print_wrapped(text: str, type: Literal["WARNING", "UPDATE", None] = None):
+def print_wrapped(
+    text: str,
+    type: Literal["WARNING", "UPDATE", None] = None,
+    level: Literal["INFO", "DEBUG"] = "INFO",
+):
     """Logs text.
 
     Parameters
@@ -33,6 +37,8 @@ def print_wrapped(text: str, type: Literal["WARNING", "UPDATE", None] = None):
     text : str.
     type : Literal['WARNING', 'UPDATE', None].
         Default: None.
+    level : Literal['INFO', 'DEBUG'].
+        Default: 'INFO'.
     """
     base_message = text
     if type == "WARNING":
@@ -40,9 +46,14 @@ def print_wrapped(text: str, type: Literal["WARNING", "UPDATE", None] = None):
     elif type == "UPDATE":
         base_message = color_text("INFO: ", "green") + base_message
 
-    print_options._log_info(
-        fill_ignore_format(base_message, width=print_options.max_line_width)
-    )
+    if level == "DEBUG":
+        print_options._log_debug(
+            fill_ignore_format(base_message, width=print_options.max_line_width)
+        )
+    elif level == "INFO":
+        print_options._log_info(
+            fill_ignore_format(base_message, width=print_options.max_line_width)
+        )
 
 
 def list_to_string(

@@ -75,7 +75,7 @@ class TreeC(BaseC):
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_grid_specification,
             **kwargs,
         )
 
@@ -158,7 +158,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "adaboost":
@@ -185,7 +185,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "bagging":
@@ -215,7 +215,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "gradient_boosting":
@@ -237,7 +237,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "xgboost":
@@ -257,7 +257,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "xgboostrf":
@@ -277,7 +277,7 @@ class TreeEnsembleC(BaseC):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
 

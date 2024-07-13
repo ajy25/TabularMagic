@@ -9,6 +9,11 @@ from sklearn.linear_model import (
 )
 from typing import Mapping, Literal, Iterable
 from .base import BaseR, HyperparameterSearcher
+from optuna.distributions import (
+    FloatDistribution,
+    CategoricalDistribution,
+    BaseDistribution,
+)
 
 
 class LinearR(BaseR):
@@ -22,8 +27,9 @@ class LinearR(BaseR):
     def __init__(
         self,
         type: Literal["ols", "l1", "l2", "elasticnet"] = "ols",
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -35,10 +41,10 @@ class LinearR(BaseR):
         ----------
         type : Literal['ols', 'l1', 'l2', 'elasticnet'].
             Default: 'ols'. The type of linear regression to be used.
-        hyperparam_search_method : Literal[None, 'grid', 'random'].
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, list].
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
         model_random_state : int.
@@ -60,9 +66,12 @@ class LinearR(BaseR):
             Default: 1. Number of parallel jobs to run.
         verbose : int.
             Default: 0. scikit-learn verbosity level.
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
-        self._dropfirst = True
+        self._dropfirst = True  # we want to drop first for linear models
 
         self._type = type
         if name is None:
@@ -80,7 +89,7 @@ class LinearR(BaseR):
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "l1":
@@ -88,12 +97,14 @@ class LinearR(BaseR):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
-                hyperparam_grid_specification = {"alpha": np.logspace(-5, 2, 100)}
+                hyperparam_search_method = "optuna"
+                hyperparam_grid_specification = {
+                    "alpha": FloatDistribution(1e-5, 1e1, log=True)
+                }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "l2":
@@ -101,12 +112,14 @@ class LinearR(BaseR):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
-                hyperparam_grid_specification = {"alpha": np.logspace(-5, 2, 100)}
+                hyperparam_search_method = "optuna"
+                hyperparam_grid_specification = {
+                    "alpha": FloatDistribution(1e-5, 1e1, log=True)
+                }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "elasticnet":
@@ -116,15 +129,15 @@ class LinearR(BaseR):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "alpha": np.logspace(-5, 2, 10),
-                    "l1_ratio": np.linspace(0, 1, 10),
+                    "alpha": FloatDistribution(1e-5, 1e1, log=True),
+                    "l1_ratio": FloatDistribution(0.0, 1.0),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         else:
@@ -142,8 +155,9 @@ class RobustLinearR(BaseR):
     def __init__(
         self,
         type: Literal["huber", "ransac"] = "huber",
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -155,10 +169,10 @@ class RobustLinearR(BaseR):
         ----------
         type : Literal['huber', 'ransac'].
             Default: 'huber'.
-        hyperparam_search_method : Literal[None, 'grid', 'random'].
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, list].
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
         model_random_state : int.
@@ -197,15 +211,15 @@ class RobustLinearR(BaseR):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "epsilon": [1.0, 1.2, 1.35, 1.5, 2.0],
-                    "alpha": np.logspace(-5, 2, num=10),
+                    "epsilon": FloatDistribution(1.0, 2.0),
+                    "alpha": FloatDistribution(1e-5, 1e1, log=True),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
         elif type == "ransac":
@@ -213,16 +227,16 @@ class RobustLinearR(BaseR):
             if (hyperparam_search_method is None) or (
                 hyperparam_grid_specification is None
             ):
-                hyperparam_search_method = "grid"
+                hyperparam_search_method = "optuna"
                 hyperparam_grid_specification = {
-                    "min_samples": [None, 0.1, 0.25, 0.5],
-                    "residual_threshold": [None, 1.0, 2.0],
-                    "max_trials": [100, 200, 300],
+                    "min_samples": FloatDistribution(0.1, 0.9),
+                    "residual_threshold": FloatDistribution(1.0, 10.0),
+                    "max_trials": CategoricalDistribution([100, 500, 1000]),
                 }
             self._hyperparam_searcher = HyperparameterSearcher(
                 estimator=self._estimator,
                 method=hyperparam_search_method,
-                grid=hyperparam_grid_specification,
+                hyperparam_grid=hyperparam_grid_specification,
                 **kwargs,
             )
 

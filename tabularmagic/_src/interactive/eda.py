@@ -756,10 +756,10 @@ class ComprehensiveEDA:
             return self.anova(numerical_var, stratify_by)
 
     def anova(
-        self, 
-        numerical_var: str, 
-        stratify_by: str, 
-        strategy: Literal['auto', 'anova_oneway', 'kruskal'] = "auto"
+        self,
+        numerical_var: str,
+        stratify_by: str,
+        strategy: Literal["auto", "anova_oneway", "kruskal"] = "auto",
     ) -> StatisticalTestResult:
         """Tests for equal means between three or more groups.
 
@@ -779,11 +779,11 @@ class ComprehensiveEDA:
         strategy : Literal['auto', 'anova_oneway', 'kruskal'].
             Default: 'auto'.
             If 'auto', a test is selected as follows:
-                - If the data in any group is not normally distributed or not 
-                    homoskedastic, 
+                - If the data in any group is not normally distributed or not
+                    homoskedastic,
                     then the Kruskal-Wallis test is used.
-                - Otherwise, the one-way ANOVA test is used. ANOVA is somewhat 
-                    robust to heteroscedasticity and violations of the normality 
+                - Otherwise, the one-way ANOVA test is used. ANOVA is somewhat
+                    robust to heteroscedasticity and violations of the normality
                     assumption.
 
         Returns
@@ -846,11 +846,10 @@ class ComprehensiveEDA:
                 descriptive_statistic_description=None,
                 null_hypothesis_description="All group means are equal",
                 alternative_hypothesis_description="At least one group's mean is "
-                    "different from the others",
+                "different from the others",
             )
 
         elif strategy == "anova_oneway":
-
             f_stat, p_val = stats.f_oneway(*groups)
 
             return StatisticalTestResult(
@@ -863,12 +862,11 @@ class ComprehensiveEDA:
                 descriptive_statistic_description=None,
                 null_hypothesis_description="All group means are equal",
                 alternative_hypothesis_description="At least one group's mean is "
-                    "different from the others",
+                "different from the others",
                 assumptions_description="1. Data in each group are normally "
                 "distributed. 2. Variances of each group are equal. "
                 "3. Samples are independent.",
             )
-    
 
     def ttest(
         self,
@@ -876,7 +874,7 @@ class ComprehensiveEDA:
         stratify_by: str,
         strategy: Literal["auto", "student", "welch", "yuen", "mann-whitney"] = "welch",
     ) -> StatisticalTestResult:
-        """Conducts the appropriate statistical test to 
+        """Conducts the appropriate statistical test to
         test for equal means between two groups.
         The parameter stratify_by must be the name of a binary variable, i.e.
             a categorical or numerical variable with exactly two unique values.
@@ -897,7 +895,7 @@ class ComprehensiveEDA:
         strategy : Literal['auto', 'student', 'welch', 'yuen', 'mann-whitney'].
             Default: 'welch'.
             If 'auto', a test is selected as follows:
-                - If the data in either group is not normally distributed, 
+                - If the data in either group is not normally distributed,
                     and the variances are not equal, then Yuen's
                     (20% trimmed mean) t-test is used.
                 - If the data in either group is not normally distributed,
@@ -950,7 +948,7 @@ class ComprehensiveEDA:
             except Exception as e:
                 print_wrapped(
                     f"Shapiro-Wilk test failed; assuming not normal: {e}.",
-                    type="WARNING"
+                    type="WARNING",
                 )
                 is_normal = False
 
@@ -959,10 +957,9 @@ class ComprehensiveEDA:
             except Exception as e:
                 print_wrapped(
                     f"Levene test failed; assuming unequal variances: {e}.",
-                    type="WARNING"
+                    type="WARNING",
                 )
                 is_equal_var = False
-
 
             if is_equal_var:
                 if is_normal:
@@ -1042,7 +1039,7 @@ class ComprehensiveEDA:
                 "is violated. "
                 "10% of the data is trimmed from each tail.",
             )
-        
+
         elif test_type == "mann-whitney":
             u_stat, p_val = stats.mannwhitneyu(
                 group_1, group_2, alternative="two-sided"
@@ -1064,8 +1061,6 @@ class ComprehensiveEDA:
                 "testing the null hypothesis that the distributions "
                 "of two independent samples are equal.",
             )
-
-
 
     # --------------------------------------------------------------------------
     # GETTERS

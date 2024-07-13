@@ -1,6 +1,11 @@
 from sklearn.neural_network import MLPRegressor
 from typing import Mapping, Iterable, Literal
 from .base import BaseR, HyperparameterSearcher
+from optuna.distributions import (
+    FloatDistribution,
+    CategoricalDistribution,
+    BaseDistribution,
+)
 
 
 class MLPR(BaseR):
@@ -13,8 +18,9 @@ class MLPR(BaseR):
 
     def __init__(
         self,
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
-        hyperparam_grid_specification: Mapping[str, Iterable] | None = None,
+        hyperparam_search_method: Literal["optuna", "grid"] | None = None,
+        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs
@@ -24,10 +30,10 @@ class MLPR(BaseR):
 
         Parameters
         ----------
-        hyperparam_search_method : str.
+        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, list].
+        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
         name : str.
@@ -49,6 +55,9 @@ class MLPR(BaseR):
             Default: 1. Number of parallel jobs to run.
         verbose : int.
             Default: 0. scikit-learn verbosity level.
+        n_trials : int.
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
 
@@ -62,17 +71,39 @@ class MLPR(BaseR):
         if (hyperparam_search_method is None) or (
             hyperparam_grid_specification is None
         ):
-            hyperparam_search_method = "grid"
+            hyperparam_search_method = "optuna"
             hyperparam_grid_specification = {
-                "hidden_layer_sizes": [(50,), (100,), (50, 50), (100, 50, 25)],
-                "activation": ["relu"],
-                "solver": ["adam"],
-                "alpha": [0.0001, 0.001, 0.01],
-                "learning_rate": ["constant", "adaptive"],
+                "hidden_layer_sizes": CategoricalDistribution(
+                    [
+                        (50,),
+                        (100,),
+                        (
+                            50,
+                            25,
+                        ),
+                        (
+                            50,
+                            50,
+                        ),
+                        (
+                            100,
+                            50,
+                        ),
+                        (
+                            100,
+                            50,
+                            25,
+                        ),
+                    ]
+                ),
+                "activation": CategoricalDistribution(["relu", "tanh"]),
+                "alpha": FloatDistribution(1e-5, 1e0, log=True),
+                "learning_rate": CategoricalDistribution(["constant", "adaptive"]),
+                "learning_rate_init": FloatDistribution(1e-5, 1e-1, log=True),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_grid_specification,
             **kwargs
         )

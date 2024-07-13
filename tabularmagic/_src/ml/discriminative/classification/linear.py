@@ -23,8 +23,9 @@ class LinearC(BaseC):
         self,
         type: Literal["no_penalty", "l1", "l2", "elasticnet"] = "l2",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -146,5 +147,3 @@ class LinearC(BaseC):
 
         else:
             raise ValueError("Invalid value for type")
-
-

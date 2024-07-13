@@ -28,8 +28,9 @@ class LinearR(BaseR):
         self,
         type: Literal["ols", "l1", "l2", "elasticnet"] = "ols",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -156,8 +157,9 @@ class RobustLinearR(BaseR):
         self,
         type: Literal["huber", "ransac"] = "huber",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,

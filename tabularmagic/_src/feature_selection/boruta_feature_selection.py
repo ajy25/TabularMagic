@@ -16,5 +16,3 @@ class BorutaFeatureSelector(BaseFeatureSelector):
         - None
         """
         super().__init__(name)
-
-

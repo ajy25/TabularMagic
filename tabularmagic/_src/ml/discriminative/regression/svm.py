@@ -22,8 +22,9 @@ class SVMR(BaseR):
         self,
         type: Literal["linear", "poly", "rbf"] = "rbf",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         name: str | None = None,
         **kwargs,
     ):

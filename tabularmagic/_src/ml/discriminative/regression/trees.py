@@ -16,7 +16,6 @@ from optuna.distributions import (
 )
 
 
-
 class TreeR(BaseR):
     """Decision tree regressor.
 
@@ -28,8 +27,9 @@ class TreeR(BaseR):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -113,8 +113,9 @@ class TreeEnsembleR(BaseR):
             "xgboostrf",
         ] = "random_forest",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,

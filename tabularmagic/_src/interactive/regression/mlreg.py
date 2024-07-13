@@ -202,8 +202,7 @@ class MLRegressionReport:
             model.fit(verbose=self._verbose)
             if self._verbose:
                 print_wrapped(
-                    f"Successfully evaluated model {model._name}.", 
-                    type="UPDATE"
+                    f"Successfully evaluated model {model._name}.", type="UPDATE"
                 )
 
         self._id_to_report = {

@@ -19,8 +19,9 @@ class MLPC(BaseC):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_grid_specification: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs

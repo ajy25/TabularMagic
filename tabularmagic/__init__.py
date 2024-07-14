@@ -20,6 +20,7 @@ DataHandler.
 Submodules
 ----------
 - ml
+- fs
 - options
 
 
@@ -37,6 +38,7 @@ from ._src.analyzer import Analyzer
 from ._src.data.datahandler import DataHandler
 from . import ml
 from . import options
+from . import fs
 
 
-__all__ = ["Analyzer", "DataHandler", "ml", "options"]
+__all__ = ["Analyzer", "DataHandler", "ml", "options", "fs"]

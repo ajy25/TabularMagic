@@ -6,9 +6,9 @@ from typing import Mapping, Literal, Iterable
 from .base import BaseC, HyperparameterSearcher
 from optuna.distributions import (
     FloatDistribution,
-    CategoricalDistribution,
     BaseDistribution,
 )
+from ....feature_selection import BaseFSC
 
 
 class LinearC(BaseC):
@@ -23,8 +23,10 @@ class LinearC(BaseC):
         self,
         type: Literal["no_penalty", "l1", "l2", "elasticnet"] = "l2",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
         | None = None,
+        feature_selectors: list[BaseFSC] | None = None,
+        max_n_features: int = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -39,9 +41,15 @@ class LinearC(BaseC):
         hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
+        feature_selectors : list[BaseFSR].
+            Default: None. If not None, specifies the feature selectors for the
+            VotingSelectionReport.
+        max_n_features : int.
+            Default: 10. Maximum number of features to select. Only useful if
+            feature_selectors is not None.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.
@@ -67,7 +75,8 @@ class LinearC(BaseC):
         """
         super().__init__()
         self._dropfirst = True
-
+        self._feature_selectors = feature_selectors
+        self._max_n_features = max_n_features
         if name is None:
             self._name = f"LinearC({type})"
         else:
@@ -77,74 +86,43 @@ class LinearC(BaseC):
             self._estimator = LogisticRegression(
                 penalty=None, random_state=model_random_state
             )
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "grid"
-                hyperparam_grid_specification = {"fit_intercept": [True]}
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
+                hyperparam_search_space = {"fit_intercept": [True]}
 
         elif type == "l1":
             self._estimator = LogisticRegression(
                 penalty="l1", random_state=model_random_state, solver="liblinear"
             )
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
-                    "C": FloatDistribution(1e-2, 1e2, log=True)
-                }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
+                hyperparam_search_space = {"C": FloatDistribution(1e-2, 1e2, log=True)}
 
         elif type == "l2":
             self._estimator = LogisticRegression(
                 penalty="l2", random_state=model_random_state
             )
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
-                    "C": FloatDistribution(1e-2, 1e2, log=True)
-                }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
+                hyperparam_search_space = {"C": FloatDistribution(1e-2, 1e2, log=True)}
 
         elif type == "elasticnet":
             self._estimator = LogisticRegression(
                 penalty="elasticnet", random_state=model_random_state, solver="saga"
             )
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "C": FloatDistribution(1e-2, 1e2, log=True),
                     "l1_ratio": FloatDistribution(0.0, 1.0),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
-
         else:
             raise ValueError("Invalid value for type")
 
-
+        self._hyperparam_searcher = HyperparameterSearcher(
+            estimator=self._estimator,
+            method=hyperparam_search_method,
+            hyperparam_grid=hyperparam_search_space,
+            estimator_name=self._name,
+            **kwargs,
+        )

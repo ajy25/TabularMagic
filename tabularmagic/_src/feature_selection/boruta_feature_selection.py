@@ -1,11 +1,10 @@
-from .base_feature_selection import BaseFeatureSelector
+from .base_feature_selection import BaseFSC
 
 
-class BorutaFeatureSelector(BaseFeatureSelector):
-
+class BorutaSelector(BaseFSC):
     def __init__(self, name: str | None = None):
         """
-        Constructs a BorutaFeatureSelector.
+        Constructs a BorutaSelector.
 
         Parameters
         ----------
@@ -16,5 +15,3 @@ class BorutaFeatureSelector(BaseFeatureSelector):
         - None
         """
         super().__init__(name)
-
-

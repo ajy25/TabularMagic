@@ -27,7 +27,7 @@ def bold_text(text):
 
 def print_wrapped(
     text: str,
-    type: Literal["WARNING", "UPDATE", None] = None,
+    type: Literal["WARNING", "UPDATE", "PROGRESS", None] = None,
     level: Literal["INFO", "DEBUG"] = "INFO",
 ):
     """Logs text.
@@ -35,7 +35,7 @@ def print_wrapped(
     Parameters
     ----------
     text : str.
-    type : Literal['WARNING', 'UPDATE', None].
+    type : Literal['WARNING', 'UPDATE', 'PROGRESS', None].
         Default: None.
     level : Literal['INFO', 'DEBUG'].
         Default: 'INFO'.
@@ -45,6 +45,8 @@ def print_wrapped(
         base_message = color_text("WARN: ", "red") + base_message
     elif type == "UPDATE":
         base_message = color_text("INFO: ", "green") + base_message
+    elif type == "PROGRESS":
+        base_message = color_text("PROG: ", "yellow") + base_message
 
     if level == "DEBUG":
         print_options._log_debug(

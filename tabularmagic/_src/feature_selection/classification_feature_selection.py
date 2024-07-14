@@ -2,11 +2,11 @@ from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classi
 from typing import Literal
 
 from ..data.datahandler import DataEmitter
-from .base_feature_selection import BaseFeatureSelector
+from .base_feature_selection import BaseFSC
 
 
-class KBestSelectorC(BaseFeatureSelector):
-    """Selects the k best features based on the f_regression or mutual info
+class KBestSelectorC(BaseFSC):
+    """Selects the k best features based on the f_classif or mutual info
     regression score.
     """
 
@@ -21,49 +21,49 @@ class KBestSelectorC(BaseFeatureSelector):
         Parameters
         ----------
         scorer : Literal['f_classif', 'mutual_info_classif'].
-        nickname : str.
+        name : str.
             Default: None. If None, then outputs the class name.
-
-        Returns
-        -------
-        - None
         """
+        if name is None:
+            name = f"KBestSelectorC({scorer})"
         super().__init__(name)
-        if self._name is None:
-            self._name = f"KBestSelector({scorer})"
         self.scorer = scorer
 
-    def select(self, dataemitter: DataEmitter, n_target_features: int):
+    def select(self, dataemitter: DataEmitter, max_n_features: int):
         """
-        Selects the top n_target_features features
+        Selects the top max_n_features features
         based on the training data.
 
         Parameters
         ----------
         dataemitter : DataEmitter.
-        n_target_features : int.
+        max_n_features : int.
             Number of desired features, < n_predictors.
 
         Returns
         -------
-        np.ndarray ~ (n_features).
+        np.ndarray ~ (n_in_features).
+            All features (variable names).
+        np.ndarray ~ (n_out_features).
             Selected features.
-        np.ndarray ~ (n_features).
-            Boolean mask.
+        np.ndarray ~ (n_in_features).
+            Boolean mask, the support for selected features.
         """
         scorer = None
-        if self.scorer == "f_classification":
+        if self.scorer == "f_classif":
             scorer = f_classif
-        elif self.scorer == "mutual_info_classification":
+        elif self.scorer == "mutual_info_classif":
             scorer = mutual_info_classif
-        selector = SelectKBest(scorer, k=n_target_features)
+        else:
+            raise ValueError(f"Invalid scorer: {self.scorer}")
+        selector = SelectKBest(scorer, k=max_n_features)
 
         X_train, y_train = dataemitter.emit_train_Xy()
-
+        self._all_features = X_train.columns.to_list()
         selector.fit(X=X_train, y=y_train)
 
-        self.selected_features = selector.get_feature_names_out()
-        self.all_feature_scores = selector.scores_
-        self.support = selector.get_support()
-        self.selected_feature_scores = selector.scores_[self.support]
-        return self.selected_features, self.support
+        self._selected_features = selector.get_feature_names_out()
+        self._all_feature_scores = selector.scores_
+        self._support = selector.get_support()
+        self._selected_feature_scores = selector.scores_[self._support]
+        return self._all_features, self._selected_features, self._support

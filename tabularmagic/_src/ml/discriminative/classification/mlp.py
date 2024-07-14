@@ -6,6 +6,7 @@ from optuna.distributions import (
     CategoricalDistribution,
     BaseDistribution,
 )
+from ....feature_selection import BaseFSC
 
 
 class MLPC(BaseC):
@@ -19,8 +20,10 @@ class MLPC(BaseC):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
         | None = None,
+        feature_selectors: list[BaseFSC] | None = None,
+        max_n_features: int = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs
@@ -33,14 +36,20 @@ class MLPC(BaseC):
         hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a classification-specific default hyperparameter
             search is conducted.
+        feature_selectors : list[BaseFSC].
+            Default: None. If not None, specifies the feature selectors for the
+            VotingSelectionReport.
+        max_n_features : int.
+            Default: 10. Maximum number of features to select. Only useful if
+            feature_selectors is not None.
+        model_random_state : int.
+            Default: 42. Random seed for the model.
         name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        model_random_state : int.
-            Default: 42. Random seed for the model.
         kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
@@ -61,6 +70,9 @@ class MLPC(BaseC):
         """
         super().__init__()
 
+        self._feature_selectors = feature_selectors
+        self._max_n_features = max_n_features
+
         self._type = type
         if name is None:
             self._name = "MLPC"
@@ -68,11 +80,9 @@ class MLPC(BaseC):
             self._name = name
 
         self._estimator = MLPClassifier(random_state=model_random_state)
-        if (hyperparam_search_method is None) or (
-            hyperparam_grid_specification is None
-        ):
+        if (hyperparam_search_method is None) or (hyperparam_search_space is None):
             hyperparam_search_method = "optuna"
-            hyperparam_grid_specification = {
+            hyperparam_search_space = {
                 "hidden_layer_sizes": CategoricalDistribution(
                     [
                         (50,),
@@ -104,6 +114,6 @@ class MLPC(BaseC):
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            hyperparam_grid=hyperparam_grid_specification,
-            **kwargs
+            hyperparam_grid=hyperparam_search_space,
+            estimator_name=self._name**kwargs,
         )

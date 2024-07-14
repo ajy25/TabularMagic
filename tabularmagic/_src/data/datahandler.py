@@ -104,6 +104,8 @@ class DataEmitter:
             self._categorical_to_categories,
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
 
+        self._final_X_vars_subset = None
+
         self._forward()
 
     def _forward(self):
@@ -168,6 +170,9 @@ class DataEmitter:
         working_df_test = self._working_df_test[all_vars].dropna()
         X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
+        if self._final_X_vars_subset is not None:
+            X_train_df = X_train_df[self._final_X_vars_subset]
+            X_test_df = X_test_df[self._final_X_vars_subset]
         return (
             X_train_df,
             working_df_train[self._yvar],
@@ -201,6 +206,8 @@ class DataEmitter:
         all_vars = self._Xvars + [self._yvar]
         working_df_train = self._working_df_train[all_vars].dropna()
         X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
+        if self._final_X_vars_subset is not None:
+            X_train_df = X_train_df[self._final_X_vars_subset]
         return X_train_df, working_df_train[self._yvar]
 
     def emit_test_Xy(self) -> tuple[pd.DataFrame, pd.Series]:
@@ -229,7 +236,24 @@ class DataEmitter:
         all_vars = self._Xvars + [self._yvar]
         working_df_test = self._working_df_test[all_vars].dropna()
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
+        if self._final_X_vars_subset is not None:
+            X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
+
+    def select_predictors(self, predictors: list[str] | None) -> "DataEmitter":
+        """Selects a subset of predictors lazily (last step of the emit methods).
+
+        Parameters
+        ----------
+        - predictors : list[str] | None.
+            List of predictors to select. If None, all predictors are selected.
+
+        Returns
+        -------
+        - self : DataEmitter
+        """
+        self._final_X_vars_subset = predictors
+        return self
 
     def _onehot(
         self, vars: list[str] | None = None, dropfirst: bool = True
@@ -988,25 +1012,59 @@ class DataHandler:
             if self._orig_df_train[y_var].dtype in ["object", "category", "bool"]:
                 use_stratified = True
         if use_stratified:
-            if shuffle:
-                kf = StratifiedKFold(
-                    n_splits=n_folds, random_state=random_state, shuffle=True
-                )
-            else:
-                kf = StratifiedKFold(n_splits=n_folds, shuffle=False)
-
-            out = []
-            for train_index, test_index in kf.split(
-                self._orig_df_train, self._orig_df_train[y_var]
-            ):
-                df_train = self._orig_df_train.iloc[train_index]
-                df_test = self._orig_df_train.iloc[test_index]
-                out.append(
-                    DataEmitter(
-                        df_train, df_test, y_var, X_vars, self._preprocess_step_tracer
+            try:
+                if shuffle:
+                    kf = StratifiedKFold(
+                        n_splits=n_folds, random_state=random_state, shuffle=True
                     )
-                )
-            return out
+                else:
+                    kf = StratifiedKFold(n_splits=n_folds, shuffle=False)
+
+                out = []
+                for train_index, test_index in kf.split(
+                    self._orig_df_train, self._orig_df_train[y_var]
+                ):
+                    df_train = self._orig_df_train.iloc[train_index]
+                    df_test = self._orig_df_train.iloc[test_index]
+                    out.append(
+                        DataEmitter(
+                            df_train,
+                            df_test,
+                            y_var,
+                            X_vars,
+                            self._preprocess_step_tracer,
+                        )
+                    )
+                return out
+
+            except ValueError as e:
+                if self._verbose:
+                    print_wrapped(
+                        f"StratifiedKFold failed: {e}. Using KFold instead.",
+                        type="WARNING",
+                    )
+                use_stratified = False
+                if shuffle:
+                    kf = KFold(
+                        n_splits=n_folds, random_state=random_state, shuffle=True
+                    )
+                else:
+                    kf = KFold(n_splits=n_folds, shuffle=False)
+
+                out = []
+                for train_index, test_index in kf.split(self._orig_df_train):
+                    df_train = self._orig_df_train.iloc[train_index]
+                    df_test = self._orig_df_train.iloc[test_index]
+                    out.append(
+                        DataEmitter(
+                            df_train,
+                            df_test,
+                            y_var,
+                            X_vars,
+                            self._preprocess_step_tracer,
+                        )
+                    )
+                return out
 
         else:
             if shuffle:

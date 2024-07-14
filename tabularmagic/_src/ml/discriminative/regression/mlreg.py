@@ -1,10 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from typing import Iterable, Literal
-from ...ml.discriminative.regression.base import BaseR
-from ...data.datahandler import DataHandler
-from ..visualization import plot_obs_vs_pred
-from ...display.print_utils import print_wrapped
+from .base import BaseR
+from ....data.datahandler import DataHandler
+from ....exploratory.visualization import plot_obs_vs_pred
+from ....display.print_utils import print_wrapped
+from ....feature_selection import BaseFSR, VotingSelectionReport
 
 
 class SingleModelSingleDatasetMLRegReport:
@@ -30,7 +31,7 @@ class SingleModelSingleDatasetMLRegReport:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
 
-    def fit_statistics(self) -> pd.DataFrame:
+    def metrics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model on the specified data.
 
@@ -43,7 +44,7 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             return self.model.test_scorer.stats_df()
 
-    def cv_fit_statistics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
+    def cv_metrics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
         statistics for the model on the specified data.
 
@@ -150,8 +151,10 @@ class MLRegressionReport:
         self,
         models: Iterable[BaseR],
         datahandler: DataHandler,
-        y_var: str,
-        X_vars: Iterable[str],
+        target: str,
+        predictors: Iterable[str],
+        feature_selectors: Iterable[BaseFSR] | None = None,
+        max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
         verbose: bool = True,
@@ -165,10 +168,18 @@ class MLRegressionReport:
             The BaseRegression models must already be trained.
         datahandler : DataHandler.
             The DataHandler object that contains the data.
-        y_var : str.
-            The name of the dependent variable.
-        X_vars : Iterable[str].
-            The names of the independent variables.
+        target : str.
+            The name of the target variable.
+        predictors : Iterable[str].
+            The names of the predictor variables.
+        feature_selectors : Iterable[BaseFSR].
+            Default: None.
+            The feature selectors for voting selection. Feature selectors
+            can be used to select the most important predictors.
+        max_n_features : int.
+            Default: None.
+            Maximum number of predictors to utilize. Ignored if feature_selectors
+            is None.
         outer_cv : int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.
@@ -180,30 +191,57 @@ class MLRegressionReport:
         self._models: list[BaseR] = models
         self._id_to_model = {model._name: model for model in models}
 
-        self.y_var = y_var
-        self.X_vars = X_vars
+        self.feature_selection_report = None
 
-        self._emitter = datahandler.train_test_emitter(y_var=y_var, X_vars=X_vars)
+        self.y_var = target
+        self.X_vars = predictors
+
+        self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
+        if feature_selectors is not None:
+            if max_n_features is None:
+                max_n_features = 10
+            self.feature_selection_report = VotingSelectionReport(
+                selectors=feature_selectors,
+                dataemitter=self._emitter,
+                max_n_features=max_n_features,
+                verbose=verbose,
+            )
+            self.X_vars = self.feature_selection_report.top_features()
+            self._emitter.select_predictors(self.X_vars)
+
         self._emitters = None
         if outer_cv is not None:
             self._emitters = datahandler.kfold_emitters(
-                y_var=y_var,
-                X_vars=X_vars,
+                y_var=target,
+                X_vars=predictors,
                 n_folds=outer_cv,
                 shuffle=True,
                 random_state=outer_cv_seed,
             )
+            if feature_selectors is not None:
+                for emitter in self._emitters:
+                    fold_selection_report = VotingSelectionReport(
+                        selectors=feature_selectors,
+                        dataemitter=emitter,
+                        max_n_features=max_n_features,
+                        verbose=verbose,
+                    )
+                    emitter.select_predictors(fold_selection_report.top_features())
 
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
                 print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
-            model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
+            model.specify_data(
+                dataemitter=self._emitter,
+                dataemitters=self._emitters,
+            )
             model.fit(verbose=self._verbose)
+            if model.voting_selection_report is None:
+                model.voting_selection_report = self.feature_selection_report
             if self._verbose:
                 print_wrapped(
-                    f"Successfully evaluated model {model._name}.", 
-                    type="UPDATE"
+                    f"Successfully evaluated model {model._name}.", type="UPDATE"
                 )
 
         self._id_to_report = {
@@ -238,9 +276,7 @@ class MLRegressionReport:
         """
         return self._id_to_model[model_id]
 
-    def fit_statistics(
-        self, dataset: Literal["train", "test"] = "test"
-    ) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics for
         all models on the specified data.
 
@@ -256,7 +292,7 @@ class MLRegressionReport:
         if dataset == "train":
             return pd.concat(
                 [
-                    report.train_report().fit_statistics()
+                    report.train_report().metrics()
                     for report in self._id_to_report.values()
                 ],
                 axis=1,
@@ -264,13 +300,13 @@ class MLRegressionReport:
         else:
             return pd.concat(
                 [
-                    report.test_report().fit_statistics()
+                    report.test_report().metrics()
                     for report in self._id_to_report.values()
                 ],
                 axis=1,
             )
 
-    def cv_fit_statistics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
+    def cv_metrics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
         statistics for all models on the training data. Cross validation must
         have been conducted.
@@ -297,7 +333,7 @@ class MLRegressionReport:
             return None
         return pd.concat(
             [
-                report.train_report().cv_fit_statistics(averaged_across_folds)
+                report.train_report().cv_metrics(averaged_across_folds)
                 for report in self._id_to_report.values()
             ],
             axis=1,

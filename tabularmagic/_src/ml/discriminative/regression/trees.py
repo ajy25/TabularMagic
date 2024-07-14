@@ -14,7 +14,7 @@ from optuna.distributions import (
     IntDistribution,
     BaseDistribution,
 )
-
+from ....feature_selection import BaseFSR
 
 
 class TreeR(BaseR):
@@ -28,8 +28,10 @@ class TreeR(BaseR):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
         | None = None,
+        feature_selectors: list[BaseFSR] | None = None,
+        max_n_features: int = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -42,9 +44,15 @@ class TreeR(BaseR):
         hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
+        feature_selectors : list[BaseFSR].
+            Default: None. If not None, specifies the feature selectors for the
+            VotingSelectionReport.
+        max_n_features : int.
+            Default: 10. Maximum number of features to select. Only useful if
+            feature_selectors is not None.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.
@@ -76,11 +84,12 @@ class TreeR(BaseR):
             self._name = name
 
         self._estimator = DecisionTreeRegressor(random_state=model_random_state)
-        if (hyperparam_search_method is None) or (
-            hyperparam_grid_specification is None
-        ):
+        self._feature_selectors = feature_selectors
+        self._max_n_features = max_n_features
+
+        if (hyperparam_search_method is None) or (hyperparam_search_space is None):
             hyperparam_search_method = "optuna"
-            hyperparam_grid_specification = {
+            hyperparam_search_space = {
                 "max_depth": CategoricalDistribution([3, 6, 12, None]),
                 "min_samples_split": FloatDistribution(0.0, 0.5),
                 "min_samples_leaf": FloatDistribution(0.0, 0.5),
@@ -89,7 +98,8 @@ class TreeR(BaseR):
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            hyperparam_grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_search_space,
+            estimator_name=self._name,
             **kwargs,
         )
 
@@ -113,8 +123,10 @@ class TreeEnsembleR(BaseR):
             "xgboostrf",
         ] = "random_forest",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
         | None = None,
+        feature_selectors: list[BaseFSR] | None = None,
+        max_n_features: int = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -130,9 +142,15 @@ class TreeEnsembleR(BaseR):
         hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
+        feature_selectors : list[BaseFSR].
+            Default: None. If not None, specifies the feature selectors for the
+            VotingSelectionReport.
+        max_n_features : int.
+            Default: 10. Maximum number of features to select. Only useful if
+            feature_selectors is not None.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.
@@ -163,32 +181,25 @@ class TreeEnsembleR(BaseR):
         else:
             self._name = name
 
+        self._feature_selectors = feature_selectors
+        self._max_n_features = max_n_features
+
         if type == "random_forest":
             self._estimator = RandomForestRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "n_estimators": CategoricalDistribution([50, 100, 200, 400]),
                     "min_samples_split": CategoricalDistribution([2, 5, 10]),
                     "min_samples_leaf": CategoricalDistribution([1, 2, 4]),
                     "max_features": CategoricalDistribution(["sqrt", "log2"]),
                     "max_depth": IntDistribution(3, 15, step=2),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
         elif type == "adaboost":
             self._estimator = AdaBoostRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "n_estimators": CategoricalDistribution([50, 100, 200]),
                     "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
                     "estimator": CategoricalDistribution(
@@ -208,19 +219,11 @@ class TreeEnsembleR(BaseR):
                         ]
                     ),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
         elif type == "bagging":
             self._estimator = BaggingRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "n_estimators": CategoricalDistribution([50, 100, 200]),
                     "max_samples": FloatDistribution(0.1, 1.0),
                     "max_features": FloatDistribution(0.1, 1.0),
@@ -243,19 +246,11 @@ class TreeEnsembleR(BaseR):
                         ]
                     ),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
         elif type == "gradient_boosting":
             self._estimator = GradientBoostingRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "n_estimators": CategoricalDistribution([50, 100, 200, 400]),
                     "subsample": FloatDistribution(0.1, 1.0),
                     "min_samples_split": FloatDistribution(0.1, 0.5),
@@ -263,19 +258,11 @@ class TreeEnsembleR(BaseR):
                     "max_depth": IntDistribution(3, 9, step=2),
                     "max_features": CategoricalDistribution(["sqrt", "log2"]),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
         elif type == "xgboost":
             self._estimator = xgb.XGBRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
                     "n_estimators": CategoricalDistribution([50, 100, 200]),
                     "max_depth": IntDistribution(3, 9, step=2),
@@ -285,19 +272,11 @@ class TreeEnsembleR(BaseR):
                     "colsample_bytree": FloatDistribution(0.6, 1.0),
                     "min_child_weight": CategoricalDistribution([1, 3, 5]),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
         elif type == "xgboostrf":
             self._estimator = xgb.XGBRFRegressor(random_state=model_random_state)
-            if (hyperparam_search_method is None) or (
-                hyperparam_grid_specification is None
-            ):
+            if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
-                hyperparam_grid_specification = {
+                hyperparam_search_space = {
                     "learning_rate": FloatDistribution(1e-3, 1e0, log=True),
                     "max_depth": IntDistribution(3, 9, step=2),
                     "n_estimators": CategoricalDistribution([50, 100, 200]),
@@ -307,12 +286,14 @@ class TreeEnsembleR(BaseR):
                     "reg_lambda": FloatDistribution(1e-5, 1e0, log=True),
                     "reg_alpha": FloatDistribution(1e-5, 1e0, log=True),
                 }
-            self._hyperparam_searcher = HyperparameterSearcher(
-                estimator=self._estimator,
-                method=hyperparam_search_method,
-                hyperparam_grid=hyperparam_grid_specification,
-                **kwargs,
-            )
 
         else:
             raise ValueError("Invalid input: ensemble_type = " + f'"{type}".')
+
+        self._hyperparam_searcher = HyperparameterSearcher(
+            estimator=self._estimator,
+            method=hyperparam_search_method,
+            hyperparam_grid=hyperparam_search_space,
+            estimator_name=self._name,
+            **kwargs,
+        )

@@ -7,6 +7,7 @@ from ....metrics.classification_scoring import (
     ClassificationMulticlassScorer,
     ClassificationBinaryScorer,
 )
+from ....feature_selection import BaseFSC, VotingSelectionReport
 
 import numpy as np
 
@@ -26,6 +27,8 @@ class BaseC(BaseDiscriminativeModel):
         self._estimator: BaseEstimator = None
         self._dataemitter = None
         self._dataemitters = None
+        self._feature_selectors = None
+        self._max_n_features = 10
         self._name = "BaseC"
         self.train_scorer = None
         self.cv_scorer = None
@@ -36,38 +39,73 @@ class BaseC(BaseDiscriminativeModel):
         self._dropfirst = False
 
     def specify_data(
-        self, dataemitter: DataEmitter, dataemitters: list[DataEmitter] | None = None
+        self,
+        dataemitter: DataEmitter | None = None,
+        dataemitters: list[DataEmitter] | None = None,
+        feature_selectors: list[BaseFSC] | None = None,
+        max_n_features: int | None = None,
     ):
         """Adds a DataEmitter object to the model.
 
         Parameters
         ----------
         dataemitter : DataEmitter.
-            DataEmitter that contains the data.
+            Default: None.
+            DataEmitter that contains the data. If not None, re-specifies the
+            DataEmitter for the model.
         dataemitters : list[DataEmitter].
             Default: None.
-            If not None, specifies the DataEmitters for nested cross validation.
+            If not None, re-specifies the DataEmitters for nested cross validation.
+        feature_selectors : list[BaseFSC].
+            Default: None.
+            If not None, re-specifies the feature selectors
+            for the VotingSelectionReport.
+        max_n_features : int.
+            Default: Mone.
+            Maximum number of features to select. Only useful if feature_selectors
+            is not None. If not None, re-specifies the maximum number of features.
         """
-        self._dataemitter = dataemitter
-        self._dataemitters = dataemitters
+        if dataemitter is not None:
+            self._dataemitter = dataemitter
+        if dataemitters is not None:
+            self._dataemitters = dataemitters
+        if feature_selectors is not None:
+            self._feature_selectors = feature_selectors
+        if max_n_features is not None:
+            self._max_n_features = max_n_features
 
-    def fit(self):
+    def fit(self, verbose: bool = False):
         """Fits the model. Records training metrics, which can be done via
         nested cross validation.
+
+        Parameters
+        ----------
+        verbose : bool.
+            Default: False. If True, prints progress.
         """
         is_binary = False
 
         if self._dataemitters is None and self._dataemitter is not None:
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
-            X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
+
+            if self._feature_selectors is not None:
+                self.voting_selection_report = VotingSelectionReport(
+                    selectors=self._feature_selectors,
+                    dataemitter=self._dataemitter,
+                    max_n_features=self._max_n_features,
+                    verbose=verbose,
+                )
+                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+            else:
+                X_train = X_train_df.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
             if np.isin(np.unique(y_train), [0, 1]).all():
                 is_binary = True
 
-            self._hyperparam_searcher.fit(X_train, y_train_encoded)
+            self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
 
             y_pred = self._label_encoder.inverse_transform(
@@ -112,19 +150,29 @@ class BaseC(BaseDiscriminativeModel):
                     X_test_df,
                     y_test_series,
                 ) = emitter.emit_train_test_Xy()
-                X_train = X_train_df.to_numpy()
                 y_train = y_train_series.to_numpy()
-
                 y_train_encoded: np.ndarray = self._label_encoder.fit_transform(y_train)
+
+                if self._feature_selectors is not None:
+                    fold_selector = VotingSelectionReport(
+                        selectors=self._feature_selectors,
+                        dataemitter=emitter,
+                        max_n_features=self._max_n_features,
+                        verbose=verbose,
+                    )
+                    X_train = fold_selector.emit_train_X().to_numpy()
+                    X_test = fold_selector.emit_test_X().to_numpy()
+                else:
+                    X_train = X_train_df.to_numpy()
+                    X_test = X_test_df.to_numpy()
 
                 # if not np.isin(np.unique(y_train), [0, 1]).all():
                 if len(np.unique(y_train)) > 2:
                     is_binary = False
 
-                X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
 
-                self._hyperparam_searcher.fit(X_train, y_train_encoded)
+                self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
                 fold_estimator = self._hyperparam_searcher._best_estimator
 
                 y_pred = self._label_encoder.inverse_transform(
@@ -162,12 +210,22 @@ class BaseC(BaseDiscriminativeModel):
 
             # refit on all data
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
-            X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
+
+            if self._feature_selectors is not None:
+                self.voting_selection_report = VotingSelectionReport(
+                    selectors=self._feature_selectors,
+                    dataemitter=self._dataemitter,
+                    max_n_features=self._max_n_features,
+                    verbose=verbose,
+                )
+                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+            else:
+                X_train = X_train_df.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
-            self._hyperparam_searcher.fit(X_train, y_train_encoded)
+            self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
 
             y_pred = self._label_encoder.inverse_transform(
@@ -200,8 +258,12 @@ class BaseC(BaseDiscriminativeModel):
             raise ValueError("The datahandler must not be None")
 
         X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
-        X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()
+
+        if self._feature_selectors is None:
+            X_test = X_test_df.to_numpy()
+        else:
+            X_test = self.voting_selection_report.emit_test_X().to_numpy()
 
         y_pred = self._label_encoder.inverse_transform(self._estimator.predict(X_test))
 

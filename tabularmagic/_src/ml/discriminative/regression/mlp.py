@@ -1,6 +1,7 @@
 from sklearn.neural_network import MLPRegressor
 from typing import Mapping, Iterable, Literal
 from .base import BaseR, HyperparameterSearcher
+from ....feature_selection import BaseFSR
 from optuna.distributions import (
     FloatDistribution,
     CategoricalDistribution,
@@ -19,8 +20,10 @@ class MLPR(BaseR):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_grid_specification: Mapping[str, Iterable | BaseDistribution]
+        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
         | None = None,
+        feature_selectors: list[BaseFSR] | None = None,
+        max_n_features: int = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs
@@ -33,14 +36,20 @@ class MLPR(BaseR):
         hyperparam_search_method : Literal[None, 'grid', 'optuna'].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
-        hyperparam_grid_specification : Mapping[str, Iterable | BaseDistribution].
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
             Default: None. If None, a regression-specific default hyperparameter
             search is conducted.
+        feature_selectors : list[BaseFSR].
+            Default: None. If not None, specifies the feature selectors for the
+            VotingSelectionReport.
+        max_n_features : int.
+            Default: 10. Maximum number of features to select. Only useful if
+            feature_selectors is not None.
+        model_random_state : int.
+            Default: 42. Random seed for the model.
         name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        model_random_state : int.
-            Default: 42. Random seed for the model.
         kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
@@ -61,18 +70,18 @@ class MLPR(BaseR):
         """
         super().__init__()
 
-        self._type = type
+        self._feature_selectors = feature_selectors
+        self._max_n_features = max_n_features
+
         if name is None:
             self._name = "MLPR"
         else:
             self._name = name
 
         self._estimator = MLPRegressor(random_state=model_random_state)
-        if (hyperparam_search_method is None) or (
-            hyperparam_grid_specification is None
-        ):
+        if (hyperparam_search_method is None) or (hyperparam_search_space is None):
             hyperparam_search_method = "optuna"
-            hyperparam_grid_specification = {
+            hyperparam_search_space = {
                 "hidden_layer_sizes": CategoricalDistribution(
                     [
                         (50,),
@@ -104,6 +113,7 @@ class MLPR(BaseR):
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,
             method=hyperparam_search_method,
-            hyperparam_grid=hyperparam_grid_specification,
+            hyperparam_grid=hyperparam_search_space,
+            estimator_name=self._name,
             **kwargs
         )

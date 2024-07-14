@@ -5,8 +5,8 @@ import seaborn as sns
 from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
-from ..visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.poissonglm import PoissonLinearModel
+from ...exploratory.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
+from ..lm import OLSLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 
@@ -23,12 +23,12 @@ MAX_N_OUTLIERS_TEXT = 20
 train_only_message = "This function is only available for training data."
 
 
-class SingleDatasetPoisRegReport:
+class SingleDatasetLinRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
     """
 
-    def __init__(self, model: PoissonLinearModel, dataset: Literal["train", "test"]):
+    def __init__(self, model: OLSLinearModel, dataset: Literal["train", "test"]):
         """
         Initializes a RegressionReport object.
 
@@ -622,7 +622,7 @@ class SingleDatasetPoisRegReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetPoisRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetLinRegReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -678,26 +678,26 @@ class SingleDatasetPoisRegReport:
             self._include_text = True
 
 
-class PoissonRegressionReport:
-    """PoissonRegressionReport.
+class LinearRegressionReport:
+    """LinearRegressionReport.
     Fits the model based on provided DataHandler.
-    Wraps train and test SingleDatasetPoisRegReport objects.
+    Wraps train and test SingleDatasetLinRegReport objects.
     """
 
     def __init__(
         self,
-        model: PoissonLinearModel,
+        model: OLSLinearModel,
         datahandler: DataHandler,
         y_var: str,
         X_vars: Iterable[str],
     ):
-        """PoissonRegressionReport.
+        """LinearRegressionReport.
         Fits the model based on provided DataHandler.
-        Wraps train and test SingleDatasetPoisRegReport objects.
+        Wraps train and test SingleDatasetLinRegReport objects.
 
         Parameters
         ----------
-        model : PoissonLinearModel.
+        model : OrdinaryLeastSquares.
         datahandler : DataHandler.
             The DataHandler object that contains the data.
         y_var : str.
@@ -711,33 +711,33 @@ class PoissonRegressionReport:
         self._model.specify_data(self._dataemitter)
         self._model.fit()
 
-        self._train_report = SingleDatasetPoisRegReport(model, "train")
-        self._test_report = SingleDatasetPoisRegReport(model, "test")
+        self._train_report = SingleDatasetLinRegReport(model, "train")
+        self._test_report = SingleDatasetLinRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetPoisRegReport:
-        """Returns an PoissonRegressionReport object for the train dataset
+    def train_report(self) -> SingleDatasetLinRegReport:
+        """Returns an LinearRegressionReport object for the train dataset
 
         Returns
         -------
-        report : PoissonRegressionReport.
+        report : LinearRegressionReport.
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetPoisRegReport:
-        """Returns an PoissonRegressionReport object for the test dataset
+    def test_report(self) -> SingleDatasetLinRegReport:
+        """Returns an LinearRegressionReport object for the test dataset
 
         Returns
         -------
-        report : PoissonRegressionReport.
+        report : LinearRegressionReport.
         """
         return self._test_report
 
-    def model(self) -> PoissonLinearModel:
-        """Returns the fitted GeneralizedLinearModel object.
+    def model(self) -> OLSLinearModel:
+        """Returns the fitted OrdinaryLeastSquares object.
 
         Returns
         -------
-        GeneralizedLinearModel.
+        OrdinaryLeastSquares.
         """
         return self._model
 
@@ -761,7 +761,7 @@ class PoissonRegressionReport:
         else:
             return self._test_report.fit_statistics()
 
-    def stepwise(self) -> "PoissonLinearModel":
+    def stepwise(self) -> "LinearRegressionReport":
         """Performs stepwise selection on the model.
 
         Parameters
@@ -771,7 +771,7 @@ class PoissonRegressionReport:
 
         Returns
         -------
-        GeneralizedLinearModel.
+        LinearRegressionReport.
         """
         raise NotImplementedError()
 

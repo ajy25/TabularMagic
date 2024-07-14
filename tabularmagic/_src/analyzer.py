@@ -1,23 +1,30 @@
 import pandas as pd
 from typing import Iterable, Literal
 from sklearn.model_selection import train_test_split
-from .ml.discriminative.regression.base import BaseR
-from .ml.discriminative.classification.base import BaseC
-from .linear.lm import OrdinaryLeastSquares
-from .linear.poissonglm import PoissonLinearModel
-from .linear.binomialglm import BinomialLinearModel
-from .linear.lm_rlike_util import parse_and_transform_rlike
-from .interactive import (
+from .ml.discriminative import (
+    BaseR,
     MLRegressionReport,
-    ComprehensiveEDA,
-    RegressionVotingSelectionReport,
-    LinearRegressionReport,
-    PoissonRegressionReport,
-    BinomialRegressionReport,
+    BaseC,
     MLClassificationReport,
 )
+from .linear import (
+    OLSLinearModel,
+    PoissonLinearModel,
+    BinomialLinearModel,
+    BinomialRegressionReport,
+    PoissonRegressionReport,
+    LinearRegressionReport,
+    parse_and_transform_rlike,
+)
+from .feature_selection import (
+    BaseFS,
+    VotingSelectionReport,
+)
+from .exploratory import (
+    ComprehensiveEDA,
+)
 from .display.print_utils import print_wrapped
-from .feature_selection import BaseFeatureSelectorR
+from .feature_selection import BaseFSR, BaseFSC, BaseFS
 from .data.datahandler import DataHandler
 
 
@@ -138,12 +145,12 @@ class Analyzer:
 
     def feature_selection(
         self,
-        selectors: Iterable[BaseFeatureSelectorR],
-        y_var: str,
-        X_vars: list[str] = None,
+        selectors: Iterable[BaseFS],
+        target: str,
+        predictors: list[str] | None = None,
         n_target_features: int = 10,
         update_working_dfs: bool = False,
-    ) -> RegressionVotingSelectionReport:
+    ) -> VotingSelectionReport:
         """Supervised feature selection via voting. Feature selection methods
         are trained on the training dataset.
         Returns a RegressionVotingSelectionReport object.
@@ -155,14 +162,14 @@ class Analyzer:
         ----------
         selectors : Iterable[BaseSelector].
             Each BaseSelector decides on the top n_target_features.
-        y_var : str.
+        target : str.
             The variable to be predicted.
-        X_vars : list[str].
+        predictors : list[str].
             Default: None.
             A list of features from which n_target_features are to be selected.
-            If None, all numerical variables except y_var will be used.
+            If None, all numerical variables except target will be used.
         n_target_features : int.
-            Default: 10. Number of desired features, < len(X_vars).
+            Default: 10. Number of desired features, < len(predictors).
         update_working_dfs : bool.
             Default: False.
 
@@ -171,21 +178,24 @@ class Analyzer:
         RegressionVotingSelectionReport
         """
 
-        if X_vars is None:
-            X_vars = self._datahandler.numerical_vars(True)
-        report = RegressionVotingSelectionReport(
+        if predictors is None:
+            predictors = self._datahandler.numerical_vars(True)
+        report = VotingSelectionReport(
             selectors=selectors,
             datahandler=self._datahandler,
-            n_target_features=n_target_features,
+            max_n_features=n_target_features,
             verbose=self._verbose,
         )
         if update_working_dfs:
-            var_subset = report._top_features + [y_var]
+            var_subset = report._top_features + [target]
             self._datahandler.select_vars(var_subset)
         return report
 
     def lm(
-        self, y_var: str = None, X_vars: list[str] = None, formula: str = None
+        self,
+        target: str | None = None,
+        predictors: list[str] | None = None,
+        formula: str | None = None,
     ) -> LinearRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
@@ -193,29 +203,29 @@ class Analyzer:
 
         Parameters
         ----------
-        y_var : str.
+        target : str.
             Default: None. The variable to be predicted.
-        X_vars : list[str].
+        predictors : list[str].
             Default: None.
-            If None, all variables except y_var will be used as predictors.
+            If None, all variables except target will be used as predictors.
         formula : str.
             Default: None. If not None, uses formula to specify the regression
-            (overrides y_var and X_vars).
+            (overrides target and predictors).
 
         Returns
         -------
         LinearRegressionReport
         """
-        if formula is None and y_var is None:
-            raise ValueError("y_var must be specified if formula is None.")
+        if formula is None and target is None:
+            raise ValueError("target must be specified if formula is None.")
 
         elif formula is None:
-            if X_vars is None:
-                X_vars = self._datahandler.vars()
-                if y_var in X_vars:
-                    X_vars.remove(y_var)
+            if predictors is None:
+                predictors = self._datahandler.vars()
+                if target in predictors:
+                    predictors.remove(target)
             return LinearRegressionReport(
-                OrdinaryLeastSquares(), self._datahandler, y_var, X_vars
+                OLSLinearModel(), self._datahandler, target, predictors
             )
 
         else:
@@ -241,25 +251,25 @@ class Analyzer:
                 y_X_df_combined_train, y_X_df_combined_test
             )
 
-            X_vars = y_X_df_combined_train.columns.to_list()
-            y_var = y_series_train.name
-            X_vars.remove(y_var)
+            predictors = y_X_df_combined_train.columns.to_list()
+            target = y_series_train.name
+            predictors.remove(target)
 
             datahandler = DataHandler(
                 y_X_df_combined_train, y_X_df_combined_test, verbose=False
             )
-            datahandler.add_scaler(y_scaler, y_var)
+            datahandler.add_scaler(y_scaler, target)
 
             return LinearRegressionReport(
-                OrdinaryLeastSquares(), datahandler, y_var, X_vars
+                OLSLinearModel(), datahandler, target, predictors
             )
 
     def glm(
         self,
-        y_var: str | None = None,
-        X_vars: list[str] = None,
+        family: Literal["poisson", "binomial"],
+        target: str | None = None,
+        predictors: list[str] | None = None,
         formula: str | None = None,
-        family: Literal["poisson", "binomial"] = None,
     ) -> PoissonRegressionReport | BinomialRegressionReport:
         """Conducts a generalized linear regression exercise.
         If formula is provided, performs linear regression with link
@@ -268,34 +278,36 @@ class Analyzer:
 
         Parameters
         ----------
-        y_var : str.
+        family : Literal["poisson", "binomial"].
+            The family of the GLM.
+        target : str.
             Default: None. The variable to be predicted.
-        X_vars : list[str].
+        predictors : list[str].
             Default: None.
-            If None, all variables except y_var will be used as predictors.
+            If None, all variables except target will be used as predictors.
         formula : str.
             Default: None. If not None, uses formula to specify the regression
-            (overrides y_var and X_vars).
+            (overrides target and predictors).
 
         Returns
         -------
         PoissonRegressionReport or BinomialRegressionReport
         """
-        if formula is None and y_var is None:
-            raise ValueError("y_var must be specified if formula is None.")
+        if formula is None and target is None:
+            raise ValueError("target must be specified if formula is None.")
 
         elif formula is None:
-            if X_vars is None:
-                X_vars = self._datahandler.vars()
-                if y_var in X_vars:
-                    X_vars.remove(y_var)
+            if predictors is None:
+                predictors = self._datahandler.vars()
+                if target in predictors:
+                    predictors.remove(target)
             if family == "poisson":
                 return PoissonRegressionReport(
-                    PoissonLinearModel(), self._datahandler, y_var, X_vars
+                    PoissonLinearModel(), self._datahandler, target, predictors
                 )
             else:
                 return BinomialRegressionReport(
-                    BinomialLinearModel(), self._datahandler, y_var, X_vars
+                    BinomialLinearModel(), self._datahandler, target, predictors
                 )
 
         else:
@@ -321,22 +333,22 @@ class Analyzer:
                 y_X_df_combined_train, y_X_df_combined_test
             )
 
-            X_vars = y_X_df_combined_train.columns.to_list()
-            y_var = y_series_train.name
-            X_vars.remove(y_var)
+            predictors = y_X_df_combined_train.columns.to_list()
+            target = y_series_train.name
+            predictors.remove(target)
 
             datahandler = DataHandler(
                 y_X_df_combined_train, y_X_df_combined_test, verbose=False
             )
-            datahandler.add_scaler(y_scaler, y_var)
+            datahandler.add_scaler(y_scaler, target)
 
             if family == "poisson":
                 return PoissonRegressionReport(
-                    PoissonLinearModel(), self._datahandler, y_var, X_vars
+                    PoissonLinearModel(), self._datahandler, target, predictors
                 )
-            else:
+            elif family == "binomial":
                 return BinomialRegressionReport(
-                    BinomialLinearModel(), self._datahandler, y_var, X_vars
+                    BinomialLinearModel(), self._datahandler, target, predictors
                 )
 
     # --------------------------------------------------------------------------
@@ -346,8 +358,10 @@ class Analyzer:
     def ml_regression(
         self,
         models: Iterable[BaseR],
-        y_var: str,
-        X_vars: list[str] | None = None,
+        target: str,
+        predictors: list[str] | None = None,
+        feature_selectors: Iterable[BaseFSR] | None = None,
+        max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLRegressionReport:
@@ -358,10 +372,20 @@ class Analyzer:
         ----------
         models : Iterable[BaseRegression].
             Testing performance of all models will be evaluated.
-        y_var : str.
-        X_vars : list[str].
+        target : str.
+        predictors : list[str].
             Default: None.
-            If None, uses all variables except y_var as predictors.
+            If None, uses all variables except target as predictors.
+        feature_selectors : Iterable[BaseFSR].
+            The feature selectors for voting selection. Feature selectors
+            can be used to select the most important predictors.
+            Feature selectors can also be specified at the model level. If
+            specified here, the same feature selectors will be used for all
+            models.
+        max_n_features : int.
+            Default: None.
+            Maximum number of predictors to utilize. Ignored if feature_selectors
+            is None.
         outer_cv : int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.
@@ -373,16 +397,18 @@ class Analyzer:
         -------
         MLRegressionReport
         """
-        if X_vars is None:
-            X_vars = self._datahandler.vars()
-            if y_var in X_vars:
-                X_vars.remove(y_var)
+        if predictors is None:
+            predictors = self._datahandler.vars()
+            if target in predictors:
+                predictors.remove(target)
 
         return MLRegressionReport(
             models=models,
             datahandler=self._datahandler,
-            y_var=y_var,
-            X_vars=X_vars,
+            target=target,
+            predictors=predictors,
+            feature_selectors=feature_selectors,
+            max_n_features=max_n_features,
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose,
@@ -391,8 +417,10 @@ class Analyzer:
     def ml_classification(
         self,
         models: Iterable[BaseC],
-        y_var: str,
-        X_vars: list[str] | None = None,
+        target: str,
+        predictors: list[str] | None = None,
+        feature_selectors: Iterable[BaseFSC] | None = None,
+        max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLClassificationReport:
@@ -403,10 +431,20 @@ class Analyzer:
         ----------
         models : Iterable[BaseClassification].
             Testing performance of all models will be evaluated.
-        y_var : str.
-        X_vars : list[str].
+        target : str.
+        predictors : list[str].
             Default: None.
-            If None, uses all variables except y_var as predictors.
+            If None, uses all variables except target as predictors.
+        feature_selectors : Iterable[BaseFSR].
+            The feature selectors for voting selection. Feature selectors
+            can be used to select the most important predictors.
+            Feature selectors can also be specified at the model level. If
+            specified here, the same feature selectors will be used for all
+            models.
+        max_n_features : int.
+            Default: None.
+            Maximum number of predictors to utilize. Ignored if feature_selectors
+            is None.
         outer_cv : int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.
@@ -418,16 +456,18 @@ class Analyzer:
         -------
         MLClassificationReport
         """
-        if X_vars is None:
-            X_vars = self._datahandler.vars()
-            if y_var in X_vars:
-                X_vars.remove(y_var)
+        if predictors is None:
+            predictors = self._datahandler.vars()
+            if target in predictors:
+                predictors.remove(target)
 
         return MLClassificationReport(
             models=models,
             datahandler=self._datahandler,
-            y_var=y_var,
-            X_vars=X_vars,
+            target=target,
+            predictors=predictors,
+            feature_selectors=feature_selectors,
+            max_n_features=max_n_features,
             outer_cv=outer_cv,
             outer_cv_seed=outer_cv_seed,
             verbose=self._verbose,

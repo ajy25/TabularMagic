@@ -1,4 +1,3 @@
-from .._src.feature_selection import RFESelectorR, KBestSelectorR, LassoSelectorR
+from .._src.feature_selection import KBestSelectorR, LassoSelectorR, KBestSelectorC
 
-
-__all__ = ["RFESelectorR", "KBestSelectorR", "LassoSelectorR"]
+__all__ = ["KBestSelectorR", "LassoSelectorR", "KBestSelectorC"]

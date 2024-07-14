@@ -6,11 +6,8 @@ from .._src.ml.discriminative.regression import (
     MLPR,
     SVMR,
     CustomR,
+    MLRegressionReport,
 )
-from .._src.interactive.regression.mlreg import MLRegressionReport
-
-
-from .._src.interactive.classification.mlclass import MLClassificationReport
 from .._src.ml.discriminative.classification import (
     LinearC,
     TreeC,
@@ -18,6 +15,7 @@ from .._src.ml.discriminative.classification import (
     MLPC,
     SVMC,
     CustomC,
+    MLClassificationReport,
 )
 
 

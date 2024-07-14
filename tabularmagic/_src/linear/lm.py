@@ -4,7 +4,7 @@ from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 
 
-class OrdinaryLeastSquares:
+class OLSLinearModel:
     """Statsmodels OLS wrapper."""
 
     def __init__(self, name: str | None = None):

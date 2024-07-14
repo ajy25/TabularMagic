@@ -3,6 +3,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from .base import BaseR
 from ....metrics.regression_scoring import RegressionScorer
+from ....display.print_utils import print_wrapped
 
 
 class CustomR(BaseR):
@@ -31,13 +32,13 @@ class CustomR(BaseR):
             __str__() implementation is used.
         """
         super().__init__()
-        self._estimator: BaseSearchCV | BaseEstimator | Pipeline = estimator
+        self._estimator = estimator
         if name is None:
             self._name = str(estimator)
         else:
             self._name = name
 
-    def fit(self):
+    def fit(self, verbose: bool = False):
         """Fits the model. Records training metrics, which can be done via
         nested cross validation.
         """
@@ -47,6 +48,11 @@ class CustomR(BaseR):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
+            if verbose:
+                print_wrapped(
+                    f"Fitting {self._name}.",
+                    type="PROGRESS"
+                )
             self._estimator.fit(X_train, y_train)
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:
@@ -73,6 +79,11 @@ class CustomR(BaseR):
                 y_train = y_train_series.to_numpy()
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
+                if verbose:
+                    print_wrapped(
+                        f"Fitting {self._name}.",
+                        type="PROGRESS"
+                    )
                 self._estimator.fit(X_train, y_train)
                 y_pred = self._estimator.predict(X_test)
                 if y_scaler is not None:
@@ -93,6 +104,11 @@ class CustomR(BaseR):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
+            if verbose:
+                print_wrapped(
+                    f"Fitting {self._name}.",
+                    type="PROGRESS"
+                )
             self._estimator.fit(X_train, y_train)
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:

@@ -39,7 +39,7 @@ class Analyzer:
     def __init__(
         self,
         df: pd.DataFrame,
-        df_test: pd.DataFrame = None,
+        df_test: pd.DataFrame | None = None,
         test_size: float = 0.0,
         split_seed: int = 42,
         verbose: bool = True,
@@ -109,7 +109,7 @@ class Analyzer:
         if self._verbose:
             shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
-                "Initialization complete. "
+                "Analyzer initialized. "
                 + "Shapes of train, test DataFrames: "
                 + f'{shapes_dict["train"]}, '
                 + f'{shapes_dict["test"]}.',

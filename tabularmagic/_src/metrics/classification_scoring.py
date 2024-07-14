@@ -295,11 +295,12 @@ class ClassificationMulticlassScorer:
                         "Error occured when computing the roc_auc "
                         + "score: "
                         + color_text(str(e), "yellow")
-                        + " This likely occured because y_var is "
-                        + "categorical and binary. "
-                        + "For binary classification, transform y_var "
-                        + "into a (0,1)-valued numerical variable "
-                        + "using the Datahandler.force_binary() method.",
+                        + f" This likely occured because the target is "
+                        + "a binary categorical variable. "
+                        + "For binary classification, you must transform the target "
+                        + "into a (0,1)-valued numerical variable. "
+                        + "This can be done using the "
+                        + "DataHandler.force_binary() method.",
                         type="WARNING",
                     )
                     df.loc[len(df)] = pd.Series(

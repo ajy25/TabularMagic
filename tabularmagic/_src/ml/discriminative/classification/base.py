@@ -83,7 +83,7 @@ class BaseC(BaseDiscriminativeModel):
         verbose : bool.
             Default: False. If True, prints progress.
         """
-        is_binary = False
+        is_binary = True
 
         if self._dataemitters is None and self._dataemitter is not None:
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
@@ -102,8 +102,8 @@ class BaseC(BaseDiscriminativeModel):
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
-            if np.isin(np.unique(y_train), [0, 1]).all():
-                is_binary = True
+            if not np.isin(np.unique(y_train), [0, 1]).all():
+                is_binary = False
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
@@ -141,8 +141,6 @@ class BaseC(BaseDiscriminativeModel):
             y_trues = []
             y_pred_scores = []
 
-            is_binary = True
-
             for emitter in self._dataemitters:
                 (
                     X_train_df,
@@ -166,8 +164,7 @@ class BaseC(BaseDiscriminativeModel):
                     X_train = X_train_df.to_numpy()
                     X_test = X_test_df.to_numpy()
 
-                # if not np.isin(np.unique(y_train), [0, 1]).all():
-                if len(np.unique(y_train)) > 2:
+                if not np.isin(np.unique(y_train), [0, 1]).all():
                     is_binary = False
 
                 y_test = y_test_series.to_numpy()

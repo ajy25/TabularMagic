@@ -7,7 +7,10 @@ TabularMagic is a Python package for rapid exploratory statistical and machine l
 
 ### Why does TabularMagic exist?
 
-Though numerous auto-ML solutions have emerged to streamline data science workflows at an enterprise scale, low-code data science packages tailored for small tabular datasets remain scarce. TabularMagic strives to fill this void, offering a straightforward Python interface for common data science routines. This package relieves users from the tedious tasks often associated with such projects – maintaining separate train and test data, one-hot encoding and scaling features, and proper cross-validation benchmarking of various machine learning models, many of which require hyperparameter tuning.
+Though numerous solutions have emerged to streamline data science workflows at an enterprise scale (e.g. MLflow, H20 AutoML, AutoGluon), low code data science packages tailored for smaller tabular datasets remain scarce. TabularMagic, crafted specifically for clinical datasets, presents a straightforward Python API that significantly accelerates common/exploratory data science routines.
+
+TabularMagic 
+
 
 ## Installation and dependencies
 
@@ -15,14 +18,14 @@ TabularMagic can be installed via pip. The Python scripts below handle
 package setup and pip installation. 
 
 To install TabularMagic: 
-```bash
+```
 git clone https://github.com/ajy25/TabularMagic.git
 cd tabularmagic
 python tmbuild.py install
 ```
 
 To uninstall TabularMagic:
-```bash
+```
 python tmbuild.py uninstall
 ```
 
@@ -103,8 +106,8 @@ models = [
 ]
 report = analyzer.ml_regression(
     models=models,   # 5-fold cross validation for hyperparameter search
-    y_var="target",
-    X_vars=["age", "bmi", "bp", "s1", "s2"],
+    target="target",
+    predictors=["age", "bmi", "bp", "s1", "s2"],
     outer_cv=5      # 5-fold cross validation for model evaluation
 )
 print(report.fit_statistics("train"))

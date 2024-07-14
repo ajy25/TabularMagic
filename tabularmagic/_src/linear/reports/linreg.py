@@ -654,7 +654,7 @@ class SingleDatasetLinRegReport:
         """
         return self._outliers_df_idx.tolist()
 
-    def fit_statistics(self) -> pd.DataFrame:
+    def metrics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
@@ -688,8 +688,8 @@ class LinearRegressionReport:
         self,
         model: OLSLinearModel,
         datahandler: DataHandler,
-        y_var: str,
-        X_vars: Iterable[str],
+        target: str,
+        predictors: Iterable[str],
     ):
         """LinearRegressionReport.
         Fits the model based on provided DataHandler.
@@ -700,14 +700,14 @@ class LinearRegressionReport:
         model : OrdinaryLeastSquares.
         datahandler : DataHandler.
             The DataHandler object that contains the data.
-        y_var : str.
-            The name of the dependent variable.
-        X_vars : Iterable[str].
-            The names of the independent variables.
+        target : str.
+            The name of the target variable.
+        predictors : Iterable[str].
+            The names of the predictor variables.
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
+        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
         self._model.fit()
 
@@ -741,7 +741,7 @@ class LinearRegressionReport:
         """
         return self._model
 
-    def fit_statistics(
+    def metrics(
         self, dataset: Literal["train", "test"] = "test"
     ) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -757,9 +757,9 @@ class LinearRegressionReport:
         pd.DataFrame.
         """
         if dataset == "train":
-            return self._train_report.fit_statistics()
+            return self._train_report.metrics()
         else:
-            return self._test_report.fit_statistics()
+            return self._test_report.metrics()
 
     def stepwise(self) -> "LinearRegressionReport":
         """Performs stepwise selection on the model.

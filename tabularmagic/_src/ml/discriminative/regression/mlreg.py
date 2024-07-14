@@ -44,13 +44,13 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             return self.model.test_scorer.stats_df()
 
-    def cv_metrics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
+    def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
         statistics for the model on the specified data.
 
         Parameters
         ----------
-        averaged_across_folds.
+        average_across_folds.
             Default: True. If True, returns a DataFrame
             containing goodness-of-fit statistics averaged across all folds.
             Otherwise, returns a DataFrame containing goodness-of-fit
@@ -68,7 +68,7 @@ class SingleModelSingleDatasetMLRegReport:
             )
             return None
         if self._dataset == "train":
-            if averaged_across_folds:
+            if average_across_folds:
                 return self.model.cv_scorer.stats_df()
             else:
                 return self.model.cv_scorer.cv_stats_df()
@@ -191,7 +191,7 @@ class MLRegressionReport:
         self._models: list[BaseR] = models
         self._id_to_model = {model._name: model for model in models}
 
-        self.feature_selection_report = None
+        self._feature_selection_report = None
 
         self.y_var = target
         self.X_vars = predictors
@@ -200,13 +200,13 @@ class MLRegressionReport:
         if feature_selectors is not None:
             if max_n_features is None:
                 max_n_features = 10
-            self.feature_selection_report = VotingSelectionReport(
+            self._feature_selection_report = VotingSelectionReport(
                 selectors=feature_selectors,
                 dataemitter=self._emitter,
                 max_n_features=max_n_features,
                 verbose=verbose,
             )
-            self.X_vars = self.feature_selection_report.top_features()
+            self.X_vars = self._feature_selection_report.top_features()
             self._emitter.select_predictors(self.X_vars)
 
         self._emitters = None
@@ -238,7 +238,7 @@ class MLRegressionReport:
             )
             model.fit(verbose=self._verbose)
             if model.voting_selection_report is None:
-                model.voting_selection_report = self.feature_selection_report
+                model.voting_selection_report = self._feature_selection_report
             if self._verbose:
                 print_wrapped(
                     f"Successfully evaluated model {model._name}.", type="UPDATE"
@@ -272,7 +272,7 @@ class MLRegressionReport:
 
         Returns
         -------
-        BaseRegression
+        BaseR
         """
         return self._id_to_model[model_id]
 
@@ -306,14 +306,14 @@ class MLRegressionReport:
                 axis=1,
             )
 
-    def cv_metrics(self, averaged_across_folds: bool = True) -> pd.DataFrame:
+    def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
         statistics for all models on the training data. Cross validation must
-        have been conducted.
+        have been conducted, otherwise None is returned.
 
         Parameters
         ----------
-        averaged_across_folds : bool.
+        average_across_folds : bool.
             Default: True.
             If True, returns a DataFrame containing goodness-of-fit
             statistics averaged across all folds.
@@ -322,7 +322,8 @@ class MLRegressionReport:
 
         Returns
         -------
-        pd.DataFrame | None. None if cross validation was not conducted.
+        pd.DataFrame | None. 
+            None if cross validation was not conducted.
         """
         if not self._models[0]._is_cross_validated():
             print_wrapped(
@@ -333,11 +334,22 @@ class MLRegressionReport:
             return None
         return pd.concat(
             [
-                report.train_report().cv_metrics(averaged_across_folds)
+                report.train_report().cv_metrics(average_across_folds)
                 for report in self._id_to_report.values()
             ],
             axis=1,
         )
+    
+    def feature_selection_report(self) -> VotingSelectionReport | None:
+        """Returns the feature selection report. If feature selectors were 
+        specified at the model level or not at all, then this method will return None.
+
+        Returns
+        -------
+        VotingSelectionReport | None. 
+            None if feature selectors were not specified.
+        """
+        return self._feature_selection_report
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]

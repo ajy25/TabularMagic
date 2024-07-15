@@ -67,10 +67,7 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             return self.model.test_scorer.stats_by_class_df()
 
-    def cv_metrics(
-        self, 
-        average_across_folds: bool = True
-    ) -> pd.DataFrame | None:
+    def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated evaluation metrics
         for the model on the specified data.
 
@@ -105,8 +102,7 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
     def cv_metrics_by_class(
-        self, 
-        averaged_across_folds: bool = True
+        self, averaged_across_folds: bool = True
     ) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated evaluation metrics
         for the model on the specified data, broken down by class.
@@ -391,7 +387,7 @@ class MLClassificationReport:
 
         Returns
         -------
-        pd.DataFrame | None. 
+        pd.DataFrame | None.
             None is returned if cross validation was not conducted.
         """
         if not self._models[0]._is_cross_validated():
@@ -410,18 +406,15 @@ class MLClassificationReport:
         )
 
     def feature_selection_report(self) -> VotingSelectionReport | None:
-        """Returns the feature selection report. If feature selectors were 
+        """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
 
         Returns
         -------
-        VotingSelectionReport | None. 
+        VotingSelectionReport | None.
             None is returned if no feature selectors were specified.
         """
         return self._feature_selection_report
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]
-
-
-

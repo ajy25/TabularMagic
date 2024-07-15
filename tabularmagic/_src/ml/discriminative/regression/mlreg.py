@@ -322,7 +322,7 @@ class MLRegressionReport:
 
         Returns
         -------
-        pd.DataFrame | None. 
+        pd.DataFrame | None.
             None if cross validation was not conducted.
         """
         if not self._models[0]._is_cross_validated():
@@ -339,14 +339,14 @@ class MLRegressionReport:
             ],
             axis=1,
         )
-    
+
     def feature_selection_report(self) -> VotingSelectionReport | None:
-        """Returns the feature selection report. If feature selectors were 
+        """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
 
         Returns
         -------
-        VotingSelectionReport | None. 
+        VotingSelectionReport | None.
             None if feature selectors were not specified.
         """
         return self._feature_selection_report

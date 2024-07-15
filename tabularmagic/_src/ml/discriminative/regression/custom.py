@@ -49,10 +49,7 @@ class CustomR(BaseR):
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
             if verbose:
-                print_wrapped(
-                    f"Fitting {self._name}.",
-                    type="PROGRESS"
-                )
+                print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
             self._estimator.fit(X_train, y_train)
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:
@@ -80,10 +77,7 @@ class CustomR(BaseR):
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
                 if verbose:
-                    print_wrapped(
-                        f"Fitting {self._name}.",
-                        type="PROGRESS"
-                    )
+                    print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
                 self._estimator.fit(X_train, y_train)
                 y_pred = self._estimator.predict(X_test)
                 if y_scaler is not None:
@@ -105,10 +99,7 @@ class CustomR(BaseR):
             X_train = X_train_df.to_numpy()
             y_train = y_train_series.to_numpy()
             if verbose:
-                print_wrapped(
-                    f"Fitting {self._name}.",
-                    type="PROGRESS"
-                )
+                print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
             self._estimator.fit(X_train, y_train)
             y_pred = self._estimator.predict(X_train)
             if y_scaler is not None:

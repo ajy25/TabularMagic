@@ -2,14 +2,7 @@
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-TabularMagic is a Python package for rapid exploratory statistical and machine learning modeling of wide format tabular data. TabularMagic empowers users to quickly explore new datasets, conduct regression analyses with ease, and effortlessly compute baseline performance metrics across a wide range of popular machine learning models. TabularMagic excels in handling datasets with fewer than 10,000 examples. 
-
-
-### Why does TabularMagic exist?
-
-Though numerous solutions have emerged to streamline data science workflows at an enterprise scale (e.g. MLflow, H20 AutoML, AutoGluon), low code data science packages tailored for smaller tabular datasets remain scarce. TabularMagic, crafted specifically for clinical datasets, presents a straightforward Python API that significantly accelerates common/exploratory data science routines.
-
-TabularMagic 
+TabularMagic is a Python package for rapid exploratory statistical analysis and automatic machine learning modeling on wide format tabular data. TabularMagic can help you quickly explore datasets, easily conduct regression analyses, and effortlessly compute performance metrics for your favorite machine learning models.
 
 
 ## Installation and dependencies
@@ -29,13 +22,13 @@ To uninstall TabularMagic:
 python tmbuild.py uninstall
 ```
 
-TabularMagic is built on top of the Python data science stack. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
+TabularMagic is built with the standard Python data science stack. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
 
 ## Getting started
 
 ### Example Python API usage
 
-We can build an Analyzer object on top of a given dataset.
+Let's initialize an Analyzer.
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -45,14 +38,15 @@ from sklearn.datasets import load_diabetes
 # load the dataset
 diabetes_data = load_diabetes()
 df = pd.DataFrame(data=diabetes_data.data, columns=diabetes_data.feature_names)
-df["target"] = diabetes_data.target
+df['target'] = diabetes_data.target
 
-# create a Analyzer object
+# initialize an Analyzer object
 analyzer = tm.Analyzer(df, test_size=0.2, split_seed=42)
 print(analyzer)
 ```
 
-TabularMagic makes exploratory data analysis easy. Note that all TabularMagic plotting methods close figures before returning them for easier use with IPython notebooks. When working outside of IPython notebooks, returned figures must be reshown. 
+TabularMagic streamlines exploratory data analysis. 
+*Note: all TabularMagic plotting methods close and return plt.Figures for easier use with IPython notebooks (e.g.* `display(fig)` *). When working outside of IPython notebooks (not recommended), returned plt.Figures must be reshown.*
 ```python
 def reshow(fig: plt.Figure):
     new_fig = plt.figure(figsize=fig.get_size_inches())
@@ -63,57 +57,46 @@ def reshow(fig: plt.Figure):
 
 train_eda = analyzer.eda()
 print(train_eda.numerical_summary_statistics())
-reshow(train_eda.plot_distribution("target"))
-reshow(train_eda.plot_numerical_pairs(["target", "age", "bmi", "bp"]))
+reshow(train_eda.plot_distribution('target'))
+reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
 ```
 
-TabularMagic makes regression analysis easy.
+TabularMagic streamlines regression analysis.
 ```python
 lm_report = analyzer.lm(
-    formula="target ~ age + bmi"
+    formula='target ~ age + bmi'
 )
-lm_report.statsmodels_summary()
-lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(
-    show_outliers=True)
+print(lm_report.statsmodels_summary())
+reshow(lm_report.train_report().set_outlier_threshold(2).plot_diagnostics(show_outliers=True))
+print(lm_report.test_report().metrics('test'))
 ```
 
-TabularMagic makes machine learning model benchmarking easy. Nested k-fold cross validation handles hyperparameter selection and model evaluation on training data. The selected models are then further evaluated on the withheld testing data. Note that nested cross validation is computationally expensive and could take some time to run; to disable nested cross validation (i.e., only compute train and test fit statistics), simply set `outer_cv = None`.
+TabularMagic streamlines machine learning model benchmarking. TabularMagic automatically tunes hyperparameters and selects features when benchmarking user-specified models. Note that cross validation is optional and computationally expensive; to enable cross validation, simply set `outer_cv` to the number of desired folds.
 ```python
-from sklearn.linear_model import Lasso
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectKBest
-from sklearn.model_selection import GridSearchCV
-
 models = [
     tm.ml.LinearR(),
-    tm.ml.LinearR("l1"),
-    tm.ml.LinearR("l2"),
-    tm.ml.TreeEnsembleR("random_forest", n_jobs=-1),
-    tm.ml.TreeEnsembleR("adaboost", n_jobs=-1),
-    tm.ml.SVMR("rbf", n_jobs=-1),
-    tm.ml.CustomR(
-        estimator=Pipeline(
-            steps=[
-                ('feature_selection', SelectKBest(k=2)),
-                ('regression', GridSearchCV(
-                    estimator=Lasso(alpha=0.5),
-                    param_grid={'alpha': np.logspace(-4, 4, 10)}
-                ))
-            ]
-        ),
-        name='pipeline example'
-    )
+    tm.ml.LinearR('l1'),
+    tm.ml.LinearR('l2'),
+    tm.ml.TreeEnsembleR('random_forest'),
+    tm.ml.TreeEnsembleR('adaboost'),
+    tm.ml.SVMR('rbf')
 ]
 report = analyzer.ml_regression(
-    models=models,   # 5-fold cross validation for hyperparameter search
-    target="target",
-    predictors=["age", "bmi", "bp", "s1", "s2"],
-    outer_cv=5      # 5-fold cross validation for model evaluation
+    models=models, 
+    target='target',
+    predictors=['age', 'bmi', 'bp', 's1', 's2'],
+    feature_selectors=[
+        tm.fs.KBestSelectorR('f_regression'),
+        tm.fs.KBestSelectorR('mutual_info_regression'),
+    ],
+    max_n_features=3, # voting feature selection, top 3 features
+    inner_cv=5        # 5-fold cross validation for hyperparameter tuning
+    outer_cv=5        # 5-fold cross validation for model evaluation
 )
-print(report.fit_statistics("train"))
-print(report.cv_fit_statistics())
-print(report.fit_statistics("test"))
-reshow(report.model_report("TreeEnsembleR(adaboost)").test_report().plot_obs_vs_pred())
+print(report.cv_metrics())      # cross validation metrics
+print(report.metrics('train'))  # train metrics
+print(report.metrics('test'))   # test metrics
+reshow(report.model_report('TreeEnsembleR(adaboost)').test_report().plot_obs_vs_pred())
 ```
 
 ### Example UI + AI agent usage
@@ -131,7 +114,28 @@ the `./demo` subdirectory.
 
 ## Development notes
 
-Under active development. 
+Under active development.
+
+### Motivation: auto ML for research, not production
+
+Though numerous automatic machine learning solutions have emerged to streamline machine learning model selection and deployment, low-code libraries tailored for research on tabular datasets remain scarce.
+
+TabularMagic provides a straightforward Python API that significantly accelerates machine learning model benchmarking by seemlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
+1. **Preprocess-as-you-explore functionality.** TabularMagic remembers each feature transformation you make and automatically preprocesses your train, validation, and test datasets when you fit and evaluate models down the line. 
+2. **Automatic hyperparameter optimization and feature selection.** TabularMagic automatically selects features and identifies optimal hyperparameters for you.
+3. **Flexibility.** Though TabularMagic provides many out-of-the-box models with default hyperparameter search spaces, it also supports custom estimators and pipelines. Any scikit-learn `BaseEstimator`/`Pipeline`-like object with fit and predict methods can be used. You'll need to specify the hyperparameter tuning strategy (e.g. `GridSearchCV`) yourself, however.
+4. **LLM support.** TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data.
+
+
+### FAQs (why does TabularMagic exist?):
+
+1. 
+    Q: Why not just use sklearn pipelines? 
+
+    A: scikit-learn is *the* Python machine learning modeling package; TabularMagic and many other solutions rely heavily on scikit-learn. Though sklearn pipelines allows for streamlined data preprocessing and ML modeling, they are by no means low-code and require a nontrivial amount of documentaion reading and programming experience to use.
+
+
+
 
 
 

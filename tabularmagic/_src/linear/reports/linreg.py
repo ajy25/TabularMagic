@@ -741,9 +741,7 @@ class LinearRegressionReport:
         """
         return self._model
 
-    def metrics(
-        self, dataset: Literal["train", "test"] = "test"
-    ) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 

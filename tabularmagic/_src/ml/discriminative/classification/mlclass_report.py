@@ -27,8 +27,8 @@ class SingleModelSingleDatasetMLClassReport:
             specified data.
         dataset: Literal['train', 'test'].
         """
-        self.model = model
-        self._is_binary = isinstance(model.train_scorer, ClassificationBinaryScorer)
+        self._model = model
+        self._is_binary = isinstance(model._train_scorer, ClassificationBinaryScorer)
         if dataset not in ["train", "test"]:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
@@ -42,9 +42,9 @@ class SingleModelSingleDatasetMLClassReport:
         pd.DataFrame.
         """
         if self._dataset == "train":
-            return self.model.train_scorer.stats_df()
+            return self._model._train_scorer.stats_df()
         else:
-            return self.model.test_scorer.stats_df()
+            return self._model._test_scorer.stats_df()
 
     def metrics_by_class(self) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics
@@ -63,9 +63,9 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
         if self._dataset == "train":
-            return self.model.train_scorer.stats_by_class_df()
+            return self._model._train_scorer.stats_by_class_df()
         else:
-            return self.model.test_scorer.stats_by_class_df()
+            return self._model._test_scorer.stats_by_class_df()
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated evaluation metrics
@@ -82,7 +82,7 @@ class SingleModelSingleDatasetMLClassReport:
         pd.DataFrame | None. None is returned if cross validation
             fit statistics are not available.
         """
-        if not self.model._is_cross_validated():
+        if not self._model._is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -91,9 +91,9 @@ class SingleModelSingleDatasetMLClassReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self.model.cv_scorer.stats_df()
+                return self._model.cv_scorer.stats_df()
             else:
-                return self.model.cv_scorer.cv_stats_df()
+                return self._model.cv_scorer.cv_stats_df()
         elif self._dataset == "test":
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -115,9 +115,10 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame | None. None is returned if cross validation
+            fit statistics are not available.
         """
-        if not self.model._is_cross_validated():
+        if not self._model._is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -135,9 +136,9 @@ class SingleModelSingleDatasetMLClassReport:
 
         if self._dataset == "train":
             if averaged_across_folds:
-                return self.model.cv_scorer.stats_by_class_df()
+                return self._model.cv_scorer.stats_by_class_df()
             else:
-                return self.model.cv_scorer.cv_stats_by_class_df()
+                return self._model.cv_scorer.cv_stats_by_class_df()
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -153,11 +154,14 @@ class SingleModelSingleDatasetMLClassReport:
         Parameters
         ----------
         figsize: Iterable.
-        - ax: Axes.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         if not self._is_binary:
             print_wrapped(
@@ -167,11 +171,11 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
         if self._dataset == "train":
-            y_score = self.model.train_scorer._y_pred_score
-            y_true = self.model.train_scorer._y_true
+            y_score = self._model._train_scorer._y_pred_score
+            y_true = self._model._train_scorer._y_true
         else:
-            y_score = self.model.test_scorer._y_pred_score
-            y_true = self.model.test_scorer._y_true
+            y_score = self._model._test_scorer._y_pred_score
+            y_true = self._model._test_scorer._y_true
         return plot_roc_curve(y_score, y_true, figsize, ax)
 
 
@@ -191,7 +195,7 @@ class SingleModelMLClassReport:
             specified. The model should already be trained on the
             specified data.
         """
-        self.model = model
+        self._model = model
 
     def train_report(self) -> SingleModelSingleDatasetMLClassReport:
         """Returns a SingleModelSingleDatasetMLClassReport
@@ -201,7 +205,7 @@ class SingleModelMLClassReport:
         -------
         SingleModelSingleDatasetMLClassReport.
         """
-        return SingleModelSingleDatasetMLClassReport(self.model, "train")
+        return SingleModelSingleDatasetMLClassReport(self._model, "train")
 
     def test_report(self) -> SingleModelSingleDatasetMLClassReport:
         """Returns a SingleModelSingleDatasetMLClassReport
@@ -211,7 +215,27 @@ class SingleModelMLClassReport:
         -------
         SingleModelSingleDatasetMLClassReport.
         """
-        return SingleModelSingleDatasetMLClassReport(self.model, "test")
+        return SingleModelSingleDatasetMLClassReport(self._model, "test")
+
+    def model(self) -> BaseC:
+        """Returns the model.
+
+        Returns
+        -------
+        BaseC.
+        """
+        return self._model
+
+    def feature_selection_report(self) -> VotingSelectionReport | None:
+        """Returns the feature selection report. If feature selectors were
+        specified at the model level or not at all, then this method will return None.
+
+        Returns
+        -------
+        VotingSelectionReport | None.
+            None is returned if no feature selectors were specified.
+        """
+        return self._model.feature_selection_report()
 
 
 class MLClassificationReport:
@@ -262,10 +286,14 @@ class MLClassificationReport:
             Default: True. If True, prints updates on model fitting.
         """
         self._models: list[BaseC] = models
-        self._id_to_model = {model._name: model for model in models}
+        self._id_to_model = {}
+        for model in models:
+            if model._name in self._id_to_model:
+                raise ValueError(f"Duplicate model name: {model._name}.")
+            self._id_to_model[model._name] = model
 
-        self.y_var = target
-        self.X_vars = predictors
+        self._y_var = target
+        self._X_vars = predictors
         self._feature_selection_report = None
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
@@ -278,8 +306,8 @@ class MLClassificationReport:
                 max_n_features=max_n_features,
                 verbose=verbose,
             )
-            self.X_vars = self._feature_selection_report.top_features()
-            self._emitter.select_predictors(self.X_vars)
+            self._X_vars = self._feature_selection_report.top_features()
+            self._emitter.select_predictors(self._X_vars)
 
         self._emitters = None
         if outer_cv is not None:
@@ -306,6 +334,31 @@ class MLClassificationReport:
                 print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
             model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
             model.fit(verbose=self._verbose)
+
+            if (
+                model.feature_selection_report() is not None
+                and self.feature_selection_report() is not None
+            ):
+                if self._verbose:
+                    print_wrapped(
+                        "Feature selectors were specified for all models as well as "
+                        f"for the model {str(model)}. "
+                        f"The feature selection report attributed to {str(model)} "
+                        "will be for the model-specific feature selectors. "
+                        "Note that the feature selectors for all models "
+                        "were used to select a subset of the predictors first. "
+                        "Then, the model-specific feature selectors were used to "
+                        "select a subset of the predictors from the subset selected "
+                        "by the feature selectors for all models.",
+                        type="WARNING",
+                        level="INFO",
+                    )
+
+            if model.feature_selection_report() is None:
+                model._set_voting_selection_report(
+                    voting_selection_report=self._feature_selection_report
+                )
+
             if self._verbose:
                 print_wrapped(
                     f"Successfully evaluated model {model._name}.", type="UPDATE"
@@ -327,6 +380,8 @@ class MLClassificationReport:
         -------
         SingleModelMLClassReport
         """
+        if model_id not in self._id_to_report:
+            raise ValueError(f"Model {model_id} not found.")
         return self._id_to_report[model_id]
 
     def model(self, model_id: str) -> BaseC:
@@ -341,6 +396,8 @@ class MLClassificationReport:
         -------
         BaseC
         """
+        if model_id not in self._id_to_model:
+            raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
     def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:

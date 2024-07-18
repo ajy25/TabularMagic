@@ -4,7 +4,7 @@ from .svm import SVMR
 from .trees import TreeEnsembleR, TreeR
 from .custom import CustomR
 from .base import BaseR
-from .mlreg import MLRegressionReport
+from .mlreg_report import MLRegressionReport
 
 
 __all__ = [

@@ -24,10 +24,10 @@ class BaseR(BaseDiscriminativeModel):
         self._feature_selectors = None
         self._max_n_features = 10
         self._name = "BaseR"
-        self.train_scorer = None
+        self._train_scorer = None
         self.cv_scorer = None
-        self.test_scorer = None
-        self.voting_selection_report = None
+        self._test_scorer = None
+        self._voting_selection_report = None
 
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -87,13 +87,13 @@ class BaseR(BaseDiscriminativeModel):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
 
             if self._feature_selectors is not None:
-                self.voting_selection_report = VotingSelectionReport(
+                self._voting_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+                X_train = self._voting_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -105,7 +105,7 @@ class BaseR(BaseDiscriminativeModel):
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
-            self.train_scorer = RegressionScorer(
+            self._train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
@@ -132,8 +132,8 @@ class BaseR(BaseDiscriminativeModel):
                         max_n_features=self._max_n_features,
                         verbose=verbose,
                     )
-                    X_train = fold_selector.emit_train_X().to_numpy()
-                    X_test = fold_selector.emit_test_X().to_numpy()
+                    X_train = fold_selector._emit_train_X().to_numpy()
+                    X_test = fold_selector._emit_test_X().to_numpy()
                 else:
                     X_train = X_train_df.to_numpy()
                     X_test = X_test_df.to_numpy()
@@ -161,13 +161,13 @@ class BaseR(BaseDiscriminativeModel):
             y_train = y_train_series.to_numpy()
 
             if self._feature_selectors is not None:
-                self.voting_selection_report = VotingSelectionReport(
+                self._voting_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+                X_train = self._voting_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -178,7 +178,7 @@ class BaseR(BaseDiscriminativeModel):
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
 
-            self.train_scorer = RegressionScorer(
+            self._train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
@@ -193,7 +193,7 @@ class BaseR(BaseDiscriminativeModel):
         if self._feature_selectors is None:
             X_test = X_test_df.to_numpy()
         else:
-            X_test = self.voting_selection_report.emit_test_X().to_numpy()
+            X_test = self._voting_selection_report._emit_test_X().to_numpy()
 
         y_test = y_test_series.to_numpy()
 
@@ -202,7 +202,7 @@ class BaseR(BaseDiscriminativeModel):
             y_pred = y_scaler.inverse_transform(y_pred)
             y_test = y_scaler.inverse_transform(y_test)
 
-        self.test_scorer = RegressionScorer(
+        self._test_scorer = RegressionScorer(
             y_pred=y_pred, y_true=y_test, n_predictors=X_test.shape[1], name=str(self)
         )
 
@@ -215,20 +215,6 @@ class BaseR(BaseDiscriminativeModel):
         """
         return self._estimator
 
-    def feature_selection_report(self) -> VotingSelectionReport:
-        """Returns the VotingSelectionReport object.
-
-        Returns
-        -------
-        VotingSelectionReport
-        """
-        if self.voting_selection_report is None:
-            print_wrapped(
-                f"No feature selection report available for {self._name}.",
-                type="WARNING",
-            )
-        return self.voting_selection_report
-
     def hyperparam_searcher(self) -> HyperparameterSearcher:
         """Returns the HyperparameterSearcher object.
 
@@ -237,6 +223,33 @@ class BaseR(BaseDiscriminativeModel):
         HyperparameterSearcher
         """
         return self._hyperparam_searcher
+
+    def _set_voting_selection_report(
+        self, voting_selection_report: VotingSelectionReport
+    ):
+        """Adds a VotingSelectionReport object to the model. The VotingSelectionReport
+        must have already been fitted to the data.
+
+        Parameters
+        ----------
+        voting_selection_report : VotingSelectionReport
+            The VotingSelectionReport object that has already been fitted to the data.
+        """
+        self._voting_selection_report = voting_selection_report
+
+    def feature_selection_report(self) -> VotingSelectionReport:
+        """Returns the VotingSelectionReport object.
+
+        Returns
+        -------
+        VotingSelectionReport
+        """
+        if self._voting_selection_report is None:
+            print_wrapped(
+                f"No feature selection report available for {self._name}.",
+                type="WARNING",
+            )
+        return self._voting_selection_report
 
     def _is_cross_validated(self) -> bool:
         """Returns True if the model is cross-validated.

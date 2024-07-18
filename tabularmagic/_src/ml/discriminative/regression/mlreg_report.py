@@ -26,7 +26,7 @@ class SingleModelSingleDatasetMLRegReport:
             specified data.
         dataset : Literal['train', 'test'].
         """
-        self.model = model
+        self._model = model
         if dataset not in ["train", "test"]:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
@@ -40,9 +40,9 @@ class SingleModelSingleDatasetMLRegReport:
         pd.DataFrame.
         """
         if self._dataset == "train":
-            return self.model.train_scorer.stats_df()
+            return self._model._train_scorer.stats_df()
         else:
-            return self.model.test_scorer.stats_df()
+            return self._model._test_scorer.stats_df()
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
@@ -58,9 +58,10 @@ class SingleModelSingleDatasetMLRegReport:
 
         Returns
         ----------
-        pd.DataFrame.
+        pd.DataFrame | None. None is returned if cross validation
+            fit statistics are not available.
         """
-        if not self.model._is_cross_validated():
+        if not self._model._is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -69,9 +70,9 @@ class SingleModelSingleDatasetMLRegReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self.model.cv_scorer.stats_df()
+                return self._model.cv_scorer.stats_df()
             else:
-                return self.model.cv_scorer.cv_stats_df()
+                return self._model.cv_scorer.cv_stats_df()
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -95,14 +96,14 @@ class SingleModelSingleDatasetMLRegReport:
 
         Returns
         -------
-        - plt.Figure
+        plt.Figure
         """
         if self._dataset == "train":
-            y_pred = self.model.train_scorer._y_pred
-            y_true = self.model.train_scorer._y_true
+            y_pred = self._model._train_scorer._y_pred
+            y_true = self._model._train_scorer._y_true
         else:
-            y_pred = self.model.test_scorer._y_pred
-            y_true = self.model.test_scorer._y_true
+            y_pred = self._model._test_scorer._y_pred
+            y_true = self._model._test_scorer._y_true
         return plot_obs_vs_pred(y_pred, y_true, figsize, ax)
 
 
@@ -117,29 +118,49 @@ class SingleModelMLRegReport:
 
         Parameters
         ----------
-        - model : BaseRegression. The data for the model must already be
+        model : BaseR. The data for the model must already be
             specified. The model should already be trained on the
             specified data.
         """
-        self.model = model
+        self._model = model
 
     def train_report(self) -> SingleModelSingleDatasetMLRegReport:
         """Returns a SingleModelSingleDatasetMLReport object for the training data.
 
         Returns
         -------
-        - SingleModelSingleDatasetMLReport
+        SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetMLRegReport(self.model, "train")
+        return SingleModelSingleDatasetMLRegReport(self._model, "train")
 
     def test_report(self) -> SingleModelSingleDatasetMLRegReport:
         """Returns a SingleModelSingleDatasetMLReport object for the test data.
 
         Returns
         -------
-        - SingleModelSingleDatasetMLReport
+        SingleModelSingleDatasetMLReport
         """
-        return SingleModelSingleDatasetMLRegReport(self.model, "test")
+        return SingleModelSingleDatasetMLRegReport(self._model, "test")
+
+    def model(self) -> BaseR:
+        """Returns the model.
+
+        Returns
+        -------
+        BaseR.
+        """
+        return self._model
+
+    def feature_selection_report(self) -> VotingSelectionReport | None:
+        """Returns the feature selection report. If feature selectors were
+        specified at the model level or not at all, then this method will return None.
+
+        Returns
+        -------
+        VotingSelectionReport | None.
+            None is returned if no feature selectors were specified.
+        """
+        return self._model._voting_selection_report()
 
 
 class MLRegressionReport:
@@ -189,7 +210,11 @@ class MLRegressionReport:
             Default: True. If True, prints progress.
         """
         self._models: list[BaseR] = models
-        self._id_to_model = {model._name: model for model in models}
+        self._id_to_model = {}
+        for model in models:
+            if model._name in self._id_to_model:
+                raise ValueError(f"Duplicate model name: {model._name}.")
+            self._id_to_model[model._name] = model
 
         self._feature_selection_report = None
 
@@ -237,8 +262,31 @@ class MLRegressionReport:
                 dataemitters=self._emitters,
             )
             model.fit(verbose=self._verbose)
-            if model.voting_selection_report is None:
-                model.voting_selection_report = self._feature_selection_report
+
+            if (
+                model.feature_selection_report() is not None
+                and self.feature_selection_report() is not None
+            ):
+                if self._verbose:
+                    print_wrapped(
+                        "Feature selectors were specified for all models as well as "
+                        f"for the model {str(model)}. "
+                        f"The feature selection report attributed to {str(model)} "
+                        "will be for the model-specific feature selectors. "
+                        "Note that the feature selectors for all models "
+                        "were used to select a subset of the predictors first. "
+                        "Then, the model-specific feature selectors were used to "
+                        "select a subset of the predictors from the subset selected "
+                        "by the feature selectors for all models.",
+                        type="WARNING",
+                        level="INFO",
+                    )
+
+            if model.feature_selection_report() is None:
+                model._set_voting_selection_report(
+                    voting_selection_report=self._feature_selection_report
+                )
+
             if self._verbose:
                 print_wrapped(
                     f"Successfully evaluated model {model._name}.", type="UPDATE"
@@ -260,6 +308,8 @@ class MLRegressionReport:
         -------
         SingleModelMLRegReport
         """
+        if model_id not in self._id_to_report:
+            raise ValueError(f"Model {model_id} not found.")
         return self._id_to_report[model_id]
 
     def model(self, model_id: str) -> BaseR:
@@ -274,6 +324,8 @@ class MLRegressionReport:
         -------
         BaseR
         """
+        if model_id not in self._id_to_model:
+            raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
     def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:

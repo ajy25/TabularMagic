@@ -30,9 +30,10 @@ class BaseC(BaseDiscriminativeModel):
         self._feature_selectors = None
         self._max_n_features = 10
         self._name = "BaseC"
-        self.train_scorer = None
+        self._train_scorer = None
         self.cv_scorer = None
-        self.test_scorer = None
+        self._test_scorer = None
+        self._voting_selection_report = None
 
         # By default, the first column is NOT dropped unless binary. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -90,13 +91,13 @@ class BaseC(BaseDiscriminativeModel):
             y_train = y_train_series.to_numpy()
 
             if self._feature_selectors is not None:
-                self.voting_selection_report = VotingSelectionReport(
+                self._voting_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+                X_train = self._voting_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -118,7 +119,7 @@ class BaseC(BaseDiscriminativeModel):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if not is_binary:
-                self.train_scorer = ClassificationMulticlassScorer(
+                self._train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -129,7 +130,7 @@ class BaseC(BaseDiscriminativeModel):
                 )
 
             else:
-                self.train_scorer = ClassificationBinaryScorer(
+                self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -158,8 +159,8 @@ class BaseC(BaseDiscriminativeModel):
                         max_n_features=self._max_n_features,
                         verbose=verbose,
                     )
-                    X_train = fold_selector.emit_train_X().to_numpy()
-                    X_test = fold_selector.emit_test_X().to_numpy()
+                    X_train = fold_selector._emit_train_X().to_numpy()
+                    X_test = fold_selector._emit_test_X().to_numpy()
                 else:
                     X_train = X_train_df.to_numpy()
                     X_test = X_test_df.to_numpy()
@@ -210,13 +211,13 @@ class BaseC(BaseDiscriminativeModel):
             y_train = y_train_series.to_numpy()
 
             if self._feature_selectors is not None:
-                self.voting_selection_report = VotingSelectionReport(
+                self._voting_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self.voting_selection_report.emit_train_X().to_numpy()
+                X_train = self._voting_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -234,7 +235,7 @@ class BaseC(BaseDiscriminativeModel):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if not is_binary:
-                self.train_scorer = ClassificationMulticlassScorer(
+                self._train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -244,7 +245,7 @@ class BaseC(BaseDiscriminativeModel):
                     name=str(self),
                 )
             else:
-                self.train_scorer = ClassificationBinaryScorer(
+                self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -260,7 +261,7 @@ class BaseC(BaseDiscriminativeModel):
         if self._feature_selectors is None:
             X_test = X_test_df.to_numpy()
         else:
-            X_test = self.voting_selection_report.emit_test_X().to_numpy()
+            X_test = self._voting_selection_report._emit_test_X().to_numpy()
 
         y_pred = self._label_encoder.inverse_transform(self._estimator.predict(X_test))
 
@@ -271,7 +272,7 @@ class BaseC(BaseDiscriminativeModel):
             y_pred_score = self._estimator.decision_function(X_test)
 
         if not is_binary:
-            self.test_scorer = ClassificationMulticlassScorer(
+            self._test_scorer = ClassificationMulticlassScorer(
                 y_pred=y_pred,
                 y_true=y_test,
                 y_pred_score=y_pred_score,
@@ -282,7 +283,7 @@ class BaseC(BaseDiscriminativeModel):
             )
 
         else:
-            self.test_scorer = ClassificationBinaryScorer(
+            self._test_scorer = ClassificationBinaryScorer(
                 y_pred=y_pred, y_true=y_test, y_pred_score=y_pred_score, name=str(self)
             )
 
@@ -291,7 +292,7 @@ class BaseC(BaseDiscriminativeModel):
 
         Returns
         -------
-        - BaseEstimator
+        BaseEstimator
         """
         return self._estimator
 
@@ -300,16 +301,39 @@ class BaseC(BaseDiscriminativeModel):
 
         Returns
         -------
-        - HyperparameterSearcher
+        HyperparameterSearcher
         """
         return self._hyperparam_searcher
+
+    def _set_voting_selection_report(
+        self, voting_selection_report: VotingSelectionReport
+    ):
+        """Adds a VotingSelectionReport object to the model. The VotingSelectionReport
+        must have already been fitted to the data.
+
+        Parameters
+        ----------
+        voting_selection_report : VotingSelectionReport
+            The VotingSelectionReport object that has already been fitted to the data.
+        """
+        self._voting_selection_report = voting_selection_report
+
+    def feature_selection_report(self) -> VotingSelectionReport | None:
+        """Returns the VotingSelectionReport object.
+
+        Returns
+        -------
+        VotingSelectionReport | None
+        """
+        return self._voting_selection_report
 
     def _is_cross_validated(self) -> bool:
         """Returns True if the model is cross-validated.
 
         Returns
         -------
-        - bool
+        bool.
+            True if the model is cross-validated.
         """
         return self._dataemitters is not None
 

@@ -61,16 +61,16 @@ class VotingSelectionReport:
         selectors."""
         return self._all_features
 
-    def votes_df(self) -> pd.DataFrame:
+    def votes(self) -> pd.DataFrame:
         """Returns a DataFrame that describes the distribution of
         votes among selectors."""
-        return self._votes_df
+        return self._votes_df.T
 
-    def emit_train_X(self) -> pd.DataFrame:
+    def _emit_train_X(self) -> pd.DataFrame:
         """Returns the training DataFrame with only the top features."""
         return self._emitter.emit_train_Xy()[0][self._top_features]
 
-    def emit_test_X(self) -> pd.DataFrame:
+    def _emit_test_X(self) -> pd.DataFrame:
         """Returns the test DataFrame with only the top features."""
         return self._emitter.emit_test_Xy()[0][self._top_features]
 

@@ -32,8 +32,8 @@ pd.options.mode.copy_on_write = True
 
 
 class Analyzer:
-    """Analyzer: Automatic statistical and machine learning analysis of
-    DataFrames in tabular form.
+    """Analyzer: A class designed for conducting exploratory data analysis (EDA),
+    regression analysis, and machine learning modeling on wide format tabular data.
     """
 
     def __init__(
@@ -46,8 +46,6 @@ class Analyzer:
         name: str = "Analyzer",
     ):
         """Initializes a Analyzer object.
-
-        Note: DataFrame indices are not guaranteed to be correctly preserved.
 
         Parameters
         ----------

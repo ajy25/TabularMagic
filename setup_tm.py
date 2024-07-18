@@ -18,7 +18,7 @@ setup(
     version="0.0.0",
     packages=find_packages(where=str(directory_path)),
     author="Andrew Yang",
-    license=pathlib.Path("LICENSE").read_text(),
+    license=(directory_path / "LICENSE").read_text(),
     description="""TabularMagic is a Python package for rapid exploratory 
     statistical and machine learning modeling of wide format tabular data.""",
     long_description=(directory_path / "README.md").read_text(),

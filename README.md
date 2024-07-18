@@ -132,7 +132,7 @@ TabularMagic provides a straightforward Python API that significantly accelerate
 1. 
     Q: Why not just use sklearn pipelines? 
 
-    A: scikit-learn is *the* Python machine learning modeling package; TabularMagic and many other solutions rely heavily on scikit-learn. Though sklearn pipelines allows for streamlined data preprocessing and ML modeling, they are by no means low-code and require a nontrivial amount of documentaion reading and programming experience to use.
+    A: scikit-learn is *the* Python machine learning modeling package; TabularMagic and many other solutions rely heavily on scikit-learn. Though sklearn pipelines allows for streamlined data preprocessing and ML modeling, they are by no means low-code and require a nontrivial amount of documentation reading and programming experience to use.
 
 
 

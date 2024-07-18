@@ -15,6 +15,7 @@ xgboost>=2.0.3
 statsmodels>=0.14.0
 adjustText>=1.1.1
 optuna>=3.6.1
+optuna-integration>=3.6.0
 ```
 
 ### Boruta_Py

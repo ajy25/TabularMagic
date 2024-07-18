@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 from scipy.stats import pearsonr, spearmanr
+from ..._src.display.print_utils import print_wrapped
 
 
 class RegressionScorer:
@@ -42,7 +43,7 @@ class RegressionScorer:
             self._name = "Model"
         else:
             self._name = name
-        self.n_predictors = n_predictors
+        self._n_predictors = n_predictors
         self._y_pred = y_pred
         self._y_true = y_true
 
@@ -64,13 +65,19 @@ class RegressionScorer:
             df.loc["pearsonr", self._name] = pearsonr(y_true, y_pred)[0]
             df.loc["spearmanr", self._name] = spearmanr(y_true, y_pred)[0]
             df.loc["r2", self._name] = r2_score(y_true, y_pred)
-            if self.n_predictors is None:
+            if self._n_predictors is None:
                 df.loc["adjr2", self._name] = np.NaN
             else:
-                df.loc["adjr2", self._name] = 1 - (
-                    ((1 - df.loc["r2", self._name]) * (n - 1))
-                    / (n - self.n_predictors - 1)
-                )
+                try:
+                    adjr2 = 1 - (((1 - df.loc["r2", self._name]) * (n - 1)) / \
+                                 (n - self._n_predictors - 1))
+                except ZeroDivisionError:
+                    adjr2 = np.NaN
+                    print_wrapped(
+                        "ZeroDivisionError occurred during calculation of "
+                        "adjusted R squared. Setting adjusted R squared to NaN.",
+                        type="WARNING",
+                    )
             df.loc["n", self._name] = len(y_true)
             df = df.rename_axis("Statistic", axis="rows")
             self._stats_df = df
@@ -111,10 +118,19 @@ class RegressionScorer:
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {"Statistic": "r2", self._name: r2, "Fold": i}
                 )
-                if self.n_predictors is None:
+                if self._n_predictors is None:
                     adjr2 = np.NaN
                 else:
-                    adjr2 = 1 - (((1 - r2) * (n - 1)) / (n - self.n_predictors - 1))
+                    try:
+                        adjr2 = 1 - (((1 - r2) * (n - 1)) / (n - self._n_predictors - 1))
+                    except ZeroDivisionError:
+                        adjr2 = np.NaN
+                        print_wrapped(
+                            "ZeroDivisionError occurred during calculation of "
+                            "adjusted R squared. Setting adjusted R squared to NaN.",
+                            type="WARNING",
+                        )
+                        
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {"Statistic": "adjr2", self._name: adjr2, "Fold": i}
                 )

@@ -460,3 +460,32 @@ def test_kfold_basic_init(setup_data):
         assert idx in dh._working_df_train.index
     assert emitters[0].y_scaler().min == 4.3
     assert emitters[2].y_scaler().min != 4.3
+
+def test_emitter_feature_selection(setup_data):
+    df_iris_train = setup_data["df_iris_train"]
+    df_iris_test = setup_data["df_iris_test"]
+
+    dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
+    emitter = dh.train_test_emitter(
+        "target", 
+        ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+    )
+    emitter.select_predictors(["sepallength(cm)", "petallength(cm)"])
+    assert np.allclose(
+        emitter.emit_train_Xy()[0].to_numpy(),
+        df_iris_train[["sepallength(cm)", "petallength(cm)"]].to_numpy()
+    )
+    assert np.allclose(
+        emitter.emit_test_Xy()[0].to_numpy(),
+        df_iris_test[["sepallength(cm)", "petallength(cm)"]].to_numpy()
+    )
+    assert np.allclose(
+        emitter.emit_train_Xy()[1].to_numpy(),
+        df_iris_train["target"].to_numpy()
+    )
+    assert np.allclose(
+        emitter.emit_test_Xy()[1].to_numpy(),
+        df_iris_test["target"].to_numpy()
+    )
+
+

@@ -166,8 +166,26 @@ class DataEmitter:
         - y_test_series
         """
         all_vars = self._Xvars + [self._yvar]
+        prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
+        new_train_len = len(working_df_train)
+        prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
+        new_test_len = len(working_df_test)
+        if prev_train_len != new_train_len:
+            print_wrapped(
+                f"Train data: dropped {prev_train_len - new_train_len} rows "
+                "with missing values "
+                f"out of a total of {prev_train_len} rows.",
+                type="WARNING",
+            )
+        if prev_test_len != new_test_len:
+            print_wrapped(
+                f"Test data: dropped {prev_test_len - new_test_len} rows "
+                "with missing values "
+                f"out of a total of {prev_test_len} rows.",
+                type="WARNING",
+            )
         X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
         if self._final_X_vars_subset is not None:
@@ -204,7 +222,16 @@ class DataEmitter:
         - y_train_series
         """
         all_vars = self._Xvars + [self._yvar]
+        prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
+        new_train_len = len(working_df_train)
+        if prev_train_len != new_train_len:
+            print_wrapped(
+                f"Train data: dropped {prev_train_len - new_train_len} rows "
+                "with missing values "
+                f"out of a total of {prev_train_len} rows.",
+                type="WARNING",
+            )
         X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
@@ -234,7 +261,16 @@ class DataEmitter:
         - y_test_series
         """
         all_vars = self._Xvars + [self._yvar]
+        prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
+        new_test_len = len(working_df_test)
+        if prev_test_len != new_test_len:
+            print_wrapped(
+                f"Test data: dropped {prev_test_len - new_test_len} rows "
+                "with missing values "
+                f"out of a total of {prev_test_len} rows.",
+                type="WARNING",
+            )
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]

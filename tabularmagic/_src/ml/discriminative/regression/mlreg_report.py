@@ -104,7 +104,7 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             y_pred = self._model._test_scorer._y_pred
             y_true = self._model._test_scorer._y_true
-        return plot_obs_vs_pred(y_pred, y_true, figsize, ax)
+        return plot_obs_vs_pred(y_pred, y_true, self._model._name, figsize, ax)
 
 
 class SingleModelMLRegReport:
@@ -160,7 +160,7 @@ class SingleModelMLRegReport:
         VotingSelectionReport | None.
             None is returned if no feature selectors were specified.
         """
-        return self._model._voting_selection_report()
+        return self._model.feature_selection_report()
 
 
 class MLRegressionReport:
@@ -218,8 +218,8 @@ class MLRegressionReport:
 
         self._feature_selection_report = None
 
-        self.y_var = target
-        self.X_vars = predictors
+        self._y_var = target
+        self._X_vars = predictors
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
@@ -231,10 +231,11 @@ class MLRegressionReport:
                 max_n_features=max_n_features,
                 verbose=verbose,
             )
-            self.X_vars = self._feature_selection_report.top_features()
-            self._emitter.select_predictors(self.X_vars)
+            self._X_vars = self._feature_selection_report.top_features()
+            self._emitter.select_predictors(self._X_vars)
 
         self._emitters = None
+
         if outer_cv is not None:
             self._emitters = datahandler.kfold_emitters(
                 y_var=target,
@@ -264,8 +265,8 @@ class MLRegressionReport:
             model.fit(verbose=self._verbose)
 
             if (
-                model.feature_selection_report() is not None
-                and self.feature_selection_report() is not None
+                model._feature_selection_report is not None
+                and self._feature_selection_report is not None
             ):
                 if self._verbose:
                     print_wrapped(
@@ -282,7 +283,7 @@ class MLRegressionReport:
                         level="INFO",
                     )
 
-            if model.feature_selection_report() is None:
+            if model._feature_selection_report is None:
                 model._set_voting_selection_report(
                     voting_selection_report=self._feature_selection_report
                 )
@@ -401,6 +402,11 @@ class MLRegressionReport:
         VotingSelectionReport | None.
             None if feature selectors were not specified.
         """
+        if self._feature_selection_report is None:
+            print_wrapped(
+                f"No feature selection report available.",
+                type="WARNING",
+            )
         return self._feature_selection_report
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:

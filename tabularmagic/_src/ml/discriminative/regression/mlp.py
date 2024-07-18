@@ -20,8 +20,9 @@ class MLPR(BaseR):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_search_space: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         feature_selectors: list[BaseFSR] | None = None,
         max_n_features: int = 10,
         model_random_state: int = 42,

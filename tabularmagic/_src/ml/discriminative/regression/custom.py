@@ -2,7 +2,7 @@ from sklearn.model_selection._search import BaseSearchCV
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from .base import BaseR
-from ....metrics.regression_scoring import RegressionScorer
+from ....metrics import RegressionScorer
 from ....display.print_utils import print_wrapped
 
 

@@ -1,19 +1,17 @@
 import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 import numpy as np
+import pandas as pd
 from typing import Iterable
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
-
-
 import seaborn as sns
-
-sns.set_theme()
 
 
 def plot_obs_vs_pred(
     y_pred: np.ndarray,
     y_true: np.ndarray,
+    model_name: str | None = None,
     figsize: Iterable = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
@@ -26,6 +24,9 @@ def plot_obs_vs_pred(
         The predicted y values.
     y_true : np.ndarray.
         The observed y values.
+    model_name : str.
+        Default: None. The name of the model to display in the title.
+        If None, model name is not included in the title.
     figsize : Iterable.
         Default: (5, 5). The size of the figure. Only used if ax is None.
     ax : plt.Axes.
@@ -57,9 +58,15 @@ def plot_obs_vs_pred(
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Observed")
 
-    ax.set_title(
-        "Observed vs Predicted | " + f"ρ = {round(pearsonr(y_pred, y_true)[0], 3)}"
-    )
+    if model_name is not None:
+        ax.set_title(
+            f"{model_name}: Observed vs Predicted | "
+            f"ρ = {round(pearsonr(y_pred, y_true)[0], 3)}"
+        )
+    else:
+        ax.set_title(
+            "Observed vs Predicted | " + f"ρ = {round(pearsonr(y_pred, y_true)[0], 3)}"
+        )
     ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
     ax.yaxis.get_offset_text().set_fontsize(ax.yaxis.get_ticklabels()[0].get_fontsize())
     ax.xaxis.get_offset_text().set_fontsize(ax.xaxis.get_ticklabels()[0].get_fontsize())
@@ -73,6 +80,7 @@ def plot_obs_vs_pred(
 def plot_roc_curve(
     y_score: np.ndarray,
     y_true: np.ndarray,
+    model_name: str | None = None,
     figsize: Iterable = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
@@ -84,6 +92,9 @@ def plot_roc_curve(
         Predicted probabilities or decision scores.
     y_true : np.ndarray.
         True binary labels.
+    model_name : str.
+        Default: None. The name of the model to display in the title.
+        If None, model name is not included in the title.
     figsize : Iterable.
         Default: (5, 5). The size of the figure. Only used if ax is None.
     ax : plt.Axes.
@@ -107,7 +118,81 @@ def plot_roc_curve(
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
-    ax.set_title(f"ROC Curve | AUC = {roc_auc:.3f}")
+
+    if model_name is not None:
+        ax.set_title(f"{model_name}: ROC Curve | AUC = {roc_auc:.3f}")
+    else:
+        ax.set_title(f"ROC Curve | AUC = {roc_auc:.3f}")
+
+    if fig is not None:
+        fig.tight_layout()
+        plt.close()
+    return fig
+
+
+def plot_confusion_matrix(
+    y_pred: np.ndarray,
+    y_true: np.ndarray,
+    model_name: str | None = None,
+    figsize: Iterable = (5, 5),
+    ax: axes.Axes | None = None,
+) -> plt.Figure:
+    """Returns a figure that is the confusion matrix for the model.
+
+    Parameters
+    ----------
+    y_pred : np.ndarray.
+        Predicted binary or multiclass labels.
+    y_true : np.ndarray.
+        True binary or multiclass labels.
+    model_name : str.
+        Default: None. The name of the model to display in the title.
+        If None, model name is not included in the title.
+    figsize : Iterable.
+        Default: (5, 5). The size of the figure. Only used if ax is None.
+    ax : plt.Axes.
+        Default: None. The axes to plot on. If None, a new figure is created.
+
+    Returns
+    -------
+    plt.Figure.
+        Figure of the confusion matrix.
+    """
+    fig = None
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+
+    all_labels = np.unique(np.concatenate((y_true, y_pred)))
+    all_labels.sort()
+
+    confusion_matrix = pd.crosstab(
+        y_true, y_pred,
+        rownames=['True'],
+        colnames=['Predicted'],
+        dropna=False
+    )
+    confusion_matrix = confusion_matrix.reindex(
+        index=all_labels, 
+        columns=all_labels, 
+        fill_value=0
+    )
+
+    sns.heatmap(confusion_matrix, annot=True, fmt="d", cmap="Blues", ax=ax, cbar=False)
+
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Observed")
+
+    if model_name is not None:
+        ax.set_title(
+            f"{model_name}: Confusion Matrix | "
+            f"Accuracy = {np.mean(y_pred == y_true):.3f}"
+        )
+    else:
+        ax.set_title(
+            f"Confusion Matrix | "
+            f"Accuracy = {np.mean(y_pred == y_true):.3f}"
+        )
 
     if fig is not None:
         fig.tight_layout()
@@ -126,7 +211,7 @@ def decrease_font_sizes_axs(
 
     Parameters
     ----------
-    axs.
+    axs. Array of plt.Axes.
     title_font_size_decrease : int.
     axes_label_font_size_decrease : int.
     ticks_font_size_decrease_from_label : int.

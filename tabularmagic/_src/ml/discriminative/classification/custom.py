@@ -3,10 +3,11 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 import numpy as np
 from .base import BaseC
-from ....metrics.classification_scoring import (
+from ....metrics import (
     ClassificationMulticlassScorer,
     ClassificationBinaryScorer,
 )
+from ....display.print_utils import print_wrapped
 
 
 class CustomC(BaseC):
@@ -41,9 +42,14 @@ class CustomC(BaseC):
         else:
             self._name = name
 
-    def fit(self):
+    def fit(self, verbose: bool = False):
         """Fits the model. Records training metrics, which can be done via
         nested cross validation.
+
+        Parameters
+        ----------
+        verbose : bool.
+            Default: False. If True, prints progress.
         """
         is_binary = False
 
@@ -57,6 +63,8 @@ class CustomC(BaseC):
             if np.isin(np.unique(y_train), [0, 1]).all():
                 is_binary = True
 
+            if verbose:
+                print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
             self._estimator.fit(X_train, y_train_encoded)
 
             y_pred = self._label_encoder.inverse_transform(
@@ -214,4 +222,4 @@ class CustomC(BaseC):
 
     def hyperparam_searcher(self):
         """Raises NotImplementedError. Not implemented for CustomC."""
-        raise NotImplementedError("CustomR has no HyperparameterSearcher.")
+        raise NotImplementedError("CustomC has no HyperparameterSearcher.")

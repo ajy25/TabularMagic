@@ -4,7 +4,7 @@ from typing import Iterable, Literal
 from .base import BaseC
 from ....metrics.classification_scoring import ClassificationBinaryScorer
 from ....data.datahandler import DataHandler
-from ....exploratory.visualization import plot_roc_curve
+from ....exploratory.visualization import plot_roc_curve, plot_confusion_matrix
 from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSC, VotingSelectionReport
 
@@ -145,6 +145,34 @@ class SingleModelSingleDatasetMLClassReport:
                 type="WARNING",
             )
             return None
+        
+    def plot_confusion_matrix(
+        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+    ) -> plt.Figure:
+        """Returns a figure that is the confusion matrix for the model.
+
+        Parameters
+        ----------
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure.
+            Figure of the confusion matrix.
+        """
+        if self._dataset == "train":
+            y_pred = self._model._train_scorer._y_pred
+            y_true = self._model._train_scorer._y_true
+        else:
+            y_pred = self._model._test_scorer._y_pred
+            y_true = self._model._test_scorer._y_true
+        return plot_confusion_matrix(
+            y_pred, y_true, self._model._name, figsize, ax
+        )
 
     def plot_roc_curve(
         self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
@@ -161,7 +189,8 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        plt.Figure
+        plt.Figure | None. 
+            Figure of the ROC curve. None is returned if the model is not binary.
         """
         if not self._is_binary:
             print_wrapped(
@@ -176,7 +205,7 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             y_score = self._model._test_scorer._y_pred_score
             y_true = self._model._test_scorer._y_true
-        return plot_roc_curve(y_score, y_true, figsize, ax)
+        return plot_roc_curve(y_score, y_true, self._model._name, figsize, ax)
 
 
 class SingleModelMLClassReport:
@@ -336,8 +365,8 @@ class MLClassificationReport:
             model.fit(verbose=self._verbose)
 
             if (
-                model.feature_selection_report() is not None
-                and self.feature_selection_report() is not None
+                model._feature_selection_report is not None
+                and self._feature_selection_report is not None
             ):
                 if self._verbose:
                     print_wrapped(
@@ -354,7 +383,7 @@ class MLClassificationReport:
                         level="INFO",
                     )
 
-            if model.feature_selection_report() is None:
+            if model._feature_selection_report is None:
                 model._set_voting_selection_report(
                     voting_selection_report=self._feature_selection_report
                 )
@@ -471,6 +500,11 @@ class MLClassificationReport:
         VotingSelectionReport | None.
             None is returned if no feature selectors were specified.
         """
+        if self._feature_selection_report is None:
+            print_wrapped(
+                f"No feature selection report available.",
+                type="WARNING",
+            )
         return self._feature_selection_report
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:

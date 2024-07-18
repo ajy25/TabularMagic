@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator
-from ....metrics.regression_scoring import RegressionScorer
+from ....metrics import RegressionScorer
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
 from ....data.datahandler import DataEmitter
 from ....feature_selection import BaseFSR
@@ -27,7 +27,7 @@ class BaseR(BaseDiscriminativeModel):
         self._train_scorer = None
         self.cv_scorer = None
         self._test_scorer = None
-        self._voting_selection_report = None
+        self._feature_selection_report = None
 
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -87,13 +87,13 @@ class BaseR(BaseDiscriminativeModel):
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
 
             if self._feature_selectors is not None:
-                self._voting_selection_report = VotingSelectionReport(
+                self._feature_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self._voting_selection_report._emit_train_X().to_numpy()
+                X_train = self._feature_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -161,13 +161,13 @@ class BaseR(BaseDiscriminativeModel):
             y_train = y_train_series.to_numpy()
 
             if self._feature_selectors is not None:
-                self._voting_selection_report = VotingSelectionReport(
+                self._feature_selection_report = VotingSelectionReport(
                     selectors=self._feature_selectors,
                     dataemitter=self._dataemitter,
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self._voting_selection_report._emit_train_X().to_numpy()
+                X_train = self._feature_selection_report._emit_train_X().to_numpy()
             else:
                 X_train = X_train_df.to_numpy()
 
@@ -193,7 +193,7 @@ class BaseR(BaseDiscriminativeModel):
         if self._feature_selectors is None:
             X_test = X_test_df.to_numpy()
         else:
-            X_test = self._voting_selection_report._emit_test_X().to_numpy()
+            X_test = self._feature_selection_report._emit_test_X().to_numpy()
 
         y_test = y_test_series.to_numpy()
 
@@ -235,7 +235,7 @@ class BaseR(BaseDiscriminativeModel):
         voting_selection_report : VotingSelectionReport
             The VotingSelectionReport object that has already been fitted to the data.
         """
-        self._voting_selection_report = voting_selection_report
+        self._feature_selection_report = voting_selection_report
 
     def feature_selection_report(self) -> VotingSelectionReport:
         """Returns the VotingSelectionReport object.
@@ -244,12 +244,12 @@ class BaseR(BaseDiscriminativeModel):
         -------
         VotingSelectionReport
         """
-        if self._voting_selection_report is None:
+        if self._feature_selection_report is None:
             print_wrapped(
                 f"No feature selection report available for {self._name}.",
                 type="WARNING",
             )
-        return self._voting_selection_report
+        return self._feature_selection_report
 
     def _is_cross_validated(self) -> bool:
         """Returns True if the model is cross-validated.

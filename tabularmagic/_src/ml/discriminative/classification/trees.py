@@ -28,8 +28,9 @@ class TreeC(BaseC):
     def __init__(
         self,
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_search_space: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         model_random_state: int = 42,
         feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int = 10,
@@ -123,8 +124,9 @@ class TreeEnsembleC(BaseC):
             "xgboostrf",
         ] = "random_forest",
         hyperparam_search_method: Literal["optuna", "grid"] | None = None,
-        hyperparam_search_space: Mapping[str, Iterable | BaseDistribution]
-        | None = None,
+        hyperparam_search_space: (
+            Mapping[str, Iterable | BaseDistribution] | None
+        ) = None,
         feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int = 10,
         model_random_state: int = 42,

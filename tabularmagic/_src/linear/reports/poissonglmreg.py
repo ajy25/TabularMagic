@@ -57,15 +57,13 @@ class SingleDatasetPoisRegReport:
 
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
-        self._pearsonresiduals = ((self._y_true - self._y_pred) / 
-                                  np.sqrt(self._y_pred))
+        self._pearsonresiduals = (self._y_true - self._y_pred) / np.sqrt(self._y_pred)
         self._outlier_threshold = 2
         self._compute_outliers()
 
         self._include_text = False
         if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
             self._include_text = True
-
 
     def plot_obs_vs_pred(
         self,
@@ -117,11 +115,10 @@ class SingleDatasetPoisRegReport:
             fig.tight_layout()
             plt.close()
         return fig
-    
 
     def plot_residuals_vs_fitted(
         self,
-        type: Literal['raw', 'standardized', 'pearson'] = 'raw',
+        type: Literal["raw", "standardized", "pearson"] = "raw",
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
         ax: plt.Axes | None = None,
@@ -143,9 +140,9 @@ class SingleDatasetPoisRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        if type == 'raw':
+        if type == "raw":
             residuals = self._residuals
-        elif type == 'standardized':
+        elif type == "standardized":
             residuals = self._stdresiduals
         else:
             residuals = self._pearsonresiduals
@@ -183,10 +180,10 @@ class SingleDatasetPoisRegReport:
             ax.scatter(self._y_pred, residuals, s=2, color="black")
 
         ax.set_xlabel("Fitted")
-        if type == 'standardized':
+        if type == "standardized":
             ax.set_ylabel("Standardized Residuals")
             ax.set_title("Standardized Residuals vs Fitted")
-        elif type == 'pearson':
+        elif type == "pearson":
             ax.set_ylabel("Pearson Residuals")
             ax.set_title("Pearson Residuals vs Fitted")
         else:

@@ -60,11 +60,13 @@ class SingleDatasetNegBinRegReport:
 
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
-        #Pearson residual calculation found on page 5 here:
-        #https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Negative_Binomial_Regression.pdf
-        #https://www.statsmodels.org/devel/glm.html uses same calculation.
-        alpha = self.model.params['alpha']
-        self._pearsonresiduals = (self._y_true - self._y_pred) / np.sqrt(self._y_pred + alpha * self._y_pred**2)
+        # Pearson residual calculation found on page 5 here:
+        # https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Negative_Binomial_Regression.pdf
+        # https://www.statsmodels.org/devel/glm.html uses same calculation.
+        alpha = self.model.estimator.params["alpha"]
+        self._pearsonresiduals = (self._y_true - self._y_pred) / np.sqrt(
+            self._y_pred + alpha * self._y_pred**2
+        )
 
         self._outlier_threshold = 2
         self._compute_outliers()
@@ -72,7 +74,6 @@ class SingleDatasetNegBinRegReport:
         self._include_text = False
         if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
             self._include_text = True
-
 
     def plot_obs_vs_pred(
         self,
@@ -127,7 +128,7 @@ class SingleDatasetNegBinRegReport:
 
     def plot_residuals_vs_fitted(
         self,
-        type: Literal['raw', 'standardized', 'pearson'] = 'raw',
+        type: Literal["raw", "standardized", "pearson"] = "raw",
         show_outliers: bool = True,
         figsize: Iterable = (5, 5),
         ax: plt.Axes | None = None,
@@ -136,26 +137,27 @@ class SingleDatasetNegBinRegReport:
 
         Parameters
         ----------
-        - standardized : bool. If True, standardizes the residuals.
-        - show_outliers : bool. If True, plots the outliers in red.
-        - figsize : Iterable.
-        - ax : Axes
+        standardized : bool. If True, standardizes the residuals.
+        show_outliers : bool. If True, plots the outliers in red.
+        figsize : Iterable.
+        ax : plt.Axes.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         fig = None
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        
-        if type == 'raw':
+        if type == "raw":
             residuals = self._residuals
-        elif type == 'standardized':
+        elif type == "standardized":
             residuals = self._stdresiduals
-        else:
+        elif type == "pearson":
             residuals = self._pearsonresiduals
+        else:
+            raise ValueError(f"Invalid input for type: {type}")
 
         ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
         if show_outliers and self._n_outliers > 0:
@@ -190,10 +192,10 @@ class SingleDatasetNegBinRegReport:
             ax.scatter(self._y_pred, residuals, s=2, color="black")
 
         ax.set_xlabel("Fitted")
-        if type == 'standardized':
+        if type == "standardized":
             ax.set_ylabel("Standardized Residuals")
             ax.set_title("Standardized Residuals vs Fitted")
-        elif type == 'pearson':
+        elif type == "pearson":
             ax.set_ylabel("Pearson Residuals")
             ax.set_title("Pearson Residuals vs Fitted")
         else:
@@ -686,6 +688,19 @@ class SingleDatasetNegBinRegReport:
         self._outliers_residual_mask = (
             self._stdresiduals >= self._outlier_threshold
         ) | (self._stdresiduals <= -self._outlier_threshold)
+        self._outliers_df_idx = self._X_eval_df.iloc[
+            self._outliers_residual_mask
+        ].index.to_numpy()
+        self._n_outliers = len(self._outliers_df_idx)
+        self._include_text = False
+        if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
+            self._include_text = True
+
+    def _compute_pearson_outliers(self):
+        """Computes the outliers."""
+        self._outliers_residual_mask = (
+            self._pearsonresiduals >= self._outlier_threshold
+        ) | (self._pearsonresiduals <= -self._outlier_threshold)
         self._outliers_df_idx = self._X_eval_df.iloc[
             self._outliers_residual_mask
         ].index.to_numpy()

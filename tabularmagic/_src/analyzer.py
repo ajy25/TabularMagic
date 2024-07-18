@@ -10,10 +10,14 @@ from .ml.discriminative import (
 from .linear import (
     OLSLinearModel,
     PoissonLinearModel,
+    NegativeBinomialLinearModel,
+    CountLinearModel,
     BinomialLinearModel,
     BinomialRegressionReport,
     PoissonRegressionReport,
+    NegativeBinomialRegressionReport,
     LinearRegressionReport,
+    CountRegressionReport,
     parse_and_transform_rlike,
 )
 from .feature_selection import (
@@ -264,11 +268,16 @@ class Analyzer:
 
     def glm(
         self,
-        family: Literal["poisson", "binomial"],
+        family: Literal["poisson", "binomial", "negbinomial", "count"],
         target: str | None = None,
         predictors: list[str] | None = None,
         formula: str | None = None,
-    ) -> PoissonRegressionReport | BinomialRegressionReport:
+    ) -> (
+        PoissonRegressionReport
+        | BinomialRegressionReport
+        | NegativeBinomialRegressionReport
+        | CountRegressionReport
+    ):
         """Conducts a generalized linear regression exercise.
         If formula is provided, performs linear regression with link
         function depending on specified family via formula.
@@ -303,10 +312,20 @@ class Analyzer:
                 return PoissonRegressionReport(
                     PoissonLinearModel(), self._datahandler, target, predictors
                 )
-            else:
+            elif family == "binomial":
                 return BinomialRegressionReport(
                     BinomialLinearModel(), self._datahandler, target, predictors
                 )
+            elif family == "negbinomial":
+                return NegativeBinomialRegressionReport(
+                    NegativeBinomialLinearModel(), self._datahandler, target, predictors
+                )
+            elif family == "count":
+                return CountRegressionReport(
+                    CountLinearModel(), self._datahandler, target, predictors
+                )
+            else:
+                raise ValueError("invalid input for family")
 
         else:
             try:
@@ -348,6 +367,16 @@ class Analyzer:
                 return BinomialRegressionReport(
                     BinomialLinearModel(), self._datahandler, target, predictors
                 )
+            elif family == "negbinomial":
+                return NegativeBinomialRegressionReport(
+                    NegativeBinomialLinearModel(), self._datahandler, target, predictors
+                )
+            elif family == "count":
+                return CountRegressionReport(
+                    CountLinearModel(), self._datahandler, target, predictors
+                )
+            else:
+                raise ValueError("invalid input for family")
 
     # --------------------------------------------------------------------------
     # MACHINE LEARNING

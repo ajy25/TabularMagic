@@ -6,7 +6,7 @@ from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
 from ...exploratory.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.poissonglm import PoissonLinearModel
+from ...linear.negbinglm import NegativeBinomialLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 
@@ -23,12 +23,15 @@ MAX_N_OUTLIERS_TEXT = 20
 train_only_message = "This function is only available for training data."
 
 
-class SingleDatasetPoisRegReport:
+class SingleDatasetNegBinRegReport:
     """Class for generating regression-relevant diagnostic
-    plots and tables for a single poisson generalized linear regression model.
+    plots and tables for a single Negative Binomial generalized linear
+    regression model.
     """
 
-    def __init__(self, model: PoissonLinearModel, dataset: Literal["train", "test"]):
+    def __init__(
+        self, model: NegativeBinomialLinearModel, dataset: Literal["train", "test"]
+    ):
         """
         Initializes a RegressionReport object.
 
@@ -57,8 +60,12 @@ class SingleDatasetPoisRegReport:
 
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
-        self._pearsonresiduals = ((self._y_true - self._y_pred) / 
-                                  np.sqrt(self._y_pred))
+        #Pearson residual calculation found on page 5 here:
+        #https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Negative_Binomial_Regression.pdf
+        #https://www.statsmodels.org/devel/glm.html uses same calculation.
+        alpha = self.model.params['alpha']
+        self._pearsonresiduals = (self._y_true - self._y_pred) / np.sqrt(self._y_pred + alpha * self._y_pred**2)
+
         self._outlier_threshold = 2
         self._compute_outliers()
 
@@ -117,7 +124,6 @@ class SingleDatasetPoisRegReport:
             fig.tight_layout()
             plt.close()
         return fig
-    
 
     def plot_residuals_vs_fitted(
         self,
@@ -143,6 +149,7 @@ class SingleDatasetPoisRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
+        
         if type == 'raw':
             residuals = self._residuals
         elif type == 'standardized':
@@ -632,7 +639,7 @@ class SingleDatasetPoisRegReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetPoisRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetNegBinRegReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -688,26 +695,26 @@ class SingleDatasetPoisRegReport:
             self._include_text = True
 
 
-class PoissonRegressionReport:
-    """PoissonRegressionReport.
+class NegativeBinomialRegressionReport:
+    """NegativeBinomialRegressionReport.
     Fits the model based on provided DataHandler.
-    Wraps train and test SingleDatasetPoisRegReport objects.
+    Wraps train and test SingleDatasetNegBinRegReport objects.
     """
 
     def __init__(
         self,
-        model: PoissonLinearModel,
+        model: NegativeBinomialLinearModel,
         datahandler: DataHandler,
         y_var: str,
         X_vars: Iterable[str],
     ):
-        """PoissonRegressionReport.
+        """NegativeBinomialRegressionReport.
         Fits the model based on provided DataHandler.
-        Wraps train and test SingleDatasetPoisRegReport objects.
+        Wraps train and test SingleDatasetNegBinRegReport objects.
 
         Parameters
         ----------
-        model : PoissonLinearModel.
+        model : NegativeBinomialLinearModel.
         datahandler : DataHandler.
             The DataHandler object that contains the data.
         y_var : str.
@@ -721,33 +728,34 @@ class PoissonRegressionReport:
         self._model.specify_data(self._dataemitter)
         self._model.fit()
 
-        self._train_report = SingleDatasetPoisRegReport(model, "train")
-        self._test_report = SingleDatasetPoisRegReport(model, "test")
+        self._train_report = SingleDatasetNegBinRegReport(model, "train")
+        self._test_report = SingleDatasetNegBinRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetPoisRegReport:
-        """Returns an PoissonRegressionReport object for the train dataset
+    def train_report(self) -> SingleDatasetNegBinRegReport:
+        """Returns an NegativeBinomialRegressionReport object for the train
+        dataset
 
         Returns
         -------
-        report : PoissonRegressionReport.
+        report : NegativeBinomialRegressionReport.
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetPoisRegReport:
-        """Returns an PoissonRegressionReport object for the test dataset
+    def test_report(self) -> SingleDatasetNegBinRegReport:
+        """Returns an SingleDatasetNegBinRegReport object for the test dataset
 
         Returns
         -------
-        report : PoissonRegressionReport.
+        report : SingleDatasetNegBinRegReport.
         """
         return self._test_report
 
-    def model(self) -> PoissonLinearModel:
-        """Returns the fitted GeneralizedLinearModel object.
+    def model(self) -> NegativeBinomialLinearModel:
+        """Returns the fitted NegativeBinomialLinearModel object.
 
         Returns
         -------
-        GeneralizedLinearModel.
+        NegativeBinomialLinearModel.
         """
         return self._model
 
@@ -771,7 +779,7 @@ class PoissonRegressionReport:
         else:
             return self._test_report.fit_statistics()
 
-    def stepwise(self) -> "PoissonLinearModel":
+    def stepwise(self) -> "NegativeBinomialLinearModel":
         """Performs stepwise selection on the model.
 
         Parameters
@@ -781,7 +789,7 @@ class PoissonRegressionReport:
 
         Returns
         -------
-        GeneralizedLinearModel.
+        NegativeBinomialLinearModel.
         """
         raise NotImplementedError()
 

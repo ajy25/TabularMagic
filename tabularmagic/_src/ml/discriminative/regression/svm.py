@@ -26,7 +26,7 @@ class SVMR(BaseR):
             Mapping[str, Iterable | BaseDistribution] | None
         ) = None,
         feature_selectors: list[BaseFSR] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         name: str | None = None,
         **kwargs,
     ):
@@ -46,9 +46,10 @@ class SVMR(BaseR):
         feature_selectors : list[BaseFSR].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
@@ -76,7 +77,7 @@ class SVMR(BaseR):
         else:
             self._name = name
 
-        self._estimator = SVR(kernel=type)
+        self._estimator = SVR(kernel=type, max_iter=100)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 

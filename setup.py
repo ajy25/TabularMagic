@@ -25,5 +25,5 @@ setup(
     install_requires=parse_requirements(
         directory_path / "tabularmagic" / "requirements.txt"
     ),
-    python_requires=">=3.11.5",
+    python_requires=">=3.10",
 )

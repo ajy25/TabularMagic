@@ -69,8 +69,10 @@ class RegressionScorer:
                 df.loc["adjr2", self._name] = np.NaN
             else:
                 try:
-                    adjr2 = 1 - (((1 - df.loc["r2", self._name]) * (n - 1)) / \
-                                 (n - self._n_predictors - 1))
+                    adjr2 = 1 - (
+                        ((1 - df.loc["r2", self._name]) * (n - 1))
+                        / (n - self._n_predictors - 1)
+                    )
                 except ZeroDivisionError:
                     adjr2 = np.NaN
                     print_wrapped(
@@ -122,7 +124,9 @@ class RegressionScorer:
                     adjr2 = np.NaN
                 else:
                     try:
-                        adjr2 = 1 - (((1 - r2) * (n - 1)) / (n - self._n_predictors - 1))
+                        adjr2 = 1 - (
+                            ((1 - r2) * (n - 1)) / (n - self._n_predictors - 1)
+                        )
                     except ZeroDivisionError:
                         adjr2 = np.NaN
                         print_wrapped(
@@ -130,7 +134,7 @@ class RegressionScorer:
                             "adjusted R squared. Setting adjusted R squared to NaN.",
                             type="WARNING",
                         )
-                        
+
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {"Statistic": "adjr2", self._name: adjr2, "Fold": i}
                 )

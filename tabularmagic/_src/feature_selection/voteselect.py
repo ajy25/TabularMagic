@@ -12,7 +12,7 @@ class VotingSelectionReport:
         self,
         selectors: Iterable[BaseFS],
         dataemitter: DataEmitter,
-        max_n_features: int,
+        max_n_features: int | None = None,
         verbose: bool = True,
     ):
         """Initializes a VotingSelectionReport object.
@@ -25,7 +25,9 @@ class VotingSelectionReport:
         dataemitter : DataEmitter.
             The DataEmitter object that contains the data.
         max_n_features : int.
+            Default: None. 
             Number of desired features. 0 < max_n_features < n_predictors.
+            If None, then all features with at least 50% support are selected.
         verbose : bool.
             Default: True. If True, prints progress.
         """
@@ -35,7 +37,7 @@ class VotingSelectionReport:
         for selector in selectors:
             if verbose:
                 print_wrapped(f"Fitting {selector}.", type="PROGRESS")
-            features, _, support = selector.select(self._emitter, max_n_features)
+            features, _, support = selector.select(self._emitter)
             self._selector_to_support[str(selector)] = support
         self._all_features = features
 
@@ -47,9 +49,14 @@ class VotingSelectionReport:
         self._selector_dict_indexable_by_str = {
             str(selector): selector for selector in selectors
         }
-        self._top_features = self._vote_counts_series.sort_values(
-            ascending=False
-        ).index.to_list()[:max_n_features]
+        if max_n_features is not None:
+            self._top_features = self._vote_counts_series.sort_values(
+                ascending=False
+            ).index.to_list()[:max_n_features]
+        else:
+            self._top_features = self._vote_counts_series[
+                self._vote_counts_series >= len(selectors) / 2
+            ].index.to_list()
 
     def top_features(self) -> list:
         """Returns a list of top features determined by the voting

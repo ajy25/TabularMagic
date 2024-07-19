@@ -24,7 +24,7 @@ class MLPC(BaseC):
             Mapping[str, Iterable | BaseDistribution] | None
         ) = None,
         feature_selectors: list[BaseFSC] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = 10,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs
@@ -43,9 +43,10 @@ class MLPC(BaseC):
         feature_selectors : list[BaseFSC].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.

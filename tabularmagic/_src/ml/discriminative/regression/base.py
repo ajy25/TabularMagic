@@ -5,7 +5,7 @@ from ....data.datahandler import DataEmitter
 from ....feature_selection import BaseFSR
 from ....feature_selection.voteselect import VotingSelectionReport
 from ....display.print_utils import print_wrapped
-
+from typing import Literal
 
 class BaseR(BaseDiscriminativeModel):
     """Class that provides the framework that all TabularMagic regression
@@ -22,7 +22,7 @@ class BaseR(BaseDiscriminativeModel):
         self._dataemitter = None
         self._dataemitters = None
         self._feature_selectors = None
-        self._max_n_features = 10
+        self._max_n_features = None
         self._name = "BaseR"
         self._train_scorer = None
         self.cv_scorer = None
@@ -56,9 +56,10 @@ class BaseR(BaseDiscriminativeModel):
             If not None, re-specifies the feature selectors
             for the VotingSelectionReport.
         max_n_features : int.
-            Default: Mone.
-            Maximum number of features to select. Only useful if feature_selectors
-            is not None. If not None, re-specifies the maximum number of features.
+            Default: None.
+            Maximum number of features to select. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
             self._dataemitter = dataemitter

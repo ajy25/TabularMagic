@@ -54,9 +54,11 @@ class ClassificationBinaryScorer:
 
         if y_pred_score is not None:
             if isinstance(y_pred_score, np.ndarray):
-                y_pred_score = y_pred_score[:, 1]
+                if len(y_pred_score.shape) == 2:
+                    y_pred_score = y_pred_score[:, 1]
             elif isinstance(y_pred_score, list):
-                y_pred_score = [elem[:, 1] for elem in y_pred_score]
+                if len(y_pred_score[0].shape) == 2:
+                    y_pred_score = [elem[:, 1] for elem in y_pred_score]
         self._y_pred_score = y_pred_score
 
         self._stats_df = None

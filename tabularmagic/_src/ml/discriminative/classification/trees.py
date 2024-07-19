@@ -33,7 +33,7 @@ class TreeC(BaseC):
         ) = None,
         model_random_state: int = 42,
         feature_selectors: list[BaseFSC] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         name: str | None = None,
         **kwargs,
     ):
@@ -52,8 +52,9 @@ class TreeC(BaseC):
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
         max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.
@@ -128,7 +129,7 @@ class TreeEnsembleC(BaseC):
             Mapping[str, Iterable | BaseDistribution] | None
         ) = None,
         feature_selectors: list[BaseFSC] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -150,9 +151,10 @@ class TreeEnsembleC(BaseC):
         feature_selectors : list[BaseFSC].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.

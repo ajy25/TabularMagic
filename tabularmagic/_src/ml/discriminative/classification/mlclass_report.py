@@ -4,7 +4,7 @@ from typing import Iterable, Literal
 from .base import BaseC
 from ....metrics.classification_scoring import ClassificationBinaryScorer
 from ....data.datahandler import DataHandler
-from ....exploratory.visualization import plot_roc_curve, plot_confusion_matrix
+from ....metrics.visualization import plot_roc_curve, plot_confusion_matrix
 from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSC, VotingSelectionReport
 
@@ -145,7 +145,7 @@ class SingleModelSingleDatasetMLClassReport:
                 type="WARNING",
             )
             return None
-        
+
     def plot_confusion_matrix(
         self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
@@ -170,9 +170,7 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             y_pred = self._model._test_scorer._y_pred
             y_true = self._model._test_scorer._y_true
-        return plot_confusion_matrix(
-            y_pred, y_true, self._model._name, figsize, ax
-        )
+        return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
 
     def plot_roc_curve(
         self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
@@ -189,7 +187,7 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        plt.Figure | None. 
+        plt.Figure | None.
             Figure of the ROC curve. None is returned if the model is not binary.
         """
         if not self._is_binary:
@@ -327,8 +325,6 @@ class MLClassificationReport:
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
-            if max_n_features is None:
-                max_n_features = 10
             self._feature_selection_report = VotingSelectionReport(
                 selectors=feature_selectors,
                 dataemitter=self._emitter,

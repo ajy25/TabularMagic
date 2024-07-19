@@ -32,7 +32,7 @@ class LinearR(BaseR):
             Mapping[str, Iterable | BaseDistribution] | None
         ) = None,
         feature_selectors: list[BaseFSR] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -53,9 +53,10 @@ class LinearR(BaseR):
         feature_selectors : list[BaseFSR].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.
@@ -146,7 +147,7 @@ class RobustLinearR(BaseR):
             Mapping[str, Iterable | BaseDistribution] | None
         ) = None,
         feature_selectors: list[BaseFSR] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
         **kwargs,
@@ -167,9 +168,10 @@ class RobustLinearR(BaseR):
         feature_selectors : list[BaseFSR].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
         name : str.

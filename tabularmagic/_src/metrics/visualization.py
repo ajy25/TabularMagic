@@ -109,7 +109,7 @@ def plot_roc_curve(
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+    fpr, tpr, _ = roc_curve(y_true, y_score)
     roc_auc = auc(fpr, tpr)
 
     ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
@@ -162,20 +162,14 @@ def plot_confusion_matrix(
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-
     all_labels = np.unique(np.concatenate((y_true, y_pred)))
     all_labels.sort()
 
     confusion_matrix = pd.crosstab(
-        y_true, y_pred,
-        rownames=['True'],
-        colnames=['Predicted'],
-        dropna=False
+        y_true, y_pred, rownames=["True"], colnames=["Predicted"], dropna=False
     )
     confusion_matrix = confusion_matrix.reindex(
-        index=all_labels, 
-        columns=all_labels, 
-        fill_value=0
+        index=all_labels, columns=all_labels, fill_value=0
     )
 
     sns.heatmap(confusion_matrix, annot=True, fmt="d", cmap="Blues", ax=ax, cbar=False)
@@ -190,8 +184,7 @@ def plot_confusion_matrix(
         )
     else:
         ax.set_title(
-            f"Confusion Matrix | "
-            f"Accuracy = {np.mean(y_pred == y_true):.3f}"
+            f"Confusion Matrix | " f"Accuracy = {np.mean(y_pred == y_true):.3f}"
         )
 
     if fig is not None:

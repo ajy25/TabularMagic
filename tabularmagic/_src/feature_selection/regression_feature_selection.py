@@ -19,6 +19,7 @@ class KBestSelectorR(BaseFSR):
     def __init__(
         self,
         scorer: Literal["f_regression", "r_regression", "mutual_info_regression"],
+        k: int,
         name: str | None = None,
     ):
         """
@@ -28,24 +29,25 @@ class KBestSelectorR(BaseFSR):
         ----------
         scorer : Literal['f_regression', 'r_regression',
             'mutual_info_regression']
+        k : int.
+            Number of desired features, < n_predictors.
         name : str.
             Default: None. If None, then outputs the class name.
         """
         if name is None:
             name = f"KBestSelector({scorer})"
         super().__init__(name)
-        self.scorer = scorer
+        self._scorer = scorer
+        self._k = k
 
-    def select(self, dataemitter: DataEmitter, max_n_features: int):
+    def select(self, dataemitter: DataEmitter):
         """
-        Selects the top max_n_features features
+        Selects the top k features
         based on the training data.
 
         Parameters
         ----------
         dataemitter : DataEmitter.
-        max_n_features : int.
-            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -57,13 +59,13 @@ class KBestSelectorR(BaseFSR):
             Boolean mask, the support for selected features.
         """
         scorer = None
-        if self.scorer == "f_regression":
+        if self._scorer == "f_regression":
             scorer = f_regression
-        elif self.scorer == "mutual_info_regression":
+        elif self._scorer == "mutual_info_regression":
             scorer = mutual_info_regression
-        elif self.scorer == "r_regression":
+        elif self._scorer == "r_regression":
             scorer = r_regression
-        selector = SelectKBest(scorer, k=max_n_features)
+        selector = SelectKBest(scorer, k=self._k)
 
         X_train, y_train = dataemitter.emit_train_Xy()
         self._all_features = X_train.columns.to_list()
@@ -83,6 +85,7 @@ class LassoSelectorR(BaseFSR):
 
     def __init__(
         self,
+        max_n_features: int,
         alpha: float = 0.0,
         name: str | None = None,
     ):
@@ -91,6 +94,8 @@ class LassoSelectorR(BaseFSR):
 
         Parameters
         ----------
+        max_n_features : int.
+            Number of desired features, < n_predictors.
         alpha : float.
             Regularization term weight.
         name : str.
@@ -99,9 +104,10 @@ class LassoSelectorR(BaseFSR):
         if name is None:
             name = f"LassoSelectorR"
         super().__init__(name)
-        self.model = Lasso(alpha=alpha)
+        self._model = Lasso(alpha=alpha)
+        self._max_n_features = max_n_features
 
-    def select(self, dataemitter: DataEmitter, max_n_features: int):
+    def select(self, dataemitter: DataEmitter):
         """
         Selects the (at most) top max_n_features features
         based on the training data.
@@ -109,8 +115,6 @@ class LassoSelectorR(BaseFSR):
         Parameters
         ----------
         dataemitter : DataEmitter.
-        max_n_features : int.
-            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -124,9 +128,9 @@ class LassoSelectorR(BaseFSR):
         X_train, y_train = dataemitter.emit_train_Xy()
         self._all_features = X_train.columns.to_list()
 
-        self.model.fit(X=X_train.to_numpy(), y=y_train.to_numpy())
+        self._model.fit(X=X_train.to_numpy(), y=y_train.to_numpy())
         selector = SelectFromModel(
-            estimator=self.model, prefit=True, max_features=max_n_features
+            estimator=self._model, prefit=True, max_features=self._max_n_features
         )
         selector.fit(X=X_train, y=y_train)
 

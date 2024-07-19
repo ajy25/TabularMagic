@@ -12,7 +12,6 @@ from .voteselect import VotingSelectionReport
 __all__ = [
     "KBestSelectorR",
     "LassoSelectorR",
-    "BaseFeatureSelectorR",
     "KBestSelectorC",
     "BaseFSR",
     "BaseFSC",

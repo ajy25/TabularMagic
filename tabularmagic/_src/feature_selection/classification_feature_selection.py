@@ -1,4 +1,4 @@
-from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif
+from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif, chi2
 from typing import Literal
 
 from ..data.datahandler import DataEmitter
@@ -12,7 +12,8 @@ class KBestSelectorC(BaseFSC):
 
     def __init__(
         self,
-        scorer: Literal["f_classif", "mutual_info_classif"],
+        scorer: Literal["f_classif", "mutual_info_classif", "chi2"],
+        k: int,
         name: str | None = None,
     ):
         """
@@ -21,15 +22,18 @@ class KBestSelectorC(BaseFSC):
         Parameters
         ----------
         scorer : Literal['f_classif', 'mutual_info_classif'].
+        k : int.
+            Number of desired features, < n_predictors.
         name : str.
             Default: None. If None, then outputs the class name.
         """
         if name is None:
             name = f"KBestSelectorC({scorer})"
         super().__init__(name)
-        self.scorer = scorer
+        self._scorer = scorer
+        self._k = k
 
-    def select(self, dataemitter: DataEmitter, max_n_features: int):
+    def select(self, dataemitter: DataEmitter):
         """
         Selects the top max_n_features features
         based on the training data.
@@ -37,8 +41,6 @@ class KBestSelectorC(BaseFSC):
         Parameters
         ----------
         dataemitter : DataEmitter.
-        max_n_features : int.
-            Number of desired features, < n_predictors.
 
         Returns
         -------
@@ -50,13 +52,15 @@ class KBestSelectorC(BaseFSC):
             Boolean mask, the support for selected features.
         """
         scorer = None
-        if self.scorer == "f_classif":
+        if self._scorer == "f_classif":
             scorer = f_classif
-        elif self.scorer == "mutual_info_classif":
+        elif self._scorer == "mutual_info_classif":
             scorer = mutual_info_classif
+        elif self._scorer == "chi2":
+            scorer = chi2
         else:
-            raise ValueError(f"Invalid scorer: {self.scorer}")
-        selector = SelectKBest(scorer, k=max_n_features)
+            raise ValueError(f"Invalid scorer: {self._scorer}")
+        selector = SelectKBest(scorer, k=self._k)
 
         X_train, y_train = dataemitter.emit_train_Xy()
         self._all_features = X_train.columns.to_list()

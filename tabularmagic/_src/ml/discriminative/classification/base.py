@@ -9,6 +9,7 @@ from ....metrics import (
 )
 from ....feature_selection import BaseFSC, VotingSelectionReport
 from ....display.print_utils import print_wrapped
+from typing import Literal
 import numpy as np
 
 
@@ -28,12 +29,13 @@ class BaseC(BaseDiscriminativeModel):
         self._dataemitter = None
         self._dataemitters = None
         self._feature_selectors = None
-        self._max_n_features = 10
+        self._max_n_features = None
         self._name = "BaseC"
         self._train_scorer = None
         self.cv_scorer = None
         self._test_scorer = None
         self._feature_selection_report = None
+        self._predictors = None
 
         # By default, the first column is NOT dropped unless binary. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -62,9 +64,10 @@ class BaseC(BaseDiscriminativeModel):
             If not None, re-specifies the feature selectors
             for the VotingSelectionReport.
         max_n_features : int.
-            Default: Mone.
-            Maximum number of features to select. Only useful if feature_selectors
-            is not None. If not None, re-specifies the maximum number of features.
+            Default: None.
+            Maximum number of features to select. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
             self._dataemitter = dataemitter
@@ -72,7 +75,7 @@ class BaseC(BaseDiscriminativeModel):
             self._dataemitters = dataemitters
         if feature_selectors is not None:
             self._feature_selectors = feature_selectors
-        if max_n_features is not None:
+        if max_n_features != "ignore":
             self._max_n_features = max_n_features
 
     def fit(self, verbose: bool = False):
@@ -97,8 +100,10 @@ class BaseC(BaseDiscriminativeModel):
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
+                self._predictors = self._feature_selection_report.top_features()
                 X_train = self._feature_selection_report._emit_train_X().to_numpy()
             else:
+                self._predictors = X_train_df.columns.to_list()
                 X_train = X_train_df.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
@@ -218,7 +223,9 @@ class BaseC(BaseDiscriminativeModel):
                     verbose=verbose,
                 )
                 X_train = self._feature_selection_report._emit_train_X().to_numpy()
+                self._predictors = self._feature_selection_report.top_features()
             else:
+                self._predictors = X_train_df.columns.to_list()
                 X_train = X_train_df.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)

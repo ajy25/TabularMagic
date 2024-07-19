@@ -70,10 +70,15 @@ class SingleDatasetNegBinRegReport:
 
         self._outlier_threshold = 2
         self._compute_outliers()
+        self._compute_pearson_outliers()
 
         self._include_text = False
         if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
             self._include_text = True
+
+        self._include_pearson_text = False
+        if self._n_pearson_outliers <= MAX_N_OUTLIERS_TEXT:
+            self._include_pearson_text = True
 
     def plot_obs_vs_pred(
         self,
@@ -129,7 +134,7 @@ class SingleDatasetNegBinRegReport:
     def plot_residuals_vs_fitted(
         self,
         type: Literal["raw", "standardized", "pearson"] = "raw",
-        show_outliers: bool = True,
+        show_outliers: Literal["none", "standardized", "pearson"] = "none",
         figsize: Iterable = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -160,7 +165,7 @@ class SingleDatasetNegBinRegReport:
             raise ValueError(f"Invalid input for type: {type}")
 
         ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
-        if show_outliers and self._n_outliers > 0:
+        if show_outliers == "standardized" and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[~self._outliers_residual_mask],
                 residuals[~self._outliers_residual_mask],
@@ -182,6 +187,37 @@ class SingleDatasetNegBinRegReport:
                             (
                                 self._y_pred[self._outliers_residual_mask][i],
                                 residuals[self._outliers_residual_mask][i],
+                            ),
+                            color="red",
+                            fontsize=6,
+                        )
+                    )
+                adjust_text(annotations, ax=ax)
+        elif show_outliers == "pearson" and self._n_pearson_outliers > 0:
+            ax.scatter(
+                self._y_pred[~self._outliers_pearson_residual_mask],
+                residuals[~self._outliers_pearson_residual_mask],
+                s=2,
+                color="black",
+            )
+            ax.scatter(
+                self._y_pred[self._outliers_pearson_residual_mask],
+                residuals[self._outliers_pearson_residual_mask],
+                s=2,
+                color="red",
+            )
+            if (
+                self._include_pearson_text
+                and self._n_pearson_outliers <= MAX_N_OUTLIERS_TEXT
+            ):
+                annotations = []
+                for i, label in enumerate(self._outliers_pearson_df_idx):
+                    annotations.append(
+                        ax.annotate(
+                            label,
+                            (
+                                self._y_pred[self._outliers_pearson_residual_mask][i],
+                                residuals[self._outliers_pearson_residual_mask][i],
                             ),
                             color="red",
                             fontsize=6,
@@ -661,6 +697,7 @@ class SingleDatasetNegBinRegReport:
             )
         self._outlier_threshold = threshold
         self._compute_outliers()
+        self._compute_pearson_outliers()
         return self
 
     def get_outlier_indices(self) -> list:
@@ -698,16 +735,16 @@ class SingleDatasetNegBinRegReport:
 
     def _compute_pearson_outliers(self):
         """Computes the outliers."""
-        self._outliers_residual_mask = (
+        self._outliers_pearson_residual_mask = (
             self._pearsonresiduals >= self._outlier_threshold
         ) | (self._pearsonresiduals <= -self._outlier_threshold)
-        self._outliers_df_idx = self._X_eval_df.iloc[
-            self._outliers_residual_mask
+        self._outliers_pearson_df_idx = self._X_eval_df.iloc[
+            self._outliers_pearson_residual_mask
         ].index.to_numpy()
-        self._n_outliers = len(self._outliers_df_idx)
-        self._include_text = False
-        if self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-            self._include_text = True
+        self._n_pearson_outliers = len(self._outliers_pearson_df_idx)
+        self._include_pearson_text = False
+        if self._n_pearson_outliers <= MAX_N_OUTLIERS_TEXT:
+            self._include_pearson_text = True
 
 
 class NegativeBinomialRegressionReport:

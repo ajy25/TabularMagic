@@ -1,18 +1,9 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
-from ...exploratory.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-
 from .negbinglmreg import SingleDatasetNegBinRegReport
 from .poissonglmreg import SingleDatasetPoisRegReport
 from ..countglm import CountLinearModel
-from ...display.print_utils import print_wrapped
-from adjustText import adjust_text
-
 
 def reverse_argsort(indices):
     n = len(indices)

@@ -20,7 +20,7 @@ class OLSLinearModel:
         self.estimator = None
         self._name = name
         if self._name is None:
-            self._name = "OrdinaryLeastSquares"
+            self._name = "OLS"
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.

@@ -55,7 +55,7 @@ class CustomR(BaseR):
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
-            self.train_scorer = RegressionScorer(
+            self._train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
@@ -87,7 +87,7 @@ class CustomR(BaseR):
                 y_preds.append(y_pred)
                 y_trues.append(y_test)
 
-            self.cv_scorer = RegressionScorer(
+            self._cv_scorer = RegressionScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
                 n_predictors=X_train.shape[1],
@@ -106,7 +106,7 @@ class CustomR(BaseR):
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
 
-            self.train_scorer = RegressionScorer(
+            self._train_scorer = RegressionScorer(
                 y_pred=y_pred,
                 y_true=y_train,
                 n_predictors=X_train.shape[1],
@@ -125,7 +125,7 @@ class CustomR(BaseR):
             y_pred = y_scaler.inverse_transform(y_pred)
             y_test = y_scaler.inverse_transform(y_test)
 
-        self.test_scorer = RegressionScorer(
+        self._test_scorer = RegressionScorer(
             y_pred=y_pred, y_true=y_test, n_predictors=X_test.shape[1], name=str(self)
         )
 

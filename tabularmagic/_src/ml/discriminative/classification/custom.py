@@ -77,7 +77,7 @@ class CustomC(BaseC):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if not is_binary:
-                self.train_scorer = ClassificationMulticlassScorer(
+                self._train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -88,7 +88,7 @@ class CustomC(BaseC):
                 )
 
             else:
-                self.train_scorer = ClassificationBinaryScorer(
+                self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -137,7 +137,7 @@ class CustomC(BaseC):
                 y_pred_scores = None
 
             if not is_binary:
-                self.cv_scorer = ClassificationMulticlassScorer(
+                self._cv_scorer = ClassificationMulticlassScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
@@ -147,7 +147,7 @@ class CustomC(BaseC):
                     name=str(self),
                 )
             else:
-                self.cv_scorer = ClassificationBinaryScorer(
+                self._cv_scorer = ClassificationBinaryScorer(
                     y_pred=y_preds,
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
@@ -172,7 +172,7 @@ class CustomC(BaseC):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if not is_binary:
-                self.train_scorer = ClassificationMulticlassScorer(
+                self._train_scorer = ClassificationMulticlassScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -182,7 +182,7 @@ class CustomC(BaseC):
                     name=str(self),
                 )
             else:
-                self.train_scorer = ClassificationBinaryScorer(
+                self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred,
                     y_true=y_train,
                     y_pred_score=y_pred_score,
@@ -205,7 +205,7 @@ class CustomC(BaseC):
             y_pred_score = self._estimator.decision_function(X_test)
 
         if not is_binary:
-            self.test_scorer = ClassificationMulticlassScorer(
+            self._test_scorer = ClassificationMulticlassScorer(
                 y_pred=y_pred,
                 y_true=y_test,
                 y_pred_score=y_pred_score,
@@ -216,7 +216,7 @@ class CustomC(BaseC):
             )
 
         else:
-            self.test_scorer = ClassificationBinaryScorer(
+            self._test_scorer = ClassificationBinaryScorer(
                 y_pred=y_pred, y_true=y_test, y_pred_score=y_pred_score, name=str(self)
             )
 

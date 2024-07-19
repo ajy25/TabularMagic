@@ -60,7 +60,6 @@ class BinomialLinearModel:
                 best_score = curr_score
                 best_threshold = temp_threshold
 
-        # print(f"Threshold found: {best_threshold}. F1 Score: {best_score}")
 
         y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
 

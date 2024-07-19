@@ -44,14 +44,17 @@ class SingleDatasetBinRegReport:
         if dataset == "test":
             self.scorer = model.test_scorer
             self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
+            self._y_eval_df = self.model._dataemitter.emit_test_Xy()[1]
             self._is_train = False
         elif dataset == "train":
             self.scorer = model.train_scorer
             self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
+            self._y_eval_df = self.model._dataemitter.emit_train_Xy()[1]
             self._is_train = True
         else:
             raise ValueError('specification must be either "train" or "test".')
 
+        self._y_pred_score = self.scorer._y_pred_score
         self._y_pred = self.scorer._y_pred
         self._y_true = self.scorer._y_true
 

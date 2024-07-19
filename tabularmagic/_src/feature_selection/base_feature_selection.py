@@ -19,7 +19,7 @@ class BaseFS:
         self._name = name
         self._all_features, self._selected_features, self._support = None, None, None
 
-    def select(self, dataemitter: DataEmitter, max_n_features: int):
+    def select(self, dataemitter: DataEmitter):
         """
         Selects the top max_n_features features
         based on the training data.
@@ -27,8 +27,6 @@ class BaseFS:
         Parameters
         ----------
         dataemitter : DataEmitter.
-        max_n_features : int.
-            Number of desired features, < n_predictors.
 
         Returns
         -------

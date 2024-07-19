@@ -32,9 +32,6 @@ from .feature_selection import BaseFSR, BaseFSC, BaseFS
 from .data.datahandler import DataHandler
 
 
-pd.options.mode.copy_on_write = True
-
-
 class Analyzer:
     """Analyzer: A class designed for conducting exploratory data analysis (EDA),
     regression analysis, and machine learning modeling on wide format tabular data.
@@ -144,54 +141,6 @@ class Analyzer:
             return ComprehensiveEDA(self._datahandler.df_all())
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
-
-    def feature_selection(
-        self,
-        selectors: Iterable[BaseFS],
-        target: str,
-        predictors: list[str] | None = None,
-        n_target_features: int = 10,
-        update_working_dfs: bool = False,
-    ) -> VotingSelectionReport:
-        """Supervised feature selection via voting. Feature selection methods
-        are trained on the training dataset.
-        Returns a RegressionVotingSelectionReport object.
-        Can automatically update the working train and working test
-        datasets so that only the selected features remain if
-        update_working_dfs is True.
-
-        Parameters
-        ----------
-        selectors : Iterable[BaseSelector].
-            Each BaseSelector decides on the top n_target_features.
-        target : str.
-            The variable to be predicted.
-        predictors : list[str].
-            Default: None.
-            A list of features from which n_target_features are to be selected.
-            If None, all numerical variables except target will be used.
-        n_target_features : int.
-            Default: 10. Number of desired features, < len(predictors).
-        update_working_dfs : bool.
-            Default: False.
-
-        Returns
-        -------
-        RegressionVotingSelectionReport
-        """
-
-        if predictors is None:
-            predictors = self._datahandler.numerical_vars(True)
-        report = VotingSelectionReport(
-            selectors=selectors,
-            datahandler=self._datahandler,
-            max_n_features=n_target_features,
-            verbose=self._verbose,
-        )
-        if update_working_dfs:
-            var_subset = report._top_features + [target]
-            self._datahandler.select_vars(var_subset)
-        return report
 
     def lm(
         self,
@@ -382,7 +331,7 @@ class Analyzer:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
-    def ml_regression(
+    def regress(
         self,
         models: Iterable[BaseR],
         target: str,
@@ -411,8 +360,9 @@ class Analyzer:
             models.
         max_n_features : int.
             Default: None.
-            Maximum number of predictors to utilize. Ignored if feature_selectors
-            is None.
+            Maximum number of predictors to utilize. 
+            Ignored if feature_selectors is None.
+            If None, then all features with at least 50% support are selected.
         outer_cv : int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.
@@ -441,7 +391,7 @@ class Analyzer:
             verbose=self._verbose,
         )
 
-    def ml_classification(
+    def classify(
         self,
         models: Iterable[BaseC],
         target: str,
@@ -470,8 +420,9 @@ class Analyzer:
             models.
         max_n_features : int.
             Default: None.
-            Maximum number of predictors to utilize. Ignored if feature_selectors
-            is None.
+            Maximum number of predictors to utilize. 
+            Ignored if feature_selectors is None.
+            If None, then all features with at least 50% support are selected.
         outer_cv : int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.

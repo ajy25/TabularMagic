@@ -1,4 +1,6 @@
 import seaborn as sns
+import pandas as pd
+
 sns.set_theme(
     context="notebook",
     style="whitegrid",
@@ -8,4 +10,8 @@ sns.set_theme(
     color_codes=True,
     rc=None,
 )
+
+pd.options.mode.copy_on_write = True
+
+
 

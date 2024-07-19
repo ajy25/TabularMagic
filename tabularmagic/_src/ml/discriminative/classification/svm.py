@@ -24,7 +24,7 @@ class SVMC(BaseC):
         hyperparam_search_method: Literal[None, "grid", "random"] = None,
         hyperparam_search_space: Mapping[str, Iterable] | None = None,
         feature_selectors: list[BaseFSC] | None = None,
-        max_n_features: int = 10,
+        max_n_features: int | None = None,
         name: str | None = None,
         **kwargs,
     ):
@@ -44,9 +44,10 @@ class SVMC(BaseC):
         feature_selectors : list[BaseFSC].
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int.
-            Default: 10. Maximum number of features to select. Only useful if
-            feature_selectors is not None.
+        max_n_features : int | None.
+            Default: None. 
+            Only useful if feature_selectors is not None. 
+            If None, then all features with at least 50% support are selected.
         name : str.
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
@@ -75,7 +76,11 @@ class SVMC(BaseC):
         else:
             self._name = name
 
-        self._estimator = SVC(kernel=type)
+        self._estimator = SVC(
+            kernel=type, 
+            max_iter=100, 
+            probability=True
+        )
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 
@@ -85,12 +90,10 @@ class SVMC(BaseC):
             if type == "linear":
                 hyperparam_search_space = {
                     "C": FloatDistribution(1e-2, 1e2, log=True),
-                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
                 }
             elif type == "poly":
                 hyperparam_search_space = {
                     "C": FloatDistribution(1e-2, 1e2, log=True),
-                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
                     "degree": IntDistribution(2, 5),
                     "coef0": IntDistribution(0, 10),
                     "gamma": CategoricalDistribution(["scale", "auto"]),
@@ -98,7 +101,6 @@ class SVMC(BaseC):
             elif type == "rbf":
                 hyperparam_search_space = {
                     "C": FloatDistribution(1e-2, 1e2, log=True),
-                    "epsilon": FloatDistribution(1e-3, 1e0, log=True),
                     "gamma": CategoricalDistribution(["scale", "auto"]),
                 }
 

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from typing import Iterable, Literal
 from .base import BaseR
 from ....data.datahandler import DataHandler
-from ....exploratory.visualization import plot_obs_vs_pred
+from ....metrics.visualization import plot_obs_vs_pred
 from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSR, VotingSelectionReport
 
@@ -223,8 +223,6 @@ class MLRegressionReport:
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
-            if max_n_features is None:
-                max_n_features = 10
             self._feature_selection_report = VotingSelectionReport(
                 selectors=feature_selectors,
                 dataemitter=self._emitter,

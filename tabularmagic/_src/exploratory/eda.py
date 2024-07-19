@@ -231,7 +231,7 @@ class ComprehensiveEDA:
         df : pd.DataFrame.
             The dataset.
         """
-        self.df = df.copy()
+        self._df = df.copy()
         self._categorical_vars = df.select_dtypes(
             include=["object", "category", "bool"]
         ).columns.to_list()
@@ -239,10 +239,10 @@ class ComprehensiveEDA:
             exclude=["object", "category", "bool"]
         ).columns.to_list()
         self._categorical_eda_dict = {
-            var: CategoricalEDA(self.df[var]) for var in self._categorical_vars
+            var: CategoricalEDA(self._df[var]) for var in self._categorical_vars
         }
         self._numerical_eda_dict = {
-            var: NumericalEDA(self.df[var]) for var in self._numerical_vars
+            var: NumericalEDA(self._df[var]) for var in self._numerical_vars
         }
 
         self._categorical_summary_statistics = None
@@ -294,13 +294,13 @@ class ComprehensiveEDA:
             )
 
         if stratify_by is None:
-            grid = sns.PairGrid(self.df[numerical_vars].dropna())
+            grid = sns.PairGrid(self._df[numerical_vars].dropna())
             right_adjust = None
         else:
             grid = sns.PairGrid(
-                self.df[numerical_vars + [stratify_by]].dropna(),
+                self._df[numerical_vars + [stratify_by]].dropna(),
                 hue=stratify_by,
-                palette=sns.color_palette()[: len(self.df[stratify_by].unique())],
+                palette=sns.color_palette()[: len(self._df[stratify_by].unique())],
             )
             right_adjust = 0.85
 
@@ -396,7 +396,7 @@ class ComprehensiveEDA:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        local_df = self.df[[numerical_var, stratify_by]].dropna()
+        local_df = self._df[[numerical_var, stratify_by]].dropna()
 
         if strategy in [
             "stacked_hist_kde_frequency",
@@ -577,7 +577,7 @@ class ComprehensiveEDA:
         numerical_vars: list[str],
         stratify_by: str | None = None,
         strata: pd.Series | None = None,
-        standardize: bool = True,
+        scale_strategy: Literal["standardize", "center", "none"] = "center",
         whiten: bool = False,
         three_components: bool = False,
         figsize: Iterable = (5, 5),
@@ -598,9 +598,8 @@ class ComprehensiveEDA:
             The lables/strata.
             Must be the same length as the dataset. Index must be compatible
             with self.df. Overidden by stratify_by if both provided.
-        standardize : bool.
-            Default: True. If True, centers and scales each feature to have
-            0 mean and unit variance.
+        scale_strategy : Literal["standardize", "center", "none"].
+            Default: center. 
         whiten : bool.
             Default: false. If True, performs whitening on the data during PCA.
         three_components : bool.
@@ -614,10 +613,10 @@ class ComprehensiveEDA:
 
         Returns
         -------
-        - plt.Figure.
+        plt.Figure.
         """
         if strata is not None:
-            if len(strata) != len(self.df):
+            if len(strata) != len(self._df):
                 raise ValueError("strata must have same length " + "as self.df.")
             elif stratify_by is not None:
                 raise ValueError("One of stratify_by, strata" + " must be None.")
@@ -638,10 +637,12 @@ class ComprehensiveEDA:
             pca = PCA(n_components=2, whiten=whiten)
 
         if stratify_by is not None:
-            X_y = self.df[numerical_vars].join(self.df[stratify_by]).dropna()
+            X_y = self._df[numerical_vars].join(self._df[stratify_by]).dropna()
             X = X_y[numerical_vars].to_numpy()
-            if standardize:
+            if scale_strategy == "standardize":
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            elif scale_strategy == "center":
+                X = X - np.mean(X, axis=0)
             components = pca.fit_transform(X)
             categories = X_y[stratify_by].to_numpy()
             for category in np.unique(categories):
@@ -666,10 +667,12 @@ class ComprehensiveEDA:
             legend = ax.legend()
             legend.set_title(stratify_by)
         elif strata is not None:
-            X_y = self.df[numerical_vars].join(strata).dropna()
+            X_y = self._df[numerical_vars].join(strata).dropna()
             X = X_y[numerical_vars].to_numpy()
-            if standardize:
+            if scale_strategy == "standardize":
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            elif scale_strategy == "center":
+                X = X - np.mean(X, axis=0)
             components = pca.fit_transform(X)
             labels_name = strata.name
             categories = X_y[labels_name].to_numpy()
@@ -695,9 +698,11 @@ class ComprehensiveEDA:
             legend = ax.legend()
             legend.set_title(labels_name)
         else:
-            X = self.df[numerical_vars].dropna().to_numpy()
-            if standardize:
+            X = self._df[numerical_vars].dropna().to_numpy()
+            if scale_strategy == "standardize":
                 X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+            elif scale_strategy == "center":
+                X = X - np.mean(X, axis=0)
             components = pca.fit_transform(X)
             if three_components:
                 ax.scatter(
@@ -745,7 +750,7 @@ class ComprehensiveEDA:
                 f"Invalid input: {stratify_by}. "
                 "Must be a known categorical variable."
             )
-        groups = self.df.groupby(stratify_by)[numerical_var].apply(list).to_dict()
+        groups = self._df.groupby(stratify_by)[numerical_var].apply(list).to_dict()
         if len(groups) < 2:
             raise ValueError(
                 "Invalid input: stratify_by. Must have at least two unique values."
@@ -801,7 +806,7 @@ class ComprehensiveEDA:
                 "Must be a known categorical variable."
             )
 
-        local_df = self.df[[numerical_var, stratify_by]].dropna()
+        local_df = self._df[[numerical_var, stratify_by]].dropna()
 
         categories = np.unique(local_df[stratify_by].to_numpy())
 
@@ -922,7 +927,7 @@ class ComprehensiveEDA:
                 f"Invalid input: {stratify_by}. " + "Must be a known binary variable."
             )
 
-        local_df = self.df[[numerical_var, stratify_by]].dropna()
+        local_df = self._df[[numerical_var, stratify_by]].dropna()
 
         categories = np.unique(local_df[stratify_by].to_numpy())
         if len(categories) != 2:
@@ -935,7 +940,7 @@ class ComprehensiveEDA:
             local_df[stratify_by] == categories[0], numerical_var
         ].to_numpy()
         group_2 = local_df.loc[
-            self.df[stratify_by] == categories[1], numerical_var
+            self._df[stratify_by] == categories[1], numerical_var
         ].to_numpy()
 
         if strategy == "auto":
@@ -1065,22 +1070,22 @@ class ComprehensiveEDA:
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def numerical_vars(self) -> list[str]:
+    def numvars(self) -> list[str]:
         """Returns a list of the names of all numerical variables."""
         return self._numerical_vars
 
-    def categorical_vars(self) -> list[str]:
+    def catvars(self) -> list[str]:
         """Returns a list of the names of all categorical variables."""
         return self._categorical_vars
 
-    def categorical_summary_statistics(self) -> pd.DataFrame | None:
+    def catstats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         categorical variables.
 
         Returns None if there are no categorical variables."""
         return self._categorical_summary_statistics
 
-    def numerical_summary_statistics(self) -> pd.DataFrame | None:
+    def numstats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         numerical variables.
 
@@ -1110,15 +1115,15 @@ class ComprehensiveEDA:
     def _agentic_describe_json_str(self) -> str:
         """Returns a jsonified string representation of the dataset."""
         output = {}
-        output["categorical variable summary statistics"] = (
-            self._categorical_summary_statistics.to_dict()
-        )
-        output["numerical variable summary statistics"] = (
-            self._numerical_summary_statistics.to_dict()
-        )
+        output[
+            "categorical variable summary statistics"
+        ] = self._categorical_summary_statistics.to_dict()
+        output[
+            "numerical variable summary statistics"
+        ] = self._numerical_summary_statistics.to_dict()
         output["number of numerical variables"] = len(self._numerical_vars)
         output["number of categorical variables"] = len(self._categorical_vars)
-        output["number of examples/rows"] = len(self.df)
+        output["number of examples/rows"] = len(self._df)
         return json.dumps(output)
 
     def __getitem__(self, index: str) -> CategoricalEDA | NumericalEDA:

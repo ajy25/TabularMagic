@@ -5,7 +5,7 @@ import seaborn as sns
 from scipy import stats
 from typing import Iterable, Literal
 from ...data.datahandler import DataHandler
-from ...exploratory.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
+from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.binomialglm import BinomialLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text

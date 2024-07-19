@@ -11,12 +11,12 @@ def is_numerical(var: str, df: pd.DataFrame):
 
     Parameters
     ----------
-    - var : str. The name of the column to be checked.
-    - df : pd.DataFrame. The DataFrame containing the variable.
+    var : str. The name of the column to be checked.
+    df : pd.DataFrame. The DataFrame containing the variable.
 
     Returns
     -------
-    - bool. True if the variable is numerical, False otherwise.
+    bool. True if the variable is numerical, False otherwise.
     """
     dtype = df[var].dtype
     if pd.api.types.is_numeric_dtype(dtype):
@@ -73,12 +73,12 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
 
     Parameters
     ----------
-    - expression : str.
-    - df : pd.DataFrame.
+    expression : str.
+    df : pd.DataFrame.
 
     Returns
     -------
-    - pd.DataFrame.
+    pd.DataFrame.
     """
 
     # efficient multiplication checker for most cases
@@ -196,14 +196,14 @@ def parse_and_transform_rlike(formula: str, df: pd.DataFrame):
 
     Parameters
     ----------
-    - formula : str.
-    - df : pd.DataFrame.
+    formula : str.
+    df : pd.DataFrame.
 
     Returns
     -------
-    - y_series : pd.Series
-    - y_scaler : None | LogTransformSingleVar
-    - X_df : pd.DataFrame
+    y_series : pd.Series
+    y_scaler : None | LogTransformSingleVar
+    X_df : pd.DataFrame
     """
     # remove all spaces
     formula = "".join(formula.split(" "))

@@ -461,31 +461,62 @@ def test_kfold_basic_init(setup_data):
     assert emitters[0].y_scaler().min == 4.3
     assert emitters[2].y_scaler().min != 4.3
 
+
 def test_emitter_feature_selection(setup_data):
     df_iris_train = setup_data["df_iris_train"]
     df_iris_test = setup_data["df_iris_test"]
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     emitter = dh.train_test_emitter(
-        "target", 
-        ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
     )
     emitter.select_predictors(["sepallength(cm)", "petallength(cm)"])
     assert np.allclose(
         emitter.emit_train_Xy()[0].to_numpy(),
-        df_iris_train[["sepallength(cm)", "petallength(cm)"]].to_numpy()
+        df_iris_train[["sepallength(cm)", "petallength(cm)"]].to_numpy(),
     )
     assert np.allclose(
         emitter.emit_test_Xy()[0].to_numpy(),
-        df_iris_test[["sepallength(cm)", "petallength(cm)"]].to_numpy()
+        df_iris_test[["sepallength(cm)", "petallength(cm)"]].to_numpy(),
     )
     assert np.allclose(
-        emitter.emit_train_Xy()[1].to_numpy(),
-        df_iris_train["target"].to_numpy()
+        emitter.emit_train_Xy()[1].to_numpy(), df_iris_train["target"].to_numpy()
     )
     assert np.allclose(
-        emitter.emit_test_Xy()[1].to_numpy(),
-        df_iris_test["target"].to_numpy()
+        emitter.emit_test_Xy()[1].to_numpy(), df_iris_test["target"].to_numpy()
     )
 
+
+    df_house_train = setup_data["df_house_train"]
+    df_house_test = setup_data["df_house_test"]
+
+    dh = DataHandler(df_house_train, df_house_test, verbose=False)
+    all_vars = ["SalePrice", "LotFrontage", "LotArea", "OverallQual", "LotShape"]
+    emitter = dh.train_test_emitter(
+        "SalePrice", all_vars[1:]
+    )
+    emitter.select_predictors(["OverallQual", "LotArea"])
+    assert np.allclose(
+        emitter.emit_train_Xy()[0].to_numpy(),
+        df_house_train[all_vars].dropna()[["OverallQual", "LotArea"]].to_numpy(),
+    )
+    assert np.allclose(
+        emitter.emit_test_Xy()[0].to_numpy(),
+        df_house_test[all_vars].dropna()[["OverallQual", "LotArea"]].to_numpy(),
+    )
+    assert np.allclose(
+        emitter.emit_train_Xy()[1].to_numpy(), 
+        df_house_train[all_vars].dropna()["SalePrice"].to_numpy()
+    )
+    assert np.allclose(
+        emitter.emit_test_Xy()[1].to_numpy(), 
+        df_house_test[all_vars].dropna()["SalePrice"].to_numpy()
+    )
+
+
+def test_emitter_feature_selection_transform(setup_data):
+    df_house_train = setup_data["df_house_train"]
+    df_house_test = setup_data["df_house_test"]
+
+    dh = DataHandler(df_house_train, df_house_test, verbose=False)
 

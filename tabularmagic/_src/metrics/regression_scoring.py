@@ -80,7 +80,7 @@ class RegressionScorer:
                         "adjusted R squared. Setting adjusted R squared to NaN.",
                         type="WARNING",
                     )
-            df.loc["n", self._name] = len(y_true)
+            df.loc["n_obs", self._name] = len(y_true)
             df = df.rename_axis("Statistic", axis="rows")
             self._stats_df = df
         elif isinstance(y_pred, list) and isinstance(y_true, list):
@@ -139,13 +139,15 @@ class RegressionScorer:
                     {"Statistic": "adjr2", self._name: adjr2, "Fold": i}
                 )
                 cvdf.loc[len(cvdf)] = pd.Series(
-                    {"Statistic": "n", self._name: n, "Fold": i}
+                    {"Statistic": "n_obs", self._name: n, "Fold": i}
                 )
             self._cv_stats_df = cvdf.set_index(["Fold", "Statistic"])
             self._stats_df = (
                 cvdf.groupby(["Statistic"])[[self._name]]
                 .mean()
-                .reindex(["rmse", "mad", "pearsonr", "spearmanr", "r2", "adjr2", "n"])
+                .reindex(
+                    ["rmse", "mad", "pearsonr", "spearmanr", "r2", "adjr2", "n_obs"]
+                )
             )
 
         else:

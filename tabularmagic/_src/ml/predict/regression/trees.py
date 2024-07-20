@@ -52,8 +52,8 @@ class TreeR(BaseR):
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
         max_n_features : int | None.
-            Default: None. 
-            Only useful if feature_selectors is not None. 
+            Default: None.
+            Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.
@@ -152,8 +152,8 @@ class TreeEnsembleR(BaseR):
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
         max_n_features : int | None.
-            Default: None. 
-            Only useful if feature_selectors is not None. 
+            Default: None.
+            Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
         model_random_state : int.
             Default: 42. Random seed for the model.

@@ -26,9 +26,10 @@ class ClassificationBinaryScorer:
 
     def __init__(
         self,
-        y_pred: np.ndarray | list,
-        y_true: np.ndarray | list,
-        y_pred_score: np.ndarray | list | None = None,
+        y_pred: np.ndarray | list[np.ndarray],
+        y_true: np.ndarray | list[np.ndarray],
+        pos_label: float | int | str,
+        y_pred_score: np.ndarray | list[np.ndarray] | None = None,
         name: str | None = None,
     ):
         """
@@ -38,6 +39,8 @@ class ClassificationBinaryScorer:
         ----------
         y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
         y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
+        pos_label : float | int | str.
+            The positive class label.
         y_pred_score : np.ndarray ~ (sample_size) |
         list[np.ndarray ~ (sample_size)].
             Default: None.
@@ -51,6 +54,7 @@ class ClassificationBinaryScorer:
             self._name = name
         self._y_pred = y_pred
         self._y_true = y_true
+        self._pos_label = pos_label
 
         if y_pred_score is not None:
             if isinstance(y_pred_score, np.ndarray):
@@ -102,7 +106,7 @@ class ClassificationBinaryScorer:
                         self._name: roc_auc_score(y_true, y_pred_score),
                     }
                 )
-            df.loc[len(df)] = pd.Series({"Statistic": "n", self._name: len(y_pred)})
+            df.loc[len(df)] = pd.Series({"Statistic": "n_obs", self._name: len(y_pred)})
 
             self._stats_df = df.set_index("Statistic")
 
@@ -152,14 +156,14 @@ class ClassificationBinaryScorer:
                     )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
-                    {"Statistic": "n", self._name: len(y_pred_elem), "Fold": i}
+                    {"Statistic": "n_obs", self._name: len(y_pred_elem), "Fold": i}
                 )
 
             self._cv_stats_df = cvdf.set_index(["Fold", "Statistic"])
             self._stats_df = (
                 cvdf.groupby(["Statistic"])[[self._name]]
                 .mean()
-                .reindex(["accuracy", "f1", "precision", "recall", "roc_auc", "n"])
+                .reindex(["accuracy", "f1", "precision", "recall", "roc_auc", "n_obs"])
             )
 
     def stats_df(self) -> pd.DataFrame:
@@ -180,6 +184,15 @@ class ClassificationBinaryScorer:
         pd.DataFrame.
         """
         return self._cv_stats_df
+
+    def pos_label(self) -> str:
+        """Outputs the positive class label.
+
+        Returns
+        -------
+        str
+        """
+        return str(self._pos_label)
 
 
 class ClassificationMulticlassScorer:
@@ -296,19 +309,13 @@ class ClassificationMulticlassScorer:
                     print_wrapped(
                         "Error occured when computing the roc_auc "
                         + "score: "
-                        + color_text(str(e), "yellow")
-                        + f" This likely occured because the target is "
-                        + "a binary categorical variable. "
-                        + "For binary classification, you must transform the target "
-                        + "into a (0,1)-valued numerical variable. "
-                        + "This can be done using the "
-                        + "DataHandler.force_binary() method.",
+                        + color_text(str(e), "yellow"),
                         type="WARNING",
                     )
                     df.loc[len(df)] = pd.Series(
                         {"Statistic": "roc_auc", self._name: np.nan}
                     )
-            df.loc[len(df)] = pd.Series({"Statistic": "n", self._name: len(y_pred)})
+            df.loc[len(df)] = pd.Series({"Statistic": "n_obs", self._name: len(y_pred)})
             self._stats_df = df.set_index("Statistic")
 
         elif isinstance(y_pred, list) and isinstance(y_true, list):
@@ -379,12 +386,7 @@ class ClassificationMulticlassScorer:
                         print_wrapped(
                             "Error occured when computing the roc_auc(ovo) "
                             + "score: "
-                            + color_text(str(e), "yellow")
-                            + " This likely occured because y_var is "
-                            + "categorical and binary. "
-                            + "For binary classification, transform y_var "
-                            + "into a (0,1)-valued numerical variable "
-                            + "using the Datahandler.force_binary() method.",
+                            + color_text(str(e), "yellow"),
                             type="WARNING",
                         )
                         cvdf.loc[len(cvdf)] = pd.Series(
@@ -392,14 +394,16 @@ class ClassificationMulticlassScorer:
                         )
 
                 cvdf.loc[len(cvdf)] = pd.Series(
-                    {"Statistic": "n", self._name: len(y_pred_elem), "Fold": i}
+                    {"Statistic": "n_obs", self._name: len(y_pred_elem), "Fold": i}
                 )
 
             self._cv_stats_df = cvdf.set_index(["Fold", "Statistic"])
             self._stats_df = (
                 cvdf.groupby(["Statistic"])[[self._name]]
                 .mean()
-                .reindex(["accuracy", "f1", "precision", "recall", "roc_auc(ovo)", "n"])
+                .reindex(
+                    ["accuracy", "f1", "precision", "recall", "roc_auc(ovo)", "n_obs"]
+                )
             )
 
         else:
@@ -506,7 +510,7 @@ class ClassificationMulticlassScorer:
                 df.loc[len(df)] = pd.Series(
                     {
                         "Class": pos_label,
-                        "Statistic": "n",
+                        "Statistic": "n_obs",
                         self._name: len(self._y_pred),
                     }
                 )
@@ -582,7 +586,7 @@ class ClassificationMulticlassScorer:
                     cvdf.loc[len(cvdf)] = pd.Series(
                         {
                             "Class": pos_label,
-                            "Statistic": "n",
+                            "Statistic": "n_obs",
                             self._name: len(y_pred_elem),
                             "Fold": j,
                         }

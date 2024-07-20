@@ -45,8 +45,8 @@ class SVMC(BaseC):
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
         max_n_features : int | None.
-            Default: None. 
-            Only useful if feature_selectors is not None. 
+            Default: None.
+            Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
         name : str.
             Default: None. Determines how the model shows up in the reports.
@@ -76,11 +76,7 @@ class SVMC(BaseC):
         else:
             self._name = name
 
-        self._estimator = SVC(
-            kernel=type, 
-            max_iter=100, 
-            probability=True
-        )
+        self._estimator = SVC(kernel=type, max_iter=100, probability=True)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 

@@ -7,6 +7,7 @@ from ....feature_selection.voteselect import VotingSelectionReport
 from ....display.print_utils import print_wrapped
 from typing import Literal
 
+
 class BaseR(BaseDiscriminativeModel):
     """Class that provides the framework that all TabularMagic regression
     classes inherit.
@@ -25,9 +26,10 @@ class BaseR(BaseDiscriminativeModel):
         self._max_n_features = None
         self._name = "BaseR"
         self._train_scorer = None
-        self.cv_scorer = None
+        self._cv_scorer = None
         self._test_scorer = None
         self._feature_selection_report = None
+        self._predictors = None
 
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -57,8 +59,8 @@ class BaseR(BaseDiscriminativeModel):
             for the VotingSelectionReport.
         max_n_features : int.
             Default: None.
-            Maximum number of features to select. 
-            Only useful if feature_selectors is not None. 
+            Maximum number of features to select.
+            Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
@@ -94,8 +96,10 @@ class BaseR(BaseDiscriminativeModel):
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
+                self._predictors = self._feature_selection_report.top_features()
                 X_train = self._feature_selection_report._emit_train_X().to_numpy()
             else:
+                self._predictors = X_train_df.columns.tolist()
                 X_train = X_train_df.to_numpy()
 
             y_train = y_train_series.to_numpy()
@@ -150,7 +154,7 @@ class BaseR(BaseDiscriminativeModel):
                 y_preds.append(y_pred)
                 y_trues.append(y_test)
 
-            self.cv_scorer = RegressionScorer(
+            self._cv_scorer = RegressionScorer(
                 y_pred=y_preds,
                 y_true=y_trues,
                 n_predictors=X_train.shape[1],
@@ -159,6 +163,9 @@ class BaseR(BaseDiscriminativeModel):
 
             # refit on all data
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
+
+            self._predictors = X_train_df.columns.tolist()
+
             y_train = y_train_series.to_numpy()
 
             if self._feature_selectors is not None:
@@ -169,7 +176,9 @@ class BaseR(BaseDiscriminativeModel):
                     verbose=verbose,
                 )
                 X_train = self._feature_selection_report._emit_train_X().to_numpy()
+                self._predictors = self._feature_selection_report.top_features()
             else:
+                self._predictors = X_train_df.columns.to_list()
                 X_train = X_train_df.to_numpy()
 
             self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
@@ -252,7 +261,7 @@ class BaseR(BaseDiscriminativeModel):
             )
         return self._feature_selection_report
 
-    def _is_cross_validated(self) -> bool:
+    def is_cross_validated(self) -> bool:
         """Returns True if the model is cross-validated.
 
         Returns
@@ -260,6 +269,21 @@ class BaseR(BaseDiscriminativeModel):
         bool
         """
         return self._dataemitters is not None
+
+    def predictors(self) -> list[str] | None:
+        """Returns the predictors.
+
+        Returns
+        -------
+        list[str].
+            The predictors.
+        """
+        if self._predictors is None:
+            print_wrapped(
+                "No predictors available. The model has not been fitted.",
+                type="WARNING",
+            )
+        return self._predictors
 
     def __str__(self):
         return self._name

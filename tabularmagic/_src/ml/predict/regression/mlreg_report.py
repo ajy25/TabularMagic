@@ -61,7 +61,7 @@ class SingleModelSingleDatasetMLRegReport:
         pd.DataFrame | None. None is returned if cross validation
             fit statistics are not available.
         """
-        if not self._model._is_cross_validated():
+        if not self._model.is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -70,9 +70,9 @@ class SingleModelSingleDatasetMLRegReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self._model.cv_scorer.stats_df()
+                return self._model._cv_scorer.stats_df()
             else:
-                return self._model.cv_scorer.cv_stats_df()
+                return self._model._cv_scorer.cv_stats_df()
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -151,7 +151,35 @@ class SingleModelMLRegReport:
         """
         return self._model
 
-    def feature_selection_report(self) -> VotingSelectionReport | None:
+    def plot_obs_vs_pred(
+        self,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Returns a figure that is a scatter plot of the observed (y-axis) and
+        predicted (x-axis) values for the specified dataset.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test'].
+            Default: 'test'.
+        figsize : Iterable.
+            Default: (5, 5). The size of the figure.
+        ax : plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self.train_report().plot_obs_vs_pred(figsize, ax)
+        else:
+            return self.test_report().plot_obs_vs_pred(figsize, ax)
+
+    def fs_report(self) -> VotingSelectionReport | None:
         """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
 
@@ -384,7 +412,7 @@ class MLRegressionReport:
         pd.DataFrame | None.
             None if cross validation was not conducted.
         """
-        if not self._models[0]._is_cross_validated():
+        if not self._models[0].is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -399,9 +427,12 @@ class MLRegressionReport:
             axis=1,
         )
 
-    def feature_selection_report(self) -> VotingSelectionReport | None:
+    def fs_report(self) -> VotingSelectionReport | None:
         """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
+
+        To access the feature selection report for a specific model, use
+        model_report(<model_id>).feature_selection_report().
 
         Returns
         -------
@@ -414,6 +445,34 @@ class MLRegressionReport:
                 type="WARNING",
             )
         return self._feature_selection_report
+
+    def plot_obs_vs_pred(
+        self,
+        model_id: str,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Returns a figure that is a scatter plot of the observed (y-axis) and
+        predicted (x-axis) values for the specified model and dataset.
+
+        Parameters
+        ----------
+        model_id : str.
+            The id of the model.
+        dataset : Literal['train', 'test'].
+            Default: 'test'.
+        figsize : Iterable.
+            Default: (5, 5). The size of the figure.
+        ax : plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        return self._id_to_report[model_id].plot_obs_vs_pred(dataset, figsize, ax)
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]

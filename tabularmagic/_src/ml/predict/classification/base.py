@@ -31,13 +31,14 @@ class BaseC(BaseDiscriminativeModel):
         self._max_n_features = None
         self._name = "BaseC"
         self._train_scorer = None
-        self.cv_scorer = None
+        self._cv_scorer = None
         self._test_scorer = None
         self._feature_selection_report = None
         self._predictors = None
+        self._is_binary = True
 
-        # By default, the first column is NOT dropped unless binary. For LinearR,
-        # the first column is dropped to avoid multicollinearity.
+        # By default, the first level is NOT dropped unless binary. For linear models,
+        # the first level is dropped to avoid multicollinearity.
         self._dropfirst = False
 
     def specify_data(
@@ -64,8 +65,8 @@ class BaseC(BaseDiscriminativeModel):
             for the VotingSelectionReport.
         max_n_features : int.
             Default: None.
-            Maximum number of features to select. 
-            Only useful if feature_selectors is not None. 
+            Maximum number of features to select.
+            Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
@@ -86,7 +87,7 @@ class BaseC(BaseDiscriminativeModel):
         verbose : bool.
             Default: False. If True, prints progress.
         """
-        is_binary = True
+        self._is_binary = True
 
         if self._dataemitters is None and self._dataemitter is not None:
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
@@ -108,7 +109,7 @@ class BaseC(BaseDiscriminativeModel):
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
             if len(self._label_encoder.classes_) > 2:
-                is_binary = False
+                self._is_binary = False
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
@@ -120,10 +121,11 @@ class BaseC(BaseDiscriminativeModel):
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if is_binary:
+            if self._is_binary:
                 self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred_encoded,
                     y_true=y_train_encoded,
+                    pos_label=self._label_encoder.classes_[1],
                     y_pred_score=y_pred_score,
                     name=str(self),
                 )
@@ -168,7 +170,7 @@ class BaseC(BaseDiscriminativeModel):
                     X_test = X_test_df.to_numpy()
 
                 if len(self._label_encoder.classes_) > 2:
-                    is_binary = False
+                    self._is_binary = False
 
                 y_test = y_test_series.to_numpy()
 
@@ -188,18 +190,20 @@ class BaseC(BaseDiscriminativeModel):
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
 
-            if is_binary:
-                self.cv_scorer = ClassificationBinaryScorer(
+            if self._is_binary:
+                self._cv_scorer = ClassificationBinaryScorer(
                     y_pred=y_preds_encoded,
                     y_true=[self._label_encoder.transform(y) for y in y_trues],
+                    pos_label=self._label_encoder.classes_[1],
                     y_pred_score=y_pred_scores,
                     name=str(self),
                 )
             else:
-                self.cv_scorer = ClassificationMulticlassScorer(
+                self._cv_scorer = ClassificationMulticlassScorer(
                     y_pred=[
-                        self._label_encoder.inverse_transform(y) \
-                            for y in y_preds_encoded],
+                        self._label_encoder.inverse_transform(y)
+                        for y in y_preds_encoded
+                    ],
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
                     y_pred_class_order=self._label_encoder.inverse_transform(
@@ -236,10 +240,11 @@ class BaseC(BaseDiscriminativeModel):
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if is_binary:
+            if self._is_binary:
                 self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred_encoded,
                     y_true=y_train_encoded,
+                    pos_label=self._label_encoder.classes_[1],
                     y_pred_score=y_pred_score,
                     name=str(self),
                 )
@@ -274,12 +279,13 @@ class BaseC(BaseDiscriminativeModel):
         elif hasattr(self._estimator, "decision_function"):
             y_pred_score = self._estimator.decision_function(X_test)
 
-        if is_binary:
+        if self._is_binary:
             self._test_scorer = ClassificationBinaryScorer(
-                y_pred=y_pred_encoded, 
-                y_true=self._label_encoder.transform(y_test), 
-                y_pred_score=y_pred_score, 
-                name=str(self)
+                y_pred=y_pred_encoded,
+                y_true=self._label_encoder.transform(y_test),
+                pos_label=self._label_encoder.classes_[1],
+                y_pred_score=y_pred_score,
+                name=str(self),
             )
         else:
             self._test_scorer = ClassificationMulticlassScorer(
@@ -337,7 +343,17 @@ class BaseC(BaseDiscriminativeModel):
             )
         return self._feature_selection_report
 
-    def _is_cross_validated(self) -> bool:
+    def is_binary(self) -> bool:
+        """Returns True if the model is binary.
+
+        Returns
+        -------
+        bool.
+            True if the model is binary.
+        """
+        return self._is_binary
+
+    def is_cross_validated(self) -> bool:
         """Returns True if the model is cross-validated.
 
         Returns
@@ -346,6 +362,38 @@ class BaseC(BaseDiscriminativeModel):
             True if the model is cross-validated.
         """
         return self._dataemitters is not None
+
+    def pos_label(self) -> str | None:
+        """Returns the positive label.
+
+        Returns
+        -------
+        str.
+            The positive label.
+        """
+        if self._is_binary:
+            return self._label_encoder.classes_[1]
+        else:
+            print_wrapped(
+                "This is not a binary model. No positive label available.",
+                type="WARNING",
+            )
+            return None
+
+    def predictors(self) -> list[str] | None:
+        """Returns the predictors.
+
+        Returns
+        -------
+        list[str].
+            The predictors.
+        """
+        if self._predictors is None:
+            print_wrapped(
+                "No predictors available. The model has not been fitted.",
+                type="WARNING",
+            )
+        return self._predictors
 
     def __str__(self):
         return self._name

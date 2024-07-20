@@ -46,13 +46,14 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             return self._model._test_scorer.stats_df()
 
-    def metrics_by_class(self) -> pd.DataFrame:
+    def metrics_by_class(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing the evaluation metrics
         for the model on the specified data, broken down by class.
 
         Returns
         -------
         pd.DataFrame.
+            None is returned if the model is binary.
         """
         if self._is_binary:
             print_wrapped(
@@ -82,7 +83,7 @@ class SingleModelSingleDatasetMLClassReport:
         pd.DataFrame | None. None is returned if cross validation
             fit statistics are not available.
         """
-        if not self._model._is_cross_validated():
+        if not self._model.is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -91,9 +92,9 @@ class SingleModelSingleDatasetMLClassReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self._model.cv_scorer.stats_df()
+                return self._model._cv_scorer.stats_df()
             else:
-                return self._model.cv_scorer.cv_stats_df()
+                return self._model._cv_scorer.cv_stats_df()
         elif self._dataset == "test":
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -118,7 +119,7 @@ class SingleModelSingleDatasetMLClassReport:
         pd.DataFrame | None. None is returned if cross validation
             fit statistics are not available.
         """
-        if not self._model._is_cross_validated():
+        if not self._model.is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -136,9 +137,9 @@ class SingleModelSingleDatasetMLClassReport:
 
         if self._dataset == "train":
             if averaged_across_folds:
-                return self._model.cv_scorer.stats_by_class_df()
+                return self._model._cv_scorer.stats_by_class_df()
             else:
-                return self._model.cv_scorer.cv_stats_by_class_df()
+                return self._model._cv_scorer.cv_stats_by_class_df()
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -174,7 +175,7 @@ class SingleModelSingleDatasetMLClassReport:
 
     def plot_roc_curve(
         self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
-    ) -> plt.Figure:
+    ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
@@ -244,6 +245,62 @@ class SingleModelMLClassReport:
         """
         return SingleModelSingleDatasetMLClassReport(self._model, "test")
 
+    def plot_confusion_matrix(
+        self,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Returns a figure that is the confusion matrix for the model.
+
+        Parameters
+        ----------
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to plot the confusion matrix for.
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure.
+            Figure of the confusion matrix.
+        """
+        if dataset == "train":
+            return self.train_report().plot_confusion_matrix(figsize, ax)
+        else:
+            return self.test_report().plot_confusion_matrix(figsize, ax)
+
+    def plot_roc_curve(
+        self,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure | None:
+        """Returns a figure that is the ROC curve for the model.
+
+        Parameters
+        ----------
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to plot the ROC curve for.
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure | None.
+            Figure of the ROC curve. None is returned if the model is not binary.
+        """
+        if dataset == "train":
+            return self.train_report().plot_roc_curve(figsize, ax)
+        else:
+            return self.test_report().plot_roc_curve(figsize, ax)
+
     def model(self) -> BaseC:
         """Returns the model.
 
@@ -253,7 +310,7 @@ class SingleModelMLClassReport:
         """
         return self._model
 
-    def feature_selection_report(self) -> VotingSelectionReport | None:
+    def fs_report(self) -> VotingSelectionReport | None:
         """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
 
@@ -480,7 +537,7 @@ class MLClassificationReport:
         pd.DataFrame | None.
             None is returned if cross validation was not conducted.
         """
-        if not self._models[0]._is_cross_validated():
+        if not self._models[0].is_cross_validated():
             print_wrapped(
                 "Cross validation statistics are not available "
                 + "for models that are not cross-validated.",
@@ -495,9 +552,12 @@ class MLClassificationReport:
             axis=1,
         )
 
-    def feature_selection_report(self) -> VotingSelectionReport | None:
+    def fs_report(self) -> VotingSelectionReport | None:
         """Returns the feature selection report. If feature selectors were
         specified at the model level or not at all, then this method will return None.
+
+        To access the feature selection report for a specific model, use
+        model_report(<model_id>).feature_selection_report().
 
         Returns
         -------
@@ -510,6 +570,139 @@ class MLClassificationReport:
                 type="WARNING",
             )
         return self._feature_selection_report
+
+    def plot_confusion_matrix(
+        self,
+        model_id: str,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Returns a figure that is the confusion matrix for the model.
+
+        Parameters
+        ----------
+        model_id: str.
+            The id of the model.
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to plot the confusion matrix for.
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure.
+            Figure of the confusion matrix.
+        """
+        return self._id_to_report[model_id].plot_confusion_matrix(dataset, figsize, ax)
+
+    def plot_roc_curve(
+        self,
+        model_id: str,
+        dataset: Literal["train", "test"] = "test",
+        figsize: Iterable = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure | None:
+        """Returns a figure that is the ROC curve for the model.
+
+        Parameters
+        ----------
+        model_id: str.
+            The id of the model.
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to plot the ROC curve for.
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+
+        Returns
+        -------
+        plt.Figure | None.
+            Figure of the ROC curve. None is returned if the model is not binary.
+        """
+        return self._id_to_report[model_id].plot_roc_curve(dataset, figsize, ax)
+
+    def metrics_by_class(
+        self, dataset: Literal["train", "test"] = "test"
+    ) -> pd.DataFrame | None:
+        """Returns a DataFrame containing the evaluation metrics
+        for all models on the specified data, broken down by class.
+
+        Parameters
+        ----------
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to return the fit statistics for.
+
+        Returns
+        -------
+        pd.DataFrame.
+            None is returned if the model is binary.
+        """
+        if self._models[0].is_binary():
+            print_wrapped(
+                "Fit statistics by class are not "
+                + "available for binary classification.",
+                type="WARNING",
+            )
+            return
+        if dataset == "train":
+            return pd.concat(
+                [
+                    report.train_report().metrics_by_class()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+        else:
+            return pd.concat(
+                [
+                    report.test_report().metrics_by_class()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+
+    def cv_metrics_by_class(
+        self,
+        averaged_across_folds: bool = True,
+    ) -> pd.DataFrame | None:
+        """Returns a DataFrame containing the cross-validated evaluation metrics
+        for all models on the specified data, broken down by class.
+
+        Parameters
+        ----------
+        averaged_across_folds : bool.
+            Default: True. If True, returns a DataFrame
+            containing goodness-of-fit statistics across all folds.
+
+        Returns
+        -------
+        pd.DataFrame | None.
+            None is returned if cross validation was not conducted.
+        """
+        if not self._models[0].is_cross_validated():
+            print_wrapped(
+                "Cross validation statistics are not available "
+                + "for models that are not cross-validated.",
+                type="WARNING",
+            )
+            return None
+        if self._models[0].is_binary():
+            print_wrapped(
+                "Cross validation statistics by class are not "
+                + "available for binary classification.",
+                type="WARNING",
+            )
+            return None
+        return pd.concat(
+            [
+                report.train_report().cv_metrics_by_class(averaged_across_folds)
+                for report in self._id_to_report.values()
+            ],
+            axis=1,
+        )
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]

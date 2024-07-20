@@ -1,42 +1,44 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from typing import Iterable, Literal
-from .base import BaseR
+from .base import BaseC
+from ....metrics.classification_scoring import ClassificationBinaryScorer
 from ....data.datahandler import DataHandler
-from ....metrics.visualization import plot_obs_vs_pred
+from ....metrics.visualization import plot_roc_curve, plot_confusion_matrix
 from ....display.print_utils import print_wrapped
-from ....feature_selection import BaseFSR, VotingSelectionReport
+from ....feature_selection import BaseFSC, VotingSelectionReport
 
 
-class SingleModelSingleDatasetMLRegReport:
+class SingleModelSingleDatasetMLClassReport:
     """
-    Class for generating regression-relevant plots and
+    Class for generating classification-relevant plots and
     tables for a single machine learning model on a single dataset.
     """
 
-    def __init__(self, model: BaseR, dataset: Literal["train", "test"]):
+    def __init__(self, model: BaseC, dataset: Literal["train", "test"]):
         """
-        Initializes a SingleModelSingleDatasetMLReport object.
+        Initializes a SingleModelSingleDatasetMLClassReport object.
 
         Parameters
         ----------
-        model : BaseRegression.
+        model: BaseC.
             The data for the model must already be
             specified. The model should already be trained on the
             specified data.
-        dataset : Literal['train', 'test'].
+        dataset: Literal['train', 'test'].
         """
         self._model = model
+        self._is_binary = isinstance(model._train_scorer, ClassificationBinaryScorer)
         if dataset not in ["train", "test"]:
             raise ValueError('dataset must be either "train" or "test".')
         self._dataset = dataset
 
     def metrics(self) -> pd.DataFrame:
-        """Returns a DataFrame containing the goodness-of-fit statistics
+        """Returns a DataFrame containing the evaluation metrics
         for the model on the specified data.
 
         Returns
-        ----------
+        -------
         pd.DataFrame.
         """
         if self._dataset == "train":
@@ -44,20 +46,39 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             return self._model._test_scorer.stats_df()
 
+    def metrics_by_class(self) -> pd.DataFrame:
+        """Returns a DataFrame containing the evaluation metrics
+        for the model on the specified data, broken down by class.
+
+        Returns
+        -------
+        pd.DataFrame.
+        """
+        if self._is_binary:
+            print_wrapped(
+                "Fit statistics by class are not "
+                + "available for binary classification.",
+                type="WARNING",
+            )
+            return None
+
+        if self._dataset == "train":
+            return self._model._train_scorer.stats_by_class_df()
+        else:
+            return self._model._test_scorer.stats_by_class_df()
+
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
-        """Returns a DataFrame containing the cross-validated goodness-of-fit
-        statistics for the model on the specified data.
+        """Returns a DataFrame containing the cross-validated evaluation metrics
+        for the model on the specified data.
 
         Parameters
         ----------
-        average_across_folds.
+        average_across_folds : bool.
             Default: True. If True, returns a DataFrame
-            containing goodness-of-fit statistics averaged across all folds.
-            Otherwise, returns a DataFrame containing goodness-of-fit
-            statistics for each fold.
+            containing goodness-of-fit statistics across all folds.
 
         Returns
-        ----------
+        -------
         pd.DataFrame | None. None is returned if cross validation
             fit statistics are not available.
         """
@@ -73,6 +94,51 @@ class SingleModelSingleDatasetMLRegReport:
                 return self._model.cv_scorer.stats_df()
             else:
                 return self._model.cv_scorer.cv_stats_df()
+        elif self._dataset == "test":
+            print_wrapped(
+                "Cross validation statistics are not available for test data.",
+                type="WARNING",
+            )
+            return None
+
+    def cv_metrics_by_class(
+        self, averaged_across_folds: bool = True
+    ) -> pd.DataFrame | None:
+        """Returns a DataFrame containing the cross-validated evaluation metrics
+        for the model on the specified data, broken down by class.
+
+        Parameters
+        ----------
+        averaged_across_folds : bool.
+            Default: True. If True, returns a DataFrame
+            containing goodness-of-fit statistics across all folds.
+
+        Returns
+        -------
+        pd.DataFrame | None. None is returned if cross validation
+            fit statistics are not available.
+        """
+        if not self._model._is_cross_validated():
+            print_wrapped(
+                "Cross validation statistics are not available "
+                + "for models that are not cross-validated.",
+                type="WARNING",
+            )
+            return None
+
+        if self._is_binary:
+            print_wrapped(
+                "Cross validation statistics by class are not "
+                + "available for binary classification.",
+                type="WARNING",
+            )
+            return None
+
+        if self._dataset == "train":
+            if averaged_across_folds:
+                return self._model.cv_scorer.stats_by_class_df()
+            else:
+                return self._model.cv_scorer.cv_stats_by_class_df()
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -80,23 +146,23 @@ class SingleModelSingleDatasetMLRegReport:
             )
             return None
 
-    def plot_obs_vs_pred(
+    def plot_confusion_matrix(
         self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
-        """Returns a figure that is a scatter plot of the observed (y-axis) and
-        predicted (x-axis) values.
+        """Returns a figure that is the confusion matrix for the model.
 
         Parameters
         ----------
-        figsize : Iterable
+        figsize: Iterable.
             Default: (5, 5). The size of the figure.
-        ax : plt.Axes.
+        ax: plt.Axes.
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure
+        plt.Figure.
+            Figure of the confusion matrix.
         """
         if self._dataset == "train":
             y_pred = self._model._train_scorer._y_pred
@@ -104,50 +170,86 @@ class SingleModelSingleDatasetMLRegReport:
         else:
             y_pred = self._model._test_scorer._y_pred
             y_true = self._model._test_scorer._y_true
-        return plot_obs_vs_pred(y_pred, y_true, self._model._name, figsize, ax)
+        return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
 
-
-class SingleModelMLRegReport:
-    """SingleModelMLRegReport: generates regression-relevant plots and
-    tables for a single machine learning model.
-    """
-
-    def __init__(self, model: BaseR):
-        """
-        Initializes a SingleModelMLRegReport object.
+    def plot_roc_curve(
+        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+    ) -> plt.Figure:
+        """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
-        model : BaseR. The data for the model must already be
+        figsize: Iterable.
+            Default: (5, 5). The size of the figure.
+        ax: plt.Axes.
+            Default: None. The axes on which to plot the figure. If None,
+            a new figure is created.
+
+        Returns
+        -------
+        plt.Figure | None.
+            Figure of the ROC curve. None is returned if the model is not binary.
+        """
+        if not self._is_binary:
+            print_wrapped(
+                "ROC curve is not available for " + "multiclass classification.",
+                type="WARNING",
+            )
+            return None
+
+        if self._dataset == "train":
+            y_score = self._model._train_scorer._y_pred_score
+            y_true = self._model._train_scorer._y_true
+        else:
+            y_score = self._model._test_scorer._y_pred_score
+            y_true = self._model._test_scorer._y_true
+        return plot_roc_curve(y_score, y_true, self._model._name, figsize, ax)
+
+
+class SingleModelMLClassReport:
+    """Class for routing to appropriate
+    SingleModelSingleDatasetMLClassReport object.
+    """
+
+    def __init__(self, model: BaseC):
+        """
+        Initializes a SingleModelMLClassReport object.
+
+        Parameters
+        ----------
+        model: BaseC.
+            The data for the model must already be
             specified. The model should already be trained on the
             specified data.
         """
         self._model = model
 
-    def train_report(self) -> SingleModelSingleDatasetMLRegReport:
-        """Returns a SingleModelSingleDatasetMLReport object for the training data.
+    def train_report(self) -> SingleModelSingleDatasetMLClassReport:
+        """Returns a SingleModelSingleDatasetMLClassReport
+            object for the training data.
 
         Returns
         -------
-        SingleModelSingleDatasetMLReport
+        SingleModelSingleDatasetMLClassReport.
         """
-        return SingleModelSingleDatasetMLRegReport(self._model, "train")
+        return SingleModelSingleDatasetMLClassReport(self._model, "train")
 
-    def test_report(self) -> SingleModelSingleDatasetMLRegReport:
-        """Returns a SingleModelSingleDatasetMLReport object for the test data.
+    def test_report(self) -> SingleModelSingleDatasetMLClassReport:
+        """Returns a SingleModelSingleDatasetMLClassReport
+          object for the test data.
 
         Returns
         -------
-        SingleModelSingleDatasetMLReport
+        SingleModelSingleDatasetMLClassReport.
         """
-        return SingleModelSingleDatasetMLRegReport(self._model, "test")
+        return SingleModelSingleDatasetMLClassReport(self._model, "test")
 
-    def model(self) -> BaseR:
+    def model(self) -> BaseC:
         """Returns the model.
 
         Returns
         -------
-        BaseR.
+        BaseC.
         """
         return self._model
 
@@ -163,36 +265,36 @@ class SingleModelMLRegReport:
         return self._model.feature_selection_report()
 
 
-class MLRegressionReport:
-    """Class for reporting model goodness of fit.
+class MLClassificationReport:
+    """Class for evaluating multiple classification models.
     Fits the model based on provided DataHandler.
     """
 
     def __init__(
         self,
-        models: Iterable[BaseR],
+        models: Iterable[BaseC],
         datahandler: DataHandler,
         target: str,
         predictors: Iterable[str],
-        feature_selectors: Iterable[BaseFSR] | None = None,
+        feature_selectors: Iterable[BaseFSC] | None = None,
         max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
         verbose: bool = True,
     ):
-        """MLRegressionReport.
+        """MLClassificationReport.
         Fits the model based on provided DataHandler.
 
         Parameters
         ----------
-        models : Iterable[BaseR].
-            The BaseRegression models must already be trained.
-        datahandler : DataHandler.
+        models: Iterable[BaseC].
+            The BaseC models must already be trained.
+        datahandler: DataHandler.
             The DataHandler object that contains the data.
         target : str.
-            The name of the target variable.
+            The name of the dependent variable.
         predictors : Iterable[str].
-            The names of the predictor variables.
+            The names of the independent variables.
         feature_selectors : Iterable[BaseFSR].
             Default: None.
             The feature selectors for voting selection. Feature selectors
@@ -201,25 +303,33 @@ class MLRegressionReport:
             Default: None.
             Maximum number of predictors to utilize. Ignored if feature_selectors
             is None.
-        outer_cv : int.
+        outer_cv: int.
             Default: None.
             If not None, reports training scores via nested k-fold CV.
-        outer_cv_seed : int.
-            Default: 42. The random seed for the outer cross validation loop.
-        verbose : bool.
-            Default: True. If True, prints progress.
+        outer_cv_seed: int.
+            Default: 42.
+            The random seed for the outer cross validation loop.
+        verbose: bool.
+            Default: True. If True, prints updates on model fitting.
         """
-        self._models: list[BaseR] = models
+        self._models: list[BaseC] = models
+
+        for model in self._models:
+            if not isinstance(model, BaseC):
+                raise ValueError(
+                    f"Model {model} is not an instance of BaseC. "
+                    "All models must be instances of BaseC."
+                )
+
         self._id_to_model = {}
         for model in models:
             if model._name in self._id_to_model:
                 raise ValueError(f"Duplicate model name: {model._name}.")
             self._id_to_model[model._name] = model
 
-        self._feature_selection_report = None
-
         self._y_var = target
         self._X_vars = predictors
+        self._feature_selection_report = None
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
@@ -233,7 +343,6 @@ class MLRegressionReport:
             self._emitter.select_predictors(self._X_vars)
 
         self._emitters = None
-
         if outer_cv is not None:
             self._emitters = datahandler.kfold_emitters(
                 y_var=target,
@@ -256,10 +365,7 @@ class MLRegressionReport:
         for model in self._models:
             if self._verbose:
                 print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
-            model.specify_data(
-                dataemitter=self._emitter,
-                dataemitters=self._emitters,
-            )
+            model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
             model.fit(verbose=self._verbose)
 
             if (
@@ -292,49 +398,49 @@ class MLRegressionReport:
                 )
 
         self._id_to_report = {
-            model._name: SingleModelMLRegReport(model) for model in models
+            model._name: SingleModelMLClassReport(model) for model in models
         }
 
-    def model_report(self, model_id: str) -> SingleModelMLRegReport:
-        """Returns the SingleModelMLRegReport object for the specified model.
+    def model_report(self, model_id: str) -> SingleModelMLClassReport:
+        """Returns the SingleModelMLClassReport object for the specified model.
 
         Parameters
         ----------
-        model_id : str.
+        model_id: str.
             The id of the model.
 
         Returns
         -------
-        SingleModelMLRegReport
+        SingleModelMLClassReport
         """
         if model_id not in self._id_to_report:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_report[model_id]
 
-    def model(self, model_id: str) -> BaseR:
+    def model(self, model_id: str) -> BaseC:
         """Returns the model with the specified id.
 
         Parameters
         ----------
-        model_id : str.
+        model_id: str.
             The id of the model.
 
         Returns
         -------
-        BaseR
+        BaseC
         """
         if model_id not in self._id_to_model:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
     def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
-        """Returns a DataFrame containing the goodness-of-fit statistics for
+        """Returns a DataFrame containing the evaluation metrics for
         all models on the specified data.
 
         Parameters
         ----------
-        dataset : Literal['train', 'test'].
-            Default: 'test'.
+        dataset: Literal['train', 'test'].
+            Default: 'test'. The dataset to return the fit statistics for.
 
         Returns
         -------
@@ -358,23 +464,21 @@ class MLRegressionReport:
             )
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
-        """Returns a DataFrame containing the cross-validated goodness-of-fit
-        statistics for all models on the training data. Cross validation must
+        """Returns a DataFrame containing the evaluation metrics for
+        all models on the training data. Cross validation must
         have been conducted, otherwise None is returned.
 
         Parameters
         ----------
         average_across_folds : bool.
             Default: True.
-            If True, returns a DataFrame containing goodness-of-fit
-            statistics averaged across all folds.
-            Otherwise, returns a DataFrame containing goodness-of-fit
-            statistics for each fold.
+            If True, returns a DataFrame
+            containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
         pd.DataFrame | None.
-            None if cross validation was not conducted.
+            None is returned if cross validation was not conducted.
         """
         if not self._models[0]._is_cross_validated():
             print_wrapped(
@@ -398,7 +502,7 @@ class MLRegressionReport:
         Returns
         -------
         VotingSelectionReport | None.
-            None if feature selectors were not specified.
+            None is returned if no feature selectors were specified.
         """
         if self._feature_selection_report is None:
             print_wrapped(
@@ -407,5 +511,5 @@ class MLRegressionReport:
             )
         return self._feature_selection_report
 
-    def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
+    def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]

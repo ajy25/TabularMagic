@@ -1,7 +1,7 @@
 import pandas as pd
-from typing import Iterable, Literal
+from typing import Literal
 from sklearn.model_selection import train_test_split
-from .ml.discriminative import (
+from .ml.predict import (
     BaseR,
     MLRegressionReport,
     BaseC,
@@ -20,15 +20,11 @@ from .linear import (
     CountRegressionReport,
     parse_and_transform_rlike,
 )
-from .feature_selection import (
-    BaseFS,
-    VotingSelectionReport,
-)
 from .exploratory import (
     ComprehensiveEDA,
 )
 from .display.print_utils import print_wrapped
-from .feature_selection import BaseFSR, BaseFSC, BaseFS
+from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
 
 
@@ -333,10 +329,10 @@ class Analyzer:
 
     def regress(
         self,
-        models: Iterable[BaseR],
+        models: list[BaseR],
         target: str,
         predictors: list[str] | None = None,
-        feature_selectors: Iterable[BaseFSR] | None = None,
+        feature_selectors: list[BaseFSR] | None = None,
         max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
@@ -346,13 +342,13 @@ class Analyzer:
 
         Parameters
         ----------
-        models : Iterable[BaseRegression].
+        models : list[BaseRegression].
             Testing performance of all models will be evaluated.
         target : str.
         predictors : list[str].
             Default: None.
             If None, uses all variables except target as predictors.
-        feature_selectors : Iterable[BaseFSR].
+        feature_selectors : list[BaseFSR].
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If
@@ -393,10 +389,10 @@ class Analyzer:
 
     def classify(
         self,
-        models: Iterable[BaseC],
+        models: list[BaseC],
         target: str,
         predictors: list[str] | None = None,
-        feature_selectors: Iterable[BaseFSC] | None = None,
+        feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
@@ -406,13 +402,13 @@ class Analyzer:
 
         Parameters
         ----------
-        models : Iterable[BaseClassification].
+        models : list[BaseClassification].
             Testing performance of all models will be evaluated.
         target : str.
         predictors : list[str].
             Default: None.
             If None, uses all variables except target as predictors.
-        feature_selectors : Iterable[BaseFSR].
+        feature_selectors : list[BaseFSR].
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If

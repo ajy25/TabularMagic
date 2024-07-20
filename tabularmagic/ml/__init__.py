@@ -1,4 +1,4 @@
-from .._src.ml.discriminative.regression import (
+from .._src.ml.predict.regression import (
     LinearR,
     RobustLinearR,
     TreeR,
@@ -8,7 +8,7 @@ from .._src.ml.discriminative.regression import (
     CustomR,
     MLRegressionReport,
 )
-from .._src.ml.discriminative.classification import (
+from .._src.ml.predict.classification import (
     LinearC,
     TreeC,
     TreeEnsembleC,

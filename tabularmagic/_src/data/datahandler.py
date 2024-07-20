@@ -1692,8 +1692,12 @@ class DataHandler:
 
         Parameters
         ----------
-        - df1 : pd.DataFrame
-        - df2 : pd.DataFrame
+        df1 : pd.DataFrame
+        df2 : pd.DataFrame
+
+        Raises
+        ------
+        ValueError
         """
         l1 = df1.columns.to_list()
         l2 = df2.columns.to_list()
@@ -1703,6 +1707,15 @@ class DataHandler:
                 f"Variables {list_to_string(vars_not_in_both)} "
                 + "are not in both train and test DataFrames."
             )
+        datetime_columns = df1.select_dtypes(
+            include=['datetime', np.datetime64]
+        ).columns.tolist()
+        if len(datetime_columns) > 0:
+            raise ValueError(
+                f"Variables {list_to_string(datetime_columns)} "
+                "are of type datetime. TabularMagic cannot handle datetime values."
+            )
+
 
     def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
         """Returns the categorical and numerical column values.
@@ -1710,13 +1723,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - df : pd.DataFrame
+        df : pd.DataFrame
 
         Returns
         -------
-        - categorical_vars : list[str]
-        - numerical_vars : list[str]
-        - categorical_mapped : dict
+        categorical_vars : list[str]
+        numerical_vars : list[str]
+        categorical_mapped : dict
         """
         categorical_vars = df.select_dtypes(
             include=["object", "category", "bool"]

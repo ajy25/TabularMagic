@@ -13,7 +13,7 @@ package setup and pip installation.
 To install TabularMagic: 
 ```
 git clone https://github.com/ajy25/TabularMagic.git
-cd tabularmagic
+cd TabularMagic
 python tmbuild.py install
 ```
 
@@ -56,7 +56,7 @@ def reshow(fig: plt.Figure):
     plt.show()
 
 train_eda = analyzer.eda()
-print(train_eda.numerical_summary_statistics())
+print(train_eda.numstats())
 reshow(train_eda.plot_distribution('target'))
 reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
 ```
@@ -86,8 +86,8 @@ report = analyzer.ml_regression(
     target='target',
     predictors=['age', 'bmi', 'bp', 's1', 's2'],
     feature_selectors=[
-        tm.fs.KBestSelectorR('f_regression'),
-        tm.fs.KBestSelectorR('mutual_info_regression'),
+        tm.fs.KBestSelectorR('f_regression', k=3),
+        tm.fs.KBestSelectorR('mutual_info_regression', k=3),
     ],
     max_n_features=3, # voting feature selection, top 3 features
     inner_cv=5        # 5-fold cross validation for hyperparameter tuning

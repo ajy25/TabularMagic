@@ -9,7 +9,6 @@ from ....metrics import (
 )
 from ....feature_selection import BaseFSC, VotingSelectionReport
 from ....display.print_utils import print_wrapped
-from typing import Literal
 import numpy as np
 
 
@@ -108,24 +107,30 @@ class BaseC(BaseDiscriminativeModel):
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
-            if not np.isin(np.unique(y_train), [0, 1]).all():
+            if len(self._label_encoder.classes_) > 2:
                 is_binary = False
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
 
-            y_pred = self._label_encoder.inverse_transform(
-                self._estimator.predict(X_train)
-            )
+            y_pred_encoded = self._estimator.predict(X_train)
 
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if not is_binary:
+            if is_binary:
+                self._train_scorer = ClassificationBinaryScorer(
+                    y_pred=y_pred_encoded,
+                    y_true=y_train_encoded,
+                    y_pred_score=y_pred_score,
+                    name=str(self),
+                )
+
+            else:
                 self._train_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_pred,
+                    y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
@@ -134,16 +139,8 @@ class BaseC(BaseDiscriminativeModel):
                     name=str(self),
                 )
 
-            else:
-                self._train_scorer = ClassificationBinaryScorer(
-                    y_pred=y_pred,
-                    y_true=y_train,
-                    y_pred_score=y_pred_score,
-                    name=str(self),
-                )
-
         elif self._dataemitters is not None and self._dataemitter is not None:
-            y_preds = []
+            y_preds_encoded = []
             y_trues = []
             y_pred_scores = []
 
@@ -170,7 +167,7 @@ class BaseC(BaseDiscriminativeModel):
                     X_train = X_train_df.to_numpy()
                     X_test = X_test_df.to_numpy()
 
-                if not np.isin(np.unique(y_train), [0, 1]).all():
+                if len(self._label_encoder.classes_) > 2:
                     is_binary = False
 
                 y_test = y_test_series.to_numpy()
@@ -178,11 +175,9 @@ class BaseC(BaseDiscriminativeModel):
                 self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
                 fold_estimator = self._hyperparam_searcher._best_estimator
 
-                y_pred = self._label_encoder.inverse_transform(
-                    fold_estimator.predict(X_test)
-                )
+                y_pred_encoded = fold_estimator.predict(X_test)
 
-                y_preds.append(y_pred)
+                y_preds_encoded.append(y_pred_encoded)
                 y_trues.append(y_test)
 
                 if hasattr(fold_estimator, "predict_proba"):
@@ -193,21 +188,23 @@ class BaseC(BaseDiscriminativeModel):
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
 
-            if not is_binary:
+            if is_binary:
+                self.cv_scorer = ClassificationBinaryScorer(
+                    y_pred=y_preds_encoded,
+                    y_true=[self._label_encoder.transform(y) for y in y_trues],
+                    y_pred_score=y_pred_scores,
+                    name=str(self),
+                )
+            else:
                 self.cv_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_preds,
+                    y_pred=[
+                        self._label_encoder.inverse_transform(y) \
+                            for y in y_preds_encoded],
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
                     y_pred_class_order=self._label_encoder.inverse_transform(
                         fold_estimator.classes_
                     ),
-                    name=str(self),
-                )
-            else:
-                self.cv_scorer = ClassificationBinaryScorer(
-                    y_pred=y_preds,
-                    y_true=y_trues,
-                    y_pred_score=y_pred_scores,
                     name=str(self),
                 )
 
@@ -233,17 +230,22 @@ class BaseC(BaseDiscriminativeModel):
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
             self._estimator = self._hyperparam_searcher._best_estimator
 
-            y_pred = self._label_encoder.inverse_transform(
-                self._estimator.predict(X_train)
-            )
+            y_pred_encoded = self._estimator.predict(X_train)
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if not is_binary:
+            if is_binary:
+                self._train_scorer = ClassificationBinaryScorer(
+                    y_pred=y_pred_encoded,
+                    y_true=y_train_encoded,
+                    y_pred_score=y_pred_score,
+                    name=str(self),
+                )
+            else:
                 self._train_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_pred,
+                    y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
@@ -251,18 +253,12 @@ class BaseC(BaseDiscriminativeModel):
                     ),
                     name=str(self),
                 )
-            else:
-                self._train_scorer = ClassificationBinaryScorer(
-                    y_pred=y_pred,
-                    y_true=y_train,
-                    y_pred_score=y_pred_score,
-                    name=str(self),
-                )
 
         else:
             raise ValueError("The datahandler must not be None")
 
         X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
+
         y_test = y_test_series.to_numpy()
 
         if self._feature_selectors is None:
@@ -270,7 +266,7 @@ class BaseC(BaseDiscriminativeModel):
         else:
             X_test = self._feature_selection_report._emit_test_X().to_numpy()
 
-        y_pred = self._label_encoder.inverse_transform(self._estimator.predict(X_test))
+        y_pred_encoded = self._estimator.predict(X_test)
 
         y_pred_score = None
         if hasattr(self._estimator, "predict_proba"):
@@ -278,20 +274,22 @@ class BaseC(BaseDiscriminativeModel):
         elif hasattr(self._estimator, "decision_function"):
             y_pred_score = self._estimator.decision_function(X_test)
 
-        if not is_binary:
+        if is_binary:
+            self._test_scorer = ClassificationBinaryScorer(
+                y_pred=y_pred_encoded, 
+                y_true=self._label_encoder.transform(y_test), 
+                y_pred_score=y_pred_score, 
+                name=str(self)
+            )
+        else:
             self._test_scorer = ClassificationMulticlassScorer(
-                y_pred=y_pred,
+                y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                 y_true=y_test,
                 y_pred_score=y_pred_score,
                 y_pred_class_order=self._label_encoder.inverse_transform(
                     self._estimator.classes_
                 ),
                 name=str(self),
-            )
-
-        else:
-            self._test_scorer = ClassificationBinaryScorer(
-                y_pred=y_pred, y_true=y_test, y_pred_score=y_pred_score, name=str(self)
             )
 
     def sklearn_estimator(self):

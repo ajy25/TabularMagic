@@ -38,6 +38,7 @@ class CountLinearModel:
 
     def fit(self):
         """Fits the model based on the data specified."""
+        y_scaler = self._dataemitter.y_scaler()
 
         # Emit the training data
         X_train, y_train = self._dataemitter.emit_train_Xy()
@@ -73,6 +74,10 @@ class CountLinearModel:
 
         # Get the predictions from the training dataset
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
+        if y_scaler is not None:
+            y_pred_train = y_scaler.inverse_transform(y_pred_train)
+            y_train = y_scaler.inverse_transform(y_train)
+
 
         # Emit the test data
         X_test, y_test = self._dataemitter.emit_test_Xy()
@@ -88,6 +93,11 @@ class CountLinearModel:
         )
 
         y_pred_test = self.estimator.predict(X_test).to_numpy()
+        if y_scaler is not None:
+            y_pred_test = y_scaler.inverse_transform(y_pred_test)
+            y_test = y_scaler.inverse_transform(y_test)
+
+
         self.test_scorer = RegressionScorer(
             y_pred=y_pred_test,
             y_true=y_test.to_numpy(),

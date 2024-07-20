@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 from sklearn.model_selection import train_test_split
 
-parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
-sys.path.append(parent_dir)
+parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(parent_dir))
 
 
 import tabularmagic as tm
@@ -138,6 +138,10 @@ def test_fs_simple(setup_data):
     )
     assert report.model('simple_tester').sklearn_estimator().n_features_in_ == 2
     assert report.model('simple_tester_2').sklearn_estimator().n_features_in_ == 3
+    assert len(report.model('simple_tester').predictors()) == 2
+    assert len(report.model('simple_tester_2').predictors()) == 3
+    assert report.model('simple_tester')._estimator.n_features_in_ == 2
+    assert report.model('simple_tester_2')._estimator.n_features_in_ == 3
 
 
 

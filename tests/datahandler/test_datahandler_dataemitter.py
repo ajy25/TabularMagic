@@ -6,8 +6,8 @@ from sklearn.model_selection import train_test_split
 import pathlib
 import sys
 
-parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
-sys.path.append(parent_dir)
+parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(parent_dir))
 
 from tabularmagic._src.data.datahandler import (
     DataEmitter,
@@ -37,7 +37,8 @@ def setup_data():
         df_iris, test_size=0.2, random_state=42
     )
 
-    df_house = pd.read_csv(f"{parent_dir}/demo/regression/house_price_data/data.csv")
+    df_house = pd.read_csv(parent_dir / "demo" / "regression" / "house_price_data" / \
+                           "data.csv")
     df_house_train, df_house_test = train_test_split(
         df_house, test_size=0.2, random_state=42
     )

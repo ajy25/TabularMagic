@@ -51,7 +51,7 @@ class CustomC(BaseC):
         verbose : bool.
             Default: False. If True, prints progress.
         """
-        is_binary = False
+        self._is_binary = True
 
         if self._dataemitters is None and self._dataemitter is not None:
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
@@ -60,25 +60,32 @@ class CustomC(BaseC):
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
-            if np.isin(np.unique(y_train), [0, 1]).all():
-                is_binary = True
+            if len(self._label_encoder.classes_) > 2:
+                self._is_binary = False
 
             if verbose:
                 print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
             self._estimator.fit(X_train, y_train_encoded)
 
-            y_pred = self._label_encoder.inverse_transform(
-                self._estimator.predict(X_train)
-            )
+            y_pred_encoded = self._estimator.predict(X_train)
 
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if not is_binary:
+            if self._is_binary:
+                self._train_scorer = ClassificationBinaryScorer(
+                    y_pred=y_pred_encoded,
+                    y_true=y_train_encoded,
+                    pos_label=self._label_encoder.classes_[1],
+                    y_pred_score=y_pred_score,
+                    name=str(self),
+                )
+
+            else:
                 self._train_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_pred,
+                    y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
@@ -87,16 +94,8 @@ class CustomC(BaseC):
                     name=str(self),
                 )
 
-            else:
-                self._train_scorer = ClassificationBinaryScorer(
-                    y_pred=y_pred,
-                    y_true=y_train,
-                    y_pred_score=y_pred_score,
-                    name=str(self),
-                )
-
         elif self._dataemitters is not None and self._dataemitter is not None:
-            y_preds = []
+            y_preds_encoded = []
             y_trues = []
             y_pred_scores = []
 
@@ -114,18 +113,16 @@ class CustomC(BaseC):
 
                 y_train_encoded: np.ndarray = self._label_encoder.fit_transform(y_train)
 
-                if not np.isin(np.unique(y_train), [0, 1]).all():
-                    is_binary = False
+                if len(self._label_encoder.classes_) > 2:
+                    self._is_binary = False
 
                 X_test = X_test_df.to_numpy()
                 y_test = y_test_series.to_numpy()
 
                 self._estimator.fit(X_train, y_train_encoded)
-                y_pred = self._label_encoder.inverse_transform(
-                    self._estimator.predict(X_test)
-                )
+                y_pred_encoded = self._estimator.predict(X_test)
 
-                y_preds.append(y_pred)
+                y_preds_encoded.append(y_pred_encoded)
                 y_trues.append(y_test)
 
                 if hasattr(self._estimator, "predict_proba"):
@@ -136,9 +133,20 @@ class CustomC(BaseC):
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
 
-            if not is_binary:
+            if self._is_binary:
+                self._cv_scorer = ClassificationBinaryScorer(
+                    y_pred=y_preds_encoded,
+                    y_true=[self._label_encoder.transform(y) for y in y_trues],
+                    pos_label=self._label_encoder.classes_[1],
+                    y_pred_score=y_pred_scores,
+                    name=str(self),
+                )
+            else:
                 self._cv_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_preds,
+                    y_pred=[
+                        self._label_encoder.inverse_transform(y)
+                        for y in y_preds_encoded
+                    ],
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
                     y_pred_class_order=self._label_encoder.inverse_transform(
@@ -146,14 +154,6 @@ class CustomC(BaseC):
                     ),
                     name=str(self),
                 )
-            else:
-                self._cv_scorer = ClassificationBinaryScorer(
-                    y_pred=y_preds,
-                    y_true=y_trues,
-                    y_pred_score=y_pred_scores,
-                    name=str(self),
-                )
-
             # refit on all data
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
             X_train = X_train_df.to_numpy()
@@ -163,29 +163,28 @@ class CustomC(BaseC):
 
             self._estimator.fit(X_train, y_train_encoded)
 
-            y_pred = self._label_encoder.inverse_transform(
-                self._estimator.predict(X_train)
-            )
+            y_pred_encoded = self._estimator.predict(X_train)
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
-            if not is_binary:
+            if self._is_binary:
+                self._train_scorer = ClassificationBinaryScorer(
+                    y_pred=y_pred_encoded,
+                    y_true=y_train_encoded,
+                    pos_label=self._label_encoder.classes_[1],
+                    y_pred_score=y_pred_score,
+                    name=str(self),
+                )
+            else:
                 self._train_scorer = ClassificationMulticlassScorer(
-                    y_pred=y_pred,
+                    y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
                         self._estimator.classes_
                     ),
-                    name=str(self),
-                )
-            else:
-                self._train_scorer = ClassificationBinaryScorer(
-                    y_pred=y_pred,
-                    y_true=y_train,
-                    y_pred_score=y_pred_score,
                     name=str(self),
                 )
 
@@ -196,7 +195,7 @@ class CustomC(BaseC):
         X_test = X_test_df.to_numpy()
         y_test = y_test_series.to_numpy()
 
-        y_pred = self._label_encoder.inverse_transform(self._estimator.predict(X_test))
+        y_pred_encoded = self._estimator.predict(X_test)
 
         y_pred_score = None
         if hasattr(self._estimator, "predict_proba"):
@@ -204,20 +203,23 @@ class CustomC(BaseC):
         elif hasattr(self._estimator, "decision_function"):
             y_pred_score = self._estimator.decision_function(X_test)
 
-        if not is_binary:
+        if self._is_binary:
+            self._test_scorer = ClassificationBinaryScorer(
+                y_pred=y_pred_encoded,
+                y_true=self._label_encoder.transform(y_test),
+                pos_label=self._label_encoder.classes_[1],
+                y_pred_score=y_pred_score,
+                name=str(self),
+            )
+        else:
             self._test_scorer = ClassificationMulticlassScorer(
-                y_pred=y_pred,
+                y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                 y_true=y_test,
                 y_pred_score=y_pred_score,
                 y_pred_class_order=self._label_encoder.inverse_transform(
                     self._estimator.classes_
                 ),
                 name=str(self),
-            )
-
-        else:
-            self._test_scorer = ClassificationBinaryScorer(
-                y_pred=y_pred, y_true=y_test, y_pred_score=y_pred_score, name=str(self)
             )
 
     def hyperparam_searcher(self):

@@ -1,8 +1,8 @@
 import pathlib
 import sys
 
-parent_dir = str(pathlib.Path(__file__).resolve().parent.parent.parent)
-sys.path.append(parent_dir)
+parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(parent_dir))
 
 
 from tabularmagic._src.display.print_utils import (

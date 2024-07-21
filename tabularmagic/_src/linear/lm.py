@@ -68,12 +68,16 @@ class OLSLinearModel:
             name=self._name,
         )
 
-    def _step(self, start_list = None,
-              lower = [],
-              upper = None,
-              direction: Literal["both", "backward", "forward"] = "backward", 
-              criteria: Literal["aic"] = "aic", 
-              max_steps = 1000, verbose = False) -> list[str]:
+    def _step(
+        self,
+        start_list=None,
+        lower=[],
+        upper=None,
+        direction: Literal["both", "backward", "forward"] = "backward",
+        criteria: Literal["aic"] = "aic",
+        max_steps=1000,
+        verbose=False,
+    ) -> list[str]:
         """Finish writing description
 
         Categorical variables will either be included or excluded as a whole.
@@ -89,9 +93,9 @@ class OLSLinearModel:
         """
         if max_steps < 0:
             raise Exception("max_steps cannot be negative")
-        
+
         X_train, y_train = self._dataemitter.emit_train_Xy()
-        
+
         # Set upper to all possible variables if nothing is specified
         if upper is None:
             upper = X_train.columns.tolist()
@@ -103,7 +107,7 @@ class OLSLinearModel:
                 start_list = upper.copy()
             else:
                 start_list = lower.copy()
-        
+
         # Check to see that the starting list and bounds agree
         if set(lower) >= set(start_list):
             raise Exception("starting list must include variables in lower bound")
@@ -111,12 +115,12 @@ class OLSLinearModel:
             raise Exception("starting list contains variables not in upper bound")
         if set(lower) >= set(upper):
             raise Exception("lower bound is larger than upper bound")
-        
+
         # Define a function to fit our OLS model given a list of features
         def fit_ols(feature_list):
             subset_X_train = X_train[feature_list]
             return sm.OLS(y_train, subset_X_train).fit(cov_type="HC3")
-    
+
         # Create a function that fits and calculates the aic
         def calculate_aic(features):
             new_model = fit_ols(features)
@@ -125,7 +129,7 @@ class OLSLinearModel:
         # Set our current variables to our starting list
         included = start_list.copy()
 
-        #Set our starting aic and best models
+        # Set our starting aic and best models
         current_aic, best_model = calculate_aic(included)
 
         current_step = 0
@@ -134,7 +138,7 @@ class OLSLinearModel:
             changed = False
 
             # Forward step
-            if direction in ['forward', 'both']:
+            if direction in ["forward", "both"]:
                 excluded = list(set(upper) - set(included))
                 aic_with_candidates = []
                 for new_var in excluded:
@@ -144,9 +148,8 @@ class OLSLinearModel:
                 aic_with_candidates.sort()
                 best_add_aic, best_add_candidate = aic_with_candidates[0]
 
-
             # Backward step
-            if direction in ['backward', 'both']:
+            if direction in ["backward", "both"]:
                 if len(included) > len(lower):
                     aic_with_candidates = []
                     for candidate in included:
@@ -160,40 +163,43 @@ class OLSLinearModel:
                     # that much information
                     best_rem_aic, worst_rem_candidate = aic_with_candidates[0]
 
-
             # compare aic and update model if applicable
-            if direction == 'forward' and best_add_aic < current_aic:
+            if direction == "forward" and best_add_aic < current_aic:
                 included.append(best_add_candidate)
                 current_aic = best_add_aic
                 best_model = fit_ols(included)
                 changed = True
                 if verbose:
                     print(f"Adding: {best_add_candidate} with AIC {best_add_aic:.6}")
-            elif direction == 'backward' and best_rem_aic < current_aic:
+            elif direction == "backward" and best_rem_aic < current_aic:
                 included.remove(worst_rem_candidate)
                 current_aic = best_rem_aic
                 best_model = fit_ols(included)
                 changed = True
                 if verbose:
                     print(f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}")
-            elif direction == 'both':
+            elif direction == "both":
                 # First see if we want to remove or add a variable this step:
-                if best_add_aic < best_rem_aic: # adding is better than removing
+                if best_add_aic < best_rem_aic:  # adding is better than removing
                     if best_add_aic < current_aic:
                         included.append(best_add_candidate)
                         current_aic = best_add_aic
                         best_model = fit_ols(included)
                         changed = True
                         if verbose:
-                            print(f"Adding: {best_add_candidate} with AIC {best_add_aic:.6}")
-                else: # removing is better than adding
+                            print(
+                                f"Adding: {best_add_candidate} with AIC {best_add_aic:.6}"
+                            )
+                else:  # removing is better than adding
                     if best_rem_aic < current_aic:
                         included.remove(worst_rem_candidate)
                         current_aic = best_rem_aic
                         best_model = fit_ols(included)
                         changed = True
                         if verbose:
-                            print(f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}")
+                            print(
+                                f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}"
+                            )
 
             if not changed:
                 break
@@ -202,9 +208,7 @@ class OLSLinearModel:
         # Set the new model
         self.estimator = best_model
 
-        return "" #placeholder change later
-
-
+        return ""  # placeholder change later
 
     def __str__(self):
         return self._name

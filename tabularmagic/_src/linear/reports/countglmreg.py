@@ -5,6 +5,7 @@ from .negbinglmreg import SingleDatasetNegBinRegReport
 from .poissonglmreg import SingleDatasetPoisRegReport
 from ..countglm import CountLinearModel
 
+
 def reverse_argsort(indices):
     n = len(indices)
     reverse_indices = [0] * n

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tabularmagic._src.analyzer &mdash; TabularMagic 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TabularMagic
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tabularmagic.html">tabularmagic (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic</span></code>)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TabularMagic</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">tabularmagic._src.analyzer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for tabularmagic._src.analyzer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">.ml.predict</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseR</span><span class="p">,</span>
+    <span class="n">MLRegressionReport</span><span class="p">,</span>
+    <span class="n">BaseC</span><span class="p">,</span>
+    <span class="n">MLClassificationReport</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.linear</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OLSLinearModel</span><span class="p">,</span>
+    <span class="n">PoissonLinearModel</span><span class="p">,</span>
+    <span class="n">NegativeBinomialLinearModel</span><span class="p">,</span>
+    <span class="n">CountLinearModel</span><span class="p">,</span>
+    <span class="n">BinomialLinearModel</span><span class="p">,</span>
+    <span class="n">BinomialRegressionReport</span><span class="p">,</span>
+    <span class="n">PoissonRegressionReport</span><span class="p">,</span>
+    <span class="n">NegativeBinomialRegressionReport</span><span class="p">,</span>
+    <span class="n">LinearRegressionReport</span><span class="p">,</span>
+    <span class="n">CountRegressionReport</span><span class="p">,</span>
+    <span class="n">parse_and_transform_rlike</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.exploratory</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ComprehensiveEDA</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.display.print_utils</span> <span class="kn">import</span> <span class="n">print_wrapped</span>
+<span class="kn">from</span> <span class="nn">.feature_selection</span> <span class="kn">import</span> <span class="n">BaseFSR</span><span class="p">,</span> <span class="n">BaseFSC</span>
+<span class="kn">from</span> <span class="nn">.data.datahandler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
+
+
+<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyzer: A class designed for conducting exploratory data analysis (EDA),</span>
+<span class="sd">    regression analysis, and machine learning modeling on wide format tabular data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">df_test</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">test_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">split_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a Analyzer object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame ~ (sample_size, n_variables).</span>
+<span class="sd">            The DataFrame to be analyzed.</span>
+<span class="sd">        df_test : pd.DataFrame ~ (test_sample_size, n_variables).</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If not None, then treats df as the train DataFrame.</span>
+<span class="sd">        test_size : float.</span>
+<span class="sd">            Default: 0. Proportion of the DataFrame to withhold for</span>
+<span class="sd">            testing. If test_size = 0, then the train DataFrame and the</span>
+<span class="sd">            test DataFrame will both be the same as the input df.</span>
+<span class="sd">            If df_test is provided, then test_size is ignored.</span>
+<span class="sd">        split_seed : int.</span>
+<span class="sd">            Default: 42.</span>
+<span class="sd">            Used only for the train test split.</span>
+<span class="sd">            If df_test is provided, then split_seed is ignored.</span>
+<span class="sd">        verbose : bool.</span>
+<span class="sd">            Default: False. If True, prints helpful update messages for certain</span>
+<span class="sd">                Analyzer function calls.</span>
+<span class="sd">        name : str.</span>
+<span class="sd">            Default: &#39;Analyzer&#39;. Identifier for object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">df_test</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df_test</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">df_test</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span>
+                <span class="n">df_train</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">df_test</span><span class="o">=</span><span class="n">df_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">test_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">temp_train</span><span class="p">,</span> <span class="n">temp_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+                    <span class="n">df</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">test_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">split_seed</span>
+                <span class="p">)</span>
+                <span class="n">temp_train_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">temp_train</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                <span class="n">temp_test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">temp_test</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
+                    <span class="n">print_wrapped</span><span class="p">(</span>
+                        <span class="s2">&quot;No test DataFrame provided. The test DataFrame &quot;</span>
+                        <span class="o">+</span> <span class="s2">&quot;will be treated as a train DataFrame copy.&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">temp_train_df</span> <span class="o">=</span> <span class="n">df</span>
+                <span class="n">temp_test_df</span> <span class="o">=</span> <span class="n">df</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span>
+                <span class="n">df_train</span><span class="o">=</span><span class="n">temp_train_df</span><span class="p">,</span>
+                <span class="n">df_test</span><span class="o">=</span><span class="n">temp_test_df</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
+            <span class="n">shapes_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">_shapes_str_formatted</span><span class="p">()</span>
+            <span class="n">print_wrapped</span><span class="p">(</span>
+                <span class="s2">&quot;Analyzer initialized. &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;Shapes of train, test DataFrames: &quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">shapes_dict</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">, &#39;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">shapes_dict</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;UPDATE&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+    <span class="c1"># EDA + FEATURE SELECTION + REGRESSION ANALYSIS</span>
+    <span class="c1"># --------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComprehensiveEDA</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs a ComprehensiveEDA object for the working train</span>
+<span class="sd">        DataFrame, the working test DataFrame, or both DataFrames combined.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset: Literal[&#39;train&#39;, &#39;test&#39;, &#39;all&#39;].</span>
+<span class="sd">            Default: &#39;train&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComprehensiveEDA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ComprehensiveEDA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_train</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ComprehensiveEDA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_test</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ComprehensiveEDA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_all</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid input: dataset = </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="k">def</span> <span class="nf">lm</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinearRegressionReport</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a simple OLS regression analysis exercise.</span>
+<span class="sd">        If formula is provided, performs regression with OLS via formula.</span>
+<span class="sd">        Examples with missing data will be dropped.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target : str.</span>
+<span class="sd">            Default: None. The variable to be predicted.</span>
+<span class="sd">        predictors : list[str].</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If None, all variables except target will be used as predictors.</span>
+<span class="sd">        formula : str.</span>
+<span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
+<span class="sd">            (overrides target and predictors).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        LinearRegressionReport</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target must be specified if formula is None.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">predictors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">predictors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">vars</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">predictors</span><span class="p">:</span>
+                    <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">LinearRegressionReport</span><span class="p">(</span>
+                <span class="n">OLSLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">y_series_train</span><span class="p">,</span> <span class="n">y_scaler</span><span class="p">,</span> <span class="n">X_df_train</span> <span class="o">=</span> <span class="n">parse_and_transform_rlike</span><span class="p">(</span>
+                    <span class="n">formula</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_train</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="n">y_series_test</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">X_df_test</span> <span class="o">=</span> <span class="n">parse_and_transform_rlike</span><span class="p">(</span>
+                    <span class="n">formula</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_test</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid formula: </span><span class="si">{</span><span class="n">formula</span><span class="si">}</span><span class="s2">. &quot;</span> <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># ensure missing values are dropped</span>
+            <span class="n">y_X_df_combined_train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y_series_train</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">X_df_train</span><span class="p">)</span>
+            <span class="n">y_X_df_combined_test</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y_series_test</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">X_df_test</span><span class="p">)</span>
+            <span class="n">y_X_df_combined_train</span> <span class="o">=</span> <span class="n">y_X_df_combined_train</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="n">y_X_df_combined_test</span> <span class="o">=</span> <span class="n">y_X_df_combined_test</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span>
+                <span class="n">y_X_df_combined_test</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">_force_train_test_var_agreement</span><span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span> <span class="n">y_X_df_combined_test</span>
+            <span class="p">)</span>
+
+            <span class="n">predictors</span> <span class="o">=</span> <span class="n">y_X_df_combined_train</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">y_series_train</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+            <span class="n">datahandler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span> <span class="n">y_X_df_combined_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="n">datahandler</span><span class="o">.</span><span class="n">add_scaler</span><span class="p">(</span><span class="n">y_scaler</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">LinearRegressionReport</span><span class="p">(</span>
+                <span class="n">OLSLinearModel</span><span class="p">(),</span> <span class="n">datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="k">def</span> <span class="nf">glm</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">family</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;binomial&quot;</span><span class="p">,</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">],</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="n">PoissonRegressionReport</span>
+        <span class="o">|</span> <span class="n">BinomialRegressionReport</span>
+        <span class="o">|</span> <span class="n">NegativeBinomialRegressionReport</span>
+        <span class="o">|</span> <span class="n">CountRegressionReport</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a generalized linear regression exercise.</span>
+<span class="sd">        If formula is provided, performs linear regression with link</span>
+<span class="sd">        function depending on specified family via formula.</span>
+<span class="sd">        Examples with missing data will be dropped.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        family : Literal[&quot;poisson&quot;, &quot;binomial&quot;].</span>
+<span class="sd">            The family of the GLM.</span>
+<span class="sd">        target : str.</span>
+<span class="sd">            Default: None. The variable to be predicted.</span>
+<span class="sd">        predictors : list[str].</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If None, all variables except target will be used as predictors.</span>
+<span class="sd">        formula : str.</span>
+<span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
+<span class="sd">            (overrides target and predictors).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        PoissonRegressionReport or BinomialRegressionReport</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target must be specified if formula is None.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">predictors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">predictors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">vars</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">predictors</span><span class="p">:</span>
+                    <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;poisson&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">PoissonRegressionReport</span><span class="p">(</span>
+                    <span class="n">PoissonLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;binomial&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">BinomialRegressionReport</span><span class="p">(</span>
+                    <span class="n">BinomialLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NegativeBinomialRegressionReport</span><span class="p">(</span>
+                    <span class="n">NegativeBinomialLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">CountRegressionReport</span><span class="p">(</span>
+                    <span class="n">CountLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid input for family&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">y_series_train</span><span class="p">,</span> <span class="n">y_scaler</span><span class="p">,</span> <span class="n">X_df_train</span> <span class="o">=</span> <span class="n">parse_and_transform_rlike</span><span class="p">(</span>
+                    <span class="n">formula</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_train</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="n">y_series_test</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">X_df_test</span> <span class="o">=</span> <span class="n">parse_and_transform_rlike</span><span class="p">(</span>
+                    <span class="n">formula</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_test</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid formula: </span><span class="si">{</span><span class="n">formula</span><span class="si">}</span><span class="s2">. &quot;</span> <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># ensure missing values are dropped</span>
+            <span class="n">y_X_df_combined_train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y_series_train</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">X_df_train</span><span class="p">)</span>
+            <span class="n">y_X_df_combined_test</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y_series_test</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">X_df_test</span><span class="p">)</span>
+            <span class="n">y_X_df_combined_train</span> <span class="o">=</span> <span class="n">y_X_df_combined_train</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="n">y_X_df_combined_test</span> <span class="o">=</span> <span class="n">y_X_df_combined_test</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span>
+                <span class="n">y_X_df_combined_test</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">_force_train_test_var_agreement</span><span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span> <span class="n">y_X_df_combined_test</span>
+            <span class="p">)</span>
+
+            <span class="n">predictors</span> <span class="o">=</span> <span class="n">y_X_df_combined_train</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">y_series_train</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+            <span class="n">datahandler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span>
+                <span class="n">y_X_df_combined_train</span><span class="p">,</span> <span class="n">y_X_df_combined_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="n">datahandler</span><span class="o">.</span><span class="n">add_scaler</span><span class="p">(</span><span class="n">y_scaler</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;poisson&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">PoissonRegressionReport</span><span class="p">(</span>
+                    <span class="n">PoissonLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;binomial&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">BinomialRegressionReport</span><span class="p">(</span>
+                    <span class="n">BinomialLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NegativeBinomialRegressionReport</span><span class="p">(</span>
+                    <span class="n">NegativeBinomialLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">CountRegressionReport</span><span class="p">(</span>
+                    <span class="n">CountLinearModel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid input for family&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+    <span class="c1"># MACHINE LEARNING</span>
+    <span class="c1"># --------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="k">def</span> <span class="nf">regress</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseR</span><span class="p">],</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">feature_selectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseFSR</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_n_features</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">outer_cv</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">outer_cv_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLRegressionReport</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive regression benchmarking exercise.</span>
+<span class="sd">        Examples with missing data will be dropped.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        models : list[BaseRegression].</span>
+<span class="sd">            Testing performance of all models will be evaluated.</span>
+<span class="sd">        target : str.</span>
+<span class="sd">        predictors : list[str].</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If None, uses all variables except target as predictors.</span>
+<span class="sd">        feature_selectors : list[BaseFSR].</span>
+<span class="sd">            The feature selectors for voting selection. Feature selectors</span>
+<span class="sd">            can be used to select the most important predictors.</span>
+<span class="sd">            Feature selectors can also be specified at the model level. If</span>
+<span class="sd">            specified here, the same feature selectors will be used for all</span>
+<span class="sd">            models.</span>
+<span class="sd">        max_n_features : int.</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            Maximum number of predictors to utilize. </span>
+<span class="sd">            Ignored if feature_selectors is None.</span>
+<span class="sd">            If None, then all features with at least 50% support are selected.</span>
+<span class="sd">        outer_cv : int.</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If not None, reports training scores via nested k-fold CV.</span>
+<span class="sd">        outer_cv_seed : int.</span>
+<span class="sd">            Default: 42.</span>
+<span class="sd">            The random seed for the outer cross validation loop.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MLRegressionReport</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">predictors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">predictors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">vars</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">predictors</span><span class="p">:</span>
+                <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">MLRegressionReport</span><span class="p">(</span>
+            <span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span>
+            <span class="n">datahandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">predictors</span><span class="o">=</span><span class="n">predictors</span><span class="p">,</span>
+            <span class="n">feature_selectors</span><span class="o">=</span><span class="n">feature_selectors</span><span class="p">,</span>
+            <span class="n">max_n_features</span><span class="o">=</span><span class="n">max_n_features</span><span class="p">,</span>
+            <span class="n">outer_cv</span><span class="o">=</span><span class="n">outer_cv</span><span class="p">,</span>
+            <span class="n">outer_cv_seed</span><span class="o">=</span><span class="n">outer_cv_seed</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseC</span><span class="p">],</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">feature_selectors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseFSC</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_n_features</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">outer_cv</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">outer_cv_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLClassificationReport</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive classification benchmarking exercise.</span>
+<span class="sd">        Examples with missing data will be dropped.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        models : list[BaseClassification].</span>
+<span class="sd">            Testing performance of all models will be evaluated.</span>
+<span class="sd">        target : str.</span>
+<span class="sd">        predictors : list[str].</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If None, uses all variables except target as predictors.</span>
+<span class="sd">        feature_selectors : list[BaseFSR].</span>
+<span class="sd">            The feature selectors for voting selection. Feature selectors</span>
+<span class="sd">            can be used to select the most important predictors.</span>
+<span class="sd">            Feature selectors can also be specified at the model level. If</span>
+<span class="sd">            specified here, the same feature selectors will be used for all</span>
+<span class="sd">            models.</span>
+<span class="sd">        max_n_features : int.</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            Maximum number of predictors to utilize. </span>
+<span class="sd">            Ignored if feature_selectors is None.</span>
+<span class="sd">            If None, then all features with at least 50% support are selected.</span>
+<span class="sd">        outer_cv : int.</span>
+<span class="sd">            Default: None.</span>
+<span class="sd">            If not None, reports training scores via nested k-fold CV.</span>
+<span class="sd">        outer_cv_seed : int.</span>
+<span class="sd">            Default: 42.</span>
+<span class="sd">            The random seed for the outer cross validation loop.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MLClassificationReport</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">predictors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">predictors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">vars</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">predictors</span><span class="p">:</span>
+                <span class="n">predictors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">MLClassificationReport</span><span class="p">(</span>
+            <span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span>
+            <span class="n">datahandler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">predictors</span><span class="o">=</span><span class="n">predictors</span><span class="p">,</span>
+            <span class="n">feature_selectors</span><span class="o">=</span><span class="n">feature_selectors</span><span class="p">,</span>
+            <span class="n">max_n_features</span><span class="o">=</span><span class="n">max_n_features</span><span class="p">,</span>
+            <span class="n">outer_cv</span><span class="o">=</span><span class="n">outer_cv</span><span class="p">,</span>
+            <span class="n">outer_cv_seed</span><span class="o">=</span><span class="n">outer_cv_seed</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+    <span class="c1"># GETTERS</span>
+    <span class="c1"># --------------------------------------------------------------------------</span>
+    <span class="k">def</span> <span class="nf">datahandler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataHandler</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the DataHandler.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of examples in working train DataFrame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns metadata in string form.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Andrew Yang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

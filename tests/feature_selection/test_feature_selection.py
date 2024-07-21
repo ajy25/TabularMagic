@@ -34,19 +34,11 @@ def setup_data():
 def test_fs_simple(setup_data):
     """Tests feature selection mechanism for prediction with ml models"""
     analyzer = tm.Analyzer(
-        setup_data["df_simple_train"],
-        setup_data["df_simple_test"],
-        verbose=False
+        setup_data["df_simple_train"], setup_data["df_simple_test"], verbose=False
     )
 
     report = analyzer.classify(
-        models=[
-            tm.ml.LinearC(
-                type='l2',
-                n_trials=5,
-                name='simple_tester'
-            )
-        ],
+        models=[tm.ml.LinearC(type="l2", n_trials=5, name="simple_tester")],
         target="binary_var",
         predictors=[
             "categorical_var_1",
@@ -54,21 +46,17 @@ def test_fs_simple(setup_data):
             "numerical_var_1",
             "numerical_var_2",
         ],
-        feature_selectors=[
-            tm.fs.KBestSelectorC('chi2', 2)
-        ]
+        feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
     )
-    assert report.model('simple_tester').sklearn_estimator().n_features_in_ == 2
+    assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
 
     report = analyzer.classify(
         models=[
             tm.ml.LinearC(
-                type='l2',
+                type="l2",
                 n_trials=5,
-                name='simple_tester',
-                feature_selectors=[
-                    tm.fs.KBestSelectorC('chi2', 2)
-                ]
+                name="simple_tester",
+                feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
             )
         ],
         target="binary_var",
@@ -79,23 +67,21 @@ def test_fs_simple(setup_data):
             "numerical_var_2",
         ],
     )
-    assert report.model('simple_tester').sklearn_estimator().n_features_in_ == 2
+    assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
 
     report = analyzer.classify(
         models=[
             tm.ml.LinearC(
-                type='l2',
+                type="l2",
                 n_trials=5,
-                name='simple_tester',
-                feature_selectors=[
-                    tm.fs.KBestSelectorC('chi2', 2)
-                ]
+                name="simple_tester",
+                feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
             ),
             tm.ml.LinearC(
-                type='l2',
+                type="l2",
                 n_trials=5,
-                name='simple_tester_2',
-            )
+                name="simple_tester_2",
+            ),
         ],
         target="binary_var",
         predictors=[
@@ -104,26 +90,22 @@ def test_fs_simple(setup_data):
             "numerical_var_1",
             "numerical_var_2",
         ],
-        feature_selectors=[
-            tm.fs.KBestSelectorC('chi2', 4)
-        ]
+        feature_selectors=[tm.fs.KBestSelectorC("chi2", 4)],
     )
-    assert report.model('simple_tester').sklearn_estimator().n_features_in_ == 2
-    assert report.model('simple_tester_2').sklearn_estimator().n_features_in_ == 4
+    assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
+    assert report.model("simple_tester_2").sklearn_estimator().n_features_in_ == 4
 
     report = analyzer.regress(
         models=[
             tm.ml.LinearR(
-                type='ols',
-                name='simple_tester',
-                feature_selectors=[
-                    tm.fs.KBestSelectorR('r_regression', 2)
-                ]
+                type="ols",
+                name="simple_tester",
+                feature_selectors=[tm.fs.KBestSelectorR("r_regression", 2)],
             ),
             tm.ml.LinearR(
-                type='ols',
-                name='simple_tester_2',
-            )
+                type="ols",
+                name="simple_tester_2",
+            ),
         ],
         target="numerical_var_2",
         predictors=[
@@ -132,19 +114,11 @@ def test_fs_simple(setup_data):
             "binary_var",
             "numerical_var_1",
         ],
-        feature_selectors=[
-            tm.fs.KBestSelectorR('f_regression', 3)
-        ]
+        feature_selectors=[tm.fs.KBestSelectorR("f_regression", 3)],
     )
-    assert report.model('simple_tester').sklearn_estimator().n_features_in_ == 2
-    assert report.model('simple_tester_2').sklearn_estimator().n_features_in_ == 3
-    assert len(report.model('simple_tester').predictors()) == 2
-    assert len(report.model('simple_tester_2').predictors()) == 3
-    assert report.model('simple_tester')._estimator.n_features_in_ == 2
-    assert report.model('simple_tester_2')._estimator.n_features_in_ == 3
-
-
-
-
-
-
+    assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
+    assert report.model("simple_tester_2").sklearn_estimator().n_features_in_ == 3
+    assert len(report.model("simple_tester").predictors()) == 2
+    assert len(report.model("simple_tester_2").predictors()) == 3
+    assert report.model("simple_tester")._estimator.n_features_in_ == 2
+    assert report.model("simple_tester_2")._estimator.n_features_in_ == 3

@@ -30,11 +30,9 @@ if __name__ == "__main__":
 
     if other_arguments[0] == "install":
         try:
-            subprocess.check_call(
-                ["python", str(directory_path / "setup.py"), "sdist"]
-            )
+            subprocess.check_call(["python", str(directory_path / "setup.py"), "sdist"])
 
-            try: 
+            try:
                 subprocess.check_call(["pip", "install", str(directory_path)])
                 print("Successfully installed tabularmagic")
             except Exception as e:
@@ -42,9 +40,15 @@ if __name__ == "__main__":
                 print("Retrying...")
                 subprocess.check_call(
                     [
-                        "pip", "install", "--trusted-host", "pypi.org", 
-                        "--trusted-host", "pypi.python.org", "--trusted-host", 
-                        "files.pythonhosted.org", str(directory_path)
+                        "pip",
+                        "install",
+                        "--trusted-host",
+                        "pypi.org",
+                        "--trusted-host",
+                        "pypi.python.org",
+                        "--trusted-host",
+                        "files.pythonhosted.org",
+                        str(directory_path),
                     ]
                 )
                 print("Successfully installed tabularmagic")

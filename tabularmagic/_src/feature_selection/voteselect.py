@@ -25,7 +25,7 @@ class VotingSelectionReport:
         dataemitter : DataEmitter.
             The DataEmitter object that contains the data.
         max_n_features : int.
-            Default: None. 
+            Default: None.
             Number of desired features. 0 < max_n_features < n_predictors.
             If None, then all features with at least 50% support are selected.
         verbose : bool.

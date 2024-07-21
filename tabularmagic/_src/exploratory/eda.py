@@ -599,7 +599,7 @@ class ComprehensiveEDA:
             Must be the same length as the dataset. Index must be compatible
             with self.df. Overidden by stratify_by if both provided.
         scale_strategy : Literal["standardize", "center", "none"].
-            Default: center. 
+            Default: center.
         whiten : bool.
             Default: false. If True, performs whitening on the data during PCA.
         three_components : bool.

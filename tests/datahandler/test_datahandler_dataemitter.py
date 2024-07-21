@@ -37,8 +37,9 @@ def setup_data():
         df_iris, test_size=0.2, random_state=42
     )
 
-    df_house = pd.read_csv(parent_dir / "demo" / "regression" / "house_price_data" / \
-                           "data.csv")
+    df_house = pd.read_csv(
+        parent_dir / "demo" / "regression" / "house_price_data" / "data.csv"
+    )
     df_house_train, df_house_test = train_test_split(
         df_house, test_size=0.2, random_state=42
     )
@@ -487,15 +488,12 @@ def test_emitter_feature_selection(setup_data):
         emitter.emit_test_Xy()[1].to_numpy(), df_iris_test["target"].to_numpy()
     )
 
-
     df_house_train = setup_data["df_house_train"]
     df_house_test = setup_data["df_house_test"]
 
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
     all_vars = ["SalePrice", "LotFrontage", "LotArea", "OverallQual", "LotShape"]
-    emitter = dh.train_test_emitter(
-        "SalePrice", all_vars[1:]
-    )
+    emitter = dh.train_test_emitter("SalePrice", all_vars[1:])
     emitter.select_predictors(["OverallQual", "LotArea"])
     assert np.allclose(
         emitter.emit_train_Xy()[0].to_numpy(),
@@ -506,12 +504,12 @@ def test_emitter_feature_selection(setup_data):
         df_house_test[all_vars].dropna()[["OverallQual", "LotArea"]].to_numpy(),
     )
     assert np.allclose(
-        emitter.emit_train_Xy()[1].to_numpy(), 
-        df_house_train[all_vars].dropna()["SalePrice"].to_numpy()
+        emitter.emit_train_Xy()[1].to_numpy(),
+        df_house_train[all_vars].dropna()["SalePrice"].to_numpy(),
     )
     assert np.allclose(
-        emitter.emit_test_Xy()[1].to_numpy(), 
-        df_house_test[all_vars].dropna()["SalePrice"].to_numpy()
+        emitter.emit_test_Xy()[1].to_numpy(),
+        df_house_test[all_vars].dropna()["SalePrice"].to_numpy(),
     )
 
 
@@ -520,4 +518,3 @@ def test_emitter_feature_selection_transform(setup_data):
     df_house_test = setup_data["df_house_test"]
 
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
-

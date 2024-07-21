@@ -60,7 +60,6 @@ class BinomialLinearModel:
                 best_score = curr_score
                 best_threshold = temp_threshold
 
-
         y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
 
         self.train_scorer = ClassificationBinaryScorer(

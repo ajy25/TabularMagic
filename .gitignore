@@ -1,2 +1,3 @@
 local_tests
 .ruff_cache
+.pytest_cache

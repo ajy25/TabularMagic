@@ -78,7 +78,6 @@ class CountLinearModel:
             y_pred_train = y_scaler.inverse_transform(y_pred_train)
             y_train = y_scaler.inverse_transform(y_train)
 
-
         # Emit the test data
         X_test, y_test = self._dataemitter.emit_test_Xy()
         X_test = sm.add_constant(X_test)
@@ -96,7 +95,6 @@ class CountLinearModel:
         if y_scaler is not None:
             y_pred_test = y_scaler.inverse_transform(y_pred_test)
             y_test = y_scaler.inverse_transform(y_test)
-
 
         self.test_scorer = RegressionScorer(
             y_pred=y_pred_test,

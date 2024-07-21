@@ -963,12 +963,12 @@ class DataHandler:
         out = self._working_df_train.columns.to_list()
         return out
 
-    def numerical_vars(self) -> list[str]:
+    def numvars(self) -> list[str]:
         """Returns copy of list of numerical variables."""
         out = self._numerical_vars.copy()
         return out
 
-    def categorical_vars(self) -> list[str]:
+    def catvars(self) -> list[str]:
         """Returns copy of list of categorical variables."""
         out = self._categorical_vars.copy()
         return out
@@ -1186,7 +1186,7 @@ class DataHandler:
         - self : DataHandler
         """
         if vars is None:
-            vars = self.categorical_vars()
+            vars = self.catvars()
         self._working_df_train = self._onehot_helper(
             self._working_df_train, vars=vars, dropfirst=dropfirst, fit=True
         )
@@ -1283,8 +1283,8 @@ class DataHandler:
         -------
         - self : DataHandler
         """
-        numerical_vars = self.numerical_vars()
-        categorical_vars = self.categorical_vars()
+        numerical_vars = self.numvars()
+        categorical_vars = self.catvars()
         if include_vars is not None:
             include_vars_set = set(include_vars)
             numerical_vars = list(include_vars_set & set(numerical_vars))
@@ -1365,7 +1365,7 @@ class DataHandler:
         - self : DataHandler
         """
         if include_vars is None:
-            include_vars = self.numerical_vars()
+            include_vars = self.numvars()
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
 
@@ -1708,14 +1708,13 @@ class DataHandler:
                 + "are not in both train and test DataFrames."
             )
         datetime_columns = df1.select_dtypes(
-            include=['datetime', np.datetime64]
+            include=["datetime", np.datetime64]
         ).columns.tolist()
         if len(datetime_columns) > 0:
             raise ValueError(
                 f"Variables {list_to_string(datetime_columns)} "
                 "are of type datetime. TabularMagic cannot handle datetime values."
             )
-
 
     def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
         """Returns the categorical and numerical column values.
@@ -1937,7 +1936,7 @@ class DataHandler:
             color_text(bold_text("Categorical variables:"), "none") + "\n"
         )
 
-        categorical_vars = self.categorical_vars()
+        categorical_vars = self.catvars()
         categorical_var_message = ""
         if len(categorical_vars) == 0:
             categorical_var_message += color_text("None", "yellow")
@@ -1952,7 +1951,7 @@ class DataHandler:
 
         numerical_message = color_text(bold_text("Numerical variables:"), "none") + "\n"
 
-        numerical_vars = self.numerical_vars()
+        numerical_vars = self.numvars()
         numerical_var_message = ""
         if len(numerical_vars) == 0:
             numerical_var_message += color_text("None", "yellow")

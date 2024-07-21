@@ -390,6 +390,13 @@ class MLClassificationReport:
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
+            for feature_selector in feature_selectors:
+                if not isinstance(feature_selector, BaseFSC):
+                    raise ValueError(
+                        f"Feature selector {feature_selector} is not an instance of "
+                        "BaseFSC. All feature selectors must be instances of BaseFSC."
+                    )
+
             self._feature_selection_report = VotingSelectionReport(
                 selectors=feature_selectors,
                 dataemitter=self._emitter,

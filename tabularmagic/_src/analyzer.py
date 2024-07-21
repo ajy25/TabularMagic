@@ -356,7 +356,7 @@ class Analyzer:
             models.
         max_n_features : int.
             Default: None.
-            Maximum number of predictors to utilize. 
+            Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
         outer_cv : int.
@@ -416,7 +416,7 @@ class Analyzer:
             models.
         max_n_features : int.
             Default: None.
-            Maximum number of predictors to utilize. 
+            Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
         outer_cv : int.

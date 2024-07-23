@@ -7,7 +7,7 @@ TabularMagic is a Python package for rapid exploratory statistical analysis and 
    :maxdepth: 2
    :caption: Contents:
 
-   tabularmagic
-
+   analyzer
+   datahandler
 
 

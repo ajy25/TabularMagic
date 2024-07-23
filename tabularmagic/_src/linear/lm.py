@@ -13,22 +13,22 @@ class OLSLinearModel:
 
         Parameters
         ----------
-        name : str.
+        name : str
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
         """
         self.estimator = None
         self._name = name
         if self._name is None:
-            self._name = "OLS"
+            self._name = "Ordinary Least Squares"
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
 
         Parameters
         ----------
-        dataemitter : DataEmitter containing all data. X and y variables
-            must be specified.
+        dataemitter : DataEmitter
+            The DataEmitter containing all the data.
         """
         self._dataemitter = dataemitter
 
@@ -70,12 +70,12 @@ class OLSLinearModel:
 
     def _step(
         self,
-        start_list=None,
-        lower=[],
-        upper=None,
+        vars_at_start: list | None = None,
+        persistent_vars: list | None = None,
+        all_vars: list | None = None,
         direction: Literal["both", "backward", "forward"] = "backward",
         criteria: Literal["aic"] = "aic",
-        max_steps=1000,
+        max_steps: int = 1000,
         verbose=False,
     ) -> list[str]:
         """Finish writing description
@@ -84,7 +84,8 @@ class OLSLinearModel:
 
         Parameters
         ----------
-        criteria : str. Default: 'aic'.
+        criteria : str
+            Default: 'aic'.
 
         Returns
         -------
@@ -92,29 +93,35 @@ class OLSLinearModel:
             The subset of predictors that are most likely to be significant.
         """
         if max_steps < 0:
-            raise Exception("max_steps cannot be negative")
+            raise ValueError("max_steps cannot be negative")
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
 
         # Set upper to all possible variables if nothing is specified
-        if upper is None:
-            upper = X_train.columns.tolist()
+        if all_vars is None:
+            all_vars = X_train.columns.tolist()
+        if persistent_vars is None:
+            persistent_vars = []
 
         # If a starting list is not specified then choose defaults depending on
         # direction
-        if start_list is None:
+        if vars_at_start is None:
             if direction == "backward":
-                start_list = upper.copy()
-            else:
-                start_list = lower.copy()
+                vars_at_start = all_vars
+            elif direction == "forward":
+                vars_at_start = persistent_vars
+
+        lower_set = set(persistent_vars)
+        upper_set = set(all_vars)
+        start_set = set(vars_at_start)
 
         # Check to see that the starting list and bounds agree
-        if set(lower) >= set(start_list):
-            raise Exception("starting list must include variables in lower bound")
-        if set(upper) <= set(start_list):
-            raise Exception("starting list contains variables not in upper bound")
-        if set(lower) >= set(upper):
-            raise Exception("lower bound is larger than upper bound")
+        if lower_set > start_set:
+            raise ValueError("Starting list must include variables in lower bound")
+        if upper_set < start_set:
+            raise ValueError("Starting list contains variables not in upper bound")
+        if lower_set > upper_set:
+            raise ValueError("Lower bound is larger than upper bound")
 
         # Define a function to fit our OLS model given a list of features
         def fit_ols(feature_list):
@@ -127,7 +134,7 @@ class OLSLinearModel:
             return new_model.aic, new_model
 
         # Set our current variables to our starting list
-        included = start_list.copy()
+        included = vars_at_start.copy()
 
         # Set our starting aic and best models
         current_aic, best_model = calculate_aic(included)
@@ -139,7 +146,7 @@ class OLSLinearModel:
 
             # Forward step
             if direction in ["forward", "both"]:
-                excluded = list(set(upper) - set(included))
+                excluded = list(set(all_vars) - set(included))
                 aic_with_candidates = []
                 for new_var in excluded:
                     candidate_features = included + [new_var]
@@ -150,10 +157,10 @@ class OLSLinearModel:
 
             # Backward step
             if direction in ["backward", "both"]:
-                if len(included) > len(lower):
+                if len(included) > len(persistent_vars):
                     aic_with_candidates = []
                     for candidate in included:
-                        if candidate not in lower:
+                        if candidate not in persistent_vars:
                             candidate_features = included.copy()
                             candidate_features.remove(candidate)
                             aic, _ = calculate_aic(candidate_features)
@@ -162,6 +169,8 @@ class OLSLinearModel:
                     # the best aic means the removed variable does not provide
                     # that much information
                     best_rem_aic, worst_rem_candidate = aic_with_candidates[0]
+                else:
+                    break
 
             # compare aic and update model if applicable
             if direction == "forward" and best_add_aic < current_aic:
@@ -177,7 +186,9 @@ class OLSLinearModel:
                 best_model = fit_ols(included)
                 changed = True
                 if verbose:
-                    print(f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}")
+                    print(
+                        f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}"
+                    )
             elif direction == "both":
                 # First see if we want to remove or add a variable this step:
                 if best_add_aic < best_rem_aic:  # adding is better than removing

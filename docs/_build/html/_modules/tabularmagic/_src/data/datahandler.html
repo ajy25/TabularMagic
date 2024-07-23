@@ -41,11 +41,8 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tabularmagic.html">tabularmagic (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic</span></code>)</a></li>
-</ul>
-
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
         </div>
       </div>
     </nav>
@@ -838,7 +835,7 @@
             <span class="k">return</span> <span class="bp">self</span>
 
 
-<div class="viewcode-block" id="DataHandler"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler">[docs]</a><span class="k">class</span> <span class="nc">DataHandler</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler">[docs]</a><span class="k">class</span> <span class="nc">DataHandler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;DataHandler: handles all aspects of data preprocessing and loading.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -905,7 +902,7 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># CHECKPOINT HANDLING</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="DataHandler.load_data_checkpoint"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.load_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">load_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.load_data_checkpoint"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.load_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">load_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The working train and working test DataFrames are reset to the</span>
 <span class="sd">        original input DataFrames given at object initialization.</span>
 
@@ -958,7 +955,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.save_data_checkpoint"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.save_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.save_data_checkpoint"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.save_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the current state of the working train and test DataFrames.</span>
 <span class="sd">        The state may be returned to by calling</span>
 <span class="sd">        load_data_checkpoint(checkpoint).</span>
@@ -986,7 +983,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.remove_data_checkpoint"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.remove_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">remove_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.remove_data_checkpoint"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.remove_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">remove_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes a saved checkpoint to conserve memory.</span>
 
 <span class="sd">        Parameters</span>
@@ -1010,7 +1007,7 @@
     <span class="c1"># GETTERS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="DataHandler.df_all"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.df_all">[docs]</a>    <span class="k">def</span> <span class="nf">df_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.df_all"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.df_all">[docs]</a>    <span class="k">def</span> <span class="nf">df_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the working train and test DataFrames concatenated&quot;&quot;&quot;</span>
         <span class="n">no_test</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_df_train</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_df_test</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
@@ -1023,34 +1020,34 @@
             <span class="n">out</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">df_train</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_test</span><span class="p">()])</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="DataHandler.df_train"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.df_train">[docs]</a>    <span class="k">def</span> <span class="nf">df_train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.df_train"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.df_train">[docs]</a>    <span class="k">def</span> <span class="nf">df_train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the working train DataFrame.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_df_train</span></div>
 
-<div class="viewcode-block" id="DataHandler.df_test"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.df_test">[docs]</a>    <span class="k">def</span> <span class="nf">df_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.df_test"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.df_test">[docs]</a>    <span class="k">def</span> <span class="nf">df_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the working test DataFrame.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_df_test</span></div>
 
-<div class="viewcode-block" id="DataHandler.vars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.vars">[docs]</a>    <span class="k">def</span> <span class="nf">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="DataHandler.vars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.vars">[docs]</a>    <span class="k">def</span> <span class="nf">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all variables in the working DataFrames&quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_df_train</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="DataHandler.numvars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.numvars">[docs]</a>    <span class="k">def</span> <span class="nf">numvars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="DataHandler.numvars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.numvars">[docs]</a>    <span class="k">def</span> <span class="nf">numvars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns copy of list of numerical variables.&quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numerical_vars</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="DataHandler.catvars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.catvars">[docs]</a>    <span class="k">def</span> <span class="nf">catvars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="DataHandler.catvars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.catvars">[docs]</a>    <span class="k">def</span> <span class="nf">catvars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns copy of list of categorical variables.&quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_categorical_vars</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
-<div class="viewcode-block" id="DataHandler.head"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.head">[docs]</a>    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.head"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.head">[docs]</a>    <span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the first n rows of the working train DataFrame.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_df_test</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataHandler.scaler"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.scaler">[docs]</a>    <span class="k">def</span> <span class="nf">scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleVarScaler</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.scaler"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.scaler">[docs]</a>    <span class="k">def</span> <span class="nf">scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleVarScaler</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the scaler for a numerical variable, which could be None.</span>
 
 <span class="sd">        Parameters</span>
@@ -1059,7 +1056,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numerical_var_to_scaler</span><span class="p">[</span><span class="n">var</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DataHandler.train_test_emitter"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.train_test_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">train_test_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">X_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataEmitter</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.train_test_emitter"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.train_test_emitter">[docs]</a>    <span class="k">def</span> <span class="nf">train_test_emitter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">X_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DataEmitter</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a DataEmitter object for the working train DataFrame and</span>
 <span class="sd">        the working test DataFrame.</span>
 
@@ -1081,7 +1078,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess_step_tracer</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DataHandler.kfold_emitters"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.kfold_emitters">[docs]</a>    <span class="k">def</span> <span class="nf">kfold_emitters</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.kfold_emitters"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.kfold_emitters">[docs]</a>    <span class="k">def</span> <span class="nf">kfold_emitters</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">y_var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">X_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -1196,7 +1193,7 @@
     <span class="c1"># PREPROCESSING</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="DataHandler.dropna"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.dropna">[docs]</a>    <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.dropna"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.dropna">[docs]</a>    <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1241,7 +1238,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.onehot"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.onehot">[docs]</a>    <span class="k">def</span> <span class="nf">onehot</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.onehot"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.onehot">[docs]</a>    <span class="k">def</span> <span class="nf">onehot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dropfirst</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One-hot encodes all categorical variables in-place. Encoder is</span>
@@ -1285,7 +1282,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.drop_highly_missing_vars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.drop_highly_missing_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_highly_missing_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.drop_highly_missing_vars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.drop_highly_missing_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_highly_missing_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Drops columns with more than 50% missing values</span>
 <span class="sd">        (computed on train) in-place for both the working train and test</span>
 <span class="sd">        DataFrames.</span>
@@ -1323,7 +1320,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.impute"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.impute">[docs]</a>    <span class="k">def</span> <span class="nf">impute</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.impute"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.impute">[docs]</a>    <span class="k">def</span> <span class="nf">impute</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1415,7 +1412,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.scale"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.scale">[docs]</a>    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.scale"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.scale">[docs]</a>    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1481,7 +1478,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.add_scaler"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.add_scaler">[docs]</a>    <span class="k">def</span> <span class="nf">add_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler</span><span class="p">:</span> <span class="n">BaseSingleVarScaler</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.add_scaler"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.add_scaler">[docs]</a>    <span class="k">def</span> <span class="nf">add_scaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaler</span><span class="p">:</span> <span class="n">BaseSingleVarScaler</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a scaler for the target variable.</span>
 
 <span class="sd">        Parameters</span>
@@ -1501,7 +1498,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.select_vars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.select_vars">[docs]</a>    <span class="k">def</span> <span class="nf">select_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.select_vars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.select_vars">[docs]</a>    <span class="k">def</span> <span class="nf">select_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Selects subset of (column) variables in-place on the working</span>
 <span class="sd">        train and test DataFrames.</span>
 
@@ -1535,7 +1532,7 @@
 
     <span class="c1"># def feature_selection(self, )</span>
 
-<div class="viewcode-block" id="DataHandler.drop_vars"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.drop_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.drop_vars"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.drop_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Drops subset of variables (columns) in-place on the working</span>
 <span class="sd">        train and test DataFrames.</span>
 
@@ -1567,7 +1564,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.force_numerical"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.force_numerical">[docs]</a>    <span class="k">def</span> <span class="nf">force_numerical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.force_numerical"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.force_numerical">[docs]</a>    <span class="k">def</span> <span class="nf">force_numerical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces variables to numerical (floats).</span>
 
 <span class="sd">        Parameters</span>
@@ -1606,7 +1603,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.force_binary"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.force_binary">[docs]</a>    <span class="k">def</span> <span class="nf">force_binary</span><span class="p">(</span>
+<div class="viewcode-block" id="DataHandler.force_binary"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.force_binary">[docs]</a>    <span class="k">def</span> <span class="nf">force_binary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pos_labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1717,7 +1714,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="DataHandler.force_categorical"><a class="viewcode-back" href="../../../../tabularmagic.html#tabularmagic.DataHandler.force_categorical">[docs]</a>    <span class="k">def</span> <span class="nf">force_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="DataHandler.force_categorical"><a class="viewcode-back" href="../../../../datahandler.html#tabularmagic.DataHandler.force_categorical">[docs]</a>    <span class="k">def</span> <span class="nf">force_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataHandler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces variables to become categorical.</span>
 <span class="sd">        Example use case: create numerically-coded categorical variables.</span>
 
@@ -1781,14 +1778,13 @@
                 <span class="o">+</span> <span class="s2">&quot;are not in both train and test DataFrames.&quot;</span>
             <span class="p">)</span>
         <span class="n">datetime_columns</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span>
-            <span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">]</span>
+            <span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">]</span>
         <span class="p">)</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Variables </span><span class="si">{</span><span class="n">list_to_string</span><span class="p">(</span><span class="n">datetime_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="s2">&quot;are of type datetime. TabularMagic cannot handle datetime values.&quot;</span>
             <span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">_compute_categorical_numerical_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the categorical and numerical column values.</span>

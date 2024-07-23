@@ -29,8 +29,15 @@ from .data.datahandler import DataHandler
 
 
 class Analyzer:
-    """Analyzer: A class designed for conducting exploratory data analysis (EDA),
+    """Analyzer is a class designed for conducting exploratory data analysis (EDA),
     regression analysis, and machine learning modeling on wide format tabular data.
+
+    An Analyzer can be initialized with a single DataFrame which is then 
+    split into train and test DataFrames, or, alternatively, with pre-split 
+    train and test DataFrames. The Analyzer object can then be used to conduct
+    a variety of analyses, including exploratory data analysis (the eda method), 
+    regression analysis (lm and glm methods), 
+    and machine learning modeling (classify and regress methods).
     """
 
     def __init__(
@@ -42,29 +49,29 @@ class Analyzer:
         verbose: bool = True,
         name: str = "Analyzer",
     ):
-        """Initializes a Analyzer object.
+        """Initializes a Analyzer object. 
 
         Parameters
         ----------
-        df : pd.DataFrame ~ (sample_size, n_variables).
+        df : pd.DataFrame ~ (sample_size, n_variables)
             The DataFrame to be analyzed.
-        df_test : pd.DataFrame ~ (test_sample_size, n_variables).
+        df_test : pd.DataFrame ~ (test_sample_size, n_variables)
             Default: None.
             If not None, then treats df as the train DataFrame.
-        test_size : float.
+        test_size : float
             Default: 0. Proportion of the DataFrame to withhold for
             testing. If test_size = 0, then the train DataFrame and the
             test DataFrame will both be the same as the input df.
             If df_test is provided, then test_size is ignored.
-        split_seed : int.
+        split_seed : int
             Default: 42.
             Used only for the train test split.
             If df_test is provided, then split_seed is ignored.
-        verbose : bool.
+        verbose : bool
             Default: False. If True, prints helpful update messages for certain
                 Analyzer function calls.
-        name : str.
-            Default: 'Analyzer'. Identifier for object.
+        name : str
+            Default: 'Analyzer'. Identifier for the Analyzer. 
         """
 
         self._verbose = verbose
@@ -115,19 +122,23 @@ class Analyzer:
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
     def eda(
-        self, dataset: Literal["train", "test", "all"] = "train"
+        self, 
+        dataset: Literal["train", "test", "all"] = "train"
     ) -> ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
 
         Parameters
         ----------
-        dataset: Literal['train', 'test', 'all'].
-            Default: 'train'.
+        dataset: Literal['train', 'test', 'all']
+            Default: 'train'. The dataset to be analyzed.
 
         Returns
         -------
         ComprehensiveEDA
+            The ComprehensiveEDA object contains a variety of exploratory data 
+            analysis methods, including summary statistics for numerical and 
+            categorical variables, t-tests, and data visualizations.
         """
         if dataset == "train":
             return ComprehensiveEDA(self._datahandler.df_train())
@@ -150,12 +161,12 @@ class Analyzer:
 
         Parameters
         ----------
-        target : str.
+        target : str
             Default: None. The variable to be predicted.
-        predictors : list[str].
+        predictors : list[str]
             Default: None.
             If None, all variables except target will be used as predictors.
-        formula : str.
+        formula : str
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 
@@ -230,20 +241,23 @@ class Analyzer:
 
         Parameters
         ----------
-        family : Literal["poisson", "binomial"].
+        family : Literal["poisson", "binomial"]
             The family of the GLM.
-        target : str.
+        target : str
             Default: None. The variable to be predicted.
-        predictors : list[str].
-            Default: None.
-            If None, all variables except target will be used as predictors.
-        formula : str.
+        predictors : list[str]
+            Default: None. If None, all variables except target will be used as 
+            predictors.
+        formula : str
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 
         Returns
         -------
-        PoissonRegressionReport or BinomialRegressionReport
+        PoissonRegressionReport | BinomialRegressionReport | 
+        NegativeBinomialRegressionReport | CountRegressionReport
+            The appropriate regression report object is returned 
+            depending on the specified family.
         """
         if formula is None and target is None:
             raise ValueError("target must be specified if formula is None.")
@@ -337,34 +351,32 @@ class Analyzer:
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLRegressionReport:
-        """Conducts a comprehensive regression benchmarking exercise.
-        Examples with missing data will be dropped.
+        """Conducts a comprehensive regression ML model benchmarking exercise.
+        Observations with missing data will be dropped.
 
         Parameters
         ----------
-        models : list[BaseRegression].
-            Testing performance of all models will be evaluated.
-        target : str.
-        predictors : list[str].
+        models : list[BaseRegression]
+            Models to be evaluated.
+        target : str
+            The variable to be predicted.
+        predictors : list[str]
             Default: None.
             If None, uses all variables except target as predictors.
-        feature_selectors : list[BaseFSR].
+        feature_selectors : list[BaseFSR]
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If
             specified here, the same feature selectors will be used for all
             models.
-        max_n_features : int.
-            Default: None.
-            Maximum number of predictors to utilize.
+        max_n_features : int
+            Default: None. Maximum number of predictors to utilize. 
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
-        outer_cv : int.
-            Default: None.
-            If not None, reports training scores via nested k-fold CV.
-        outer_cv_seed : int.
-            Default: 42.
-            The random seed for the outer cross validation loop.
+        outer_cv : int
+            Default: None. If not None, reports training scores via nested k-fold CV.
+        outer_cv_seed : int
+            Default: 42. The random seed for the outer cross validation loop.
 
         Returns
         -------
@@ -397,32 +409,33 @@ class Analyzer:
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
     ) -> MLClassificationReport:
-        """Conducts a comprehensive classification benchmarking exercise.
-        Examples with missing data will be dropped.
+        """Conducts a comprehensive classification ML model benchmarking exercise.
+        Observations with missing data will be dropped.
 
         Parameters
         ----------
-        models : list[BaseClassification].
-            Testing performance of all models will be evaluated.
-        target : str.
-        predictors : list[str].
+        models : list[BaseClassification]
+            Models to be evaluated.
+        target : str
+            The variable to be predicted.
+        predictors : list[str]
             Default: None.
             If None, uses all variables except target as predictors.
-        feature_selectors : list[BaseFSR].
+        feature_selectors : list[BaseFSR]
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If
             specified here, the same feature selectors will be used for all
             models.
-        max_n_features : int.
+        max_n_features : int
             Default: None.
             Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
-        outer_cv : int.
+        outer_cv : int
             Default: None.
             If not None, reports training scores via nested k-fold CV.
-        outer_cv_seed : int.
+        outer_cv_seed : int
             Default: 42.
             The random seed for the outer cross validation loop.
 
@@ -451,14 +464,20 @@ class Analyzer:
     # GETTERS
     # --------------------------------------------------------------------------
     def datahandler(self) -> DataHandler:
-        """Returns the DataHandler."""
+        """Returns the DataHandler.
+        
+        Returns
+        -------
+        DataHandler
+            The DataHandler object takes care of data management and preprocessing.
+        """
         return self._datahandler
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of examples in working train DataFrame."""
         return len(self._datahandler)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns metadata in string form."""
         return self._datahandler.__str__()
 

@@ -43,7 +43,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../tabularmagic.html">tabularmagic (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../analyzer.html">tm.Analyzer (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic.Analyzer</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datahandler.html">tm.DataHandler (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic.Analyzer</span></code>)</a></li>
 </ul>
 
         </div>
@@ -101,9 +102,11 @@
 <span class="kn">from</span> <span class="nn">.data.datahandler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
 
 
-<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyzer: A class designed for conducting exploratory data analysis (EDA),</span>
+<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyzer: a class designed for conducting exploratory data analysis (EDA),</span>
 <span class="sd">    regression analysis, and machine learning modeling on wide format tabular data.</span>
+
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -115,29 +118,29 @@
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a Analyzer object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes a Analyzer object. </span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        df : pd.DataFrame ~ (sample_size, n_variables).</span>
+<span class="sd">        df : pd.DataFrame ~ (sample_size, n_variables)</span>
 <span class="sd">            The DataFrame to be analyzed.</span>
-<span class="sd">        df_test : pd.DataFrame ~ (test_sample_size, n_variables).</span>
+<span class="sd">        df_test : pd.DataFrame ~ (test_sample_size, n_variables)</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If not None, then treats df as the train DataFrame.</span>
-<span class="sd">        test_size : float.</span>
+<span class="sd">        test_size : float</span>
 <span class="sd">            Default: 0. Proportion of the DataFrame to withhold for</span>
 <span class="sd">            testing. If test_size = 0, then the train DataFrame and the</span>
 <span class="sd">            test DataFrame will both be the same as the input df.</span>
 <span class="sd">            If df_test is provided, then test_size is ignored.</span>
-<span class="sd">        split_seed : int.</span>
+<span class="sd">        split_seed : int</span>
 <span class="sd">            Default: 42.</span>
 <span class="sd">            Used only for the train test split.</span>
 <span class="sd">            If df_test is provided, then split_seed is ignored.</span>
-<span class="sd">        verbose : bool.</span>
+<span class="sd">        verbose : bool</span>
 <span class="sd">            Default: False. If True, prints helpful update messages for certain</span>
 <span class="sd">                Analyzer function calls.</span>
-<span class="sd">        name : str.</span>
-<span class="sd">            Default: &#39;Analyzer&#39;. Identifier for object.</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Default: &#39;Analyzer&#39;. Identifier for the Analyzer. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">verbose</span>
@@ -187,20 +190,24 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># EDA + FEATURE SELECTION + REGRESSION ANALYSIS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
+<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComprehensiveEDA</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs a ComprehensiveEDA object for the working train</span>
 <span class="sd">        DataFrame, the working test DataFrame, or both DataFrames combined.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        dataset: Literal[&#39;train&#39;, &#39;test&#39;, &#39;all&#39;].</span>
-<span class="sd">            Default: &#39;train&#39;.</span>
+<span class="sd">        dataset: Literal[&#39;train&#39;, &#39;test&#39;, &#39;all&#39;]</span>
+<span class="sd">            Default: &#39;train&#39;. The dataset to be analyzed.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ComprehensiveEDA</span>
+<span class="sd">            The ComprehensiveEDA object contains a variety of exploratory data </span>
+<span class="sd">            analysis methods, including summary statistics for numerical and </span>
+<span class="sd">            categorical variables, t-tests, and data visualizations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ComprehensiveEDA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">df_train</span><span class="p">())</span>
@@ -211,7 +218,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid input: dataset = </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="k">def</span> <span class="nf">lm</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="k">def</span> <span class="nf">lm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">predictors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -223,12 +230,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        target : str.</span>
+<span class="sd">        target : str</span>
 <span class="sd">            Default: None. The variable to be predicted.</span>
-<span class="sd">        predictors : list[str].</span>
+<span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, all variables except target will be used as predictors.</span>
-<span class="sd">        formula : str.</span>
+<span class="sd">        formula : str</span>
 <span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
 <span class="sd">            (overrides target and predictors).</span>
 
@@ -284,7 +291,7 @@
                 <span class="n">OLSLinearModel</span><span class="p">(),</span> <span class="n">datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="k">def</span> <span class="nf">glm</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="k">def</span> <span class="nf">glm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">family</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;binomial&quot;</span><span class="p">,</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">],</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -303,20 +310,21 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        family : Literal[&quot;poisson&quot;, &quot;binomial&quot;].</span>
+<span class="sd">        family : Literal[&quot;poisson&quot;, &quot;binomial&quot;]</span>
 <span class="sd">            The family of the GLM.</span>
-<span class="sd">        target : str.</span>
+<span class="sd">        target : str</span>
 <span class="sd">            Default: None. The variable to be predicted.</span>
-<span class="sd">        predictors : list[str].</span>
-<span class="sd">            Default: None.</span>
-<span class="sd">            If None, all variables except target will be used as predictors.</span>
-<span class="sd">        formula : str.</span>
+<span class="sd">        predictors : list[str]</span>
+<span class="sd">            Default: None. If None, all variables except target will be used as </span>
+<span class="sd">            predictors.</span>
+<span class="sd">        formula : str</span>
 <span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
 <span class="sd">            (overrides target and predictors).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        PoissonRegressionReport or BinomialRegressionReport</span>
+<span class="sd">        PoissonRegressionReport | BinomialRegressionReport | </span>
+<span class="sd">        NegativeBinomialRegressionReport | CountRegressionReport</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target must be specified if formula is None.&quot;</span><span class="p">)</span>
@@ -400,7 +408,7 @@
     <span class="c1"># MACHINE LEARNING</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="k">def</span> <span class="nf">regress</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="k">def</span> <span class="nf">regress</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseR</span><span class="p">],</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -410,34 +418,32 @@
         <span class="n">outer_cv</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">outer_cv_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLRegressionReport</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive regression benchmarking exercise.</span>
-<span class="sd">        Examples with missing data will be dropped.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive regression ML model benchmarking exercise.</span>
+<span class="sd">        Observations with missing data will be dropped.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        models : list[BaseRegression].</span>
-<span class="sd">            Testing performance of all models will be evaluated.</span>
-<span class="sd">        target : str.</span>
-<span class="sd">        predictors : list[str].</span>
+<span class="sd">        models : list[BaseRegression]</span>
+<span class="sd">            Models to be evaluated.</span>
+<span class="sd">        target : str</span>
+<span class="sd">            The variable to be predicted.</span>
+<span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, uses all variables except target as predictors.</span>
-<span class="sd">        feature_selectors : list[BaseFSR].</span>
+<span class="sd">        feature_selectors : list[BaseFSR]</span>
 <span class="sd">            The feature selectors for voting selection. Feature selectors</span>
 <span class="sd">            can be used to select the most important predictors.</span>
 <span class="sd">            Feature selectors can also be specified at the model level. If</span>
 <span class="sd">            specified here, the same feature selectors will be used for all</span>
 <span class="sd">            models.</span>
-<span class="sd">        max_n_features : int.</span>
-<span class="sd">            Default: None.</span>
-<span class="sd">            Maximum number of predictors to utilize. </span>
+<span class="sd">        max_n_features : int</span>
+<span class="sd">            Default: None. Maximum number of predictors to utilize. </span>
 <span class="sd">            Ignored if feature_selectors is None.</span>
 <span class="sd">            If None, then all features with at least 50% support are selected.</span>
-<span class="sd">        outer_cv : int.</span>
-<span class="sd">            Default: None.</span>
-<span class="sd">            If not None, reports training scores via nested k-fold CV.</span>
-<span class="sd">        outer_cv_seed : int.</span>
-<span class="sd">            Default: 42.</span>
-<span class="sd">            The random seed for the outer cross validation loop.</span>
+<span class="sd">        outer_cv : int</span>
+<span class="sd">            Default: None. If not None, reports training scores via nested k-fold CV.</span>
+<span class="sd">        outer_cv_seed : int</span>
+<span class="sd">            Default: 42. The random seed for the outer cross validation loop.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -460,7 +466,7 @@
             <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../tabularmagic.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseC</span><span class="p">],</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -470,32 +476,33 @@
         <span class="n">outer_cv</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">outer_cv_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MLClassificationReport</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive classification benchmarking exercise.</span>
-<span class="sd">        Examples with missing data will be dropped.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Conducts a comprehensive classification ML model benchmarking exercise.</span>
+<span class="sd">        Observations with missing data will be dropped.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        models : list[BaseClassification].</span>
-<span class="sd">            Testing performance of all models will be evaluated.</span>
-<span class="sd">        target : str.</span>
-<span class="sd">        predictors : list[str].</span>
+<span class="sd">        models : list[BaseClassification]</span>
+<span class="sd">            Models to be evaluated.</span>
+<span class="sd">        target : str</span>
+<span class="sd">            The variable to be predicted.</span>
+<span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, uses all variables except target as predictors.</span>
-<span class="sd">        feature_selectors : list[BaseFSR].</span>
+<span class="sd">        feature_selectors : list[BaseFSR]</span>
 <span class="sd">            The feature selectors for voting selection. Feature selectors</span>
 <span class="sd">            can be used to select the most important predictors.</span>
 <span class="sd">            Feature selectors can also be specified at the model level. If</span>
 <span class="sd">            specified here, the same feature selectors will be used for all</span>
 <span class="sd">            models.</span>
-<span class="sd">        max_n_features : int.</span>
+<span class="sd">        max_n_features : int</span>
 <span class="sd">            Default: None.</span>
-<span class="sd">            Maximum number of predictors to utilize. </span>
+<span class="sd">            Maximum number of predictors to utilize.</span>
 <span class="sd">            Ignored if feature_selectors is None.</span>
 <span class="sd">            If None, then all features with at least 50% support are selected.</span>
-<span class="sd">        outer_cv : int.</span>
+<span class="sd">        outer_cv : int</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If not None, reports training scores via nested k-fold CV.</span>
-<span class="sd">        outer_cv_seed : int.</span>
+<span class="sd">        outer_cv_seed : int</span>
 <span class="sd">            Default: 42.</span>
 <span class="sd">            The random seed for the outer cross validation loop.</span>
 
@@ -524,14 +531,20 @@
     <span class="c1"># GETTERS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="k">def</span> <span class="nf">datahandler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataHandler</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the DataHandler.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the DataHandler.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DataHandler</span>
+<span class="sd">            The DataHandler object takes care of data management and preprocessing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of examples in working train DataFrame.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns metadata in string form.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
 

@@ -1,5 +1,6 @@
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_curve, f1_score
 
 from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
 from ....data.datahandler import DataEmitter
@@ -36,6 +37,7 @@ class BaseC(BaseDiscriminativeModel):
         self._feature_selection_report = None
         self._predictors = None
         self._is_binary = True
+        self._threshold = None
 
         # By default, the first level is NOT dropped unless binary. For linear models,
         # the first level is dropped to avoid multicollinearity.
@@ -118,10 +120,23 @@ class BaseC(BaseDiscriminativeModel):
 
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
+
+                if self._is_binary:
+                    self._threshold = self._select_optimal_threshold_f1(
+                        y_train_encoded, y_pred_score[:, 1]
+                    )
+                    y_pred_encoded = y_pred_score[:, 1] > self._threshold
+
+                    print_wrapped(
+                        f"Optimal threshold set for {self._name} via F1 score.", 
+                        type="PROGRESS",
+                    )
+
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if self._is_binary:
+
                 self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred_encoded,
                     y_true=y_train_encoded,
@@ -177,15 +192,29 @@ class BaseC(BaseDiscriminativeModel):
                 self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
                 fold_estimator = self._hyperparam_searcher._best_estimator
 
-                y_pred_encoded = fold_estimator.predict(X_test)
-
-                y_preds_encoded.append(y_pred_encoded)
                 y_trues.append(y_test)
 
+                fold_threshold = None
+
                 if hasattr(fold_estimator, "predict_proba"):
-                    y_pred_scores.append(fold_estimator.predict_proba(X_test))
+                    y_pred_score_fold = fold_estimator.predict_proba(X_test)
+                    if self._is_binary:
+                        fold_threshold = self._select_optimal_threshold_f1(
+                            self._label_encoder.transform(y_test), 
+                            y_pred_score_fold[:, 1]
+                        )
+                        y_pred_scores.append(y_pred_score_fold)
                 elif hasattr(self._estimator, "decision_function"):
-                    y_pred_scores.append(self._estimator.decision_function(X_test))
+                    y_pred_score_fold = fold_estimator.decision_function(X_test)
+                    y_pred_scores.append(y_pred_score_fold)
+
+                if self._is_binary and fold_threshold is not None:
+                    y_pred_encoded = y_pred_score_fold[:, 1] > fold_threshold
+                else:
+                    y_pred_encoded = fold_estimator.predict(X_test)
+                y_preds_encoded.append(y_pred_encoded)
+
+                
 
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
@@ -237,6 +266,18 @@ class BaseC(BaseDiscriminativeModel):
             y_pred_encoded = self._estimator.predict(X_train)
             if hasattr(self._estimator, "predict_proba"):
                 y_pred_score = self._estimator.predict_proba(X_train)
+
+                if self._is_binary:
+                    self._threshold = self._select_optimal_threshold_f1(
+                        y_train_encoded, y_pred_score[:, 1]
+                    )
+                    y_pred_encoded = y_pred_score[:, 1] > self._threshold
+
+                    print_wrapped(
+                        f"Optimal threshold set for {self._name} via F1 score.", 
+                        type="PROGRESS",
+                    )
+
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)
 
@@ -276,6 +317,10 @@ class BaseC(BaseDiscriminativeModel):
         y_pred_score = None
         if hasattr(self._estimator, "predict_proba"):
             y_pred_score = self._estimator.predict_proba(X_test)
+
+            if self._is_binary and self._threshold is not None:
+                y_pred_encoded = y_pred_score[:, 1] > self._threshold
+
         elif hasattr(self._estimator, "decision_function"):
             y_pred_score = self._estimator.decision_function(X_test)
 
@@ -394,6 +439,67 @@ class BaseC(BaseDiscriminativeModel):
                 type="WARNING",
             )
         return self._predictors
+    
+    def _select_optimal_threshold_roc(
+        self, 
+        fpr: np.ndarray, 
+        tpr: np.ndarray, 
+        thresholds: np.ndarray
+    ) -> float:
+        """Selects the optimal threshold for binary classification models.
+        The optimal threshold is selected based on the training data via the ROC curve.
+
+        Parameters
+        ----------
+        fpr : np.ndarray ~ (sample_size,)
+            False positive rates.
+        tpr : np.ndarray ~ (sample_size,)
+            True positive rates.
+        thresholds : np.ndarray ~ (sample_size,)
+            Thresholds.
+
+        Returns
+        -------
+        float
+            The optimal threshold.
+        """
+        if not self._is_binary:
+            raise ValueError("This method is only for binary classification models.")
+        optimal_idx = np.argmax(tpr - fpr)
+        return thresholds[optimal_idx]
+    
+
+    def _select_optimal_threshold_f1(
+        self, 
+        y_true: np.ndarray,
+        y_pred_score: np.ndarray
+    ) -> float:
+        """Selects the optimal threshold for binary classification models via 
+        the F1 score.
+        
+        Parameters
+        ----------
+        y_true : np.ndarray ~ (sample_size,)
+            True labels.
+        y_pred_score : np.ndarray ~ (sample_size,)
+            Predicted scores.
+
+        Returns
+        -------
+        float
+            The optimal threshold.
+        """
+        if not self._is_binary:
+            raise ValueError("This method is only for binary classification models.")
+        thresholds = np.linspace(0.1, 0.9, 100)
+        f1_scores = []
+        for threshold in thresholds:
+            y_pred = y_pred_score > threshold
+            f1_scores.append(f1_score(y_true, y_pred))
+        optimal_idx = np.argmax(f1_scores)
+        return thresholds[optimal_idx]
+        
+
 
     def __str__(self):
         return self._name

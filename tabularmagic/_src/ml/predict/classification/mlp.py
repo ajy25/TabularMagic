@@ -117,5 +117,6 @@ class MLPC(BaseC):
             estimator=self._estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
-            estimator_name=self._name**kwargs,
+            estimator_name=self._name,
+            **kwargs,
         )

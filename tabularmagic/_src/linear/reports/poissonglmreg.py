@@ -9,18 +9,8 @@ from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.poissonglm import PoissonLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
+from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
-
-def reverse_argsort(indices):
-    n = len(indices)
-    reverse_indices = [0] * n
-    for i, idx in enumerate(indices):
-        reverse_indices[idx] = i
-    return reverse_indices
-
-
-MAX_N_OUTLIERS_TEXT = 20
-train_only_message = "This function is only available for training data."
 
 
 class SingleDatasetPoisRegReport:

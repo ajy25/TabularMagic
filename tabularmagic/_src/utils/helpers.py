@@ -22,7 +22,7 @@ def check_list_uniqueness(lst: list):
         seen.add(item)
 
 
-def ensure_func_arg_list_uniqueness(*list_arg_names):
+def ensure_arg_list_uniqueness(*list_arg_names):
     """
     Decorator that checks if all elements in a list argument are unique.
 

@@ -26,7 +26,7 @@ from .exploratory import (
 from .display.print_utils import print_wrapped
 from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
-from .utils import ensure_func_arg_list_uniqueness
+from .utils import ensure_arg_list_uniqueness
 
 
 class Analyzer:
@@ -149,7 +149,7 @@ class Analyzer:
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def lm(
         self,
         target: str | None = None,
@@ -223,7 +223,7 @@ class Analyzer:
                 OLSLinearModel(), datahandler, target, predictors
             )
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def glm(
         self,
         family: Literal["poisson", "binomial", "negbinomial", "count"],
@@ -343,7 +343,7 @@ class Analyzer:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def regress(
         self,
         models: list[BaseR],
@@ -402,7 +402,7 @@ class Analyzer:
             verbose=self._verbose,
         )
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def classify(
         self,
         models: list[BaseC],
@@ -465,8 +465,281 @@ class Analyzer:
         )
 
     # --------------------------------------------------------------------------
-    # GETTERS
+    # DATAHANDLER METHODS
     # --------------------------------------------------------------------------
+    @ensure_arg_list_uniqueness()
+    def scale(
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        strategy: Literal["standardize", "minmax", "log", "log1p"] = "standardize",
+    ) -> "Analyzer":
+        """Scales the variables.
+
+        Parameters
+        ----------
+        include_vars : list[str]
+            Default: None. List of variables to scale. 
+            If None, scales values in all columns.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude from scaling.
+            If None, no variables are excluded.
+        strategy : Literal["standardize", "minmax", "log", "log1p"]
+            Default: 'standardize'. The scaling strategy.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.scale(
+            include_vars=include_vars,
+            exclude_vars=exclude_vars,
+            strategy=strategy,
+        )
+        return self
+
+    @ensure_arg_list_uniqueness()
+    def impute(
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        numerical_strategy: Literal["median", "mean", "5nn"] = "median",
+        categorical_strategy: Literal["most_frequent"] = "most_frequent",
+    ) -> "Analyzer":
+        """Imputes missing values. The imputer is fit on the train DataFrame
+        and transforms both train and test DataFrames.
+
+        Parameters
+        ----------
+        include_vars : list[str]
+            Default: None. List of variables to impute missing values.
+            If None, imputes missing values in all columns.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude from imputing missing values.
+            If None, no variables are excluded.
+        numerical_strategy : Literal['median', 'mean', '5nn']
+            Default: 'median'.
+            Strategy for imputing missing values in numerical variables.
+            - 'median': impute with median.
+            - 'mean': impute with mean.
+            - '5nn': impute with 5-nearest neighbors.
+        categorical_strategy : Literal['most_frequent']
+            Default: 'most_frequent'.
+            Strategy for imputing missing values in categorical variables.
+            - 'most_frequent': impute with most frequent value.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.impute(
+            include_vars=include_vars,
+            exclude_vars=exclude_vars,
+            numerical_strategy=numerical_strategy,
+            categorical_strategy=categorical_strategy,
+        )
+        return self
+
+    @ensure_arg_list_uniqueness()
+    def dropna(
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+    ) -> "Analyzer":
+        """Drops rows with missing values on both the train
+        and test DataFrames.
+
+        Parameters
+        ----------
+        include_vars : list[str]
+            Default: None.
+            List of columns along which to drop rows with missing values.
+            If None, drops rows with missing values in all columns.
+            
+        exclude_vars : list[str]
+            Default: None.
+            List of columns along which to exclude from dropping rows with
+            missing values. If None, no variables are excluded.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.dropna(
+            include_vars=include_vars,
+            exclude_vars=exclude_vars,
+        )
+        return self
+    
+    def drop_highly_missing_vars(
+        self,
+        threshold: float = 0.5
+    ) -> "Analyzer":
+        """Drops variables with missing values above a specified threshold.
+
+        Parameters
+        ----------
+        threshold : float
+            Default: 0.5. The threshold above which variables are dropped.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.drop_highly_missing_vars(threshold)
+        return self
+    
+    @ensure_arg_list_uniqueness()
+    def onehot(
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        dropfirst: bool = True
+    ) -> "Analyzer":
+        """One-hot encodes the specified columns.
+
+        Parameters
+        ----------
+        include_vars : list[str]
+            Default: None. List of variables to one-hot encode.
+            If None, one-hot encodes all columns.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude from one-hot encoding.
+            If None, no variables are excluded.
+        dropfirst : bool
+            Default: True. If True, drops the first one-hot encoded column.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.onehot(
+            include_vars=include_vars,
+            exclude_vars=exclude_vars,
+            dropfirst=dropfirst
+        )
+        return self
+    
+    @ensure_arg_list_uniqueness()
+    def select_vars(
+        self,
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None
+    ) -> "Analyzer":
+        """Selects the specified variables.
+
+        Parameters
+        ----------
+        include_vars : list[str]
+            Default: None. List of variables to include.
+            If None, includes all variables.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude.
+            If None, no variables are excluded.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        if include_vars is None:
+            include_vars = self._datahandler.vars()
+        if exclude_vars is not None:
+            include_vars = list(set(include_vars) - set(exclude_vars))
+        self._datahandler.select_vars(
+            vars=include_vars
+        )
+        return self
+    
+    @ensure_arg_list_uniqueness()
+    def force_numerical(
+        self,
+        vars: list[str]
+    ) -> "Analyzer":
+        """Forces specificed variables to numerical (float).
+
+        Parameters
+        ----------
+        vars : list[str]
+            Name of variables to force to numerical.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.force_numerical(vars)
+        return self
+    
+
+    @ensure_arg_list_uniqueness()
+    def force_categorical(
+        self,
+        vars: list[str]
+    ) -> "Analyzer":
+        """Forces specificed variables to categorical.
+
+        Parameters
+        ----------
+        vars : list[str]
+            Name of variables to force to categorical.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.force_categorical(vars)
+        return self
+    
+
+    @ensure_arg_list_uniqueness()
+    def force_binary(
+        self,
+        vars: list[str],
+        pos_labels: list[str] | None = None,
+        ignore_multiclass: bool = False,
+        rename: bool = False
+    ) -> "Analyzer":
+        """Forces variables to be binary (0 and 1 valued numerical variables).
+        Does nothing if the data contains more than two classes unless
+        ignore_multiclass is True and pos_label is specified,
+        in which case all classes except pos_label are labeled with zero.
+
+        Parameters
+        ----------
+        vars : list[str]
+            Name of variables to force to binary.
+        pos_labels : list[str]
+            Default: None. The positive labels.
+            If None, the first class for each var is the positive label.
+        ignore_multiclass : bool
+            Default: False. If True, all classes except pos_label are labeled with 
+            zero. Otherwise raises ValueError.
+        rename : bool
+            Default: False. If True, the variables are renamed to 
+            {pos_label}_yn({var}).
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.force_binary(
+            vars=vars,
+            pos_labels=pos_labels,
+            ignore_multiclass=ignore_multiclass,
+            rename=rename
+        )
+        return self
+
+
+    
     def datahandler(self) -> DataHandler:
         """Returns the DataHandler.
 
@@ -477,13 +750,19 @@ class Analyzer:
         """
         return self._datahandler
 
+    # --------------------------------------------------------------------------
+    # MAGIC METHODS
+    # --------------------------------------------------------------------------
     def __len__(self) -> int:
         """Returns the number of examples in working train DataFrame."""
         return len(self._datahandler)
 
+
     def __str__(self) -> str:
         """Returns metadata in string form."""
         return self._datahandler.__str__()
+
+
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))

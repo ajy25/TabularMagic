@@ -36,7 +36,7 @@ if __name__ == "__main__":
                 subprocess.check_call(["pip", "install", str(directory_path)])
                 print("Successfully installed tabularmagic")
             except Exception as e:
-                print(f"Failed to install tabularmagci: {e}")
+                print(f"Failed to install tabularmagic: {e}")
                 print("Retrying...")
                 subprocess.check_call(
                     [

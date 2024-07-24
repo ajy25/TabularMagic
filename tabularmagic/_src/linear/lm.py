@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Literal
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
-from ..utils import ensure_func_arg_list_uniqueness
+from ..utils import ensure_arg_list_uniqueness
 
 
 def score_ols_model(
@@ -107,7 +107,7 @@ class OLSLinearModel:
             name=self._name,
         )
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def step(
         self,
         direction: Literal["both", "backward", "forward"] = "backward",

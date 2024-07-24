@@ -20,7 +20,7 @@ from .preprocessing import (
     CustomOneHotEncoder,
 )
 from ..display.print_options import print_options
-from ..utils import ensure_func_arg_list_uniqueness
+from ..utils import ensure_arg_list_uniqueness
 
 
 class PreprocessStepTracer:
@@ -66,7 +66,8 @@ class DataEmitter:
     """DataEmitter: emits data for model fitting and other computational
     methods. DataEmitter is outputted by DataHandler methods.
     """
-
+    
+    @ensure_arg_list_uniqueness()
     def __init__(
         self,
         df_train: pd.DataFrame,
@@ -277,7 +278,7 @@ class DataEmitter:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
 
-    @ensure_func_arg_list_uniqueness()
+    @ensure_arg_list_uniqueness()
     def select_predictors(self, predictors: list[str] | None) -> "DataEmitter":
         """Selects a subset of predictors lazily (last step of the emit methods).
 
@@ -289,14 +290,14 @@ class DataEmitter:
         Returns
         -------
         DataEmitter
-            Returns self.
+            Returns self for method chaining.
         """
         self._final_X_vars_subset = predictors
         return self
 
     def _onehot(
         self, vars: list[str] | None = None, dropfirst: bool = True
-    ) -> "DataHandler":
+    ) -> "DataEmitter":
         """One-hot encodes all categorical variables in-place.
 
         Parameters
@@ -325,7 +326,7 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataHandler":
+    def _drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataEmitter":
         """Drops columns with more than 50% missing values (on train) in-place.
 
         Parameters
@@ -352,7 +353,7 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _dropna(self, vars: list[str]) -> "DataHandler":
+    def _dropna(self, vars: list[str]) -> "DataEmitter":
         """Drops rows with missing values in-place.
 
         Parameters
@@ -373,26 +374,26 @@ class DataEmitter:
         vars: list[str],
         numerical_strategy: Literal["median", "mean", "5nn"] = "median",
         categorical_strategy: Literal["most_frequent"] = "most_frequent",
-    ) -> "DataHandler":
+    ) -> "DataEmitter":
         """Imputes missing values in-place.
 
         Parameters
         ----------
-        - vars : list[str].
-        - numerical_strategy : Literal['median', 'mean', '5nn'].
+        vars : list[str]
+        numerical_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
             Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
-        - categorical_strategy : Literal['most_frequent'].
+        categorical_strategy : Literal['most_frequent'].
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
-            - 'most_frequent': impute with most frequent value.
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         numerical_vars = self._numerical_vars
         categorical_vars = self._categorical_vars
@@ -432,19 +433,20 @@ class DataEmitter:
         self,
         vars: list[str],
         strategy: Literal["standardize", "minmax", "log", "log1p"] = "standardize",
-    ) -> "DataHandler":
+    ) -> "DataEmitter":
         """Scales variable values.
 
         Parameters
         ----------
-        - vars : list[str].
+        vars : list[str]
             List of variables to scale. If None, scales all numerical
             variables.
-        - strategy : Literal['standardize', 'minmax', 'log', 'log1p'].
+        strategy : Literal['standardize', 'minmax', 'log', 'log1p']
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         for var in vars:
             if var not in self._numerical_vars:
@@ -477,17 +479,18 @@ class DataEmitter:
 
         return self
 
-    def _select_vars(self, vars: list[str]) -> "DataHandler":
+    def _select_vars(self, vars: list[str]) -> "DataEmitter":
         """Selects subset of (column) variables in-place on the working
         train and test DataFrames.
 
         Parameters
         ----------
-        - vars : list[str]
+        vars : list[str]
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
@@ -498,17 +501,18 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _drop_vars(self, vars: list[str]) -> "DataHandler":
+    def _drop_vars(self, vars: list[str]) -> "DataEmitter":
         """Drops subset of variables (columns) in-place on the working
         train and test DataFrames.
 
         Parameters
         ----------
-        - vars : list[str]
+        vars : list[str]
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         self._working_df_test = self._working_df_test.drop(vars, axis="columns")
         self._working_df_train = self._working_df_train.drop(vars, axis="columns")
@@ -519,16 +523,18 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _force_numerical(self, vars: list[str]) -> "DataHandler":
+    def _force_numerical(self, vars: list[str]) -> "DataEmitter":
         """Forces variables to numerical (floats).
 
         Parameters
         ----------
-        - vars : list[str]. Name of variables.
+        vars : list[str]
+            Name of variables.
 
         Returns
         -------
-        - self : DataHandler.
+        DataEmitter
+            Returns self for method chaining.
         """
         for var in vars:
             if var not in self._working_df_train.columns:
@@ -549,7 +555,8 @@ class DataEmitter:
         vars: list[str],
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
-    ) -> "DataHandler":
+        rename: bool = False
+    ) -> "DataEmitter":
         """Forces variables to be binary (0 and 1 valued numerical variables).
         Does nothing if the data contains more than two classes unless
         ignore_multiclass is True and pos_label is specified,
@@ -557,16 +564,22 @@ class DataEmitter:
 
         Parameters
         ----------
-        - vars : list[str]. Name of variables.
-        - pos_labels : list[str]. Default: None. The positive labels.
+        vars : list[str]
+            Name of variables to force to binary.
+        pos_labels : list[str]
+            Default: None. The positive labels.
             If None, the first class for each var is the positive label.
-        - ignore_multiclass : bool. Default: False. If True, all classes
-            except pos_label are labeled with zero. Otherwise raises
-            ValueError.
+        ignore_multiclass : bool
+            Default: False. If True, all classes except pos_label are labeled with 
+            zero. Otherwise raises ValueError.
+        rename : bool
+            Default: False. If True, the variables are renamed to 
+            {pos_label}_yn({var}).
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         if pos_labels is None and ignore_multiclass:
             raise ValueError(
@@ -604,8 +617,11 @@ class DataEmitter:
 
             vars_to_renamed[var] = f"{pos_label}_yn({var})"
 
-        self._working_df_train = self._working_df_train.rename(columns=vars_to_renamed)
-        self._working_df_test = self._working_df_test.rename(columns=vars_to_renamed)
+        if rename:
+            self._working_df_train =\
+                self._working_df_train.rename(columns=vars_to_renamed)
+            self._working_df_test =\
+                self._working_df_test.rename(columns=vars_to_renamed)
 
         (
             self._categorical_vars,
@@ -966,12 +982,12 @@ class DataHandler:
         out = self._working_df_train.columns.to_list()
         return out
 
-    def numvars(self) -> list[str]:
+    def numerical_vars(self) -> list[str]:
         """Returns copy of list of numerical variables."""
         out = self._numerical_vars.copy()
         return out
 
-    def catvars(self) -> list[str]:
+    def categorical_vars(self) -> list[str]:
         """Returns copy of list of categorical variables."""
         out = self._categorical_vars.copy()
         return out
@@ -985,7 +1001,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - var : str
+        var : str
+            Name of the variable. 
+
+        Returns
+        -------
+        BaseSingleVarScaler | None
+            Returns None if there is no scaler for the variable.
         """
         return self._numerical_var_to_scaler[var]
 
@@ -1136,16 +1158,19 @@ class DataHandler:
 
         Parameters
         ----------
-        - include_vars : list[str]. Default: None.
+        include_vars : list[str]
+            Default: None.
             List of columns along which to drop rows with missing values.
             If None, drops rows with missing values in all columns.
-        - exclude_vars : list[str]. Default: None.
+        exclude_vars : list[str]
+            Default: None.
             List of columns along which to exclude from dropping rows with
             missing values. If None, no variables are excluded.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         if include_vars is None:
             include_vars = self.vars()
@@ -1172,29 +1197,44 @@ class DataHandler:
         return self
 
     def onehot(
-        self, vars: list[str] | None = None, dropfirst: bool = True
+        self, 
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        dropfirst: bool = True
     ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place. Encoder is
         fit on train DataFrame and transforms both train and test DataFrames.
 
         Parameters
         ----------
-        - vars : list[str]. Default: None.
-            If not None, only one-hot encodes the specified variables.
-        - dropfirst : bool. Default: True.
+        include_vars : list[str]
+            Default: None.
+            List of categorical variables to one-hot encode. If None, this is set to 
+            all categorical variables.
+
+        exclude_vars : list[str]
+            Default: None.
+            List of categorical variables to exclude from one-hot encoding. 
+
+        dropfirst : bool
+            Default: True.
             If True, the first dummy variable is dropped.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
-        if vars is None:
-            vars = self.catvars()
+        if include_vars is None:
+            include_vars = self.categorical_vars()
+        if exclude_vars is not None:
+            include_vars = list(set(include_vars) - set(exclude_vars))
+
         self._working_df_train = self._onehot_helper(
-            self._working_df_train, vars=vars, dropfirst=dropfirst, fit=True
+            self._working_df_train, vars=include_vars, dropfirst=dropfirst, fit=True
         )
         self._working_df_test = self._onehot_helper(
-            self._working_df_test, vars=vars, dropfirst=dropfirst, fit=False
+            self._working_df_test, vars=include_vars, dropfirst=dropfirst, fit=False
         )
 
         (
@@ -1205,15 +1245,16 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f"One-hot encoded {list_to_string(vars)}. "
+                f"One-hot encoded {list_to_string(include_vars)}. "
                 + f"Drop first: {dropfirst}.",
                 type="UPDATE",
             )
 
         self._preprocess_step_tracer.add_step(
-            "onehot", {"vars": vars, "dropfirst": dropfirst}
+            "onehot", {"vars": include_vars, "dropfirst": dropfirst}
         )
         return self
+    
 
     def drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataHandler":
         """Drops columns with more than 50% missing values
@@ -1222,12 +1263,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - threshold : float. Default: 0.5. Proportion of missing values
-            above which a column is dropped.
+        threshold : float. 
+            Default: 0.5. Proportion of missing values above which a column is dropped.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         prev_vars = self._working_df_train.columns.to_list()
         self._working_df_train = self._working_df_train.dropna(
@@ -1265,29 +1307,30 @@ class DataHandler:
 
         Parameters
         ----------
-        - include_vars : list[str]. Default: None.
-            List of variables to impute missing values.
+        include_vars : list[str]
+            Default: None. List of variables to impute missing values.
             If None, imputes missing values in all columns.
-        - exclude_vars : list[str]. Default: None.
-            List of variables to exclude from imputing missing values.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
-        - numerical_strategy : Literal['median', 'mean', '5nn'].
+        numerical_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
             Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
-        - categorical_strategy : Literal['most_frequent'].
+        categorical_strategy : Literal['most_frequent']
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
             - 'most_frequent': impute with most frequent value.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
-        numerical_vars = self.numvars()
-        categorical_vars = self.catvars()
+        numerical_vars = self.numerical_vars()
+        categorical_vars = self.categorical_vars()
         if include_vars is not None:
             include_vars_set = set(include_vars)
             numerical_vars = list(include_vars_set & set(numerical_vars))
@@ -1355,20 +1398,21 @@ class DataHandler:
 
         Parameters
         ----------
-        - include_vars : list[str]. Default: None.
-            List of variables to scale.
+        include_vars : list[str]
+            Default: None. List of variables to scale. 
             If None, scales values in all columns.
-        - exclude_vars : list[str]. Default: None.
-            List of variables to exclude from scaling.
+        exclude_vars : list[str]
+            Default: None. List of variables to exclude from scaling.
             If None, no variables are excluded.
-        - strategy : Literal['standardize', 'minmax', 'log', 'log1p'].
+        strategy : Literal["standardize", "minmax", "log", "log1p"]
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         if include_vars is None:
-            include_vars = self.numvars()
+            include_vars = self.numerical_vars()
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
 
@@ -1466,19 +1510,18 @@ class DataHandler:
 
         return self
 
-    # def feature_selection(self, )
-
     def drop_vars(self, vars: list[str]) -> "DataHandler":
         """Drops subset of variables (columns) in-place on the working
         train and test DataFrames.
 
         Parameters
         ----------
-        - vars : list[str]
+        vars : list[str]
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         self._working_df_test = self._working_df_test.drop(vars, axis="columns")
         self._working_df_train = self._working_df_train.drop(vars, axis="columns")
@@ -1505,11 +1548,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - vars : list[str]. Name of variables.
+        vars : list[str]
+            Name of variables to force to numerical.
 
         Returns
         -------
-        - self : DataHandler.
+        DataHandler
+            Returns self for method chaining.
         """
         for var in vars:
             if var not in self._working_df_train.columns:
@@ -1544,6 +1589,7 @@ class DataHandler:
         vars: list[str],
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
+        rename: bool = False
     ) -> "DataHandler":
         """Forces variables to be binary (0 and 1 valued numerical variables).
         Does nothing if the data contains more than two classes unless
@@ -1552,16 +1598,22 @@ class DataHandler:
 
         Parameters
         ----------
-        - vars : list[str]. Name of variables.
-        - pos_labels : list[str]. Default: None. The positive labels.
+        vars : list[str]
+            Name of variables to force to binary.
+        pos_labels : list[str]
+            Default: None. The positive labels.
             If None, the first class for each var is the positive label.
-        - ignore_multiclass : bool. Default: False. If True, all classes
-            except pos_label are labeled with zero. Otherwise raises
-            ValueError.
+        ignore_multiclass : bool
+            Default: False. If True, all classes except pos_label are labeled with 
+            zero. Otherwise raises ValueError.
+        rename : bool
+            Default: False. If True, the variables are renamed to 
+            {pos_label}_yn({var}).
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         if pos_labels is None and ignore_multiclass:
             raise ValueError(
@@ -1617,8 +1669,11 @@ class DataHandler:
 
             vars_to_renamed[var] = f"{pos_label}_yn({var})"
 
-        self._working_df_train = self._working_df_train.rename(columns=vars_to_renamed)
-        self._working_df_test = self._working_df_test.rename(columns=vars_to_renamed)
+        if rename:
+            self._working_df_train =\
+                self._working_df_train.rename(columns=vars_to_renamed)
+            self._working_df_test =\
+                self._working_df_test.rename(columns=vars_to_renamed)
 
         if self._verbose:
             if len(vars_to_renamed) == 0:
@@ -1630,11 +1685,18 @@ class DataHandler:
                 new_vars_txt = color_text(
                     list_to_string(vars_to_renamed.values()), "purple"
                 )
-                print_wrapped(
-                    f"Forced variables {old_vars_txt} to binary. "
-                    + f"Variables renamed to {new_vars_txt}.",
-                    type="UPDATE",
-                )
+                if rename:
+                    print_wrapped(
+                        f"Forced variables {old_vars_txt} to binary. "
+                        + f"Variables renamed to {new_vars_txt}.",
+                        type="UPDATE",
+                    )
+                else:
+                    print_wrapped(
+                        f"Forced variables {old_vars_txt} to binary.",
+                        type="UPDATE",
+                    )
+
         (
             self._categorical_vars,
             self._numerical_vars,
@@ -1646,6 +1708,7 @@ class DataHandler:
                 "vars": vars,
                 "pos_labels": pos_labels,
                 "ignore_multiclass": ignore_multiclass,
+                "rename": rename,
             },
         )
         return self
@@ -1656,11 +1719,12 @@ class DataHandler:
 
         Parameters
         ----------
-        - vars : list[str].
+        vars : list[str]
 
         Returns
         -------
-        - self : DataHandler.
+        DataHandler
+            Returns self for method chaining.
         """
         if not isinstance(vars, list):
             vars = [vars]
@@ -1942,7 +2006,7 @@ class DataHandler:
             color_text(bold_text("Categorical variables:"), "none") + "\n"
         )
 
-        categorical_vars = self.catvars()
+        categorical_vars = self.categorical_vars()
         categorical_var_message = ""
         if len(categorical_vars) == 0:
             categorical_var_message += color_text("None", "yellow")
@@ -1957,7 +2021,7 @@ class DataHandler:
 
         numerical_message = color_text(bold_text("Numerical variables:"), "none") + "\n"
 
-        numerical_vars = self.numvars()
+        numerical_vars = self.numerical_vars()
         numerical_var_message = ""
         if len(numerical_vars) == 0:
             numerical_var_message += color_text("None", "yellow")

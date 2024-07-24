@@ -136,7 +136,10 @@ def test_force_binary(setup_data):
         ["categorical_var", "numerical_var"],
         PreprocessStepTracer(),
     )
-    dh.force_binary(["numerical_var"])
+    dh.force_binary(
+        ["numerical_var"],
+        rename=True
+    )
     dh_emitter = dh.train_test_emitter(
         "binary_var", ["categorical_var", "numerical_var"]
     )
@@ -155,8 +158,18 @@ def test_force_binary(setup_data):
         ["categorical_var", "numerical_var"],
         PreprocessStepTracer(),
     )
-    de._force_binary(["categorical_var"], pos_labels=["A"], ignore_multiclass=True)
-    dh.force_binary(["categorical_var"], pos_labels=["A"], ignore_multiclass=True)
+    de._force_binary(
+        ["categorical_var"], 
+        pos_labels=["A"], 
+        ignore_multiclass=True, 
+        rename=True
+    )
+    dh.force_binary(
+        ["categorical_var"], 
+        pos_labels=["A"], 
+        ignore_multiclass=True, 
+        rename=True
+    )
     dh_emitter = dh.train_test_emitter(
         "binary_var", ["A_yn(categorical_var)", "numerical_var"]
     )
@@ -167,7 +180,12 @@ def test_force_binary(setup_data):
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
 
-    dh.force_binary(["numerical_var"], pos_labels=[5.2], ignore_multiclass=True)
+    dh.force_binary(
+        ["numerical_var"], 
+        pos_labels=[5.2], 
+        ignore_multiclass=True,
+        rename=True
+    )
     dh_emitter = dh.train_test_emitter(
         "binary_var", ["A_yn(categorical_var)", "5.2_yn(numerical_var)"]
     )

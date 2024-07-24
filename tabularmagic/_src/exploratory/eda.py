@@ -1070,22 +1070,22 @@ class ComprehensiveEDA:
     # --------------------------------------------------------------------------
     # GETTERS
     # --------------------------------------------------------------------------
-    def numvars(self) -> list[str]:
+    def numerical_vars(self) -> list[str]:
         """Returns a list of the names of all numerical variables."""
         return self._numerical_vars
 
-    def catvars(self) -> list[str]:
+    def categorical_vars(self) -> list[str]:
         """Returns a list of the names of all categorical variables."""
         return self._categorical_vars
 
-    def catstats(self) -> pd.DataFrame | None:
+    def categorical_stats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         categorical variables.
 
         Returns None if there are no categorical variables."""
         return self._categorical_summary_statistics
 
-    def numstats(self) -> pd.DataFrame | None:
+    def numerical_stats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         numerical variables.
 

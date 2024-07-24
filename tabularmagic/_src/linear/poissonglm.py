@@ -300,5 +300,5 @@ class PoissonLinearModel:
 
         return included_vars
 
-        def __str__(self):
-            return self._name
+    def __str__(self):
+        return self._name

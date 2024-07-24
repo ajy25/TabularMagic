@@ -86,5 +86,5 @@ class BinomialLinearModel:
             name=self._name,
         )
 
-        def __str__(self):
-            return self._name
+    def __str__(self):
+        return self._name

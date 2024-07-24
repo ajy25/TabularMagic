@@ -1,7 +1,46 @@
 import statsmodels.api as sm
+import numpy as np
+import pandas as pd
 from typing import Literal
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
+from ..utils import ensure_func_arg_list_uniqueness
+
+
+def score_ols_model(
+    X_train: pd.DataFrame,
+    y_train: pd.DataFrame,
+    feature_list,
+    metric: Literal["aic", "bic"],
+) -> float:
+    """Calculates the AIC or BIC score for a given model.
+
+    Parameters
+    ----------
+    X_train : pd.DataFrame
+        The training data.
+    y_train : pd.Series
+        The training target.
+    feature_list : list[str]
+        The list of features to include in the model.
+    metric : str
+        The metric to use for scoring. Either 'aic' or 'bic'.
+
+    Returns
+    -------
+    float
+        The AIC or BIC score for the model.
+    """
+    if len(feature_list) == 0:
+        return np.inf
+
+    subset_X_train = X_train[feature_list]
+    new_model = sm.OLS(y_train, subset_X_train).fit(cov_type="HC3")
+    if metric == "aic":
+        score = new_model.aic
+    elif metric == "bic":
+        score = new_model.bic
+    return score
 
 
 class OLSLinearModel:
@@ -68,15 +107,15 @@ class OLSLinearModel:
             name=self._name,
         )
 
-    def _step(
+    @ensure_func_arg_list_uniqueness()
+    def step(
         self,
-        vars_at_start: list | None = None,
-        persistent_vars: list | None = None,
-        all_vars: list | None = None,
         direction: Literal["both", "backward", "forward"] = "backward",
-        criteria: Literal["aic"] = "aic",
-        max_steps: int = 1000,
-        verbose=False,
+        criteria: Literal["aic", "bic"] = "aic",
+        kept_vars: list[str] | None = None,
+        all_vars: list[str] | None = None,
+        start_vars: list[str] | None = None,
+        max_steps: int = 100,
     ) -> list[str]:
         """Finish writing description
 
@@ -84,142 +123,177 @@ class OLSLinearModel:
 
         Parameters
         ----------
-        criteria : str
-            Default: 'aic'.
+        direction : Literal["both", "backward", "forward"]
+            The direction of the stepwise selection. Default: 'backward'.
+        criteria : Literal["aic", "bic"]
+            The criteria to use for selecting the best model. Default: 'aic'.
+        kept_vars : list[str]
+            The variables that should be kept in the model. Default: None.
+            If None, defaults to empty list.
+        all_vars : list[str]
+            The variables that are candidates for inclusion in the model. Default: None.
+            If None, defaults to all variables in the training data.
+        start_vars : list[str]
+            The variables to start the bidirectional stepwise selection with. 
+            Ignored if direction is not 'both'. If direction is 'both' and 
+            start_vars is None, then the starting variables are the kept_vars.
+            Default: None.
+        max_steps : int
+            The maximum number of steps to take. Default: 100.
 
         Returns
         -------
-        list of str.
+        list[str]
             The subset of predictors that are most likely to be significant.
         """
-        if max_steps < 0:
-            raise ValueError("max_steps cannot be negative")
+        if max_steps <= 0:
+            raise ValueError("max_steps cannot be non-positive")
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
 
-        # Set upper to all possible variables if nothing is specified
+        # set upper to all possible variables if nothing is specified
         if all_vars is None:
             all_vars = X_train.columns.tolist()
-        if persistent_vars is None:
-            persistent_vars = []
+        if kept_vars is None:
+            kept_vars = []
 
-        # If a starting list is not specified then choose defaults depending on
-        # direction
-        if vars_at_start is None:
-            if direction == "backward":
-                vars_at_start = all_vars
-            elif direction == "forward":
-                vars_at_start = persistent_vars
+        # ensure that kept vars are in all vars
+        for var in kept_vars:
+            if var not in all_vars:
+                raise ValueError(f"{var} is not in all_vars")
 
-        lower_set = set(persistent_vars)
-        upper_set = set(all_vars)
-        start_set = set(vars_at_start)
+        # set our current variables to our starting list
+        if direction == "forward":
+            included_vars = kept_vars.copy()
+        elif direction == "backward":
+            included_vars = all_vars.copy()
+        elif direction == "both":
+            if start_vars is None:
+                included_vars = kept_vars.copy()
+            else:
+                included_vars = start_vars.copy()
 
-        # Check to see that the starting list and bounds agree
-        if lower_set > start_set:
-            raise ValueError("Starting list must include variables in lower bound")
-        if upper_set < start_set:
-            raise ValueError("Starting list contains variables not in upper bound")
-        if lower_set > upper_set:
-            raise ValueError("Lower bound is larger than upper bound")
-
-        # Define a function to fit our OLS model given a list of features
-        def fit_ols(feature_list):
-            subset_X_train = X_train[feature_list]
-            return sm.OLS(y_train, subset_X_train).fit(cov_type="HC3")
-
-        # Create a function that fits and calculates the aic
-        def calculate_aic(features):
-            new_model = fit_ols(features)
-            return new_model.aic, new_model
-
-        # Set our current variables to our starting list
-        included = vars_at_start.copy()
-
-        # Set our starting aic and best models
-        current_aic, best_model = calculate_aic(included)
-
+        # set our starting score and best models
+        current_score = score_ols_model(
+            X_train,
+            y_train,
+            included_vars,
+            metric=criteria,
+        )
         current_step = 0
+
         while current_step < max_steps:
-            # Keep track of whether or not something changed since last loop
-            changed = False
-
             # Forward step
-            if direction in ["forward", "both"]:
-                excluded = list(set(all_vars) - set(included))
-                aic_with_candidates = []
-                for new_var in excluded:
-                    candidate_features = included + [new_var]
-                    aic, _ = calculate_aic(candidate_features)
-                    aic_with_candidates.append((aic, new_var))
-                aic_with_candidates.sort()
-                best_add_aic, best_add_candidate = aic_with_candidates[0]
+            if direction == "forward":
+                excluded = list(set(all_vars) - set(included_vars))
 
-            # Backward step
-            if direction in ["backward", "both"]:
-                if len(included) > len(persistent_vars):
-                    aic_with_candidates = []
-                    for candidate in included:
-                        if candidate not in persistent_vars:
-                            candidate_features = included.copy()
-                            candidate_features.remove(candidate)
-                            aic, _ = calculate_aic(candidate_features)
-                            aic_with_candidates.append((aic, candidate))
-                    aic_with_candidates.sort()
-                    # the best aic means the removed variable does not provide
-                    # that much information
-                    best_rem_aic, worst_rem_candidate = aic_with_candidates[0]
-                else:
+                best_score = current_score
+                var_to_add = None
+                for new_var in excluded:
+                    candidate_features = included_vars + [new_var]
+                    score = score_ols_model(
+                        X_train,
+                        y_train,
+                        candidate_features,
+                        metric=criteria,
+                    )
+                    if score < best_score:
+                        best_score = score
+                        var_to_add = new_var
+
+                # If we didn't find a variable to add (score is not better), break
+                if var_to_add is None:
                     break
 
-            # compare aic and update model if applicable
-            if direction == "forward" and best_add_aic < current_aic:
-                included.append(best_add_candidate)
-                current_aic = best_add_aic
-                best_model = fit_ols(included)
-                changed = True
-                if verbose:
-                    print(f"Adding: {best_add_candidate} with AIC {best_add_aic:.6}")
-            elif direction == "backward" and best_rem_aic < current_aic:
-                included.remove(worst_rem_candidate)
-                current_aic = best_rem_aic
-                best_model = fit_ols(included)
-                changed = True
-                if verbose:
-                    print(
-                        f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}"
-                    )
-            elif direction == "both":
-                # First see if we want to remove or add a variable this step:
-                if best_add_aic < best_rem_aic:  # adding is better than removing
-                    if best_add_aic < current_aic:
-                        included.append(best_add_candidate)
-                        current_aic = best_add_aic
-                        best_model = fit_ols(included)
-                        changed = True
-                        if verbose:
-                            print(
-                                f"Adding: {best_add_candidate} with AIC {best_add_aic:.6}"
-                            )
-                else:  # removing is better than adding
-                    if best_rem_aic < current_aic:
-                        included.remove(worst_rem_candidate)
-                        current_aic = best_rem_aic
-                        best_model = fit_ols(included)
-                        changed = True
-                        if verbose:
-                            print(
-                                f"Drop {worst_rem_candidate} with AIC {best_rem_aic:.6}"
-                            )
+                included_vars.append(var_to_add)
 
-            if not changed:
-                break
+            # Backward step
+            elif direction == "backward":
+                if len(included_vars) <= len(kept_vars):
+                    break
+
+                best_score = current_score
+                var_to_remove = None
+
+                for candidate in included_vars:
+                    if candidate in kept_vars:
+                        continue
+
+                    candidate_features = included_vars.copy()
+                    candidate_features.remove(candidate)
+                    score = score_ols_model(
+                        X_train,
+                        y_train,
+                        candidate_features,
+                        metric=criteria,
+                    )
+                    if score < best_score:
+                        best_score = score
+                        var_to_remove = candidate
+
+                if var_to_remove is None:
+                    break
+
+                included_vars.remove(var_to_remove)
+
+
+            elif direction == "both":
+                excluded = list(set(all_vars) - set(included_vars))
+
+                best_score = current_score
+
+                best_forward_score = current_score
+                var_to_add = None
+                for new_var in excluded:
+                    candidate_features = included_vars + [new_var]
+                    score = score_ols_model(
+                        X_train,
+                        y_train,
+                        candidate_features,
+                        metric=criteria,
+                    )
+                    if score < best_forward_score:
+                        best_forward_score = score
+                        var_to_add = new_var
+
+                best_backward_score = current_score
+                var_to_remove = None
+
+                for candidate in included_vars:
+                    if candidate in kept_vars:
+                        continue
+
+                    candidate_features = included_vars.copy()
+                    candidate_features.remove(candidate)
+                    score = score_ols_model(
+                        X_train,
+                        y_train,
+                        candidate_features,
+                        metric=criteria,
+                    )
+                    if score < best_backward_score:
+                        best_backward_score = score
+                        var_to_remove = candidate
+
+                if best_forward_score < best_backward_score:
+                    if var_to_add is None:
+                        break
+                    included_vars.append(var_to_add)
+                    best_score = best_forward_score
+                else:
+                    if var_to_remove is None:
+                        break
+                    included_vars.remove(var_to_remove)
+                    best_score = best_backward_score
+
+
+            current_score = best_score
             current_step += 1
 
-        # Set the new model
-        self.estimator = best_model
-
-        return ""  # placeholder change later
+        return included_vars
 
     def __str__(self):
         return self._name
+
+
+

@@ -26,17 +26,18 @@ from .exploratory import (
 from .display.print_utils import print_wrapped
 from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
+from .utils import ensure_func_arg_list_uniqueness
 
 
 class Analyzer:
     """Analyzer is a class designed for conducting exploratory data analysis (EDA),
     regression analysis, and machine learning modeling on wide format tabular data.
 
-    An Analyzer can be initialized with a single DataFrame which is then 
-    split into train and test DataFrames, or, alternatively, with pre-split 
+    An Analyzer can be initialized with a single DataFrame which is then
+    split into train and test DataFrames, or, alternatively, with pre-split
     train and test DataFrames. The Analyzer object can then be used to conduct
-    a variety of analyses, including exploratory data analysis (the eda method), 
-    regression analysis (lm and glm methods), 
+    a variety of analyses, including exploratory data analysis (the eda method),
+    regression analysis (lm and glm methods),
     and machine learning modeling (classify and regress methods).
     """
 
@@ -49,7 +50,7 @@ class Analyzer:
         verbose: bool = True,
         name: str = "Analyzer",
     ):
-        """Initializes a Analyzer object. 
+        """Initializes a Analyzer object.
 
         Parameters
         ----------
@@ -71,7 +72,7 @@ class Analyzer:
             Default: False. If True, prints helpful update messages for certain
                 Analyzer function calls.
         name : str
-            Default: 'Analyzer'. Identifier for the Analyzer. 
+            Default: 'Analyzer'. Identifier for the Analyzer.
         """
 
         self._verbose = verbose
@@ -122,8 +123,7 @@ class Analyzer:
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
     def eda(
-        self, 
-        dataset: Literal["train", "test", "all"] = "train"
+        self, dataset: Literal["train", "test", "all"] = "train"
     ) -> ComprehensiveEDA:
         """Constructs a ComprehensiveEDA object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
@@ -136,8 +136,8 @@ class Analyzer:
         Returns
         -------
         ComprehensiveEDA
-            The ComprehensiveEDA object contains a variety of exploratory data 
-            analysis methods, including summary statistics for numerical and 
+            The ComprehensiveEDA object contains a variety of exploratory data
+            analysis methods, including summary statistics for numerical and
             categorical variables, t-tests, and data visualizations.
         """
         if dataset == "train":
@@ -149,6 +149,7 @@ class Analyzer:
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
+    @ensure_func_arg_list_uniqueness()
     def lm(
         self,
         target: str | None = None,
@@ -195,7 +196,7 @@ class Analyzer:
                     formula, self._datahandler.df_test()
                 )
             except Exception as e:
-                raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
+                raise ValueError(f"Invalid formula: {formula}. Error: {e}.")
 
             # ensure missing values are dropped
             y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
@@ -222,6 +223,7 @@ class Analyzer:
                 OLSLinearModel(), datahandler, target, predictors
             )
 
+    @ensure_func_arg_list_uniqueness()
     def glm(
         self,
         family: Literal["poisson", "binomial", "negbinomial", "count"],
@@ -246,7 +248,7 @@ class Analyzer:
         target : str
             Default: None. The variable to be predicted.
         predictors : list[str]
-            Default: None. If None, all variables except target will be used as 
+            Default: None. If None, all variables except target will be used as
             predictors.
         formula : str
             Default: None. If not None, uses formula to specify the regression
@@ -254,9 +256,9 @@ class Analyzer:
 
         Returns
         -------
-        PoissonRegressionReport | BinomialRegressionReport | 
+        PoissonRegressionReport | BinomialRegressionReport |
         NegativeBinomialRegressionReport | CountRegressionReport
-            The appropriate regression report object is returned 
+            The appropriate regression report object is returned
             depending on the specified family.
         """
         if formula is None and target is None:
@@ -341,6 +343,7 @@ class Analyzer:
     # MACHINE LEARNING
     # --------------------------------------------------------------------------
 
+    @ensure_func_arg_list_uniqueness()
     def regress(
         self,
         models: list[BaseR],
@@ -356,7 +359,7 @@ class Analyzer:
 
         Parameters
         ----------
-        models : list[BaseRegression]
+        models : list[BaseR]
             Models to be evaluated.
         target : str
             The variable to be predicted.
@@ -370,7 +373,7 @@ class Analyzer:
             specified here, the same feature selectors will be used for all
             models.
         max_n_features : int
-            Default: None. Maximum number of predictors to utilize. 
+            Default: None. Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
         outer_cv : int
@@ -399,6 +402,7 @@ class Analyzer:
             verbose=self._verbose,
         )
 
+    @ensure_func_arg_list_uniqueness()
     def classify(
         self,
         models: list[BaseC],
@@ -414,7 +418,7 @@ class Analyzer:
 
         Parameters
         ----------
-        models : list[BaseClassification]
+        models : list[BaseC]
             Models to be evaluated.
         target : str
             The variable to be predicted.
@@ -465,7 +469,7 @@ class Analyzer:
     # --------------------------------------------------------------------------
     def datahandler(self) -> DataHandler:
         """Returns the DataHandler.
-        
+
         Returns
         -------
         DataHandler

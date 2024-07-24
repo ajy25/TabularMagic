@@ -128,7 +128,7 @@ class BaseC(BaseDiscriminativeModel):
                     y_pred_encoded = y_pred_score[:, 1] > self._threshold
 
                     print_wrapped(
-                        f"Optimal threshold set for {self._name} via F1 score.", 
+                        f"Optimal threshold set for {self._name} via F1 score.",
                         type="PROGRESS",
                     )
 
@@ -136,7 +136,6 @@ class BaseC(BaseDiscriminativeModel):
                 y_pred_score = self._estimator.decision_function(X_train)
 
             if self._is_binary:
-
                 self._train_scorer = ClassificationBinaryScorer(
                     y_pred=y_pred_encoded,
                     y_true=y_train_encoded,
@@ -200,8 +199,8 @@ class BaseC(BaseDiscriminativeModel):
                     y_pred_score_fold = fold_estimator.predict_proba(X_test)
                     if self._is_binary:
                         fold_threshold = self._select_optimal_threshold_f1(
-                            self._label_encoder.transform(y_test), 
-                            y_pred_score_fold[:, 1]
+                            self._label_encoder.transform(y_test),
+                            y_pred_score_fold[:, 1],
                         )
                         y_pred_scores.append(y_pred_score_fold)
                 elif hasattr(self._estimator, "decision_function"):
@@ -213,8 +212,6 @@ class BaseC(BaseDiscriminativeModel):
                 else:
                     y_pred_encoded = fold_estimator.predict(X_test)
                 y_preds_encoded.append(y_pred_encoded)
-
-                
 
             if len(y_pred_scores) == 0:
                 y_pred_scores = None
@@ -274,7 +271,7 @@ class BaseC(BaseDiscriminativeModel):
                     y_pred_encoded = y_pred_score[:, 1] > self._threshold
 
                     print_wrapped(
-                        f"Optimal threshold set for {self._name} via F1 score.", 
+                        f"Optimal threshold set for {self._name} via F1 score.",
                         type="PROGRESS",
                     )
 
@@ -439,12 +436,9 @@ class BaseC(BaseDiscriminativeModel):
                 type="WARNING",
             )
         return self._predictors
-    
+
     def _select_optimal_threshold_roc(
-        self, 
-        fpr: np.ndarray, 
-        tpr: np.ndarray, 
-        thresholds: np.ndarray
+        self, fpr: np.ndarray, tpr: np.ndarray, thresholds: np.ndarray
     ) -> float:
         """Selects the optimal threshold for binary classification models.
         The optimal threshold is selected based on the training data via the ROC curve.
@@ -467,16 +461,13 @@ class BaseC(BaseDiscriminativeModel):
             raise ValueError("This method is only for binary classification models.")
         optimal_idx = np.argmax(tpr - fpr)
         return thresholds[optimal_idx]
-    
 
     def _select_optimal_threshold_f1(
-        self, 
-        y_true: np.ndarray,
-        y_pred_score: np.ndarray
+        self, y_true: np.ndarray, y_pred_score: np.ndarray
     ) -> float:
-        """Selects the optimal threshold for binary classification models via 
+        """Selects the optimal threshold for binary classification models via
         the F1 score.
-        
+
         Parameters
         ----------
         y_true : np.ndarray ~ (sample_size,)
@@ -498,8 +489,6 @@ class BaseC(BaseDiscriminativeModel):
             f1_scores.append(f1_score(y_true, y_pred))
         optimal_idx = np.argmax(f1_scores)
         return thresholds[optimal_idx]
-        
-
 
     def __str__(self):
         return self._name

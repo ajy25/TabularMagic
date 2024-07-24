@@ -20,6 +20,7 @@ from .preprocessing import (
     CustomOneHotEncoder,
 )
 from ..display.print_options import print_options
+from ..utils import ensure_func_arg_list_uniqueness
 
 
 class PreprocessStepTracer:
@@ -276,17 +277,19 @@ class DataEmitter:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
 
+    @ensure_func_arg_list_uniqueness()
     def select_predictors(self, predictors: list[str] | None) -> "DataEmitter":
         """Selects a subset of predictors lazily (last step of the emit methods).
 
         Parameters
         ----------
-        - predictors : list[str] | None.
+        predictors : list[str] | None
             List of predictors to select. If None, all predictors are selected.
 
         Returns
         -------
-        - self : DataEmitter
+        DataEmitter
+            Returns self.
         """
         self._final_X_vars_subset = predictors
         return self
@@ -1409,18 +1412,19 @@ class DataHandler:
         return self
 
     def add_scaler(self, scaler: BaseSingleVarScaler, var: str) -> "DataHandler":
-        """Adds a scaler for the target variable.
+        """Adds a scaler for the given variable. Does not scale the variable.
 
         Parameters
         ----------
-        scaler : BaseSingleVarScaler.
+        scaler : BaseSingleVarScaler
             Scaler object.
-        var : str.
+        var : str
             Name of the variable.
 
         Returns
         -------
-        self : DataHandler
+        DataHandler
+            Returns self.
         """
         self._numerical_var_to_scaler[var] = scaler
         self._preprocess_step_tracer.add_step(
@@ -1434,11 +1438,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - vars : list[str]
+        vars : list[str]
+            List of variable names.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self.
         """
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]

@@ -134,8 +134,8 @@ class OLSLinearModel:
             The variables that are candidates for inclusion in the model. Default: None.
             If None, defaults to all variables in the training data.
         start_vars : list[str]
-            The variables to start the bidirectional stepwise selection with. 
-            Ignored if direction is not 'both'. If direction is 'both' and 
+            The variables to start the bidirectional stepwise selection with.
+            Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
             Default: None.
         max_steps : int
@@ -236,7 +236,6 @@ class OLSLinearModel:
 
                 included_vars.remove(var_to_remove)
 
-
             elif direction == "both":
                 excluded = list(set(all_vars) - set(included_vars))
 
@@ -286,7 +285,6 @@ class OLSLinearModel:
                     included_vars.remove(var_to_remove)
                     best_score = best_backward_score
 
-
             current_score = best_score
             current_step += 1
 
@@ -294,6 +292,3 @@ class OLSLinearModel:
 
     def __str__(self):
         return self._name
-
-
-

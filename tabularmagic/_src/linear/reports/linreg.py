@@ -768,7 +768,7 @@ class LinearRegressionReport:
         start_vars: list[str] | None = None,
         max_steps: int = 100,
     ) -> "LinearRegressionReport":
-        """Performs stepwise selection on the model. Returns a new 
+        """Performs stepwise selection on the model. Returns a new
         LinearRegressionReport object with the updated model.
 
         Parameters
@@ -784,8 +784,8 @@ class LinearRegressionReport:
             The variables that are candidates for inclusion in the model. Default: None.
             If None, defaults to all variables in the training data.
         start_vars : list[str]
-            The variables to start the bidirectional stepwise selection with. 
-            Ignored if direction is not 'both'. If direction is 'both' and 
+            The variables to start the bidirectional stepwise selection with.
+            Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
             Default: None.
         max_steps : int
@@ -814,12 +814,8 @@ class LinearRegressionReport:
                 var=self._target,
             )
         return LinearRegressionReport(
-            OLSLinearModel(), 
-            new_datahandler, 
-            self._target,
-            selected_vars
+            OLSLinearModel(), new_datahandler, self._target, selected_vars
         )
-
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for
@@ -831,6 +827,3 @@ class LinearRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-
-
-

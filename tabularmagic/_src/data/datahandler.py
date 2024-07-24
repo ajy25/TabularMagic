@@ -66,7 +66,7 @@ class DataEmitter:
     """DataEmitter: emits data for model fitting and other computational
     methods. DataEmitter is outputted by DataHandler methods.
     """
-    
+
     @ensure_arg_list_uniqueness()
     def __init__(
         self,
@@ -555,7 +555,7 @@ class DataEmitter:
         vars: list[str],
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
-        rename: bool = False
+        rename: bool = False,
     ) -> "DataEmitter":
         """Forces variables to be binary (0 and 1 valued numerical variables).
         Does nothing if the data contains more than two classes unless
@@ -570,10 +570,10 @@ class DataEmitter:
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
         ignore_multiclass : bool
-            Default: False. If True, all classes except pos_label are labeled with 
+            Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
         rename : bool
-            Default: False. If True, the variables are renamed to 
+            Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
 
         Returns
@@ -618,10 +618,12 @@ class DataEmitter:
             vars_to_renamed[var] = f"{pos_label}_yn({var})"
 
         if rename:
-            self._working_df_train =\
-                self._working_df_train.rename(columns=vars_to_renamed)
-            self._working_df_test =\
-                self._working_df_test.rename(columns=vars_to_renamed)
+            self._working_df_train = self._working_df_train.rename(
+                columns=vars_to_renamed
+            )
+            self._working_df_test = self._working_df_test.rename(
+                columns=vars_to_renamed
+            )
 
         (
             self._categorical_vars,
@@ -1002,7 +1004,7 @@ class DataHandler:
         Parameters
         ----------
         var : str
-            Name of the variable. 
+            Name of the variable.
 
         Returns
         -------
@@ -1197,10 +1199,10 @@ class DataHandler:
         return self
 
     def onehot(
-        self, 
+        self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        dropfirst: bool = True
+        dropfirst: bool = True,
     ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place. Encoder is
         fit on train DataFrame and transforms both train and test DataFrames.
@@ -1209,12 +1211,12 @@ class DataHandler:
         ----------
         include_vars : list[str]
             Default: None.
-            List of categorical variables to one-hot encode. If None, this is set to 
+            List of categorical variables to one-hot encode. If None, this is set to
             all categorical variables.
 
         exclude_vars : list[str]
             Default: None.
-            List of categorical variables to exclude from one-hot encoding. 
+            List of categorical variables to exclude from one-hot encoding.
 
         dropfirst : bool
             Default: True.
@@ -1254,7 +1256,6 @@ class DataHandler:
             "onehot", {"vars": include_vars, "dropfirst": dropfirst}
         )
         return self
-    
 
     def drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataHandler":
         """Drops columns with more than 50% missing values
@@ -1263,7 +1264,7 @@ class DataHandler:
 
         Parameters
         ----------
-        threshold : float. 
+        threshold : float.
             Default: 0.5. Proportion of missing values above which a column is dropped.
 
         Returns
@@ -1399,7 +1400,7 @@ class DataHandler:
         Parameters
         ----------
         include_vars : list[str]
-            Default: None. List of variables to scale. 
+            Default: None. List of variables to scale.
             If None, scales values in all columns.
         exclude_vars : list[str]
             Default: None. List of variables to exclude from scaling.
@@ -1589,7 +1590,7 @@ class DataHandler:
         vars: list[str],
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
-        rename: bool = False
+        rename: bool = False,
     ) -> "DataHandler":
         """Forces variables to be binary (0 and 1 valued numerical variables).
         Does nothing if the data contains more than two classes unless
@@ -1604,10 +1605,10 @@ class DataHandler:
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
         ignore_multiclass : bool
-            Default: False. If True, all classes except pos_label are labeled with 
+            Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
         rename : bool
-            Default: False. If True, the variables are renamed to 
+            Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
 
         Returns
@@ -1670,10 +1671,12 @@ class DataHandler:
             vars_to_renamed[var] = f"{pos_label}_yn({var})"
 
         if rename:
-            self._working_df_train =\
-                self._working_df_train.rename(columns=vars_to_renamed)
-            self._working_df_test =\
-                self._working_df_test.rename(columns=vars_to_renamed)
+            self._working_df_train = self._working_df_train.rename(
+                columns=vars_to_renamed
+            )
+            self._working_df_test = self._working_df_test.rename(
+                columns=vars_to_renamed
+            )
 
         if self._verbose:
             if len(vars_to_renamed) == 0:

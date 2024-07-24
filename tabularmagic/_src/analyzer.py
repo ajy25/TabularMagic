@@ -479,7 +479,7 @@ class Analyzer:
         Parameters
         ----------
         include_vars : list[str]
-            Default: None. List of variables to scale. 
+            Default: None. List of variables to scale.
             If None, scales values in all columns.
         exclude_vars : list[str]
             Default: None. List of variables to exclude from scaling.
@@ -557,7 +557,7 @@ class Analyzer:
             Default: None.
             List of columns along which to drop rows with missing values.
             If None, drops rows with missing values in all columns.
-            
+
         exclude_vars : list[str]
             Default: None.
             List of columns along which to exclude from dropping rows with
@@ -573,11 +573,8 @@ class Analyzer:
             exclude_vars=exclude_vars,
         )
         return self
-    
-    def drop_highly_missing_vars(
-        self,
-        threshold: float = 0.5
-    ) -> "Analyzer":
+
+    def drop_highly_missing_vars(self, threshold: float = 0.5) -> "Analyzer":
         """Drops variables with missing values above a specified threshold.
 
         Parameters
@@ -592,13 +589,13 @@ class Analyzer:
         """
         self._datahandler.drop_highly_missing_vars(threshold)
         return self
-    
+
     @ensure_arg_list_uniqueness()
     def onehot(
         self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        dropfirst: bool = True
+        dropfirst: bool = True,
     ) -> "Analyzer":
         """One-hot encodes the specified columns.
 
@@ -619,17 +616,15 @@ class Analyzer:
             Returns self for method chaining.
         """
         self._datahandler.onehot(
-            include_vars=include_vars,
-            exclude_vars=exclude_vars,
-            dropfirst=dropfirst
+            include_vars=include_vars, exclude_vars=exclude_vars, dropfirst=dropfirst
         )
         return self
-    
+
     @ensure_arg_list_uniqueness()
     def select_vars(
         self,
         include_vars: list[str] | None = None,
-        exclude_vars: list[str] | None = None
+        exclude_vars: list[str] | None = None,
     ) -> "Analyzer":
         """Selects the specified variables.
 
@@ -651,16 +646,11 @@ class Analyzer:
             include_vars = self._datahandler.vars()
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
-        self._datahandler.select_vars(
-            vars=include_vars
-        )
+        self._datahandler.select_vars(vars=include_vars)
         return self
-    
+
     @ensure_arg_list_uniqueness()
-    def force_numerical(
-        self,
-        vars: list[str]
-    ) -> "Analyzer":
+    def force_numerical(self, vars: list[str]) -> "Analyzer":
         """Forces specificed variables to numerical (float).
 
         Parameters
@@ -675,13 +665,9 @@ class Analyzer:
         """
         self._datahandler.force_numerical(vars)
         return self
-    
 
     @ensure_arg_list_uniqueness()
-    def force_categorical(
-        self,
-        vars: list[str]
-    ) -> "Analyzer":
+    def force_categorical(self, vars: list[str]) -> "Analyzer":
         """Forces specificed variables to categorical.
 
         Parameters
@@ -696,7 +682,6 @@ class Analyzer:
         """
         self._datahandler.force_categorical(vars)
         return self
-    
 
     @ensure_arg_list_uniqueness()
     def force_binary(
@@ -704,7 +689,7 @@ class Analyzer:
         vars: list[str],
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
-        rename: bool = False
+        rename: bool = False,
     ) -> "Analyzer":
         """Forces variables to be binary (0 and 1 valued numerical variables).
         Does nothing if the data contains more than two classes unless
@@ -719,10 +704,10 @@ class Analyzer:
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
         ignore_multiclass : bool
-            Default: False. If True, all classes except pos_label are labeled with 
+            Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
         rename : bool
-            Default: False. If True, the variables are renamed to 
+            Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
 
         Returns
@@ -734,12 +719,10 @@ class Analyzer:
             vars=vars,
             pos_labels=pos_labels,
             ignore_multiclass=ignore_multiclass,
-            rename=rename
+            rename=rename,
         )
         return self
 
-
-    
     def datahandler(self) -> DataHandler:
         """Returns the DataHandler.
 
@@ -757,12 +740,9 @@ class Analyzer:
         """Returns the number of examples in working train DataFrame."""
         return len(self._datahandler)
 
-
     def __str__(self) -> str:
         """Returns metadata in string form."""
         return self._datahandler.__str__()
-
-
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))

@@ -1,3 +1,7 @@
 local_tests
 .ruff_cache
 .pytest_cache
+
+docs/_build/*
+docs/_static/*
+docs/_templates/*

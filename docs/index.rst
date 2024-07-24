@@ -8,6 +8,5 @@ TabularMagic is a Python package for rapid exploratory statistical analysis and 
    :caption: Contents:
 
    analyzer
-   datahandler
 
 

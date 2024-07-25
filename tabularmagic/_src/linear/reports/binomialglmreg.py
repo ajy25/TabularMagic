@@ -580,7 +580,7 @@ class SingleDatasetBinRegReport:
     def plot_diagnostics(
         self, show_outliers: bool = False, figsize: Iterable = (7, 7)
     ) -> plt.Figure:
-        """Plots several useful linear regression diagnostic plots.
+        """Plots several useful binomial linear regression diagnostic plots.
 
         Parameters
         ----------
@@ -644,7 +644,7 @@ class SingleDatasetBinRegReport:
         """
         return self._outliers_df_idx.tolist()
 
-    def fit_statistics(self) -> pd.DataFrame:
+    def metrics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
@@ -731,7 +731,7 @@ class BinomialRegressionReport:
         """
         return self._model
 
-    def fit_statistics(
+    def metrics(
         self, dataset: Literal["train", "test"] = "test"
     ) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -747,23 +747,67 @@ class BinomialRegressionReport:
         pd.DataFrame.
         """
         if dataset == "train":
-            return self._train_report.fit_statistics()
+            return self._train_report.metrics()
         else:
-            return self._test_report.fit_statistics()
+            return self._test_report.metrics()
 
-    def stepwise(self) -> "BinomialLinearModel":
-        """Performs stepwise selection on the model.
+    def step(
+        self,
+        direction: Literal["both", "backward", "forward"] = "backward",
+        criteria: Literal["aic", "bic"] = "aic",
+        kept_vars: list[str] | None = None,
+        all_vars: list[str] | None = None,
+        start_vars: list[str] | None = None,
+        max_steps: int = 100,
+    ) -> "BinomialRegressionReport":
+        """Performs stepwise selection on the model. Returns a new
+        BinomialRegressionReport object with the updated model.
 
         Parameters
         ----------
-        alpha : float.
-            Default is 0.05.
+        direction : Literal["both", "backward", "forward"]
+            The direction of the stepwise selection. Default: 'backward'.
+        criteria : Literal["aic", "bic"]
+            The criteria to use for selecting the best model. Default: 'aic'.
+        kept_vars : list[str]
+            The variables that should be kept in the model. Default: None.
+            If None, defaults to empty list.
+        all_vars : list[str]
+            The variables that are candidates for inclusion in the model. Default: None.
+            If None, defaults to all variables in the training data.
+        start_vars : list[str]
+            The variables to start the bidirectional stepwise selection with.
+            Ignored if direction is not 'both'. If direction is 'both' and
+            start_vars is None, then the starting variables are the kept_vars.
+            Default: None.
+        max_steps : int
+            The maximum number of steps to take. Default: 100.
 
         Returns
         -------
-        BinomialLinearModel.
+        BinomialRegressionReport
         """
-        raise NotImplementedError()
+        selected_vars = self._model.step(
+            direction=direction,
+            criteria=criteria,
+            kept_vars=kept_vars,
+            all_vars=all_vars,
+            start_vars=start_vars,
+            max_steps=max_steps,
+        )
+        new_datahandler = DataHandler(
+            df_train=self._datahandler.df_train(),
+            df_test=self._datahandler.df_test(),
+        )
+        y_scaler = self._datahandler.scaler(self._target)
+        if y_scaler is not None:
+            new_datahandler.add_scaler(
+                scaler=y_scaler,
+                var=self._target,
+            )
+        return BinomialRegressionReport(
+            BinomialLinearModel(), new_datahandler, self._target, selected_vars
+        )
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for

@@ -78,7 +78,7 @@ class CountRegressionReport:
         """
         return self._model
 
-    def fit_statistics(
+    def metrics(
         self, dataset: Literal["train", "test"] = "test"
     ) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -94,9 +94,9 @@ class CountRegressionReport:
         pd.DataFrame.
         """
         if dataset == "train":
-            return self._train_report.fit_statistics()
+            return self._train_report.metrics()
         else:
-            return self._test_report.fit_statistics()
+            return self._test_report.metrics()
 
     def stepwise(self) -> "CountRegressionReport":
         """Performs stepwise selection on the model.

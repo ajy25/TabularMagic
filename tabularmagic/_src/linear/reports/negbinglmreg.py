@@ -701,7 +701,7 @@ class SingleDatasetNegBinRegReport:
         """
         return self._outliers_df_idx.tolist()
 
-    def fit_statistics(self) -> pd.DataFrame:
+    def metrics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
@@ -802,7 +802,7 @@ class NegativeBinomialRegressionReport:
         """
         return self._model
 
-    def fit_statistics(
+    def metrics(
         self, dataset: Literal["train", "test"] = "test"
     ) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -818,9 +818,9 @@ class NegativeBinomialRegressionReport:
         pd.DataFrame.
         """
         if dataset == "train":
-            return self._train_report.fit_statistics()
+            return self._train_report.metrics()
         else:
-            return self._test_report.fit_statistics()
+            return self._test_report.metrics()
     
     def step(
         self,

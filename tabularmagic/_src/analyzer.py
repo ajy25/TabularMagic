@@ -33,12 +33,19 @@ class Analyzer:
     """Analyzer is a class designed for conducting exploratory data analysis (EDA),
     regression analysis, and machine learning modeling on wide format tabular data.
 
-    An Analyzer can be initialized with a single DataFrame which is then
-    split into train and test DataFrames, or, alternatively, with pre-split
-    train and test DataFrames. The Analyzer object can then be used to conduct
-    a variety of analyses, including exploratory data analysis (the eda method),
-    regression analysis (lm and glm methods),
-    and machine learning modeling (classify and regress methods).
+    An Analyzer object can be initialized from a single DataFrame which is then
+    split into train and test DataFrames, or, alternatively, from pre-split
+    train and test DataFrames. The object can then be used to conduct
+    a variety of analyses, including exploratory data analysis (the eda() method),
+    regression analysis (lm() and glm() methods),
+    and machine learning modeling (classify() and regress() methods).
+
+    The Analyzer object also handles data preprocessing tasks, such as scaling,
+    imputing missing values, dropping rows with missing values, one-hot encoding,
+    and selecting variables. These methods can be chained together for easy data
+    transformation. The Analyzer object remembers how the data was transformed,
+    enabling proper fitting and transforming of cross validation splits of the
+    train dataset.
     """
 
     def __init__(
@@ -56,21 +63,26 @@ class Analyzer:
         ----------
         df : pd.DataFrame ~ (sample_size, n_variables)
             The DataFrame to be analyzed.
+
         df_test : pd.DataFrame ~ (test_sample_size, n_variables)
             Default: None.
             If not None, then treats df as the train DataFrame.
+
         test_size : float
             Default: 0. Proportion of the DataFrame to withhold for
             testing. If test_size = 0, then the train DataFrame and the
             test DataFrame will both be the same as the input df.
             If df_test is provided, then test_size is ignored.
+
         split_seed : int
             Default: 42.
             Used only for the train test split.
             If df_test is provided, then split_seed is ignored.
+
         verbose : bool
             Default: False. If True, prints helpful update messages for certain
                 Analyzer function calls.
+
         name : str
             Default: 'Analyzer'. Identifier for the Analyzer.
         """
@@ -164,9 +176,11 @@ class Analyzer:
         ----------
         target : str
             Default: None. The variable to be predicted.
+
         predictors : list[str]
             Default: None.
             If None, all variables except target will be used as predictors.
+
         formula : str
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
@@ -245,11 +259,14 @@ class Analyzer:
         ----------
         family : Literal["poisson", "binomial"]
             The family of the GLM.
+
         target : str
             Default: None. The variable to be predicted.
+
         predictors : list[str]
             Default: None. If None, all variables except target will be used as
             predictors.
+
         formula : str
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
@@ -361,23 +378,29 @@ class Analyzer:
         ----------
         models : list[BaseR]
             Models to be evaluated.
+
         target : str
             The variable to be predicted.
+
         predictors : list[str]
             Default: None.
             If None, uses all variables except target as predictors.
+
         feature_selectors : list[BaseFSR]
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If
             specified here, the same feature selectors will be used for all
             models.
+
         max_n_features : int
             Default: None. Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
+
         outer_cv : int
             Default: None. If not None, reports training scores via nested k-fold CV.
+
         outer_cv_seed : int
             Default: 42. The random seed for the outer cross validation loop.
 
@@ -420,25 +443,31 @@ class Analyzer:
         ----------
         models : list[BaseC]
             Models to be evaluated.
+
         target : str
             The variable to be predicted.
+
         predictors : list[str]
             Default: None.
             If None, uses all variables except target as predictors.
+
         feature_selectors : list[BaseFSR]
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
             Feature selectors can also be specified at the model level. If
             specified here, the same feature selectors will be used for all
             models.
+
         max_n_features : int
             Default: None.
             Maximum number of predictors to utilize.
             Ignored if feature_selectors is None.
             If None, then all features with at least 50% support are selected.
+
         outer_cv : int
             Default: None.
             If not None, reports training scores via nested k-fold CV.
+
         outer_cv_seed : int
             Default: 42.
             The random seed for the outer cross validation loop.
@@ -481,9 +510,11 @@ class Analyzer:
         include_vars : list[str]
             Default: None. List of variables to scale.
             If None, scales values in all columns.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude from scaling.
             If None, no variables are excluded.
+
         strategy : Literal["standardize", "minmax", "log", "log1p"]
             Default: 'standardize'. The scaling strategy.
 
@@ -515,15 +546,18 @@ class Analyzer:
         include_vars : list[str]
             Default: None. List of variables to impute missing values.
             If None, imputes missing values in all columns.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
+
         numerical_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
             Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
+
         categorical_strategy : Literal['most_frequent']
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
@@ -604,9 +638,11 @@ class Analyzer:
         include_vars : list[str]
             Default: None. List of variables to one-hot encode.
             If None, one-hot encodes all columns.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude from one-hot encoding.
             If None, no variables are excluded.
+
         dropfirst : bool
             Default: True. If True, drops the first one-hot encoded column.
 
@@ -633,6 +669,7 @@ class Analyzer:
         include_vars : list[str]
             Default: None. List of variables to include.
             If None, includes all variables.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude.
             If None, no variables are excluded.
@@ -700,12 +737,15 @@ class Analyzer:
         ----------
         vars : list[str]
             Name of variables to force to binary.
+
         pos_labels : list[str]
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
+
         ignore_multiclass : bool
             Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
+
         rename : bool
             Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).

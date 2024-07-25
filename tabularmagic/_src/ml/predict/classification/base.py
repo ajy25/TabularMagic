@@ -1,23 +1,22 @@
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import roc_curve, f1_score
+from sklearn.metrics import f1_score
 
-from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
-from ....data.datahandler import DataEmitter
+from ..base_model import BasePredictModel, HyperparameterSearcher
+from ....data import DataEmitter
 from ....metrics import (
     ClassificationMulticlassScorer,
     ClassificationBinaryScorer,
 )
-from ....feature_selection import BaseFSC, VotingSelectionReport
+from ....feature_selection import VotingSelectionReport
 from ....display.print_utils import print_wrapped
 import numpy as np
 
 
-class BaseC(BaseDiscriminativeModel):
-    """Class that provides the framework that all TabularMagic classification
-    classes inherit.
-
-    The primary purpose of BaseC is to automate the scoring and
+class BaseC(BasePredictModel):
+    """BaseC is a class that provides a training and evaluation framework that all
+    TabularMagic classification classes inherit (i.e., all ___C classes are children
+      of BaseC). The primary purpose of BaseC is to automate the scoring and
     model selection processes.
     """
 
@@ -47,46 +46,54 @@ class BaseC(BaseDiscriminativeModel):
         self,
         dataemitter: DataEmitter | None = None,
         dataemitters: list[DataEmitter] | None = None,
-        feature_selectors: list[BaseFSC] | None = None,
-        max_n_features: int | None = None,
     ):
-        """Adds a DataEmitter object to the model.
+        """Specifies the DataEmitters for the model fitting process.
 
         Parameters
         ----------
-        dataemitter : DataEmitter.
+        dataemitter : DataEmitter | None
             Default: None.
             DataEmitter that contains the data. If not None, re-specifies the
             DataEmitter for the model.
-        dataemitters : list[DataEmitter].
+
+        dataemitters : list[DataEmitter] | None
             Default: None.
             If not None, re-specifies the DataEmitters for nested cross validation.
-        feature_selectors : list[BaseFSC].
-            Default: None.
-            If not None, re-specifies the feature selectors
-            for the VotingSelectionReport.
-        max_n_features : int.
-            Default: None.
-            Maximum number of features to select.
-            Only useful if feature_selectors is not None.
-            If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
             self._dataemitter = dataemitter
         if dataemitters is not None:
             self._dataemitters = dataemitters
-        if feature_selectors is not None:
-            self._feature_selectors = feature_selectors
-        if max_n_features != "ignore":
-            self._max_n_features = max_n_features
 
     def fit(self, verbose: bool = False):
-        """Fits the model. Records training metrics, which can be done via
-        nested cross validation.
+        """Fits and evaluates the model.
+
+        The model fitting process is as follows:
+        1. The train data is emitted. This means that the data is preprocessed based on
+        user specifications AND necessary automatic preprocessing steps. That is,
+        the DataEmitter will automatically drop observations with missing
+        entries and encode categorical variables IF NOT SPECIFIED BY USER.
+        2. The hyperparameter search is performed. The best estimator is saved and
+        evaluated on the train data.
+        3. The test data is emitted. Preprocessing steps were previously
+        fitted on the train data. The test data is transformed accordingly.
+        4. The best estimator determined from the training step
+        is evaluated on the test data.
+
+        If cross validation is specified, fold-specific DataEmitters are generated.
+        Steps 1-4 are repeated for each fold.
+
+        The fitting process yields three sets of metrics:
+        1. The training set metrics.
+        2. The cross validation set metrics. *only if cross validation was specified*
+            Note that the cross validation metrics are computed on the test set of
+            each fold and are therefore a more robust estimate of model performance
+            than the test set metrics.
+        3. The test set metrics.
 
         Parameters
         ----------
-        verbose : bool.
+        verbose : bool
             Default: False. If True, prints progress.
         """
         self._is_binary = True
@@ -343,6 +350,18 @@ class BaseC(BaseDiscriminativeModel):
     def sklearn_estimator(self):
         """Returns the sklearn estimator object.
 
+        Note that the sklearn estimator can be saved and used for future predictions.
+        However, the input data must be preprocessed in the same way. If you intend
+        to use the estimator for future predictions, it is recommended that you
+        manually specify every preprocessing step, which will ensure that you
+        have full control over how the data is being transformed for future
+        reproducibility and predictions.
+
+        It is not recommended to use TabularMagic for ML production.
+        We recommend using TabularMagic to quickly identify promising models
+        and then manually implementing and training
+        the best model in a production environment.
+
         Returns
         -------
         BaseEstimator
@@ -377,6 +396,8 @@ class BaseC(BaseDiscriminativeModel):
         Returns
         -------
         VotingSelectionReport | None
+            None if the VotingSelectionReport object has not been set (e.g. no
+            feature selection was conducted).
         """
         if self._feature_selection_report is None:
             print_wrapped(
@@ -390,28 +411,30 @@ class BaseC(BaseDiscriminativeModel):
 
         Returns
         -------
-        bool.
+        bool
             True if the model is binary.
         """
         return self._is_binary
 
     def is_cross_validated(self) -> bool:
-        """Returns True if the model is cross-validated.
+        """Returns True if the cross validation metrics are available.
 
         Returns
         -------
-        bool.
-            True if the model is cross-validated.
+        bool
+            True if cross validation metrics are available.
         """
         return self._dataemitters is not None
 
     def pos_label(self) -> str | None:
-        """Returns the positive label.
+        """Returns the positive label. This method is only for binary
+        classification models. A warning is printed if the model is not binary, and
+        None is returned.
 
         Returns
         -------
-        str.
-            The positive label.
+        str | None
+            The positive label. None if the model is not binary.
         """
         if self._is_binary:
             return self._label_encoder.classes_[1]
@@ -423,12 +446,14 @@ class BaseC(BaseDiscriminativeModel):
             return None
 
     def predictors(self) -> list[str] | None:
-        """Returns the predictors.
+        """Returns a list predictor variable names. A warning is printed if the model
+        has not been fitted, and None is returned.
 
         Returns
         -------
-        list[str].
-            The predictors.
+        list[str] | None
+            A list of predictor variable names used in the final model,
+            after feature selection and data transformation.
         """
         if self._predictors is None:
             print_wrapped(
@@ -436,31 +461,6 @@ class BaseC(BaseDiscriminativeModel):
                 type="WARNING",
             )
         return self._predictors
-
-    def _select_optimal_threshold_roc(
-        self, fpr: np.ndarray, tpr: np.ndarray, thresholds: np.ndarray
-    ) -> float:
-        """Selects the optimal threshold for binary classification models.
-        The optimal threshold is selected based on the training data via the ROC curve.
-
-        Parameters
-        ----------
-        fpr : np.ndarray ~ (sample_size,)
-            False positive rates.
-        tpr : np.ndarray ~ (sample_size,)
-            True positive rates.
-        thresholds : np.ndarray ~ (sample_size,)
-            Thresholds.
-
-        Returns
-        -------
-        float
-            The optimal threshold.
-        """
-        if not self._is_binary:
-            raise ValueError("This method is only for binary classification models.")
-        optimal_idx = np.argmax(tpr - fpr)
-        return thresholds[optimal_idx]
 
     def _select_optimal_threshold_f1(
         self, y_true: np.ndarray, y_pred_score: np.ndarray
@@ -472,6 +472,7 @@ class BaseC(BaseDiscriminativeModel):
         ----------
         y_true : np.ndarray ~ (sample_size,)
             True labels.
+
         y_pred_score : np.ndarray ~ (sample_size,)
             Predicted scores.
 

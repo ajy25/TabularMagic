@@ -1,18 +1,15 @@
 from sklearn.base import BaseEstimator
 from ....metrics import RegressionScorer
-from ..base_model import BaseDiscriminativeModel, HyperparameterSearcher
-from ....data.datahandler import DataEmitter
-from ....feature_selection import BaseFSR
-from ....feature_selection.voteselect import VotingSelectionReport
+from ..base_model import BasePredictModel, HyperparameterSearcher
+from ....data import DataEmitter
+from ....feature_selection import VotingSelectionReport
 from ....display.print_utils import print_wrapped
-from typing import Literal
 
 
-class BaseR(BaseDiscriminativeModel):
-    """Class that provides the framework that all TabularMagic regression
-    classes inherit.
-
-    The primary purpose of BaseR is to automate the scoring and
+class BaseR(BasePredictModel):
+    """BaseR is a class that provides a training and evaluation framework that all
+    TabularMagic regression classes inherit (i.e., all ___R classes are children
+      of BaseR). The primary purpose of BaseR is to automate the scoring and
     model selection processes.
     """
 
@@ -39,46 +36,54 @@ class BaseR(BaseDiscriminativeModel):
         self,
         dataemitter: DataEmitter | None = None,
         dataemitters: list[DataEmitter] | None = None,
-        feature_selectors: list[BaseFSR] | None = None,
-        max_n_features: int | None = None,
     ):
-        """Adds a DataEmitter object to the model.
+        """Specifies the DataEmitters for the model fitting process.
 
         Parameters
         ----------
-        dataemitter : DataEmitter.
+        dataemitter : DataEmitter | None
             Default: None.
             DataEmitter that contains the data. If not None, re-specifies the
             DataEmitter for the model.
-        dataemitters : list[DataEmitter].
+
+        dataemitters : list[DataEmitter] | None
             Default: None.
             If not None, re-specifies the DataEmitters for nested cross validation.
-        feature_selectors : list[BaseFSR].
-            Default: None.
-            If not None, re-specifies the feature selectors
-            for the VotingSelectionReport.
-        max_n_features : int.
-            Default: None.
-            Maximum number of features to select.
-            Only useful if feature_selectors is not None.
-            If None, then all features with at least 50% support are selected.
         """
         if dataemitter is not None:
             self._dataemitter = dataemitter
         if dataemitters is not None:
             self._dataemitters = dataemitters
-        if feature_selectors is not None:
-            self._feature_selectors = feature_selectors
-        if max_n_features is not None:
-            self._max_n_features = max_n_features
 
     def fit(self, verbose: bool = False):
-        """Fits the model. Records training metrics, which can be done via
-        nested cross validation.
+        """Fits and evaluates the model.
+
+        The model fitting process is as follows:
+        1. The train data is emitted. This means that the data is preprocessed based on
+        user specifications AND necessary automatic preprocessing steps. That is,
+        the DataEmitter will automatically drop observations with missing
+        entries and encode categorical variables IF NOT SPECIFIED BY USER.
+        2. The hyperparameter search is performed. The best estimator is saved and
+        evaluated on the train data.
+        3. The test data is emitted. Preprocessing steps were previously
+        fitted on the train data. The test data is transformed accordingly.
+        4. The best estimator determined from the training step
+        is evaluated on the test data.
+
+        If cross validation is specified, fold-specific DataEmitters are generated.
+        Steps 1-4 are repeated for each fold.
+
+        The fitting process yields three sets of metrics:
+        1. The training set metrics.
+        2. The cross validation set metrics. *only if cross validation was specified*
+            Note that the cross validation metrics are computed on the test set of
+            each fold and are therefore a more robust estimate of model performance
+            than the test set metrics.
+        3. The test set metrics.
 
         Parameters
         ----------
-        verbose : bool.
+        verbose : bool
             Default: False. If True, prints progress.
         """
         if self._dataemitter is None:
@@ -219,6 +224,18 @@ class BaseR(BaseDiscriminativeModel):
     def sklearn_estimator(self) -> BaseEstimator:
         """Returns the sklearn estimator object.
 
+        Note that the sklearn estimator can be saved and used for future predictions.
+        However, the input data must be preprocessed in the same way. If you intend
+        to use the estimator for future predictions, it is recommended that you
+        manually specify every preprocessing step, which will ensure that you
+        have full control over how the data is being transformed for future
+        reproducibility and predictions.
+
+        It is not recommended to use TabularMagic for ML production.
+        We recommend using TabularMagic to quickly identify promising models
+        and then manually implementing and training
+        the best model in a production environment.
+
         Returns
         -------
         BaseEstimator
@@ -247,12 +264,14 @@ class BaseR(BaseDiscriminativeModel):
         """
         self._feature_selection_report = voting_selection_report
 
-    def feature_selection_report(self) -> VotingSelectionReport:
+    def feature_selection_report(self) -> VotingSelectionReport | None:
         """Returns the VotingSelectionReport object.
 
         Returns
         -------
-        VotingSelectionReport
+        VotingSelectionReport | None
+            None if the VotingSelectionReport object has not been set (e.g. no
+            feature selection was conducted).
         """
         if self._feature_selection_report is None:
             print_wrapped(
@@ -262,21 +281,24 @@ class BaseR(BaseDiscriminativeModel):
         return self._feature_selection_report
 
     def is_cross_validated(self) -> bool:
-        """Returns True if the model is cross-validated.
+        """Returns True if the cross validation metrics are available.
 
         Returns
         -------
         bool
+            True if cross validation metrics are available.
         """
         return self._dataemitters is not None
 
     def predictors(self) -> list[str] | None:
-        """Returns the predictors.
+        """Returns a list predictor variable names. A warning is printed if the model
+        has not been fitted, and None is returned.
 
         Returns
         -------
-        list[str].
-            The predictors.
+        list[str] | None
+            A list of predictor variable names used in the final model,
+            after feature selection and data transformation.
         """
         if self._predictors is None:
             print_wrapped(

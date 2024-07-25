@@ -24,9 +24,15 @@ from ..utils import ensure_arg_list_uniqueness
 
 
 class PreprocessStepTracer:
-    """PreprocessStepTracer: keeps track of all preprocessing steps."""
+    """PreprocessStepTracer is a class that tracks preprocessing steps.
+
+    This class is used by the DataHandler class to track all preprocessing
+    steps applied to the data, as well as by the DataEmitter class to re-trace
+    the steps when emitting data for model fitting.
+    """
 
     def __init__(self):
+        """Initializes a PreprocessStepTracer object."""
         self.reset()
 
     def reset(self):
@@ -39,8 +45,10 @@ class PreprocessStepTracer:
 
         Parameters
         ----------
-        - step : str. Preprocessing method name.
-        - kwargs : dict.
+        step : str
+            Preprocessing method name.
+        kwargs : dict
+            Keyword arguments for the preprocessing method.
         """
         self._steps.append({"step": step, "kwargs": kwargs})
 
@@ -49,22 +57,30 @@ class PreprocessStepTracer:
 
         Parameters
         ----------
-        - mapping : dict.
+        mapping : dict
             Dictionary with categorical variables as keys and
             categories as values.
         """
         self._category_mapping = mapping.copy()
 
     def copy(self) -> "PreprocessStepTracer":
-        """Returns a copy of the PreprocessStepTracer object."""
+        """Returns a copy of the PreprocessStepTracer object.
+
+        Returns
+        -------
+        PreprocessStepTracer
+            Copy of the PreprocessStepTracer object.
+        """
         new = PreprocessStepTracer()
         new._steps = self._steps.copy()
         return new
 
 
 class DataEmitter:
-    """DataEmitter: emits data for model fitting and other computational
-    methods. DataEmitter is outputted by DataHandler methods.
+    """DataEmitter is a class that emits data for model fitting and other computational
+    methods. By emit, we mean that preprocessing steps are fitted on the training data
+    and then applied to the test data. The
+    DataEmitter is outputted by DataHandler methods.
     """
 
     @ensure_arg_list_uniqueness()
@@ -80,15 +96,17 @@ class DataEmitter:
 
         Parameters
         ----------
-        - df_train : pd.DataFrame.
+        df_train : pd.DataFrame
             df_train is the train DataFrame before preprocessing but
             after variable manipulation. DataEmitter copies this DataFrame.
-        - df_test : pd.DataFrame.
+        df_test : pd.DataFrame
             df_test is the train DataFrame before preprocessing but
             after variable manipulation. DataEmitter copies this DataFrame.
-        - y_var : str.
-        - X_vars : list[str].
-        - step_tracer: PreprocessStepTracer.
+        y_var : str
+            The target variable.
+        X_vars : list[str]
+            The predictor variables.
+        step_tracer: PreprocessStepTracer
         """
         self._working_df_train = df_train.copy()
         self._working_df_test = df_test.copy()
@@ -162,10 +180,10 @@ class DataEmitter:
 
         Returns
         -------
-        - X_train_df
-        - y_train_series
-        - X_test_df
-        - y_test_series
+        X_train_df
+        y_train_series
+        X_test_df
+        y_test_series
         """
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
@@ -817,7 +835,7 @@ class DataHandler:
         # verify and set the original DataFrames
         self._verify_input_dfs(df_train, df_test)
 
-        self._orig_df_train, self._orig_df_test = self._remove_spaces_varnames(
+        self._orig_df_train, self._orig_df_test = self._rename_varnames(
             df_train, df_test
         )
 
@@ -1856,24 +1874,63 @@ class DataHandler:
             assert a == b
         return df_train, df_test
 
-    def _remove_spaces_varnames(self, df_train: pd.DataFrame, df_test: pd.DataFrame):
-        """Removes spaces from variable names.
+    def _rename_varnames(self, df_train: pd.DataFrame, df_test: pd.DataFrame):
+        """Renames variables to remove 'problematic' characters.
+
+        We remove the following characters from variable names:
+        1. ' ' (whitespace)
+        2. '\\n' (newline)
+        3. '\\t' (tab)
 
         Parameters
         ----------
-        - df_train : pd.DataFrame
-        - df_test : pd.DataFrame
+        df_train : pd.DataFrame
+            The train DataFrame.
+
+        df_test : pd.DataFrame
+            The test DataFrame.
 
         Returns
         -------
-        - df_train : pd.DataFrame
-        - df_test : pd.DataFrame
+        pd.DataFrame
+            The train DataFrame with renamed variable names.
+
+        pd.DataFrame
+            The test DataFrame with renamed variable names.
         """
         new_columns = df_train.columns.to_list()
+
+        problematic_chars = [
+            " ",
+            "\n",
+            "\t",
+        ]
+
+        orig_renamed_vars = []
+        renamed_vars = []
+
         for i, var in enumerate(new_columns):
-            new_columns[i] = "".join(var.split(" "))
+            orig_var = var
+            for char in problematic_chars:
+                if char in var:
+                    var = var.replace(char, "")
+
+            if var != orig_var:
+                renamed_vars.append(var)
+                orig_renamed_vars.append(orig_var)
+            new_columns[i] = var
+
         df_train.columns = new_columns
         df_test.columns = new_columns
+
+        if self._verbose:
+            if len(renamed_vars) > 0:
+                print_wrapped(
+                    f"Renamed variables {list_to_string(orig_renamed_vars)} "
+                    + f"to {list_to_string(renamed_vars)}.",
+                    type="UPDATE",
+                )
+
         return df_train, df_test
 
     def _shapes_str_formatted(self):

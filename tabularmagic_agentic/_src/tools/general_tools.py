@@ -1,11 +1,6 @@
 from langchain.tools import tool
-import tabularmagic as tm
 from langchain.pydantic_v1 import BaseModel, Field
-from langchain.callbacks.manager import (
-    AsyncCallbackManagerForToolRun,
-    CallbackManagerForToolRun,
-)
-from typing import Type, Optional, Literal
+from typing import Literal
 from ..shared_analyzer import shared_analyzer
 
 

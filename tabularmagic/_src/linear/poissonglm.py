@@ -35,8 +35,9 @@ def score_poisson_model(
         return np.inf
 
     subset_X_train = X_train[feature_list]
-    new_model = sm.GLM(y_train, subset_X_train, 
-                       family = sm.families.Poisson()).fit(cov_type="HC3")
+    new_model = sm.GLM(y_train, subset_X_train, family=sm.families.Poisson()).fit(
+        cov_type="HC3"
+    )
     if metric == "aic":
         score = new_model.aic
     elif metric == "bic":

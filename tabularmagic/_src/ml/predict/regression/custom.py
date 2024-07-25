@@ -23,10 +23,11 @@ class CustomR(BaseR):
 
         Parameters
         ----------
-        estimator : BaseEstimator | BaseSearchCV | Pipeline.
+        estimator : BaseEstimator | BaseSearchCV | Pipeline
             The estimator to be used. Must have a fit method and a
             predict method.
-        name : str.
+
+        name : str
             Default: None.
             The name of the model. If None, the estimator's
             __str__() implementation is used.

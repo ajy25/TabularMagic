@@ -11,7 +11,7 @@ from ....display.print_utils import print_wrapped
 
 
 class CustomC(BaseC):
-    """TabularMagic-compatible wrapper for user-designed scikit-learn
+    """CustomC is a TabularMagic-compatible interface for user-designed scikit-learn
     estimators/searches/pipelines.
 
     Hyperparameter search is not conducted unless provided by the
@@ -27,10 +27,11 @@ class CustomC(BaseC):
 
         Parameters
         ----------
-        estimator : BaseEstimator | BaseSearchCV | Pipeline.
+        estimator : BaseEstimator | BaseSearchCV | Pipeline
             The estimator to be used. Must have a fit method and a
             predict method.
-        name : str.
+
+        name : str
             Default: None.
             The name of the model. If None, the estimator's
             __str__() implementation is used.

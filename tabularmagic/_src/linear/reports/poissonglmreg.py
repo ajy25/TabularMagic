@@ -12,7 +12,6 @@ from adjustText import adjust_text
 from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
-
 class SingleDatasetPoisRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single poisson generalized linear regression model.

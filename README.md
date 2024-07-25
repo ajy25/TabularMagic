@@ -9,8 +9,7 @@ TabularMagic is a Python package for rapid exploratory statistical analysis and 
 
 ## Installation and dependencies
 
-TabularMagic can be installed via pip. The Python scripts below handle 
-package setup and pip installation. 
+TabularMagic can be installed via pip. The Python scripts below handle package setup and pip installation. 
 
 To install TabularMagic: 
 ```
@@ -58,7 +57,7 @@ def reshow(fig: plt.Figure):
     plt.show()
 
 train_eda = analyzer.eda()
-print(train_eda.numstats())
+print(train_eda.numerical_stats())
 reshow(train_eda.plot_distribution('target'))
 reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
 ```
@@ -103,7 +102,7 @@ reshow(report.plot_obs_vs_pred('TreeEnsembleR(adaboost)', 'test'))
 
 ### Example UI + AI agent usage
 
-TBD
+This feature is coming! We're working on it.
 
 
 

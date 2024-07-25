@@ -448,7 +448,7 @@ class MLRegressionReport:
         """
         if self._feature_selection_report is None:
             print_wrapped(
-                f"No feature selection report available.",
+                "No feature selection report available.",
                 type="WARNING",
             )
         return self._feature_selection_report

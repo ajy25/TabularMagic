@@ -102,7 +102,7 @@ class LassoSelectorR(BaseFSR):
             Default: None. If None, then name is set to default.
         """
         if name is None:
-            name = f"LassoSelectorR"
+            name = "LassoSelectorR"
         super().__init__(name)
         self._model = Lasso(alpha=alpha)
         self._max_n_features = max_n_features

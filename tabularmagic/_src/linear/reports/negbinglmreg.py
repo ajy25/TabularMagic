@@ -12,7 +12,6 @@ from adjustText import adjust_text
 from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
-
 class SingleDatasetNegBinRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single Negative Binomial generalized linear
@@ -635,7 +634,7 @@ class SingleDatasetNegBinRegReport:
     def plot_diagnostics(
         self, show_outliers: bool = False, figsize: Iterable = (7, 7)
     ) -> plt.Figure:
-        """Plots several useful negative binomial 
+        """Plots several useful negative binomial
         linear regression diagnostic plots.
 
         Parameters
@@ -877,8 +876,7 @@ class NegativeBinomialRegressionReport:
                 var=self._target,
             )
         return NegativeBinomialRegressionReport(
-            NegativeBinomialLinearModel(), new_datahandler, self._target, 
-            selected_vars
+            NegativeBinomialLinearModel(), new_datahandler, self._target, selected_vars
         )
 
     def statsmodels_summary(self):

@@ -16,16 +16,16 @@ import warnings
 from ...display.print_utils import print_wrapped
 
 
-class BaseDiscriminativeModel:
+class BasePredictModel:
     """Base class for typing assistance of BaseR and BaseC.
 
-    BaseR and BaseC extend BaseDiscriminativeModel.
-    BaseDiscriminativeModel has no funtionality beyond providing
+    BaseR and BaseC extend BasePredictModel.
+    BasePredictModel has no funtionality beyond providing
     typing assistance elsewhere.
     """
 
     def __init__(self):
-        self._id = "BaseDiscriminativeModel"
+        self._id = "BasePredictModel"
 
     def __str__(self):
         return self._id
@@ -99,7 +99,7 @@ class HyperparameterSearcher:
                     else:
                         optuna.logging.set_verbosity(optuna.logging.WARNING)
             self._fit_message = (
-                f"Search method: OptunaSearchCV " + f'({kwargs["n_trials"]} trials).'
+                "Search method: OptunaSearchCV " + f'({kwargs["n_trials"]} trials).'
             )
 
             with warnings.catch_warnings():

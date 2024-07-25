@@ -4,7 +4,6 @@ from ...data.datahandler import DataHandler
 from .negbinglmreg import SingleDatasetNegBinRegReport
 from .poissonglmreg import SingleDatasetPoisRegReport
 from ..countglm import CountLinearModel
-from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
 class CountRegressionReport:

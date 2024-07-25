@@ -18,8 +18,8 @@ class CountRegressionReport:
         self,
         model: CountLinearModel,
         datahandler: DataHandler,
-        y_var: str,
-        X_vars: Iterable[str],
+        target: str,
+        predictors: Iterable[str],
     ):
         """CountRegressionReport.
         Fits the model based on provided DataHandler.
@@ -38,9 +38,10 @@ class CountRegressionReport:
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
+        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
         self._model.fit()
+        self._target = target
 
         if self._model._type == "poisson":
             self._train_report = SingleDatasetPoisRegReport(model, "train")

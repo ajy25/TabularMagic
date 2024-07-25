@@ -748,8 +748,8 @@ class NegativeBinomialRegressionReport:
         self,
         model: NegativeBinomialLinearModel,
         datahandler: DataHandler,
-        y_var: str,
-        X_vars: Iterable[str],
+        target: str,
+        predictors: Iterable[str],
     ):
         """NegativeBinomialRegressionReport.
         Fits the model based on provided DataHandler.
@@ -767,10 +767,10 @@ class NegativeBinomialRegressionReport:
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
+        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
         self._model.fit()
-
+        self._target = target
         self._train_report = SingleDatasetNegBinRegReport(model, "train")
         self._test_report = SingleDatasetNegBinRegReport(model, "test")
 

@@ -678,8 +678,8 @@ class BinomialRegressionReport:
         self,
         model: BinomialLinearModel,
         datahandler: DataHandler,
-        y_var: str,
-        X_vars: Iterable[str],
+        target: str,
+        predictors: Iterable[str],
     ):
         """GLMRegressionReport.
         Fits the model based on provided DataHandler.
@@ -697,10 +697,10 @@ class BinomialRegressionReport:
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(y_var, X_vars)
+        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
         self._model.fit()
-
+        self._target = target
         self._train_report = SingleDatasetBinRegReport(model, "train")
         self._test_report = SingleDatasetBinRegReport(model, "test")
 

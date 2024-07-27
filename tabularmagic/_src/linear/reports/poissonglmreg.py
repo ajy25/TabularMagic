@@ -58,7 +58,7 @@ class SingleDatasetPoisRegReport:
     def plot_obs_vs_pred(
         self,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
@@ -67,12 +67,15 @@ class SingleDatasetPoisRegReport:
         Parameters
         ----------
         show_outliers : bool
-            Default: True.
+            Default: True. 
             If True, then the outliers calculated using standard errors will be
             shown in red.
-        figsize : Iterable.
-            Default: (5,5). Sets the size of the resulting graph
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0,5.0). Sets the size of the resulting graph
+
+        ax : plt.Axes
+            Default: None.
 
         Returns
         -------

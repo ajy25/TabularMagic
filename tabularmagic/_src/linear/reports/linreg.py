@@ -58,7 +58,6 @@ class SingleDatasetLinRegReport:
         self,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
-        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y

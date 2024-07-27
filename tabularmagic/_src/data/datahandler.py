@@ -47,6 +47,7 @@ class PreprocessStepTracer:
         ----------
         step : str
             Preprocessing method name.
+
         kwargs : dict
             Keyword arguments for the preprocessing method.
         """
@@ -99,13 +100,17 @@ class DataEmitter:
         df_train : pd.DataFrame
             df_train is the train DataFrame before preprocessing but
             after variable manipulation. DataEmitter copies this DataFrame.
+
         df_test : pd.DataFrame
             df_test is the train DataFrame before preprocessing but
             after variable manipulation. DataEmitter copies this DataFrame.
+
         y_var : str
             The target variable.
+
         X_vars : list[str]
             The predictor variables.
+
         step_tracer: PreprocessStepTracer
         """
         self._working_df_train = df_train.copy()
@@ -129,6 +134,7 @@ class DataEmitter:
         self._forward()
 
     def _forward(self):
+        """Applies all preprocessing steps in the step tracer."""
         for step in self._step_tracer._steps:
             if step["step"] == "onehot":
                 self._onehot(**step["kwargs"])
@@ -154,7 +160,13 @@ class DataEmitter:
                 raise ValueError("Invalid step.")
 
     def y_scaler(self) -> BaseSingleVarScaler | None:
-        """Returns the scaler for the y variable, which could be None."""
+        """Returns the scaler for the y variable, which could be None.
+        
+        Returns
+        -------
+        BaseSingleVarScaler | None
+            If the y variable is not scaled, returns None.
+        """
         return self._yscaler
 
     def emit_train_test_Xy(
@@ -180,10 +192,17 @@ class DataEmitter:
 
         Returns
         -------
-        X_train_df
-        y_train_series
-        X_test_df
-        y_test_series
+        pd.DataFrame
+            X_train_df: The training DataFrame of predictors.
+
+        pd.Series
+            y_train_series: The training Series of the target variable.
+
+        pd.DataFrame
+            X_test_df: The test DataFrame of predictors.
+
+        pd.Series
+            y_test_series: The test Series of the target variable.
         """
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
@@ -238,8 +257,11 @@ class DataEmitter:
 
         Returns
         -------
-        - X_train_df
-        - y_train_series
+        pd.DataFrame
+            X_train_df: The training DataFrame of predictors.
+
+        pd.Series
+            y_train_series: The training Series of the target variable.
         """
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
@@ -277,8 +299,11 @@ class DataEmitter:
 
         Returns
         -------
-        - X_test_df
-        - y_test_series
+        pd.DataFrame
+            X_test_df: The test DataFrame of predictors.
+
+        pd.Series
+            y_test_series: The test Series of the target variable.
         """
         all_vars = self._Xvars + [self._yvar]
         prev_test_len = len(self._working_df_test)
@@ -320,14 +345,18 @@ class DataEmitter:
 
         Parameters
         ----------
-        - vars : list[str]. Default: None.
+        vars : list[str]
+            Default: None.
             If not None, only one-hot encodes the specified variables.
-        - dropfirst : bool. Default: True.
+
+        dropfirst : bool
+            Default: True.
             If True, the first dummy variable is dropped.
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         if vars is None:
             vars = self._categorical_vars
@@ -349,12 +378,13 @@ class DataEmitter:
 
         Parameters
         ----------
-        - threshold : float. Default: 0.5. Proportion of missing values
-            above which a column is dropped.
+        threshold : float
+            Default: 0.5. Proportion of missing values above which a column is dropped.
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         prev_vars = self._working_df_train.columns.to_list()
         self._working_df_train = self._working_df_train.dropna(
@@ -376,12 +406,13 @@ class DataEmitter:
 
         Parameters
         ----------
-        - vars : list[str]. List of variables along which to drop rows with
-            missing values.
+        vars : list[str]
+            List of variables along which to drop rows with missing values.
 
         Returns
         -------
-        - self : DataHandler
+        DataEmitter
+            Returns self for method chaining.
         """
         self._working_df_train = self._working_df_train.dropna(subset=vars)
         self._working_df_test = self._working_df_test.dropna(subset=vars)
@@ -398,12 +429,15 @@ class DataEmitter:
         Parameters
         ----------
         vars : list[str]
+            List of variables to impute missing values.
+
         numerical_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
             Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
+
         categorical_strategy : Literal['most_frequent'].
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
@@ -459,6 +493,7 @@ class DataEmitter:
         vars : list[str]
             List of variables to scale. If None, scales all numerical
             variables.
+
         strategy : Literal['standardize', 'minmax', 'log', 'log1p']
 
         Returns
@@ -584,12 +619,15 @@ class DataEmitter:
         ----------
         vars : list[str]
             Name of variables to force to binary.
+
         pos_labels : list[str]
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
+
         ignore_multiclass : bool
             Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
+
         rename : bool
             Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
@@ -650,17 +688,19 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _force_categorical(self, vars: list[str]) -> "DataHandler":
+    def _force_categorical(self, vars: list[str]) -> "DataEmitter":
         """Forces variables to become categorical.
         Example use case: create numerically-coded categorical variables.
 
         Parameters
         ----------
-        - vars : list[str].
+        vars : list[str]
+            Name of variables.
 
         Returns
         -------
-        - self : DataHandler.
+        DataEmitter
+            Returns self for method chaining.
         """
         if not isinstance(vars, list):
             vars = [vars]
@@ -678,18 +718,27 @@ class DataEmitter:
         ) = self._compute_categorical_numerical_vars(self._working_df_train)
         return self
 
-    def _compute_categories(self, df: pd.DataFrame, categorical_vars: list[str]):
+    def _compute_categories(
+        self, 
+        df: pd.DataFrame, 
+        categorical_vars: list[str]
+    ) -> dict:
         """Returns a dictionary containing the categorical variables
         each mapped to a list of all categories in the variable.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - categorical_vars : list[str].
+        df : pd.DataFrame
+            The DataFrame.
+
+        categorical_vars : list[str]
+            List of categorical variable names.
 
         Returns
         -------
-        - dict
+        dict
+            Dictionary with categorical variables as keys and
+            categories as values.
         """
         categories_dict = {}
         for var in categorical_vars:
@@ -708,18 +757,24 @@ class DataEmitter:
 
         Parameters
         ----------
-        - df : pd.DataFrame
-        - vars : list[str]. Default: None.
-            If not None, only one-hot encodes the specified variables.
-        - dropfirst : bool. Default: True.
-            If True, the first dummy variable is dropped.
-        - fit : bool. Default: True.
+        df : pd.DataFrame
+            The DataFrame.
+
+        vars : list[str]
+            Default: None. If not None, only one-hot encodes the specified variables.
+
+        dropfirst : bool
+            Default: True. If True, the first dummy variable is dropped.
+
+        fit : bool
+            Default: True.
             If True, fits the encoder on the training data. Otherwise,
             only transforms the test data.
 
         Returns
         -------
-        - df_train encoded : pd.DataFrame
+        pd.DataFrame
+            The DataFrame with one-hot encoded variables.
         """
         if vars is None:
             categorical_vars = df.select_dtypes(
@@ -764,19 +819,28 @@ class DataEmitter:
         else:
             return df
 
-    def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
+    def _compute_categorical_numerical_vars(
+        self, 
+        df: pd.DataFrame
+    ) -> tuple[list[str], list[str], dict]:
         """Returns the categorical and numerical columns.
         Also returns the categorical variables mapped to their categories.
 
         Parameters
         ----------
-        - df : pd.DataFrame
+        df : pd.DataFrame
+            The DataFrame.
 
         Returns
         -------
-        - categorical_vars : list[str]
-        - numerical_vars : list[str]
-        - categorical_mapped : dict
+        list[str]
+            categorical_vars : List of categorical variables.
+
+        list[str]
+            numerical_vars : List of numerical variables.
+
+        dict
+            categorical_mapped : Dictionary with categorical variables as keys
         """
         categorical_vars = df.select_dtypes(
             include=["object", "category", "bool"]
@@ -787,25 +851,30 @@ class DataEmitter:
         categorical_mapped = self._compute_categories(df, categorical_vars)
         return categorical_vars, numerical_vars, categorical_mapped
 
-    def _add_scaler(self, scaler: BaseSingleVarScaler, var: str) -> "DataHandler":
+    def _add_scaler(self, scaler: BaseSingleVarScaler, var: str) -> "DataEmitter":
         """Adds a scaler for the target variable.
 
         Parameters
         ----------
-        scaler : BaseSingleVarScaler.
+        scaler : BaseSingleVarScaler
             Scaler object.
-        var : str.
+
+        var : str
             Name of the variable.
+
+        Returns
+        -------
+        DataEmitter
+            Returns self for method chaining.
         """
-        if var != self._yvar:
-            return self
-        else:
+        if var == self._yvar:
             self._yscaler = scaler
-            return self
+        return self
 
 
 class DataHandler:
-    """DataHandler: handles all aspects of data preprocessing and loading."""
+    """DataHandler: a class that handles all aspects of data preprocessing and loading.
+    """
 
     def __init__(
         self,
@@ -818,14 +887,17 @@ class DataHandler:
 
         Parameters
         ----------
-        - df_train : pd.DataFrame.
+        df_train : pd.DataFrame
             The train DataFrame.
-        - df_test : pd.DataFrame.
+
+        df_test : pd.DataFrame
             The test DataFrame.
-        - name : str. Default: None.
-            The name of the DataHandler object.
-        - verbose : bool.
-            If True, prints updates and warnings.
+            
+        name : str | None
+            Default: None. The name of the DataHandler object.
+            
+        verbose : bool
+            Default: True. If True, prints updates and warnings.
         """
         self._checkpoint_name_to_df: dict[
             str, tuple[pd.DataFrame, pd.DataFrame]
@@ -877,13 +949,14 @@ class DataHandler:
 
         Parameters
         ----------
-        - checkpoint : str.
+        checkpoint : str | None
             Default: None. If None, sets the working DataFrames to the original
             DataFrames given at object initialization.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         if checkpoint is None:
             self._working_df_test = self._orig_df_test.copy()
@@ -931,11 +1004,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - checkpoint : str.
+        checkpoint : str
+            Name of the checkpoint.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         if self._verbose:
             print_wrapped(
@@ -957,11 +1032,13 @@ class DataHandler:
 
         Parameters
         ----------
-        - checkpoint : str.
+        checkpoint : str
+            Name of the checkpoint to remove.
 
         Returns
         -------
-        - self : DataHandler
+        DataHandler
+            Returns self for method chaining.
         """
         out_chkpt = self._checkpoint_name_to_df.pop(checkpoint)
         if self._verbose:
@@ -977,7 +1054,13 @@ class DataHandler:
     # --------------------------------------------------------------------------
 
     def df_all(self) -> pd.DataFrame:
-        """Returns the working train and test DataFrames concatenated"""
+        """Returns the working train and test DataFrames concatenated.
+        
+        Returns
+        ------- 
+        pd.DataFrame
+            Concatenated DataFrames.
+        """
         no_test = True
         for a, b in zip(self._working_df_train.index, self._working_df_test.index):
             if a != b:
@@ -990,31 +1073,57 @@ class DataHandler:
         return out
 
     def df_train(self) -> pd.DataFrame:
-        """Returns the working train DataFrame."""
+        """Returns the working train DataFrame.
+        
+        Returns
+        -------
+        pd.DataFrame
+            The working train DataFrame.
+        """
         return self._working_df_train
 
     def df_test(self) -> pd.DataFrame:
-        """Returns the working test DataFrame."""
+        """Returns the working test DataFrame.
+        
+        Returns
+        -------
+        pd.DataFrame
+            The working test DataFrame.
+        """
         return self._working_df_test
 
     def vars(self) -> list[str]:
-        """Returns a list of all variables in the working DataFrames"""
+        """Returns a list of all variables in the working DataFrames.
+        
+        Returns
+        -------
+        list[str]
+            List of variable names.
+        """
         out = self._working_df_train.columns.to_list()
         return out
 
     def numerical_vars(self) -> list[str]:
-        """Returns copy of list of numerical variables."""
+        """Returns copy of list of numerical variables.
+        
+        Returns
+        -------
+        list[str]
+            List of numerical variable names.
+        """
         out = self._numerical_vars.copy()
         return out
 
     def categorical_vars(self) -> list[str]:
-        """Returns copy of list of categorical variables."""
+        """Returns copy of list of categorical variables.
+        
+        Returns
+        -------
+        list[str]
+            List of categorical variable names.
+        """
         out = self._categorical_vars.copy()
         return out
-
-    def head(self, n=5) -> pd.DataFrame:
-        """Returns the first n rows of the working train DataFrame."""
-        return self._working_df_test.head(n)
 
     def scaler(self, var: str) -> BaseSingleVarScaler | None:
         """Returns the scaler for a numerical variable, which could be None.
@@ -1037,8 +1146,14 @@ class DataHandler:
 
         Parameters
         ----------
-        - y_var : str. Name of the target variable.
-        - X_vars : list[str]. Names of the predictor variables.
+        y_var : str
+            Name of the target variable.
+        X_vars : list[str]
+            Names of the predictor variables.
+
+        Returns
+        -------
+        DataEmitter
         """
         if y_var not in self._working_df_train.columns:
             raise ValueError(f"Invalid target variable name: {y_var}.")
@@ -1068,16 +1183,25 @@ class DataHandler:
 
         Parameters
         ----------
-        - y_var : str. Name of the target variable.
-        - X_vars : list[str]. Names of the predictor variables.
-        - n_folds : int. Default: 5. Number of folds.
-        - shuffle : bool. Default: True. Whether to shuffle the data.
-        - random_state : int. Default: 42. Random state for the
+        y_var : str
+            Name of the target variable.
+
+        X_vars : list[str]
+            Names of the predictor variables.
+
+        n_folds : int
+            Default: 5. Number of folds.
+
+        shuffle : bool
+            Default: True. Whether to shuffle the data.
+
+        random_state : int
+            Default: 42. Random state for the
             KFold/StratifiedKFold. Ignored if shuffle is False.
 
         Returns
         -------
-        - list[DataEmitter]
+        list[DataEmitter]
         """
         if n_folds < 2:
             raise ValueError("n_folds must be at least 2.")
@@ -1182,6 +1306,7 @@ class DataHandler:
             Default: None.
             List of columns along which to drop rows with missing values.
             If None, drops rows with missing values in all columns.
+
         exclude_vars : list[str]
             Default: None.
             List of columns along which to exclude from dropping rows with
@@ -1282,7 +1407,7 @@ class DataHandler:
 
         Parameters
         ----------
-        threshold : float.
+        threshold : float
             Default: 0.5. Proportion of missing values above which a column is dropped.
 
         Returns
@@ -1329,15 +1454,18 @@ class DataHandler:
         include_vars : list[str]
             Default: None. List of variables to impute missing values.
             If None, imputes missing values in all columns.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
+
         numerical_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
             Strategy for imputing missing values in numerical variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
+
         categorical_strategy : Literal['most_frequent']
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
@@ -1420,9 +1548,11 @@ class DataHandler:
         include_vars : list[str]
             Default: None. List of variables to scale.
             If None, scales values in all columns.
+
         exclude_vars : list[str]
             Default: None. List of variables to exclude from scaling.
             If None, no variables are excluded.
+
         strategy : Literal["standardize", "minmax", "log", "log1p"]
 
         Returns
@@ -1454,6 +1584,12 @@ class DataHandler:
             else:
                 raise ValueError("Invalid scaling strategy.")
 
+            if self._numerical_var_to_scaler[var] is not None:
+                print_wrapped(
+                    f"Variable {var} has already been scaled. "
+                    "The new scaler will replace the old one.",
+                    type="WARNING",
+                )
             self._working_df_train[var] = scaler.transform(
                 self._working_df_train[var].to_numpy()
             )
@@ -1481,6 +1617,7 @@ class DataHandler:
         ----------
         scaler : BaseSingleVarScaler
             Scaler object.
+
         var : str
             Name of the variable.
 
@@ -1489,6 +1626,12 @@ class DataHandler:
         DataHandler
             Returns self.
         """
+        if self._numerical_var_to_scaler[var] is not None:
+            print_wrapped(
+                f"Variable {var} has already been scaled. "
+                "The new scaler will replace the old one.",
+                type="WARNING"
+            )
         self._numerical_var_to_scaler[var] = scaler
         self._preprocess_step_tracer.add_step(
             "add_scaler", {"scaler": scaler, "var": var}
@@ -1619,12 +1762,15 @@ class DataHandler:
         ----------
         vars : list[str]
             Name of variables to force to binary.
+
         pos_labels : list[str]
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
+
         ignore_multiclass : bool
             Default: False. If True, all classes except pos_label are labeled with
             zero. Otherwise raises ValueError.
+
         rename : bool
             Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
@@ -1784,7 +1930,10 @@ class DataHandler:
         Parameters
         ----------
         df1 : pd.DataFrame
+            The train DataFrame.
+            
         df2 : pd.DataFrame
+            The test DataFrame.
 
         Raises
         ------
@@ -1807,7 +1956,10 @@ class DataHandler:
                 "are of type datetime. TabularMagic cannot handle datetime values."
             )
 
-    def _compute_categorical_numerical_vars(self, df: pd.DataFrame):
+    def _compute_categorical_numerical_vars(
+        self, 
+        df: pd.DataFrame
+    ) -> tuple[list[str], list[str], dict]:
         """Returns the categorical and numerical column values.
         Also returns the categorical variables mapped to their categories.
 
@@ -1817,9 +1969,14 @@ class DataHandler:
 
         Returns
         -------
-        categorical_vars : list[str]
-        numerical_vars : list[str]
-        categorical_mapped : dict
+        list[str]
+            List of categorical variables.
+
+        list[str]
+            List of numerical variables.
+
+        dict
+            Dictionary mapping categorical variables to their categories.
         """
         categorical_vars = df.select_dtypes(
             include=["object", "category", "bool"]
@@ -1838,13 +1995,17 @@ class DataHandler:
 
         Parameters
         ----------
-        - df_train : pd.DataFrame.
-        - df_test : pd.DataFrane.
+        df_train : pd.DataFrame
+
+        df_test : pd.DataFrane
 
         Returns
         -------
-        - df_train : pd.DataFrame
-        - df_test : pd.DataFrame
+        pd.DataFrame
+            Modified train DataFrame.
+
+        pd.DataFrame
+            Modified test DataFrame.
         """
         missing_test_columns = list(set(df_train.columns) - set(df_test.columns))
         extra_test_columns = list(set(df_test.columns) - set(df_train.columns))
@@ -1933,34 +2094,40 @@ class DataHandler:
 
         return df_train, df_test
 
-    def _shapes_str_formatted(self):
+    def _shapes_str_formatted(self) -> dict:
         """Returns a dictionary containing shape information for the
         working DataFrames.
 
         Returns
         -------
-        - {
-            'train': self.working_df_train.shape,
-            'test': self.working_df_test.shape
-        }
+        dict
+            {
+                "train": shape of working_df_train,
+                "test": shape of working_df_test
+            }
         """
         return {
             "train": color_text(str(self._working_df_train.shape), color="yellow"),
             "test": color_text(str(self._working_df_test.shape), color="yellow"),
         }
 
-    def _compute_categories(self, df: pd.DataFrame, categorical_vars: list[str]):
+    def _compute_categories(
+        self, 
+        df: pd.DataFrame, 
+        categorical_vars: list[str]
+    ) -> dict:
         """Returns a dictionary containing the categorical variables
         each mapped to a list of all categories in the variable.
 
         Parameters
         ----------
-        - df : pd.DataFrame.
-        - categorical_vars : list[str].
+        df : pd.DataFrame
+
+        categorical_vars : list[str]
 
         Returns
         -------
-        - dict
+        dict
         """
         categories_dict = {}
         for var in categorical_vars:
@@ -1979,18 +2146,24 @@ class DataHandler:
 
         Parameters
         ----------
-        - df : pd.DataFrame
-        - vars : list[str]. Default: None.
-            If not None, only one-hot encodes the specified variables.
-        - dropfirst : bool. Default: True.
-            If True, the first dummy variable is dropped.
-        - fit : bool. Default: True.
+        df : pd.DataFrame
+            The DataFrame to one-hot encode.
+
+        vars : list[str]
+            Default: None. If not None, only one-hot encodes the specified variables.
+
+        dropfirst : bool
+            Default: True. If True, the first dummy variable is dropped.
+
+        fit : bool
+            Default: True.
             If True, fits the encoder on the training data. Otherwise,
             only transforms the test data.
 
         Returns
         -------
-        - df_train encoded : pd.DataFrame
+        pd.DataFrame
+            The DataFrame with one-hot encoded variables.
         """
         if vars is None:
             categorical_vars, _, _ = self._compute_categorical_numerical_vars(df)
@@ -2033,11 +2206,11 @@ class DataHandler:
         else:
             return df
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of examples in working_df_train."""
         return len(self._working_df_train)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a string representation of the DataHandler object."""
         working_df_test = self._working_df_test
         working_df_train = self._working_df_train

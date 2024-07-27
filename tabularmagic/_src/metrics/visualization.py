@@ -12,7 +12,7 @@ def plot_obs_vs_pred(
     y_pred: np.ndarray,
     y_true: np.ndarray,
     model_name: str | None = None,
-    figsize: Iterable = (5, 5),
+    figsize: tuple[float, float] = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
     """Returns a figure that is a scatter plot of the observed and predicted y
@@ -81,7 +81,7 @@ def plot_roc_curve(
     y_score: np.ndarray,
     y_true: np.ndarray,
     model_name: str | None = None,
-    figsize: Iterable = (5, 5),
+    figsize: tuple[float, float] = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
     """Returns a figure that is the ROC curve for the model.
@@ -134,7 +134,7 @@ def plot_confusion_matrix(
     y_pred: np.ndarray,
     y_true: np.ndarray,
     model_name: str | None = None,
-    figsize: Iterable = (5, 5),
+    figsize: tuple[float, float] = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
     """Returns a figure that is the confusion matrix for the model.

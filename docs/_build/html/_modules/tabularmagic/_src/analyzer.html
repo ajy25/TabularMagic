@@ -43,7 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../analyzer.html">tm.Analyzer (<code class="xref py py-mod docutils literal notranslate"><span class="pre">tabularmagic.Analyzer</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../python_api/classes.html">TabularMagic Classes</a></li>
 </ul>
 
         </div>
@@ -102,16 +102,23 @@
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">ensure_arg_list_uniqueness</span>
 
 
-<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyzer is a class designed for conducting exploratory data analysis (EDA),</span>
 <span class="sd">    regression analysis, and machine learning modeling on wide format tabular data.</span>
 
-<span class="sd">    An Analyzer can be initialized with a single DataFrame which is then</span>
-<span class="sd">    split into train and test DataFrames, or, alternatively, with pre-split</span>
-<span class="sd">    train and test DataFrames. The Analyzer object can then be used to conduct</span>
-<span class="sd">    a variety of analyses, including exploratory data analysis (the eda method),</span>
-<span class="sd">    regression analysis (lm and glm methods),</span>
-<span class="sd">    and machine learning modeling (classify and regress methods).</span>
+<span class="sd">    An Analyzer object can be initialized from a single DataFrame which is then</span>
+<span class="sd">    split into train and test DataFrames, or, alternatively, from pre-split</span>
+<span class="sd">    train and test DataFrames. The object can then be used to conduct</span>
+<span class="sd">    a variety of analyses, including exploratory data analysis (the eda() method),</span>
+<span class="sd">    regression analysis (lm() and glm() methods),</span>
+<span class="sd">    and machine learning modeling (classify() and regress() methods).</span>
+
+<span class="sd">    The Analyzer object also handles data preprocessing tasks, such as scaling,</span>
+<span class="sd">    imputing missing values, dropping rows with missing values, one-hot encoding,</span>
+<span class="sd">    and selecting variables. These methods can be chained together for easy data</span>
+<span class="sd">    transformation. The Analyzer object remembers how the data was transformed,</span>
+<span class="sd">    enabling proper fitting and transforming of cross validation splits of the</span>
+<span class="sd">    train dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -129,21 +136,26 @@
 <span class="sd">        ----------</span>
 <span class="sd">        df : pd.DataFrame ~ (sample_size, n_variables)</span>
 <span class="sd">            The DataFrame to be analyzed.</span>
+
 <span class="sd">        df_test : pd.DataFrame ~ (test_sample_size, n_variables)</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If not None, then treats df as the train DataFrame.</span>
+
 <span class="sd">        test_size : float</span>
 <span class="sd">            Default: 0. Proportion of the DataFrame to withhold for</span>
 <span class="sd">            testing. If test_size = 0, then the train DataFrame and the</span>
 <span class="sd">            test DataFrame will both be the same as the input df.</span>
 <span class="sd">            If df_test is provided, then test_size is ignored.</span>
+
 <span class="sd">        split_seed : int</span>
 <span class="sd">            Default: 42.</span>
 <span class="sd">            Used only for the train test split.</span>
 <span class="sd">            If df_test is provided, then split_seed is ignored.</span>
+
 <span class="sd">        verbose : bool</span>
 <span class="sd">            Default: False. If True, prints helpful update messages for certain</span>
 <span class="sd">                Analyzer function calls.</span>
+
 <span class="sd">        name : str</span>
 <span class="sd">            Default: &#39;Analyzer&#39;. Identifier for the Analyzer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -195,7 +207,7 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># EDA + FEATURE SELECTION + REGRESSION ANALYSIS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComprehensiveEDA</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs a ComprehensiveEDA object for the working train</span>
@@ -222,7 +234,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid input: dataset = </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">lm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -237,9 +249,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        target : str</span>
 <span class="sd">            Default: None. The variable to be predicted.</span>
+
 <span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, all variables except target will be used as predictors.</span>
+
 <span class="sd">        formula : str</span>
 <span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
 <span class="sd">            (overrides target and predictors).</span>
@@ -290,13 +304,16 @@
             <span class="n">datahandler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span>
                 <span class="n">y_X_df_combined_train</span><span class="p">,</span> <span class="n">y_X_df_combined_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-            <span class="n">datahandler</span><span class="o">.</span><span class="n">add_scaler</span><span class="p">(</span><span class="n">y_scaler</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">y_scaler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">datahandler</span><span class="o">.</span><span class="n">add_scaler</span><span class="p">(</span><span class="n">y_scaler</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">scaler</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">datahandler</span><span class="o">.</span><span class="n">add_scaler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">scaler</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="n">target</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">LinearRegressionReport</span><span class="p">(</span>
                 <span class="n">OLSLinearModel</span><span class="p">(),</span> <span class="n">datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">glm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">family</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;binomial&quot;</span><span class="p">,</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">],</span>
@@ -318,11 +335,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        family : Literal[&quot;poisson&quot;, &quot;binomial&quot;]</span>
 <span class="sd">            The family of the GLM.</span>
+
 <span class="sd">        target : str</span>
 <span class="sd">            Default: None. The variable to be predicted.</span>
+
 <span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None. If None, all variables except target will be used as</span>
 <span class="sd">            predictors.</span>
+
 <span class="sd">        formula : str</span>
 <span class="sd">            Default: None. If not None, uses formula to specify the regression</span>
 <span class="sd">            (overrides target and predictors).</span>
@@ -416,7 +436,7 @@
     <span class="c1"># MACHINE LEARNING</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">regress</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseR</span><span class="p">],</span>
@@ -434,23 +454,29 @@
 <span class="sd">        ----------</span>
 <span class="sd">        models : list[BaseR]</span>
 <span class="sd">            Models to be evaluated.</span>
+
 <span class="sd">        target : str</span>
 <span class="sd">            The variable to be predicted.</span>
+
 <span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, uses all variables except target as predictors.</span>
+
 <span class="sd">        feature_selectors : list[BaseFSR]</span>
 <span class="sd">            The feature selectors for voting selection. Feature selectors</span>
 <span class="sd">            can be used to select the most important predictors.</span>
 <span class="sd">            Feature selectors can also be specified at the model level. If</span>
 <span class="sd">            specified here, the same feature selectors will be used for all</span>
 <span class="sd">            models.</span>
+
 <span class="sd">        max_n_features : int</span>
 <span class="sd">            Default: None. Maximum number of predictors to utilize.</span>
 <span class="sd">            Ignored if feature_selectors is None.</span>
 <span class="sd">            If None, then all features with at least 50% support are selected.</span>
+
 <span class="sd">        outer_cv : int</span>
 <span class="sd">            Default: None. If not None, reports training scores via nested k-fold CV.</span>
+
 <span class="sd">        outer_cv_seed : int</span>
 <span class="sd">            Default: 42. The random seed for the outer cross validation loop.</span>
 
@@ -475,7 +501,7 @@
             <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseC</span><span class="p">],</span>
@@ -493,25 +519,31 @@
 <span class="sd">        ----------</span>
 <span class="sd">        models : list[BaseC]</span>
 <span class="sd">            Models to be evaluated.</span>
+
 <span class="sd">        target : str</span>
 <span class="sd">            The variable to be predicted.</span>
+
 <span class="sd">        predictors : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If None, uses all variables except target as predictors.</span>
+
 <span class="sd">        feature_selectors : list[BaseFSR]</span>
 <span class="sd">            The feature selectors for voting selection. Feature selectors</span>
 <span class="sd">            can be used to select the most important predictors.</span>
 <span class="sd">            Feature selectors can also be specified at the model level. If</span>
 <span class="sd">            specified here, the same feature selectors will be used for all</span>
 <span class="sd">            models.</span>
+
 <span class="sd">        max_n_features : int</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            Maximum number of predictors to utilize.</span>
 <span class="sd">            Ignored if feature_selectors is None.</span>
 <span class="sd">            If None, then all features with at least 50% support are selected.</span>
+
 <span class="sd">        outer_cv : int</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            If not None, reports training scores via nested k-fold CV.</span>
+
 <span class="sd">        outer_cv_seed : int</span>
 <span class="sd">            Default: 42.</span>
 <span class="sd">            The random seed for the outer cross validation loop.</span>
@@ -540,7 +572,41 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># DATAHANDLER METHODS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="Analyzer.scale"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.scale">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">load_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the original train and test DataFrames.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        checkpoint_name : str</span>
+<span class="sd">            Default: None. The name of the checkpoint to load.</span>
+<span class="sd">            If None, loads the original train and test DataFrames.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Analyzer</span>
+<span class="sd">            Returns self for method chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">load_data_checkpoint</span><span class="p">(</span><span class="n">checkpoint_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    
+    <span class="k">def</span> <span class="nf">save_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the current train and test DataFrames.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        checkpoint_name : str</span>
+<span class="sd">            The name of the checkpoint.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Analyzer</span>
+<span class="sd">            Returns self for method chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">save_data_checkpoint</span><span class="p">(</span><span class="n">checkpoint_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="Analyzer.scale"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.scale">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -552,11 +618,13 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        include_vars : list[str]</span>
-<span class="sd">            Default: None. List of variables to scale. </span>
+<span class="sd">            Default: None. List of variables to scale.</span>
 <span class="sd">            If None, scales values in all columns.</span>
+
 <span class="sd">        exclude_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to exclude from scaling.</span>
 <span class="sd">            If None, no variables are excluded.</span>
+
 <span class="sd">        strategy : Literal[&quot;standardize&quot;, &quot;minmax&quot;, &quot;log&quot;, &quot;log1p&quot;]</span>
 <span class="sd">            Default: &#39;standardize&#39;. The scaling strategy.</span>
 
@@ -572,7 +640,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.impute"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.impute">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.impute"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.impute">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">impute</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -588,15 +656,18 @@
 <span class="sd">        include_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to impute missing values.</span>
 <span class="sd">            If None, imputes missing values in all columns.</span>
+
 <span class="sd">        exclude_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to exclude from imputing missing values.</span>
 <span class="sd">            If None, no variables are excluded.</span>
+
 <span class="sd">        numerical_strategy : Literal[&#39;median&#39;, &#39;mean&#39;, &#39;5nn&#39;]</span>
 <span class="sd">            Default: &#39;median&#39;.</span>
 <span class="sd">            Strategy for imputing missing values in numerical variables.</span>
 <span class="sd">            - &#39;median&#39;: impute with median.</span>
 <span class="sd">            - &#39;mean&#39;: impute with mean.</span>
 <span class="sd">            - &#39;5nn&#39;: impute with 5-nearest neighbors.</span>
+
 <span class="sd">        categorical_strategy : Literal[&#39;most_frequent&#39;]</span>
 <span class="sd">            Default: &#39;most_frequent&#39;.</span>
 <span class="sd">            Strategy for imputing missing values in categorical variables.</span>
@@ -615,7 +686,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.dropna"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.dropna">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.dropna"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.dropna">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -630,7 +701,7 @@
 <span class="sd">            Default: None.</span>
 <span class="sd">            List of columns along which to drop rows with missing values.</span>
 <span class="sd">            If None, drops rows with missing values in all columns.</span>
-<span class="sd">            </span>
+
 <span class="sd">        exclude_vars : list[str]</span>
 <span class="sd">            Default: None.</span>
 <span class="sd">            List of columns along which to exclude from dropping rows with</span>
@@ -646,11 +717,8 @@
             <span class="n">exclude_vars</span><span class="o">=</span><span class="n">exclude_vars</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
-<div class="viewcode-block" id="Analyzer.drop_highly_missing_vars"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.drop_highly_missing_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_highly_missing_vars</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Analyzer.drop_highly_missing_vars"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.drop_highly_missing_vars">[docs]</a>    <span class="k">def</span> <span class="nf">drop_highly_missing_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Drops variables with missing values above a specified threshold.</span>
 
 <span class="sd">        Parameters</span>
@@ -665,13 +733,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">drop_highly_missing_vars</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
-<div class="viewcode-block" id="Analyzer.onehot"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.onehot">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Analyzer.onehot"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.onehot">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">onehot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">dropfirst</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">dropfirst</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;One-hot encodes the specified columns.</span>
 
@@ -680,9 +748,11 @@
 <span class="sd">        include_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to one-hot encode.</span>
 <span class="sd">            If None, one-hot encodes all columns.</span>
+
 <span class="sd">        exclude_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to exclude from one-hot encoding.</span>
 <span class="sd">            If None, no variables are excluded.</span>
+
 <span class="sd">        dropfirst : bool</span>
 <span class="sd">            Default: True. If True, drops the first one-hot encoded column.</span>
 
@@ -692,17 +762,15 @@
 <span class="sd">            Returns self for method chaining.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">onehot</span><span class="p">(</span>
-            <span class="n">include_vars</span><span class="o">=</span><span class="n">include_vars</span><span class="p">,</span>
-            <span class="n">exclude_vars</span><span class="o">=</span><span class="n">exclude_vars</span><span class="p">,</span>
-            <span class="n">dropfirst</span><span class="o">=</span><span class="n">dropfirst</span>
+            <span class="n">include_vars</span><span class="o">=</span><span class="n">include_vars</span><span class="p">,</span> <span class="n">exclude_vars</span><span class="o">=</span><span class="n">exclude_vars</span><span class="p">,</span> <span class="n">dropfirst</span><span class="o">=</span><span class="n">dropfirst</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
-<div class="viewcode-block" id="Analyzer.select_vars"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.select_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Analyzer.select_vars"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.select_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">select_vars</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">exclude_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Selects the specified variables.</span>
 
@@ -711,6 +779,7 @@
 <span class="sd">        include_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to include.</span>
 <span class="sd">            If None, includes all variables.</span>
+
 <span class="sd">        exclude_vars : list[str]</span>
 <span class="sd">            Default: None. List of variables to exclude.</span>
 <span class="sd">            If None, no variables are excluded.</span>
@@ -724,16 +793,11 @@
             <span class="n">include_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">vars</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">exclude_vars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">include_vars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">include_vars</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">exclude_vars</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">select_vars</span><span class="p">(</span>
-            <span class="nb">vars</span><span class="o">=</span><span class="n">include_vars</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">select_vars</span><span class="p">(</span><span class="nb">vars</span><span class="o">=</span><span class="n">include_vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
-<div class="viewcode-block" id="Analyzer.force_numerical"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.force_numerical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">force_numerical</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Analyzer.force_numerical"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.force_numerical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">force_numerical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces specificed variables to numerical (float).</span>
 
 <span class="sd">        Parameters</span>
@@ -748,13 +812,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">force_numerical</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
 
-<div class="viewcode-block" id="Analyzer.force_categorical"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.force_categorical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">force_categorical</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer.force_categorical"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.force_categorical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">force_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces specificed variables to categorical.</span>
 
 <span class="sd">        Parameters</span>
@@ -769,15 +829,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">force_categorical</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
-    
 
-<div class="viewcode-block" id="Analyzer.force_binary"><a class="viewcode-back" href="../../../analyzer.html#tabularmagic.Analyzer.force_binary">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.force_binary"><a class="viewcode-back" href="../../../python_api/classes/analyzer.html#tabularmagic.Analyzer.force_binary">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">force_binary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pos_labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">ignore_multiclass</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">rename</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">rename</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces variables to be binary (0 and 1 valued numerical variables).</span>
 <span class="sd">        Does nothing if the data contains more than two classes unless</span>
@@ -788,14 +847,17 @@
 <span class="sd">        ----------</span>
 <span class="sd">        vars : list[str]</span>
 <span class="sd">            Name of variables to force to binary.</span>
+
 <span class="sd">        pos_labels : list[str]</span>
 <span class="sd">            Default: None. The positive labels.</span>
 <span class="sd">            If None, the first class for each var is the positive label.</span>
+
 <span class="sd">        ignore_multiclass : bool</span>
-<span class="sd">            Default: False. If True, all classes except pos_label are labeled with </span>
+<span class="sd">            Default: False. If True, all classes except pos_label are labeled with</span>
 <span class="sd">            zero. Otherwise raises ValueError.</span>
+
 <span class="sd">        rename : bool</span>
-<span class="sd">            Default: False. If True, the variables are renamed to </span>
+<span class="sd">            Default: False. If True, the variables are renamed to</span>
 <span class="sd">            {pos_label}_yn({var}).</span>
 
 <span class="sd">        Returns</span>
@@ -807,12 +869,10 @@
             <span class="nb">vars</span><span class="o">=</span><span class="nb">vars</span><span class="p">,</span>
             <span class="n">pos_labels</span><span class="o">=</span><span class="n">pos_labels</span><span class="p">,</span>
             <span class="n">ignore_multiclass</span><span class="o">=</span><span class="n">ignore_multiclass</span><span class="p">,</span>
-            <span class="n">rename</span><span class="o">=</span><span class="n">rename</span>
+            <span class="n">rename</span><span class="o">=</span><span class="n">rename</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-
-    
     <span class="k">def</span> <span class="nf">datahandler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataHandler</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the DataHandler.</span>
 
@@ -830,12 +890,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of examples in working train DataFrame.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns metadata in string form.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
-
-
 
     <span class="k">def</span> <span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>
         <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>

@@ -21,11 +21,13 @@ class SingleModelSingleDatasetMLClassReport:
 
         Parameters
         ----------
-        model: BaseC.
+        model: BaseC
             The data for the model must already be
             specified. The model should already be trained on the
             specified data.
-        dataset: Literal['train', 'test'].
+
+        dataset: Literal['train', 'test']
+            The dataset to generate the report for.
         """
         self._model = model
         self._is_binary = isinstance(model._train_scorer, ClassificationBinaryScorer)
@@ -39,7 +41,7 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         if self._dataset == "train":
             return self._model._train_scorer.stats_df()
@@ -52,7 +54,7 @@ class SingleModelSingleDatasetMLClassReport:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame | None
             None is returned if the model is binary.
         """
         if self._is_binary:
@@ -74,14 +76,14 @@ class SingleModelSingleDatasetMLClassReport:
 
         Parameters
         ----------
-        average_across_folds : bool.
+        average_across_folds : bool
             Default: True. If True, returns a DataFrame
             containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
-        pd.DataFrame | None. None is returned if cross validation
-            fit statistics are not available.
+        pd.DataFrame | None
+            None is returned if cross validation fit statistics are not available.
         """
         if not self._model.is_cross_validated():
             print_wrapped(
@@ -110,14 +112,14 @@ class SingleModelSingleDatasetMLClassReport:
 
         Parameters
         ----------
-        averaged_across_folds : bool.
+        averaged_across_folds : bool
             Default: True. If True, returns a DataFrame
             containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
-        pd.DataFrame | None. None is returned if cross validation
-            fit statistics are not available.
+        pd.DataFrame | None
+            None is returned if cross validation fit statistics are not available.
         """
         if not self._model.is_cross_validated():
             print_wrapped(
@@ -148,21 +150,22 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
     def plot_confusion_matrix(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
 
         Parameters
         ----------
-        figsize: Iterable.
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax: plt.Axes.
+
+        ax: plt.Axes
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
             Figure of the confusion matrix.
         """
         if self._dataset == "train":
@@ -174,21 +177,22 @@ class SingleModelSingleDatasetMLClassReport:
         return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
 
     def plot_roc_curve(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
-        figsize: Iterable.
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax: plt.Axes.
+
+        ax: plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure | None.
+        plt.Figure | None
             Figure of the ROC curve. None is returned if the model is not binary.
         """
         if not self._is_binary:
@@ -218,7 +222,7 @@ class SingleModelMLClassReport:
 
         Parameters
         ----------
-        model: BaseC.
+        model: BaseC
             The data for the model must already be
             specified. The model should already be trained on the
             specified data.
@@ -231,7 +235,7 @@ class SingleModelMLClassReport:
 
         Returns
         -------
-        SingleModelSingleDatasetMLClassReport.
+        SingleModelSingleDatasetMLClassReport
         """
         return SingleModelSingleDatasetMLClassReport(self._model, "train")
 
@@ -241,31 +245,33 @@ class SingleModelMLClassReport:
 
         Returns
         -------
-        SingleModelSingleDatasetMLClassReport.
+        SingleModelSingleDatasetMLClassReport
         """
         return SingleModelSingleDatasetMLClassReport(self._model, "test")
 
     def plot_confusion_matrix(
         self,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
 
         Parameters
         ----------
-        dataset: Literal['train', 'test'].
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the confusion matrix for.
-        figsize: Iterable.
+
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax: plt.Axes.
+
+        ax: plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
             Figure of the confusion matrix.
         """
         if dataset == "train":
@@ -276,24 +282,26 @@ class SingleModelMLClassReport:
     def plot_roc_curve(
         self,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
-        dataset: Literal['train', 'test'].
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the ROC curve for.
-        figsize: Iterable.
+
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax: plt.Axes.
+
+        ax: plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure | None.
+        plt.Figure | None
             Figure of the ROC curve. None is returned if the model is not binary.
         """
         if dataset == "train":
@@ -316,7 +324,7 @@ class SingleModelMLClassReport:
 
         Returns
         -------
-        VotingSelectionReport | None.
+        VotingSelectionReport | None
             None is returned if no feature selectors were specified.
         """
         return self._model.feature_selection_report()
@@ -470,7 +478,7 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        model_id: str.
+        model_id: str
             The id of the model.
 
         Returns
@@ -486,7 +494,7 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        model_id: str.
+        model_id: str
             The id of the model.
 
         Returns
@@ -503,12 +511,12 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        dataset: Literal['train', 'test'].
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to return the fit statistics for.
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         if dataset == "train":
             return pd.concat(
@@ -534,14 +542,14 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        average_across_folds : bool.
+        average_across_folds : bool
             Default: True.
             If True, returns a DataFrame
             containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
-        pd.DataFrame | None.
+        pd.DataFrame | None
             None is returned if cross validation was not conducted.
         """
         if not self._models[0].is_cross_validated():
@@ -568,7 +576,7 @@ class MLClassificationReport:
 
         Returns
         -------
-        VotingSelectionReport | None.
+        VotingSelectionReport | None
             None is returned if no feature selectors were specified.
         """
         if self._feature_selection_report is None:
@@ -582,26 +590,29 @@ class MLClassificationReport:
         self,
         model_id: str,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
 
         Parameters
         ----------
-        model_id: str.
+        model_id: str
             The id of the model.
-        dataset: Literal['train', 'test'].
+
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the confusion matrix for.
-        figsize: Iterable.
+
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax: plt.Axes.
+
+        ax: plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
             Figure of the confusion matrix.
         """
         return self._id_to_report[model_id].plot_confusion_matrix(dataset, figsize, ax)
@@ -610,23 +621,25 @@ class MLClassificationReport:
         self,
         model_id: str,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
-        model_id: str.
+        model_id: str
             The id of the model.
-        dataset: Literal['train', 'test'].
+
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the ROC curve for.
-        figsize: Iterable.
+
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         Returns
         -------
-        plt.Figure | None.
+        plt.Figure | None
             Figure of the ROC curve. None is returned if the model is not binary.
         """
         return self._id_to_report[model_id].plot_roc_curve(dataset, figsize, ax)
@@ -639,12 +652,12 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        dataset: Literal['train', 'test'].
+        dataset: Literal['train', 'test']
             Default: 'test'. The dataset to return the fit statistics for.
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame | None
             None is returned if the model is binary.
         """
         if self._models[0].is_binary():
@@ -680,13 +693,13 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        averaged_across_folds : bool.
+        averaged_across_folds : bool
             Default: True. If True, returns a DataFrame
             containing goodness-of-fit statistics across all folds.
 
         Returns
         -------
-        pd.DataFrame | None.
+        pd.DataFrame | None
             None is returned if cross validation was not conducted.
         """
         if not self._models[0].is_cross_validated():

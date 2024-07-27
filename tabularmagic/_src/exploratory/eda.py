@@ -47,7 +47,7 @@ class CategoricalEDA:
     def plot_distribution(
         self,
         density: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a bar plot of the relative frequencies
@@ -55,19 +55,21 @@ class CategoricalEDA:
 
         Parameters
         ----------
-        density : bool.
+        density : bool
             Default: False. If True, plots the density rather than the
             frequency.
-        figsize : Iterable.
+
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure. Only used if
             ax is None.
-        ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. The axes to plot on. If None, a new figure is
             created.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
             Figure of the distribution.
         """
         value_freqs = self._var_series.value_counts(normalize=density)
@@ -144,7 +146,7 @@ class NumericalEDA:
             None, "minmax", "standardize", "log", "log1p"
         ] = None,
         density: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a histogram.
@@ -266,7 +268,7 @@ class ComprehensiveEDA:
         self,
         numerical_vars: list[str] | None = None,
         stratify_by: str | None = None,
-        figsize: Iterable = (7, 7),
+        figsize: tuple[float, float] = (7, 7),
     ) -> plt.Figure:
         """
         Plots pairwise relationships between numerical variables.
@@ -365,7 +367,7 @@ class ComprehensiveEDA:
             "box_swarm",
             "box_strip",
         ],
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the distributions (density) of a given numerical variable
@@ -550,7 +552,7 @@ class ComprehensiveEDA:
         self,
         var: str,
         density: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the distribution of the variable.
@@ -580,7 +582,7 @@ class ComprehensiveEDA:
         scale_strategy: Literal["standardize", "center", "none"] = "center",
         whiten: bool = False,
         three_components: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Plots the first two (or three) principle components,

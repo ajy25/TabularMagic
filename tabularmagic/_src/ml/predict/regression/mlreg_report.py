@@ -81,7 +81,7 @@ class SingleModelSingleDatasetMLRegReport:
             return None
 
     def plot_obs_vs_pred(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the observed (y-axis) and
         predicted (x-axis) values.
@@ -155,7 +155,7 @@ class SingleModelMLRegReport:
     def plot_obs_vs_pred(
         self,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the observed (y-axis) and
@@ -469,7 +469,7 @@ class MLRegressionReport:
         self,
         model_id: str,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the observed (y-axis) and

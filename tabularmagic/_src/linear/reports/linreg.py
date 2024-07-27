@@ -56,7 +56,7 @@ class SingleDatasetLinRegReport:
     def plot_obs_vs_pred(
         self,
         show_outliers: bool = True,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
@@ -108,7 +108,7 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = False,
         show_outliers: bool = True,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
@@ -183,7 +183,7 @@ class SingleDatasetLinRegReport:
         x_var: str,
         standardized: bool = False,
         show_outliers: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
@@ -262,7 +262,7 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = False,
         density: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
@@ -324,7 +324,7 @@ class SingleDatasetLinRegReport:
     def plot_scale_location(
         self,
         show_outliers: bool = True,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
@@ -395,7 +395,7 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = True,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the residuals versus leverage.
@@ -479,7 +479,7 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = False,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a quantile-quantile plot.
@@ -577,7 +577,7 @@ class SingleDatasetLinRegReport:
         return fig
 
     def plot_diagnostics(
-        self, show_outliers: bool = False, figsize: Iterable = (7, 7)
+        self, show_outliers: bool = False, figsize: tuple[float, float] = (7, 7)
     ) -> plt.Figure:
         """Plots several useful linear regression diagnostic plots.
 

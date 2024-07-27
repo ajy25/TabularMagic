@@ -150,13 +150,13 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
     def plot_confusion_matrix(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
 
         Parameters
         ----------
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax: plt.Axes
@@ -177,13 +177,13 @@ class SingleModelSingleDatasetMLClassReport:
         return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
 
     def plot_roc_curve(
-        self, figsize: Iterable = (5, 5), ax: plt.Axes | None = None
+        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax: plt.Axes | None
@@ -252,7 +252,7 @@ class SingleModelMLClassReport:
     def plot_confusion_matrix(
         self,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
@@ -262,7 +262,7 @@ class SingleModelMLClassReport:
         dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the confusion matrix for.
 
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax: plt.Axes | None
@@ -282,7 +282,7 @@ class SingleModelMLClassReport:
     def plot_roc_curve(
         self,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
@@ -292,7 +292,7 @@ class SingleModelMLClassReport:
         dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the ROC curve for.
 
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax: plt.Axes | None
@@ -590,7 +590,7 @@ class MLClassificationReport:
         self,
         model_id: str,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is the confusion matrix for the model.
@@ -603,7 +603,7 @@ class MLClassificationReport:
         dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the confusion matrix for.
 
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax: plt.Axes | None
@@ -621,7 +621,7 @@ class MLClassificationReport:
         self,
         model_id: str,
         dataset: Literal["train", "test"] = "test",
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
@@ -634,7 +634,7 @@ class MLClassificationReport:
         dataset: Literal['train', 'test']
             Default: 'test'. The dataset to plot the ROC curve for.
 
-        figsize: Iterable
+        figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         Returns

@@ -19,11 +19,11 @@ class SingleDatasetBinRegReport:
 
     def __init__(self, model: BinomialLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a RegressionReport object.
+        Initializes a SingleDatasetBinRegReport object.
 
         Parameters
         ----------
-        model : BaseRegression.
+        model : BinomialLinearModel.
             The model must already be trained.
         dataset : Literal['train', 'test'].
             The dataset to generate the report for.

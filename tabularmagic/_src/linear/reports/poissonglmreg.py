@@ -19,11 +19,11 @@ class SingleDatasetPoisRegReport:
 
     def __init__(self, model: PoissonLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a RegressionReport object.
+        Initializes a SingleDatasetPoisRegReport object.
 
         Parameters
         ----------
-        model : BaseRegression.
+        model : PoissonLinearModel.
             The model must already be trained.
         dataset : Literal['train', 'test'].
             The dataset to generate the report for.
@@ -66,7 +66,12 @@ class SingleDatasetPoisRegReport:
 
         Parameters
         ----------
+        show_outliers : bool
+            Default: True.
+            If True, then the outliers calculated using standard errors will be
+            shown in red.
         figsize : Iterable.
+            Default: (5,5). Sets the size of the resulting graph
         ax : plt.Axes.
 
         Returns

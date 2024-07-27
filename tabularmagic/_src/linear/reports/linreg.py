@@ -12,6 +12,7 @@ from adjustText import adjust_text
 from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
+
 class SingleDatasetLinRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
@@ -19,11 +20,11 @@ class SingleDatasetLinRegReport:
 
     def __init__(self, model: OLSLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a RegressionReport object.
+        Initializes a SingleDatasetLinRegReport object.
 
         Parameters
         ----------
-        model : BaseRegression.
+        model : OLSLinearModel.
             The model must already be trained.
         dataset : Literal['train', 'test'].
             The dataset to generate the report for.
@@ -56,7 +57,7 @@ class SingleDatasetLinRegReport:
     def plot_obs_vs_pred(
         self,
         show_outliers: bool = True,
-        figsize: Iterable = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
@@ -64,6 +65,10 @@ class SingleDatasetLinRegReport:
 
         Parameters
         ----------
+        show_outliers : bool
+            Default: True.
+            If True, then the outliers calculated using standard errors will be
+            shown in red.
         figsize : Iterable.
         ax : plt.Axes.
 

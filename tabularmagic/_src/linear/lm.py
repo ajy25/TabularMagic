@@ -117,29 +117,46 @@ class OLSLinearModel:
         start_vars: list[str] | None = None,
         max_steps: int = 100,
     ) -> list[str]:
-        """Finish writing description
+        """This method implements stepwise selection for identifying important
+        features. If the direction is set to forward, the algorithm will start
+        with no selected variables and will at each time step add every 
+        left-out feature to the model separately. the left-out feature
+        that results in the best improvement in the metric (aic or bic) will
+        be selected as an important feature. This happens until all variables
+        are added or adding a left-out variable does not improve the metric
+        of choice.
+        
+        If the direction is set to backward, the algorithm will start with all
+        variables selected and will at each time step remove each included
+        variable separately. The variable that results in the best improvement
+        in the metric when removed from the model will be removed from the 
+        list of selected features.
 
         Categorical variables will either be included or excluded as a whole.
 
         Parameters
         ----------
         direction : Literal["both", "backward", "forward"]
-            The direction of the stepwise selection. Default: 'backward'.
+            Default: 'backward'. The direction of the stepwise selection.
+
         criteria : Literal["aic", "bic"]
-            The criteria to use for selecting the best model. Default: 'aic'.
+            Default: 'aic'. The criteria to use for selecting the best model.
+
         kept_vars : list[str]
-            The variables that should be kept in the model. Default: None.
+            Default: None. The variables that should be kept in the model.
             If None, defaults to empty list.
+
         all_vars : list[str]
-            The variables that are candidates for inclusion in the model. Default: None.
+            Default: None. The variables that are candidates for inclusion in the model.
             If None, defaults to all variables in the training data.
+
         start_vars : list[str]
-            The variables to start the bidirectional stepwise selection with.
+            Default: None. The variables to start the bidirectional stepwise selection with.
             Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
-            Default: None.
+
         max_steps : int
-            The maximum number of steps to take. Default: 100.
+            Default: 100. The maximum number of steps to take.
 
         Returns
         -------

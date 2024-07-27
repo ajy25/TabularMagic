@@ -42,41 +42,54 @@ class LinearR(BaseR):
 
         Parameters
         ----------
-        type : Literal['ols', 'l1', 'l2', 'elasticnet'].
+        type : Literal['ols', 'l1', 'l2', 'elasticnet']
             Default: 'ols'. The type of linear regression to be used.
-        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
-            Default: None. If None, a regression-specific default hyperparameter
-            search is conducted.
-        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
-            Default: None. If None, a regression-specific default hyperparameter
-            search is conducted.
-        feature_selectors : list[BaseFSR].
+
+        hyperparam_search_method : Literal[None, 'grid', 'optuna']
+            Default: None. If None, a model-specific default hyperparameter search
+            is conducted.
+
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution]
+            Default: None. If None, a model-specific default hyperparameter search
+            is conducted.
+
+        feature_selectors : list[BaseFSC]
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int | None.
+
+        max_n_features : int | None
             Default: None.
             Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
-        model_random_state : int.
+
+        model_random_state : int
             Default: 42. Random seed for the model.
-        name : str.
+
+        name : str
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        kwargs : Key word arguments are passed directly into the
+
+        **kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
 
         **kwargs
         --------------
-        inner_cv : int | BaseCrossValidator.
-            Default: 5.
-        inner_cv_seed : int.
-            Default: 42.
-        n_jobs : int.
+        inner_cv : int | BaseCrossValidator
+            Default: 5. Number of inner cross validation folds. Inner
+            cross validation is used for hyperparameter optimization.
+
+        inner_cv_seed : int
+            Default: 42. Random seed for inner cross validation.
+
+        n_jobs : int
             Default: 1. Number of parallel jobs to run.
-        verbose : int.
-            Default: 0. scikit-learn verbosity level.
-        n_trials : int.
+
+        verbose : int
+            Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
+            2 is the most verbose.
+
+        n_trials : int
             Default: 100. Number of trials for hyperparameter optimization. Only
             used if hyperparam_search_method is 'optuna'.
         """
@@ -157,40 +170,56 @@ class RobustLinearR(BaseR):
 
         Parameters
         ----------
-        type : Literal['huber', 'ransac'].
+        type : Literal['huber', 'ransac']
             Default: 'huber'.
-        hyperparam_search_method : Literal[None, 'grid', 'optuna'].
-            Default: None. If None, a regression-specific default hyperparameter
-            search is conducted.
-        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution].
-            Default: None. If None, a regression-specific default hyperparameter
-            search is conducted.
-        feature_selectors : list[BaseFSR].
+
+        hyperparam_search_method : Literal[None, 'grid', 'optuna']
+            Default: None. If None, a model-specific default hyperparameter search
+            is conducted.
+
+        hyperparam_search_space : Mapping[str, Iterable | BaseDistribution]
+            Default: None. If None, a model-specific default hyperparameter search
+            is conducted.
+
+        feature_selectors : list[BaseFSC]
             Default: None. If not None, specifies the feature selectors for the
             VotingSelectionReport.
-        max_n_features : int | None.
+
+        max_n_features : int | None
             Default: None.
             Only useful if feature_selectors is not None.
             If None, then all features with at least 50% support are selected.
-        model_random_state : int.
+
+        model_random_state : int
             Default: 42. Random seed for the model.
-        name : str.
+
+        name : str
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
-        kwargs : Key word arguments are passed directly into the
+
+        **kwargs : Key word arguments are passed directly into the
             intialization of the HyperparameterSearcher class. In particular,
             inner_cv and inner_cv_seed can be set via kwargs.
 
         **kwargs
         --------------
-        inner_cv : int | BaseCrossValidator.
-            Default: 5.
-        inner_cv_seed : int.
-            Default: 42.
-        n_jobs : int.
+        inner_cv : int | BaseCrossValidator
+            Default: 5. Number of inner cross validation folds. Inner
+            cross validation is used for hyperparameter optimization.
+
+        inner_cv_seed : int
+            Default: 42. Random seed for inner cross validation.
+
+        n_jobs : int
             Default: 1. Number of parallel jobs to run.
-        verbose : int.
-            Default: 0. scikit-learn verbosity level.
+
+        verbose : int
+            Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
+            2 is the most verbose.
+
+        n_trials : int
+            Default: 100. Number of trials for hyperparameter optimization. Only
+            used if hyperparam_search_method is 'optuna'.
         """
 
         super().__init__()

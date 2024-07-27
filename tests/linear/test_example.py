@@ -18,7 +18,7 @@ df_mtcars = pd.read_csv(
     parent_dir / "demo" / "regression" / "mtcars_data" / "mtcars.csv"
 )
 
-  
+
 
 
 
@@ -59,7 +59,7 @@ def test_function():
     statsmodels_output = model.params.iloc[0]
     
     # Use assert to compare the outputs
-    assert np.isclose(tm_output, statsmodels_output), f"Outputs do not match: {tm_output} != {statsmodels_output}"
+    assert np.isclose(tm_output, statsmodels_output)
 
 # Run the test
 if __name__ == "__main__":

@@ -496,6 +496,40 @@ class Analyzer:
     # --------------------------------------------------------------------------
     # DATAHANDLER METHODS
     # --------------------------------------------------------------------------
+    def load_data_checkpoint(self, checkpoint_name: str | None = None) -> "Analyzer":
+        """Loads the original train and test DataFrames.
+
+        Parameters
+        ----------
+        checkpoint_name : str
+            Default: None. The name of the checkpoint to load.
+            If None, loads the original train and test DataFrames.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.load_data_checkpoint(checkpoint_name)
+        return self
+    
+    def save_data_checkpoint(self, checkpoint_name: str) -> "Analyzer":
+        """Saves the current train and test DataFrames.
+
+        Parameters
+        ----------
+        checkpoint_name : str
+            The name of the checkpoint.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.save_data_checkpoint(checkpoint_name)
+        return self
+
+
     @ensure_arg_list_uniqueness()
     def scale(
         self,

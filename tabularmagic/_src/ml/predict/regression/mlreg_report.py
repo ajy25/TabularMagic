@@ -162,11 +162,14 @@ class SingleModelMLRegReport:
 
         Parameters
         ----------
-        dataset : Literal['train', 'test'].
+        dataset : Literal['train', 'test']
             Default: 'test'.
-        figsize : Iterable.
+            The dataset for which to plot the observed vs predicted values.
+            
+        figsize : Iterable
             Default: (5, 5). The size of the figure.
-        ax : plt.Axes.
+            
+        ax : plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 
@@ -213,28 +216,36 @@ class MLRegressionReport:
 
         Parameters
         ----------
-        models : Iterable[BaseR].
+        models : Iterable[BaseR]
             The BaseRegression models must already be trained.
-        datahandler : DataHandler.
+
+        datahandler : DataHandler
             The DataHandler object that contains the data.
-        target : str.
+
+        target : str
             The name of the target variable.
-        predictors : Iterable[str].
+
+        predictors : Iterable[str]
             The names of the predictor variables.
-        feature_selectors : Iterable[BaseFSR].
+
+        feature_selectors : Iterable[BaseFSR] | None
             Default: None.
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
-        max_n_features : int.
+
+        max_n_features : int | None
             Default: None.
             Maximum number of predictors to utilize. Ignored if feature_selectors
             is None.
-        outer_cv : int.
+
+        outer_cv : int | None
             Default: None.
             If not None, reports training scores via nested k-fold CV.
-        outer_cv_seed : int.
+
+        outer_cv_seed : int
             Default: 42. The random seed for the outer cross validation loop.
-        verbose : bool.
+
+        verbose : bool
             Default: True. If True, prints progress.
         """
         self._models: list[BaseR] = models
@@ -407,7 +418,7 @@ class MLRegressionReport:
 
         Parameters
         ----------
-        average_across_folds : bool.
+        average_across_folds : bool
             Default: True.
             If True, returns a DataFrame containing goodness-of-fit
             statistics averaged across all folds.
@@ -443,7 +454,7 @@ class MLRegressionReport:
 
         Returns
         -------
-        VotingSelectionReport | None.
+        VotingSelectionReport | None
             None if feature selectors were not specified.
         """
         if self._feature_selection_report is None:
@@ -465,13 +476,16 @@ class MLRegressionReport:
 
         Parameters
         ----------
-        model_id : str.
+        model_id : str
             The id of the model.
-        dataset : Literal['train', 'test'].
+
+        dataset : Literal['train', 'test']
             Default: 'test'.
-        figsize : Iterable.
+
+        figsize : Iterable
             Default: (5, 5). The size of the figure.
-        ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.
 

@@ -142,7 +142,7 @@ class Analyzer:
 
         Parameters
         ----------
-        dataset: Literal['train', 'test', 'all']
+        dataset : Literal['train', 'test', 'all']
             Default: 'train'. The dataset to be analyzed.
 
         Returns

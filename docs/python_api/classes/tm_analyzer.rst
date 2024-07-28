@@ -1,5 +1,5 @@
 (:py:mod:`tabularmagic.Analyzer`)
-=============================================
+=================================
 
 
 .. currentmodule:: tabularmagic
@@ -10,7 +10,7 @@ regression analysis, and machine learning model benchmarking.
 
 .. autoclass:: Analyzer
     :members: 
-        eda, lm, glm, regress, classify, scale, impute, dropna, drop_highly_missing_vars, onehot, select_vars, force_numerical, force_categorical, force_binary
+        eda, lm, glm, regress, classify, scale, impute, dropna, drop_highly_missing_vars, onehot, select_vars, force_numerical, force_categorical, force_binary, load_data_checkpoint, save_data_checkpoint
 
 
 

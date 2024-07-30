@@ -66,11 +66,15 @@ class SingleDatasetLinRegReport:
         Parameters
         ----------
         show_outliers : bool
-            Default: True.
+            Default: True. 
             If True, then the outliers calculated using standard errors will be
             shown in red.
-        figsize : Iterable.
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0,5.0). Sets the size of the resulting graph
+
+        ax : plt.Axes
+            Default: None.
 
         Returns
         -------
@@ -80,7 +84,9 @@ class SingleDatasetLinRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(self._y_pred, self._y_true, figsize, ax)
+        plot_obs_vs_pred(
+            self._y_pred, self._y_true, self.model._name, figsize, ax
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],

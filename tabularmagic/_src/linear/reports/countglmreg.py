@@ -97,19 +97,63 @@ class CountRegressionReport:
         else:
             return self._test_report.metrics()
 
-    def stepwise(self) -> "CountRegressionReport":
-        """Performs stepwise selection on the model.
+    def step(
+        self,
+        direction: Literal["both", "backward", "forward"] = "backward",
+        criteria: Literal["aic", "bic"] = "aic",
+        kept_vars: list[str] | None = None,
+        all_vars: list[str] | None = None,
+        start_vars: list[str] | None = None,
+        max_steps: int = 100,
+    ) -> "CountRegressionReport":
+        """Performs stepwise selection on the model. Returns a new
+        CountRegressionReport object with the updated model.
 
         Parameters
         ----------
-        alpha : float.
-            Default is 0.05.
+        direction : Literal["both", "backward", "forward"]
+            The direction of the stepwise selection. Default: 'backward'.
+        criteria : Literal["aic", "bic"]
+            The criteria to use for selecting the best model. Default: 'aic'.
+        kept_vars : list[str]
+            The variables that should be kept in the model. Default: None.
+            If None, defaults to empty list.
+        all_vars : list[str]
+            The variables that are candidates for inclusion in the model. Default: None.
+            If None, defaults to all variables in the training data.
+        start_vars : list[str]
+            The variables to start the bidirectional stepwise selection with.
+            Ignored if direction is not 'both'. If direction is 'both' and
+            start_vars is None, then the starting variables are the kept_vars.
+            Default: None.
+        max_steps : int
+            The maximum number of steps to take. Default: 100.
 
         Returns
         -------
-        CountLinearModel.
+        LinearRegressionReport
         """
-        raise NotImplementedError()
+        selected_vars = self._model.step(
+            direction=direction,
+            criteria=criteria,
+            kept_vars=kept_vars,
+            all_vars=all_vars,
+            start_vars=start_vars,
+            max_steps=max_steps,
+        )
+        new_datahandler = DataHandler(
+            df_train=self._datahandler.df_train(),
+            df_test=self._datahandler.df_test(),
+        )
+        y_scaler = self._datahandler.scaler(self._target)
+        if y_scaler is not None:
+            new_datahandler.add_scaler(
+                scaler=y_scaler,
+                var=self._target,
+            )
+        return CountRegressionReport(
+            CountLinearModel(), new_datahandler, self._target, selected_vars
+        )
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for

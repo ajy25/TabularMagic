@@ -1,5 +1,5 @@
-(:py:mod:`tabularmagic.Analyzer`)
-=================================
+:py:mod:`tabularmagic.Analyzer`
+===============================
 
 
 .. currentmodule:: tabularmagic

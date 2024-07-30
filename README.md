@@ -82,7 +82,7 @@ models = [
     tm.ml.TreeEnsembleR('adaboost'),
     tm.ml.SVMR('rbf')
 ]
-report = analyzer.ml_regression(
+report = analyzer.regress(
     models=models, 
     target='target',
     predictors=['age', 'bmi', 'bp', 's1', 's2'],

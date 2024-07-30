@@ -1,5 +1,5 @@
-(:py:mod:`tabularmagic.ml`)
-===========================
+:py:mod:`tabularmagic.ml`
+=========================
 
 
 .. currentmodule:: tabularmagic.ml
@@ -9,8 +9,8 @@ Analyzer.
 
 
 
-(:py:mod:`tm.ml.BaseR`)
------------------------
+:py:mod:`tm.ml.BaseR`
+---------------------
 
 BaseR is a base model class for regression.
 
@@ -19,7 +19,7 @@ BaseR is a base model class for regression.
         specify_data, fit, sklearn_estimator, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
         
 
-(:py:mod:`tm.ml.LinearR`)
--------------------------
+:py:mod:`tm.ml.LinearR`
+-----------------------
 
 .. autoclass:: LinearR

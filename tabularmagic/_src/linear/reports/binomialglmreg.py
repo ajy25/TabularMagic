@@ -84,7 +84,9 @@ class SingleDatasetBinRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(self._y_pred, self._y_true, figsize, ax)
+        plot_obs_vs_pred(
+            self._y_pred, self._y_true, self.model._name, figsize, ax
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],

@@ -26,9 +26,10 @@ class SingleDatasetNegBinRegReport:
 
         Parameters
         ----------
-        model : NegativeBinomialLinearModel.
+        model : NegativeBinomialLinearModel
             The model must already be trained.
-        dataset : Literal['train', 'test'].
+
+        dataset : Literal['train', 'test']
             The dataset to generate the report for.
         """
         self.model = model
@@ -45,7 +46,7 @@ class SingleDatasetNegBinRegReport:
             raise ValueError('specification must be either "train" or "test".')
 
         self._y_pred = self.scorer._y_pred
-        self._y_true = self.scorer._y_true
+        self._y_true = self.scorer._y_true.astype(float)
 
         self._residuals = self._y_true - self._y_pred
         self._stdresiduals = self._residuals / np.std(self._residuals)
@@ -99,7 +100,9 @@ class SingleDatasetNegBinRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(self._y_pred, self._y_true, figsize, ax)
+        plot_obs_vs_pred(
+            self._y_pred, self._y_true, self.model._name, figsize, ax
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],

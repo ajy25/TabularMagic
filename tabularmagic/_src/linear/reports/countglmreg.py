@@ -27,12 +27,15 @@ class CountRegressionReport:
 
         Parameters
         ----------
-        model : CountLinearModel.
-        datahandler : DataHandler.
+        model : CountLinearModel
+
+        datahandler : DataHandler
             The DataHandler object that contains the data.
-        y_var : str.
+
+        target : str
             The name of the dependent variable.
-        X_vars : Iterable[str].
+
+        predictors : Iterable[str]
             The names of the independent variables.
         """
         self._model = model

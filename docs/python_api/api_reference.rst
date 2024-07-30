@@ -1,5 +1,5 @@
-(:py:mod:`tabularmagic.ml`)
-===========================
+Python API Reference
+====================
 
 
 TabularMagic is powerful because it handles a ton of code related to proper machine learning workflow building and data preprocessing for you.

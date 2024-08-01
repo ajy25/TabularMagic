@@ -243,7 +243,7 @@ class SingleDatasetPoisRegReport:
         x_var: str,
         standardized: bool = False,
         show_outliers: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
@@ -329,7 +329,7 @@ class SingleDatasetPoisRegReport:
         self,
         standardized: bool = False,
         density: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
@@ -394,7 +394,7 @@ class SingleDatasetPoisRegReport:
     def plot_scale_location(
         self,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
@@ -467,7 +467,7 @@ class SingleDatasetPoisRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the residuals versus leverage.
@@ -554,7 +554,7 @@ class SingleDatasetPoisRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a quantile-quantile plot.

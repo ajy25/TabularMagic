@@ -26,7 +26,8 @@ class SingleDatasetLinRegReport:
         ----------
         model : OLSLinearModel.
             The model must already be trained.
-        dataset : Literal['train', 'test'].
+
+        dataset : Literal['train', 'test']
             The dataset to generate the report for.
         """
         self.model = model
@@ -71,7 +72,7 @@ class SingleDatasetLinRegReport:
             shown in red.
 
         figsize : tuple[float, float]
-            Default: (5.0,5.0). Sets the size of the resulting graph
+            Default: (5.0,5.0). Sets the size of the resulting graph.
 
         ax : plt.Axes
             Default: None.
@@ -119,17 +120,26 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = False,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
         Parameters
         ----------
-        - standardized : bool. If True, standardizes the residuals.
-        - show_outliers : bool. If True, plots the outliers in red.
-        - figsize : Iterable.
-        - ax : Axes
+        standardized : bool
+            Default: False. If True, plots the standardized residuals as
+            opposed to the raw residuals.
+
+        show_outliers : bool
+            Default: True. If True, colors the outliers determined by the 
+            standardized residuals in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default = None.
 
         Returns
         -------
@@ -194,20 +204,27 @@ class SingleDatasetLinRegReport:
         x_var: str,
         standardized: bool = False,
         show_outliers: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
         Parameters
         ----------
-        x_var : str.
-        standardized : bool.
+        x_var : str
+            The predictor variable whose values should be plotted on the x-axis.
+
+        standardized : bool
             Default: False. If True, standardizes the residuals.
-        show_outliers : bool.
+
+        show_outliers : bool
             Default: False. If True, plots the outliers in red.
-        figsize : Iterable.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
         ax : plt.Axes
+            Default: None.
 
         Returns
         -------
@@ -273,25 +290,28 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = False,
         density: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
 
         Parameters
         ----------
-        standardized : bool.
+        standardized : bool
             Default: False. If True, standardizes the residuals.
-        density : bool.
+
+        density : bool
             Default: False. If True, plots density rather than frequency.
-        figsize : Iterable.
-            Default: (5, 5).
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
             Default: None.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         if density:
             stat = "density"
@@ -335,7 +355,7 @@ class SingleDatasetLinRegReport:
     def plot_scale_location(
         self,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
@@ -343,11 +363,13 @@ class SingleDatasetLinRegReport:
 
         Parameters
         ----------
-        show_outliers : bool.
+        show_outliers : bool
             Default: True. If True, plots the outliers in red.
-        figsize : Iterable.
-            Default: (5, 5).
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
             Default: None.
 
         Returns
@@ -406,25 +428,28 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = True,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a figure that is a plot of the residuals versus leverage.
 
         Parameters
         ----------
-        standardized : bool.
+        standardized : bool
             Default: True. If True, standardizes the residuals.
-        show_outliers : bool.
+
+        show_outliers : bool
             Default: True. If True, plots the outliers in red.
-        figsize : Iterable.
-            Default: (5, 5).
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
             Default: None.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         if not self._is_train:
             print_wrapped(train_only_message, type="WARNING")
@@ -490,20 +515,23 @@ class SingleDatasetLinRegReport:
         self,
         standardized: bool = True,
         show_outliers: bool = False,
-        figsize: tuple[float, float] = (5, 5),
+        figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
         """Returns a quantile-quantile plot.
 
         Parameters
         ----------
-        standardized : bool.
+        standardized : bool
             Default: True. If True, standardizes the residuals.
-        show_outliers : bool.
+
+        show_outliers : bool
             Default: False. If True, plots the outliers in red.
-        figsize : Iterable.
-            Default: (5, 5).
-        ax : plt.Axes.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
             Default: None.
 
         Returns
@@ -588,20 +616,22 @@ class SingleDatasetLinRegReport:
         return fig
 
     def plot_diagnostics(
-        self, show_outliers: bool = False, figsize: tuple[float, float] = (7, 7)
+        self, show_outliers: bool = False, 
+        figsize: tuple[float, float] = (7.0, 7.0)
     ) -> plt.Figure:
         """Plots several useful linear regression diagnostic plots.
 
         Parameters
         ----------
-        show_outliers : bool.
+        show_outliers : bool
             Default: False. If True, plots the residual outliers in red.
-        figsize : Iterable.
-            Default: (7, 7).
+
+        figsize : tuple[float, float]
+            Default: (7.0, 7.0).
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         fig, axs = plt.subplots(2, 2, figsize=figsize)
 
@@ -628,9 +658,8 @@ class SingleDatasetLinRegReport:
 
         Parameters
         ----------
-        threshold : float.
-            Must be a nonnegative value. By default the
-            outlier threshold is 2.
+        threshold : float
+            Default: 2. Must be a nonnegative value.
 
         Returns
         -------
@@ -650,7 +679,7 @@ class SingleDatasetLinRegReport:
 
         Returns
         -------
-        outliers_df_idx : list ~ (n_outliers).
+        outliers_df_idx : list ~ (n_outliers)
         """
         return self._outliers_df_idx.tolist()
 
@@ -658,9 +687,9 @@ class SingleDatasetLinRegReport:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
-        Parameters
+        Returns
         ----------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self.scorer.stats_df()
 
@@ -698,10 +727,13 @@ class LinearRegressionReport:
         Parameters
         ----------
         model : OrdinaryLeastSquares
+
         datahandler : DataHandler
             The DataHandler object that contains the data.
+
         target : str
             The name of the target variable.
+
         predictors : Iterable[str]
             The names of the predictor variables.
         """
@@ -715,29 +747,29 @@ class LinearRegressionReport:
         self._test_report = SingleDatasetLinRegReport(model, "test")
 
     def train_report(self) -> SingleDatasetLinRegReport:
-        """Returns an LinearRegressionReport object for the train dataset
+        """Returns an SingleDatasetLinRegReport object for the train dataset
 
         Returns
         -------
-        report : LinearRegressionReport.
+        SingleDatasetLinRegReport
         """
         return self._train_report
 
     def test_report(self) -> SingleDatasetLinRegReport:
-        """Returns an LinearRegressionReport object for the test dataset
+        """Returns an SingleDatasetLinRegReport object for the test dataset
 
         Returns
         -------
-        report : LinearRegressionReport.
+        SingleDatasetLinRegReport
         """
         return self._test_report
 
     def model(self) -> OLSLinearModel:
-        """Returns the fitted OrdinaryLeastSquares object.
+        """Returns the fitted OLSLinearModel object.
 
         Returns
         -------
-        OrdinaryLeastSquares.
+        OLSLinearModel
         """
         return self._model
 
@@ -747,12 +779,12 @@ class LinearRegressionReport:
 
         Parameters
         ----------
-        dataset : Literal['train', 'test'].
+        dataset : Literal['train', 'test']
             Default: 'test'.
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         if dataset == "train":
             return self._train_report.metrics()
@@ -774,22 +806,27 @@ class LinearRegressionReport:
         Parameters
         ----------
         direction : Literal["both", "backward", "forward"]
-            The direction of the stepwise selection. Default: 'backward'.
+            Default: 'backward'. The direction of the stepwise selection.
+
         criteria : Literal["aic", "bic"]
-            The criteria to use for selecting the best model. Default: 'aic'.
+            Default: 'aic'. The criteria to use for selecting the best model.
+
         kept_vars : list[str]
-            The variables that should be kept in the model. Default: None.
+            Default: None. The variables that should be kept in the model.
             If None, defaults to empty list.
+
         all_vars : list[str]
-            The variables that are candidates for inclusion in the model. Default: None.
+            Default: None. The variables that are candidates for inclusion in the model.
             If None, defaults to all variables in the training data.
+
         start_vars : list[str]
+            Default: None.
             The variables to start the bidirectional stepwise selection with.
             Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
-            Default: None.
+
         max_steps : int
-            The maximum number of steps to take. Default: 100.
+            Default: 100. The maximum number of steps to take.
 
         Returns
         -------

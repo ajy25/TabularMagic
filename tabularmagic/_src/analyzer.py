@@ -260,7 +260,7 @@ class Analyzer:
 
         Parameters
         ----------
-        family : Literal["poisson", "binomial"]
+        family : Literal["poisson", "binomial",  "negbinomial", "count"]
             The family of the GLM.
 
         target : str

@@ -10,7 +10,7 @@ from ..utils import ensure_arg_list_uniqueness
 def score_count_model(
     X_train: pd.DataFrame,
     y_train: pd.DataFrame,
-    feature_list,
+    feature_list: list[str],
     metric: Literal["aic", "bic"],
     model: Literal["poisson", "negativebinomial"]
 ) -> float:
@@ -20,12 +20,16 @@ def score_count_model(
     ----------
     X_train : pd.DataFrame
         The training data.
-    y_train : pd.Series
+
+    y_train : pd.DataFrame
         The training target.
+
     feature_list : list[str]
         The list of features to include in the model.
+
     metric : str
         The metric to use for scoring. Either 'aic' or 'bic'.
+
     model : Literal["poisson", "negativebinomial"]
         The model that should be considered.
 
@@ -63,7 +67,7 @@ class CountLinearModel:
 
         Parameters
         ----------
-        name : str.
+        name : str
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
         """
@@ -288,11 +292,12 @@ class CountLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_ols_model(
+                    score = score_count_model(
                         X_train,
                         y_train,
                         candidate_features,
                         metric=criteria,
+                        model=self._type
                     )
                     if score < best_score:
                         best_score = score
@@ -312,11 +317,12 @@ class CountLinearModel:
                 var_to_add = None
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
-                    score = score_ols_model(
+                    score = score_count_model(
                         X_train,
                         y_train,
                         candidate_features,
                         metric=criteria,
+                        model=self._type
                     )
                     if score < best_forward_score:
                         best_forward_score = score
@@ -331,11 +337,12 @@ class CountLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_ols_model(
+                    score = score_count_model(
                         X_train,
                         y_train,
                         candidate_features,
                         metric=criteria,
+                        model=self._type
                     )
                     if score < best_backward_score:
                         best_backward_score = score

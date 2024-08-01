@@ -10,7 +10,7 @@ import pandas as pd
 def score_nb_model(
     X_train: pd.DataFrame,
     y_train: pd.DataFrame,
-    feature_list,
+    feature_list: list[str],
     metric: Literal["aic", "bic"],
 ) -> float:
     """Calculates the AIC or BIC score for a given model.
@@ -19,10 +19,13 @@ def score_nb_model(
     ----------
     X_train : pd.DataFrame
         The training data.
-    y_train : pd.Series
+
+    y_train : pd.DataFrame
         The training target.
+
     feature_list : list[str]
         The list of features to include in the model.
+        
     metric : str
         The metric to use for scoring. Either 'aic' or 'bic'.
 
@@ -52,7 +55,7 @@ class NegativeBinomialLinearModel:
 
         Parameters
         ----------
-        name : str.
+        name : str
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
         """

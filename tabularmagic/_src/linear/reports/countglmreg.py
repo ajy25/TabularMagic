@@ -53,20 +53,24 @@ class CountRegressionReport:
             self._test_report = SingleDatasetNegBinRegReport(model, "test")
 
     def train_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
-        """Returns an CountRegressionReport object for the train dataset
+        """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
+        object for the train dataset depending on the statistical test 
+        for overdispersion.
 
         Returns
         -------
-        report : CountRegressionReport.
+        SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport
         """
         return self._train_report
 
     def test_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
-        """Returns an CountRegressionReport object for the test dataset
+        """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
+        object for the test dataset depending on the statistical test 
+        for overdispersion.
 
         Returns
         -------
-        report : CountRegressionReport.
+        SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport
         """
         return self._test_report
 
@@ -76,7 +80,7 @@ class CountRegressionReport:
 
         Returns
         -------
-        CountLinearModel.
+        CountLinearModel
         """
         return self._model
 
@@ -88,12 +92,12 @@ class CountRegressionReport:
 
         Parameters
         ----------
-        dataset : Literal['train', 'test'].
+        dataset : Literal['train', 'test']
             Default: 'test'.
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         if dataset == "train":
             return self._train_report.metrics()
@@ -115,26 +119,31 @@ class CountRegressionReport:
         Parameters
         ----------
         direction : Literal["both", "backward", "forward"]
-            The direction of the stepwise selection. Default: 'backward'.
+            Default: 'backward'. The direction of the stepwise selection.
+
         criteria : Literal["aic", "bic"]
-            The criteria to use for selecting the best model. Default: 'aic'.
+            Default: 'aic'. The criteria to use for selecting the best model.
+
         kept_vars : list[str]
-            The variables that should be kept in the model. Default: None.
+            Default: None. The variables that should be kept in the model.
             If None, defaults to empty list.
+
         all_vars : list[str]
-            The variables that are candidates for inclusion in the model. Default: None.
+            Default: None. The variables that are candidates for inclusion in the model.
             If None, defaults to all variables in the training data.
+
         start_vars : list[str]
+            Default: None.
             The variables to start the bidirectional stepwise selection with.
             Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
-            Default: None.
+
         max_steps : int
-            The maximum number of steps to take. Default: 100.
+            Default: 100. The maximum number of steps to take.
 
         Returns
         -------
-        LinearRegressionReport
+        CountRegressionReport
         """
         selected_vars = self._model.step(
             direction=direction,
@@ -160,7 +169,7 @@ class CountRegressionReport:
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for
-        OLS.
+        negative binomial or poisson glm.
         """
         try:
             return self._model.estimator.summary()

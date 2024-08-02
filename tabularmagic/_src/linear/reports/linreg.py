@@ -79,7 +79,7 @@ class SingleDatasetLinRegReport:
 
         Returns
         -------
-        - Figure.
+        - Figure
         """
         fig = None
         if ax is None:

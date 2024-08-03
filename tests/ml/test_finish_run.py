@@ -104,7 +104,7 @@ def test_regression_run_fs(setup_data):
             "LotArea",
             "OverallQual",
         ],
-        feature_selectors=[tm.fs.KBestSelectorR("r_regression", 2)],
+        feature_selectors=[tm.fs.KBestFSR("r_regression", 2)],
     )
 
 
@@ -126,7 +126,7 @@ def test_regression_run_cv_fs(setup_data):
             "LotArea",
             "OverallQual",
         ],
-        feature_selectors=[tm.fs.KBestSelectorR("r_regression", 2)],
+        feature_selectors=[tm.fs.KBestFSR("r_regression", 2)],
         outer_cv=2,
     )
 
@@ -148,6 +148,6 @@ def test_classification_run_simple(setup_data):
             "LotArea",
             "OverallQual",
         ],
-        feature_selectors=[tm.fs.KBestSelectorC("f_classif", 2)],
+        feature_selectors=[tm.fs.KBestFSC("f_classif", 2)],
     )
     assert len(report.model("LinearC(l2)")._test_scorer._y_pred) == SAMPLE_SIZE * 0.4

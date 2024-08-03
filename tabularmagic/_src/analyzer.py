@@ -531,6 +531,22 @@ class Analyzer:
         """
         self._datahandler.save_data_checkpoint(checkpoint_name)
         return self
+    
+    def remove_data_checkpoint(self, checkpoint_name: str) -> "Analyzer":
+        """Deletes a saved checkpoint.
+
+        Parameters
+        ----------
+        checkpoint_name : str
+            The name of the checkpoint to delete.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.remove_data_checkpoint(checkpoint_name)
+        return self
 
 
     @ensure_arg_list_uniqueness()

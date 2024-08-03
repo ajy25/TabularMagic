@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 from typing import Literal
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.exceptions import NotFittedError
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
@@ -21,6 +25,42 @@ from .preprocessing import (
 )
 from ..display.print_options import print_options
 from ..utils import ensure_arg_list_uniqueness
+
+
+
+class CustomTransformerWithExtraColumns(BaseEstimator, TransformerMixin):
+    def __init__(self, custom_transform_func):
+        self.custom_transform_func = custom_transform_func
+        self.output_feature_names = None
+
+    def fit(self, X, y=None):
+        # Apply the transformation to get the output shape and column names
+        transformed_data = self.custom_transform_func(X)
+        
+        if isinstance(transformed_data, pd.DataFrame):
+            self.output_feature_names = transformed_data.columns.tolist()
+        elif isinstance(transformed_data, np.ndarray):
+            # If the output is a numpy array, create generic feature names
+            self.output_feature_names = [f'feature_{i}' for i in range(transformed_data.shape[1])]
+        else:
+            raise ValueError("custom_transform_func must return a DataFrame or numpy array")
+        
+        return self
+
+    def transform(self, X):
+        transformed_data = self.custom_transform_func(X)
+        if isinstance(transformed_data, pd.DataFrame):
+            return transformed_data
+        elif isinstance(transformed_data, np.ndarray):
+            return pd.DataFrame(transformed_data, columns=self.output_feature_names)
+        else:
+            raise ValueError("custom_transform_func must return a DataFrame or numpy array")
+
+    def get_feature_names_out(self, input_features=None):
+        if self.output_feature_names is None:
+            raise NotFittedError("Transformer has not been fitted yet. Call 'fit' before using this method.")
+        return self.output_feature_names
+
 
 
 class PreprocessStepTracer:
@@ -77,6 +117,8 @@ class PreprocessStepTracer:
         return new
 
 
+
+
 class DataEmitter:
     """DataEmitter is a class that emits data for model fitting and other computational
     methods. By emit, we mean that preprocessing steps are fitted on the training data
@@ -120,6 +162,11 @@ class DataEmitter:
         self._Xvars = X_vars
 
         self._step_tracer = step_tracer
+
+        self._numeric_imputer = None
+        self._categorical_imputer = None
+        self._highly_missing_vars_dropped = None
+        self._onehot_encoder = None
 
         self._yscaler = None
 
@@ -312,8 +359,7 @@ class DataEmitter:
         if prev_test_len != new_test_len:
             print_wrapped(
                 f"Test data: dropped {prev_test_len - new_test_len} rows "
-                "with missing values "
-                f"out of a total of {prev_test_len} rows.",
+                f"with missing values out of a total of {prev_test_len} rows.",
                 type="WARNING",
             )
         X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
@@ -322,25 +368,23 @@ class DataEmitter:
         return X_test_df, working_df_test[self._yvar]
 
     @ensure_arg_list_uniqueness()
-    def select_predictors(self, predictors: list[str] | None) -> "DataEmitter":
+    def select_predictors(self, predictors: list[str] | None):
         """Selects a subset of predictors lazily (last step of the emit methods).
 
         Parameters
         ----------
         predictors : list[str] | None
             List of predictors to select. If None, all predictors are selected.
-
-        Returns
-        -------
-        DataEmitter
-            Returns self for method chaining.
         """
         self._final_X_vars_subset = predictors
-        return self
+
 
     def _onehot(
-        self, vars: list[str] | None = None, dropfirst: bool = True
-    ) -> "DataEmitter":
+        self, 
+        vars: list[str] | None = None, 
+        dropfirst: bool = True,
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """One-hot encodes all categorical variables in-place.
 
         Parameters
@@ -353,13 +397,21 @@ class DataEmitter:
             Default: True.
             If True, the first dummy variable is dropped.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, one-hot encodes the specified variables
+            in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
         if vars is None:
             vars = self._categorical_vars
+
+        if X is not None:
+            return self._onehot_helper(X, vars=vars, dropfirst=dropfirst, fit=False)
+
         self._working_df_train = self._onehot_helper(
             self._working_df_train, vars=vars, dropfirst=dropfirst, fit=True
         )
@@ -371,9 +423,13 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-        return self
+        return None
 
-    def _drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataEmitter":
+    def _drop_highly_missing_vars(
+        self, 
+        threshold: float = 0.5,
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Drops columns with more than 50% missing values (on train) in-place.
 
         Parameters
@@ -381,19 +437,28 @@ class DataEmitter:
         threshold : float
             Default: 0.5. Proportion of missing values above which a column is dropped.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, drops columns with more than 50% missing 
+            values in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
+        if X is not None:
+            prev_vars = X.columns.to_list()
+            kept_vars = set(prev_vars) - self._highly_missing_vars_dropped
+            return X[kept_vars]
+
         prev_vars = self._working_df_train.columns.to_list()
         self._working_df_train = self._working_df_train.dropna(
             axis=1, thresh=threshold * len(self._working_df_train)
         )
         curr_vars = self._working_df_train.columns.to_list()
-        vars_dropped = set(prev_vars) - set(curr_vars)
+        self._highly_missing_vars_dropped = set(prev_vars) - set(curr_vars)
 
-        self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
+        self._working_df_test = self._working_df_test.drop(self._highly_missing_vars_dropped, axis=1)
         (
             self._categorical_vars,
             self._numeric_vars,
@@ -401,7 +466,11 @@ class DataEmitter:
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
         return self
 
-    def _dropna(self, vars: list[str]) -> "DataEmitter":
+    def _dropna(
+        self, 
+        vars: list[str], 
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Drops rows with missing values in-place.
 
         Parameters
@@ -409,21 +478,28 @@ class DataEmitter:
         vars : list[str]
             List of variables along which to drop rows with missing values.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, drops rows with missing values in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the imputed DataFrame.
         """
+        if X is not None:
+            return X.dropna(subset=vars)
+
         self._working_df_train = self._working_df_train.dropna(subset=vars)
         self._working_df_test = self._working_df_test.dropna(subset=vars)
-        return self
+        return None
 
     def _impute(
         self,
         vars: list[str],
         numeric_strategy: Literal["median", "mean", "5nn"] = "median",
         categorical_strategy: Literal["most_frequent"] = "most_frequent",
-    ) -> "DataEmitter":
+        X: pd.DataFrame | None = None,
+    ) -> pd.DataFrame | None:
         """Imputes missing values in-place.
 
         Parameters
@@ -442,16 +518,31 @@ class DataEmitter:
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, imputes missing values in X. In this case,
+            the imputers must have already been fitted on the training data.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the imputed DataFrame.
         """
         numeric_vars = self._numeric_vars
         categorical_vars = self._categorical_vars
         var_set = set(vars)
         numeric_vars = list(var_set & set(numeric_vars))
         categorical_vars = list(var_set & set(categorical_vars))
+
+        if X is not None:
+            if len(numeric_vars) > 0:
+                X[numeric_vars] = self._numeric_imputer.transform(
+                    X[numeric_vars]
+                )
+            if len(categorical_vars) > 0:
+                X[categorical_vars] = self._categorical_imputer.transform(
+                    X[categorical_vars]
+                )
+            return X
 
         # impute numeric variables
         if len(numeric_vars) > 0:
@@ -468,6 +559,8 @@ class DataEmitter:
                 self._working_df_test[numeric_vars]
             )
 
+        self._numeric_imputer = imputer
+
         # impute categorical variables
         if len(categorical_vars) > 0:
             imputer = SimpleImputer(
@@ -479,13 +572,18 @@ class DataEmitter:
             self._working_df_test[categorical_vars] = imputer.transform(
                 self._working_df_test[categorical_vars]
             )
-        return self
+
+        self._categorical_imputer = imputer
+
+        return None
+
 
     def _scale(
         self,
         vars: list[str],
         strategy: Literal["standardize", "minmax", "log", "log1p"] = "standardize",
-    ) -> "DataEmitter":
+        X: pd.DataFrame | None = None,
+    ) -> pd.DataFrame | None:
         """Scales variable values.
 
         Parameters
@@ -496,16 +594,24 @@ class DataEmitter:
 
         strategy : Literal['standardize', 'minmax', 'log', 'log1p']
 
+        X : pd.DataFrame | None
+            Default: None. If not None, scales the specified variables in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the scaled DataFrame.
         """
         for var in vars:
+
             if var not in self._numeric_vars:
                 print_wrapped(
                     f"Variable {var} is not numeric. Skipping.", type="WARNING"
                 )
+                continue
+
+            if X is not None:
+                X[var] = scaler.transform(X[var].to_numpy())
                 continue
 
             train_data = self._working_df_train[var].to_numpy()
@@ -530,9 +636,15 @@ class DataEmitter:
             if var == self._yvar:
                 self._yscaler = scaler
 
-        return self
+        return X
 
-    def _select_vars(self, vars: list[str]) -> "DataEmitter":
+
+
+    def _select_vars(
+        self, 
+        vars: list[str],
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Selects subset of (column) variables in-place on the working
         train and test DataFrames.
 
@@ -540,11 +652,17 @@ class DataEmitter:
         ----------
         vars : list[str]
 
+        X : pd.DataFrame | None
+            Default: None. If not None, selects the specified variables in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
+        if X is not None:
+            return X[vars]
+
         self._working_df_test = self._working_df_test[vars]
         self._working_df_train = self._working_df_train[vars]
         (
@@ -552,9 +670,13 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-        return self
+        return None
 
-    def _drop_vars(self, vars: list[str]) -> "DataEmitter":
+    def _drop_vars(
+        self, 
+        vars: list[str],
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Drops subset of variables (columns) in-place on the working
         train and test DataFrames.
 
@@ -564,9 +686,12 @@ class DataEmitter:
 
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
+        if X is not None:
+            return X.drop(vars, axis="columns")
+
         self._working_df_test = self._working_df_test.drop(vars, axis="columns")
         self._working_df_train = self._working_df_train.drop(vars, axis="columns")
         (
@@ -574,9 +699,13 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-        return self
+        return None
 
-    def _force_numeric(self, vars: list[str]) -> "DataEmitter":
+    def _force_numeric(
+        self, 
+        vars: list[str],
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Forces variables to numeric (floats).
 
         Parameters
@@ -584,15 +713,23 @@ class DataEmitter:
         vars : list[str]
             Name of variables.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, forces the specified variables to numeric in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
         for var in vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")
             try:
+                if X is not None:
+                    X[var] = X[var].apply(
+                        lambda x: float(x) if pd.notna(x) else np.nan
+                    )
+                    continue
                 self._working_df_train[var] = self._working_df_train[var].apply(
                     lambda x: float(x) if pd.notna(x) else np.nan
                 )
@@ -601,7 +738,7 @@ class DataEmitter:
                 )
             except Exception:
                 pass
-        return self
+        return X
 
     def _force_binary(
         self,
@@ -609,7 +746,8 @@ class DataEmitter:
         pos_labels: list[str] | None = None,
         ignore_multiclass: bool = False,
         rename: bool = False,
-    ) -> "DataEmitter":
+        X: pd.DataFrame | None = None,
+    ) -> pd.DataFrame | None:
         """Forces variables to be binary (0 and 1 valued numeric variables).
         Does nothing if the data contains more than two classes unless
         ignore_multiclass is True and pos_label is specified,
@@ -632,10 +770,13 @@ class DataEmitter:
             Default: False. If True, the variables are renamed to
             {pos_label}_yn({var}).
 
+        X : pd.DataFrame | None
+            Default: None. If not None, forces the specified variables to binary
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
         if pos_labels is None and ignore_multiclass:
             raise ValueError(
@@ -652,18 +793,33 @@ class DataEmitter:
                 if len(unique_vals) > 2:
                     continue
                 pos_label = unique_vals[0]
+
+                if X is not None:
+                    X[var] = X[var].apply(
+                        lambda x: 1 if x == pos_label else 0
+                    )
+                    continue
+
                 self._working_df_train[var] = self._working_df_train[var].apply(
                     lambda x: 1 if x == pos_label else 0
                 )
                 self._working_df_test[var] = self._working_df_test[var].apply(
                     lambda x: 1 if x == pos_label else 0
                 )
+
             else:
                 unique_vals = self._working_df_train[var].unique()
                 if len(unique_vals) > 2:
                     if not ignore_multiclass:
                         continue
                 pos_label = pos_labels[i]
+                
+                if X is not None:
+                    X[var] = X[var].apply(
+                        lambda x: 1 if x == pos_label else 0
+                    )
+                    continue
+
                 self._working_df_train[var] = self._working_df_train[var].apply(
                     lambda x: 1 if x == pos_label else 0
                 )
@@ -672,6 +828,9 @@ class DataEmitter:
                 )
 
             vars_to_renamed[var] = f"{pos_label}_yn({var})"
+
+        if X is not None:
+            return X
 
         if rename:
             self._working_df_train = self._working_df_train.rename(
@@ -686,9 +845,15 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-        return self
 
-    def _force_categorical(self, vars: list[str]) -> "DataEmitter":
+        return None
+
+
+    def _force_categorical(
+        self, 
+        vars: list[str],
+        X: pd.DataFrame | None = None
+    ) -> pd.DataFrame | None:
         """Forces variables to become categorical.
         Example use case: create numericly-coded categorical variables.
 
@@ -697,26 +862,40 @@ class DataEmitter:
         vars : list[str]
             Name of variables.
 
+        X : pd.DataFrame | None
+            Default: None. If not None, forces the specified variables to categorical 
+            in X.
+
         Returns
         -------
-        DataEmitter
-            Returns self for method chaining.
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
         """
         if not isinstance(vars, list):
             vars = [vars]
         for var in vars:
+            if X is not None:
+                X[var] = X[var].apply(
+                    lambda x: str(x) if pd.notna(x) else np.nan
+                )
+                continue
             self._working_df_train[var] = self._working_df_train[var].apply(
                 lambda x: str(x) if pd.notna(x) else np.nan
             )
             self._working_df_test[var] = self._working_df_test[var].apply(
                 lambda x: str(x) if pd.notna(x) else np.nan
             )
+
+        if X is not None:
+            return X
+
         (
             self._categorical_vars,
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-        return self
+
+        return None
 
     def _compute_categories(
         self, 
@@ -870,6 +1049,65 @@ class DataEmitter:
         if var == self._yvar:
             self._yscaler = scaler
         return self
+    
+
+    def sklearn_preprocessing_transformer(self) -> FunctionTransformer:
+        """Builds a FunctionTransformer object for preprocessing. 
+
+        Returns
+        -------
+        FunctionTransformer
+            FunctionTransformer object.
+        """
+
+        def custom_transform(X):
+
+            if not isinstance(X, pd.DataFrame):
+                raise ValueError("Input must be a DataFrame.")
+            
+            self.emit_train_Xy()
+
+            for step in self._step_tracer._steps:
+                if step["step"] == "onehot":
+                    X = self._onehot(X=X, **step["kwargs"])
+                elif step["step"] == "impute":
+                    X = self._impute(X=X, **step["kwargs"])
+                elif step["step"] == "scale":
+                    X = self._scale(X=X, **step["kwargs"])
+                elif step["step"] == "drop_highly_missing_vars":
+                    X = self._drop_highly_missing_vars(X=X, **step["kwargs"])
+                elif step["step"] == "force_numeric":
+                    X = self._force_numeric(X=X, **step["kwargs"])
+                elif step["step"] == "force_binary":
+                    X = self._force_binary(X=X, **step["kwargs"])
+                elif step["step"] == "force_categorical":
+                    X = self._force_categorical(X=X, **step["kwargs"])
+                elif step["step"] == "select_vars":
+                    X = self._select_vars(X=X, **step["kwargs"])
+                elif step["step"] == "drop_vars":
+                    X = self._drop_vars(X=X, **step["kwargs"])
+                elif step["step"] == "add_scaler":
+                    X = self._add_scaler(X=X, **step["kwargs"])
+                else:
+                    raise ValueError("Invalid step.")
+                
+            X = X.dropna()
+            X = self._onehot_helper(X[self._Xvars], fit=False).join(X[self._yvar])
+
+            if self._final_X_vars_subset is not None:
+                X = X[self._final_X_vars_subset]
+            
+            return X
+
+        custom_transformer = FunctionTransformer(
+            custom_transform, 
+            validate=False, 
+            check_inverse=False
+        )
+
+        return custom_transformer
+
+
 
 
 class DataHandler:

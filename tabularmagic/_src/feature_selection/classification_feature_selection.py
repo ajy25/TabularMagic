@@ -5,7 +5,7 @@ from ..data.datahandler import DataEmitter
 from .base_feature_selection import BaseFSC
 
 
-class KBestSelectorC(BaseFSC):
+class KBestFSC(BaseFSC):
     """Selects the k best features based on the f_classif or mutual info
     regression score.
     """
@@ -17,7 +17,7 @@ class KBestSelectorC(BaseFSC):
         name: str | None = None,
     ):
         """
-        Constructs a KBestSelectorC.
+        Constructs a KBestFSC.
 
         Parameters
         ----------
@@ -28,7 +28,7 @@ class KBestSelectorC(BaseFSC):
             Default: None. If None, then outputs the class name.
         """
         if name is None:
-            name = f"KBestSelectorC({scorer})"
+            name = f"KBestFSC({scorer})"
         super().__init__(name)
         self._scorer = scorer
         self._k = k

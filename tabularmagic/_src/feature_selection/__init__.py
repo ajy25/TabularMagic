@@ -1,18 +1,18 @@
 from .regression_feature_selection import (
-    KBestSelectorR,
-    LassoSelectorR,
+    KBestFSR,
+    LassoFSR,
 )
 from .classification_feature_selection import (
-    KBestSelectorC,
+    KBestFSC,
 )
 from .base_feature_selection import BaseFSR, BaseFSC, BaseFS
 from .voteselect import VotingSelectionReport
 
 
 __all__ = [
-    "KBestSelectorR",
-    "LassoSelectorR",
-    "KBestSelectorC",
+    "KBestFSR",
+    "LassoFSR",
+    "KBestFSC",
     "BaseFSR",
     "BaseFSC",
     "BaseFS",

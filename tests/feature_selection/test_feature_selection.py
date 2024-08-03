@@ -46,7 +46,7 @@ def test_fs_simple(setup_data):
             "numeric_var_1",
             "numeric_var_2",
         ],
-        feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
+        feature_selectors=[tm.fs.KBestFSC("chi2", 2)],
     )
     assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
 
@@ -56,7 +56,7 @@ def test_fs_simple(setup_data):
                 type="l2",
                 n_trials=5,
                 name="simple_tester",
-                feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
+                feature_selectors=[tm.fs.KBestFSC("chi2", 2)],
             )
         ],
         target="binary_var",
@@ -75,7 +75,7 @@ def test_fs_simple(setup_data):
                 type="l2",
                 n_trials=5,
                 name="simple_tester",
-                feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
+                feature_selectors=[tm.fs.KBestFSC("chi2", 2)],
             ),
             tm.ml.LinearC(
                 type="l2",
@@ -90,7 +90,7 @@ def test_fs_simple(setup_data):
             "numeric_var_1",
             "numeric_var_2",
         ],
-        feature_selectors=[tm.fs.KBestSelectorC("chi2", 4)],
+        feature_selectors=[tm.fs.KBestFSC("chi2", 4)],
     )
     assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
     assert report.model("simple_tester_2").sklearn_estimator().n_features_in_ == 4
@@ -100,7 +100,7 @@ def test_fs_simple(setup_data):
             tm.ml.LinearR(
                 type="ols",
                 name="simple_tester",
-                feature_selectors=[tm.fs.KBestSelectorR("r_regression", 2)],
+                feature_selectors=[tm.fs.KBestFSR("r_regression", 2)],
             ),
             tm.ml.LinearR(
                 type="ols",
@@ -114,7 +114,7 @@ def test_fs_simple(setup_data):
             "binary_var",
             "numeric_var_1",
         ],
-        feature_selectors=[tm.fs.KBestSelectorR("f_regression", 3)],
+        feature_selectors=[tm.fs.KBestFSR("f_regression", 3)],
     )
     assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
     assert report.model("simple_tester_2").sklearn_estimator().n_features_in_ == 3

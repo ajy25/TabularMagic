@@ -9,7 +9,7 @@ from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.negbinglm import NegativeBinomialLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
-from .utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
+from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
 class SingleDatasetNegBinRegReport:

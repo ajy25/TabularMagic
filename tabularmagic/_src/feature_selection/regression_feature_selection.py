@@ -11,7 +11,7 @@ from .base_feature_selection import BaseFSR
 from ..data.datahandler import DataEmitter
 
 
-class KBestSelectorR(BaseFSR):
+class KBestFSR(BaseFSR):
     """Selects the k best features based on the f_regression, r_regression,
     or mutual info regression score.
     """
@@ -23,7 +23,7 @@ class KBestSelectorR(BaseFSR):
         name: str | None = None,
     ):
         """
-        Constructs a KBestSelectorR.
+        Constructs a KBestFSR.
 
         Parameters
         ----------
@@ -35,7 +35,7 @@ class KBestSelectorR(BaseFSR):
             Default: None. If None, then outputs the class name.
         """
         if name is None:
-            name = f"KBestSelector({scorer})"
+            name = f"KBestFSR({scorer})"
         super().__init__(name)
         self._scorer = scorer
         self._k = k
@@ -78,7 +78,7 @@ class KBestSelectorR(BaseFSR):
         return self._all_features, self._selected_features, self._support
 
 
-class LassoSelectorR(BaseFSR):
+class LassoFSR(BaseFSR):
     """Selects the (at most) k best features via Lasso regression model-inherent
     feature selection based on the training data.
     """
@@ -90,7 +90,7 @@ class LassoSelectorR(BaseFSR):
         name: str | None = None,
     ):
         """
-        Constructs a LassoSelectorR.
+        Constructs a LassoFSR.
 
         Parameters
         ----------
@@ -102,7 +102,7 @@ class LassoSelectorR(BaseFSR):
             Default: None. If None, then name is set to default.
         """
         if name is None:
-            name = "LassoSelectorR"
+            name = "LassoFSR"
         super().__init__(name)
         self._model = Lasso(alpha=alpha)
         self._max_n_features = max_n_features

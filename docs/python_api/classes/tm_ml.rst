@@ -1,22 +1,14 @@
-:py:mod:`tabularmagic.ml`
-=========================
+Machine Learning Models :py:mod:`(tm.ml)`
+=========================================
 
 
 .. currentmodule:: tabularmagic.ml
 
 The `tabularmagic.ml` module contains the machine learning models used by the 
-Analyzer.
-
-
-
-:py:mod:`tm.ml.BaseR`
----------------------
-
-BaseR is a base model class for regression.
-
-.. autoclass:: BaseR
-    :members: 
-        __init__, specify_data, fit, sklearn_estimator, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+:func:`.regress` and :func:`.classify` methods of the :class:`Analyzer` class. 
+These models are designed to be used in a similar way to the models in the `sklearn` 
+package, but with additional functionality for feature selection, 
+hyperparameter optimization, and cross-validation.
         
 
 :py:mod:`tm.ml.LinearR`
@@ -24,4 +16,87 @@ BaseR is a base model class for regression.
 
 .. autoclass:: LinearR
     :members: 
-        __init__
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+:py:mod:`tm.ml.RobustLinearR`
+-----------------------------
+
+.. autoclass:: RobustLinearR
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+:py:mod:`tm.ml.TreeR`
+---------------------
+
+.. autoclass:: TreeR
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+:py:mod:`tm.ml.TreeEnsembleR`
+-----------------------------
+
+.. autoclass:: TreeEnsembleR
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+:py:mod:`tm.ml.SVMR`
+--------------------
+
+.. autoclass:: SVMR
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+:py:mod:`tm.ml.MLPR`
+--------------------
+
+.. autoclass:: MLPR
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+
+
+
+:py:mod:`tm.ml.LinearC`
+-----------------------
+
+.. autoclass:: LinearC
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, is_binary, predictors
+
+
+:py:mod:`tm.ml.TreeC`
+---------------------
+
+.. autoclass:: TreeC
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, is_binary, predictors
+
+
+:py:mod:`tm.ml.TreeEnsembleC`
+-----------------------------
+
+.. autoclass:: TreeEnsembleC
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, is_binary, predictors
+
+
+:py:mod:`tm.ml.SVMC`
+--------------------
+
+.. autoclass:: SVMC
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, is_binary, predictors
+
+
+:py:mod:`tm.ml.MLPC`
+--------------------
+
+.. autoclass:: MLPC
+    :members: 
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, feature_selection_report, is_cross_validated, is_binary, predictors
+
+

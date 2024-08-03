@@ -7,8 +7,8 @@ from ....display.print_utils import print_wrapped
 
 
 class CustomR(BaseR):
-    """TabularMagic-compatible wrapper for user-designed scikit-learn
-    estimators/searches/pipelines.
+    """TabularMagic-compatible interface for user-designed scikit-learn
+    estimators/searches/pipelines for regression.
 
     Hyperparameter search is not conducted unless provided by the
     estimator.
@@ -42,6 +42,11 @@ class CustomR(BaseR):
     def fit(self, verbose: bool = False):
         """Fits the model. Records training metrics, which can be done via
         nested cross validation.
+
+        Parameters
+        ----------
+        verbose : bool.
+            Default: False. If True, prints progress.
         """
         y_scaler = self._dataemitter.y_scaler()
 

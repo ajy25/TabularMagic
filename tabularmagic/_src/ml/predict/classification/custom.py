@@ -11,8 +11,8 @@ from ....display.print_utils import print_wrapped
 
 
 class CustomC(BaseC):
-    """CustomC is a TabularMagic-compatible interface for user-designed scikit-learn
-    estimators/searches/pipelines.
+    """TabularMagic-compatible interface for user-designed scikit-learn
+    estimators/searches/pipelines for classification.
 
     Hyperparameter search is not conducted unless provided by the
     estimator.
@@ -99,8 +99,6 @@ class CustomC(BaseC):
             y_preds_encoded = []
             y_trues = []
             y_pred_scores = []
-
-            is_binary = True
 
             for emitter in self._dataemitters:
                 (

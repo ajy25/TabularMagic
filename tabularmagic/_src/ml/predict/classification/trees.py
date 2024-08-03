@@ -20,7 +20,8 @@ from ....feature_selection import BaseFSC
 class TreeC(BaseC):
     """Decision tree classifier.
 
-    Hyperparameter tuning is performed automatically during training.
+    Hyperparameter optimization is performed automatically during training. 
+    The hyperparameter search process can be modified by the user.
     """
 
     def __init__(
@@ -64,29 +65,27 @@ class TreeC(BaseC):
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
 
-        **kwargs : Key word arguments are passed directly into the
-            intialization of the HyperparameterSearcher class. In particular,
-            inner_cv and inner_cv_seed can be set via kwargs.
+        **kwargs : dict
+            Key word arguments are passed directly into the intialization of the 
+            HyperparameterSearcher class. See below for options.
 
-        **kwargs
-        --------------
-        inner_cv : int | BaseCrossValidator
-            Default: 5. Number of inner cross validation folds. Inner
-            cross validation is used for hyperparameter optimization.
+            inner_cv : int | BaseCrossValidator
+                Default: 5. Number of inner cross validation folds. Inner
+                cross validation is used for hyperparameter optimization.
 
-        inner_cv_seed : int
-            Default: 42. Random seed for inner cross validation.
+            inner_cv_seed : int
+                Default: 42. Random seed for inner cross validation.
 
-        n_jobs : int
-            Default: 1. Number of parallel jobs to run.
+            n_jobs : int
+                Default: 1. Number of parallel jobs to run.
 
-        verbose : int
-            Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
-            2 is the most verbose.
+            verbose : int
+                Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
+                2 is the most verbose.
 
-        n_trials : int
-            Default: 100. Number of trials for hyperparameter optimization. Only
-            used if hyperparam_search_method is 'optuna'.
+            n_trials : int
+                Default: 100. Number of trials for hyperparameter optimization. Only
+                used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
 
@@ -119,9 +118,8 @@ class TreeC(BaseC):
 class TreeEnsembleC(BaseC):
     """Tree ensemble classifier.
 
-    Like all BaseC-derived classes, hyperparameter selection is
-    performed automatically during training. The cross-validation and
-    hyperparameter selection process can be modified by the user.
+    Hyperparameter optimization is performed automatically during training. 
+    The hyperparameter search process can be modified by the user.
     """
 
     def __init__(
@@ -177,29 +175,27 @@ class TreeEnsembleC(BaseC):
             Default: None. Determines how the model shows up in the reports.
             If None, the name is set to be the class name.
 
-        **kwargs : Key word arguments are passed directly into the
-            intialization of the HyperparameterSearcher class. In particular,
-            inner_cv and inner_cv_seed can be set via kwargs.
+        **kwargs : dict
+            Key word arguments are passed directly into the intialization of the 
+            HyperparameterSearcher class. See below for options.
 
-        **kwargs
-        --------------
-        inner_cv : int | BaseCrossValidator
-            Default: 5. Number of inner cross validation folds. Inner
-            cross validation is used for hyperparameter optimization.
+            inner_cv : int | BaseCrossValidator
+                Default: 5. Number of inner cross validation folds. Inner
+                cross validation is used for hyperparameter optimization.
 
-        inner_cv_seed : int
-            Default: 42. Random seed for inner cross validation.
+            inner_cv_seed : int
+                Default: 42. Random seed for inner cross validation.
 
-        n_jobs : int
-            Default: 1. Number of parallel jobs to run.
+            n_jobs : int
+                Default: 1. Number of parallel jobs to run.
 
-        verbose : int
-            Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
-            2 is the most verbose.
+            verbose : int
+                Default: 0. Sets the sklearn verbosity level for the sklearn estimator.
+                2 is the most verbose.
 
-        n_trials : int
-            Default: 100. Number of trials for hyperparameter optimization. Only
-            used if hyperparam_search_method is 'optuna'.
+            n_trials : int
+                Default: 100. Number of trials for hyperparameter optimization. Only
+                used if hyperparam_search_method is 'optuna'.
         """
         super().__init__()
         self._dropfirst = True

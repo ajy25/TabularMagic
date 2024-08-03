@@ -8,8 +8,8 @@ from ....display.print_utils import print_wrapped
 
 class BaseR(BasePredictModel):
     """BaseR is a class that provides a training and evaluation framework that all
-    TabularMagic regression classes inherit (i.e., all ___R classes are children
-      of BaseR). The primary purpose of BaseR is to automate the scoring and
+    TabularMagic regression classes inherit (i.e., all ___R classes are children 
+    of BaseR). The primary purpose of BaseR is to automate the scoring and
     model selection processes.
     """
 
@@ -59,7 +59,8 @@ class BaseR(BasePredictModel):
         """Fits and evaluates the model.
 
         The model fitting process is as follows:
-        1. The train data is emitted. This means that the data is preprocessed based on
+
+        1. The train data is emitted. This means that the data is preprocessed based on 
         user specifications AND necessary automatic preprocessing steps. That is,
         the DataEmitter will automatically drop observations with missing
         entries and encode categorical variables IF NOT SPECIFIED BY USER.
@@ -74,6 +75,7 @@ class BaseR(BasePredictModel):
         Steps 1-4 are repeated for each fold.
 
         The fitting process yields three sets of metrics:
+        
         1. The training set metrics.
         2. The cross validation set metrics. *only if cross validation was specified*
             Note that the cross validation metrics are computed on the test set of

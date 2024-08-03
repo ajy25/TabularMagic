@@ -69,7 +69,7 @@ lm_report = analyzer.lm(
 )
 print(lm_report.statsmodels_summary())
 reshow(lm_report.train_report().plot_diagnostics(show_outliers=True))
-print(lm_report.test_report().metrics('test'))
+print(lm_report.metrics('test'))
 ```
 
 TabularMagic streamlines machine learning model benchmarking. TabularMagic automatically tunes hyperparameters and selects features when benchmarking user-specified models. Note that cross validation is optional and computationally expensive; to enable cross validation, simply set `outer_cv` to the number of desired folds.

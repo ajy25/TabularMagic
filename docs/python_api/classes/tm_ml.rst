@@ -16,10 +16,12 @@ BaseR is a base model class for regression.
 
 .. autoclass:: BaseR
     :members: 
-        specify_data, fit, sklearn_estimator, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, hyperparam_searcher, feature_selection_report, is_cross_validated, predictors
         
 
 :py:mod:`tm.ml.LinearR`
 -----------------------
 
 .. autoclass:: LinearR
+    :members: 
+        __init__

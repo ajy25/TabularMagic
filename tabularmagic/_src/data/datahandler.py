@@ -1584,12 +1584,13 @@ class DataHandler:
             else:
                 raise ValueError("Invalid scaling strategy.")
 
-            if self._numerical_var_to_scaler[var] is not None:
-                print_wrapped(
-                    f"Variable {var} has already been scaled. "
-                    "The new scaler will replace the old one.",
-                    type="WARNING",
-                )
+            if var in self._numerical_var_to_scaler:
+                if self._numerical_var_to_scaler[var] is not None:
+                    print_wrapped(
+                        f"Variable {var} has already been scaled. "
+                        "The new scaler will replace the old one.",
+                        type="WARNING",
+                    )
             self._working_df_train[var] = scaler.transform(
                 self._working_df_train[var].to_numpy()
             )

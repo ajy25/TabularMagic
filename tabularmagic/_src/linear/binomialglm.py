@@ -110,6 +110,7 @@ class BinomialLinearModel:
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
+            pos_label = 1,
             y_pred_score=np.hstack(
                 [
                     np.zeros(shape=(len(y_pred_train), 1)),
@@ -125,6 +126,7 @@ class BinomialLinearModel:
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
             y_true=y_test.to_numpy(),
+            pos_label = 1,
             y_pred_score=np.hstack(
                 [np.zeros(shape=(len(y_pred_test), 1)), y_pred_test.reshape(-1, 1)]
             ),

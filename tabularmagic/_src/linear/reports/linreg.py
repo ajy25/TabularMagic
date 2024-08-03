@@ -10,7 +10,7 @@ from ..lm import OLSLinearModel
 from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
-
+from ...exploratory.stattests import StatisticalTestResult
 
 
 class SingleDatasetLinRegReport:
@@ -67,7 +67,7 @@ class SingleDatasetLinRegReport:
         Parameters
         ----------
         show_outliers : bool
-            Default: True. 
+            Default: True.
             If True, then the outliers calculated using standard errors will be
             shown in red.
 
@@ -85,9 +85,7 @@ class SingleDatasetLinRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(
-            self._y_pred, self._y_true, self.model._name, figsize, ax
-        )
+        plot_obs_vs_pred(self._y_pred, self._y_true, self.model._name, figsize, ax)
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],
@@ -132,7 +130,7 @@ class SingleDatasetLinRegReport:
             opposed to the raw residuals.
 
         show_outliers : bool
-            Default: True. If True, colors the outliers determined by the 
+            Default: True. If True, colors the outliers determined by the
             standardized residuals in red.
 
         figsize : tuple[float, float]
@@ -616,8 +614,7 @@ class SingleDatasetLinRegReport:
         return fig
 
     def plot_diagnostics(
-        self, show_outliers: bool = False, 
-        figsize: tuple[float, float] = (7.0, 7.0)
+        self, show_outliers: bool = False, figsize: tuple[float, float] = (7.0, 7.0)
     ) -> plt.Figure:
         """Plots several useful linear regression diagnostic plots.
 
@@ -853,6 +850,104 @@ class LinearRegressionReport:
         return LinearRegressionReport(
             OLSLinearModel(), new_datahandler, self._target, selected_vars
         )
+
+    def test_lr(self, alternative_report):
+        """To Do: Create docstring for likelihood ratio test"""
+        # Determine which report is the reduced model
+
+        # Get the models from each report
+        original_model = self._train_report.model.estimator
+        alternative_model = alternative_report.train_report().model.estimator
+
+        # Get the number of predictors for each model
+        num_predictors_orig = len(self._train_report._X_eval_df.columns)
+        num_predictors_alternative = len(
+            alternative_report.train_report()._X_eval_df.columns
+        )
+
+        if num_predictors_orig > num_predictors_alternative:
+            full_model = original_model
+            reduced_model = alternative_model
+        elif num_predictors_orig < num_predictors_alternative:
+            full_model = alternative_model
+            reduced_model = original_model
+        else:
+            # Raise an error if the number of predictors are the same
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Add error if one set of predictors is not a subset of the other
+        # to do
+
+        # Implement test for heteroscedasticity
+
+        # Extract the results of the test
+        lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
+
+        # Initialize and return an object of class StatisticalTestResult
+        lr_result = StatisticalTestResult(
+            description="Likelihood Ratio Test",
+            statistic=lr_stat,
+            pval=p_value,
+            degfree=dr_diff,
+            statistic_description="Chi-square",
+            null_hypothesis_description="The full model does not fit the "
+            "data significantly better than the reduced model",
+            alternative_hypothesis_description="The full model fits the "
+            "data signficantly better than the reduced model",
+            assumptions_description="The data must be homoscedastic and "
+            "uncorrelated",
+        )
+
+        return lr_result
+
+    def test_partialf(self, alternative_report):
+        """To Do: Create docstring for partial f test"""
+        # Determine which report is the reduced model
+
+        # Get the models from each report
+        original_model = self._train_report.model.estimator
+        alternative_model = alternative_report.train_report().model.estimator
+
+        # Get the number of predictors for each model
+        num_predictors_orig = len(self._train_report._X_eval_df.columns)
+        num_predictors_alternative = len(
+            alternative_report.train_report()._X_eval_df.columns
+        )
+
+        if num_predictors_orig > num_predictors_alternative:
+            full_model = original_model
+            reduced_model = alternative_model
+        elif num_predictors_orig < num_predictors_alternative:
+            full_model = alternative_model
+            reduced_model = original_model
+        else:
+            # Raise an error if the number of predictors are the same
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Add error if one set of predictors is not a subset of the other
+        # to do
+
+        # Implement test for heteroscedasticity
+
+        # Extract the results of the test
+        f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
+
+        # Initialize and return an object of class StatisticalTestResult
+        partial_f_result = StatisticalTestResult(
+            description="Partial F-Test",
+            statistic=f_value,
+            pval=p_value,
+            degfree=dr_diff,
+            statistic_description="F-statistic",
+            null_hypothesis_description="The coefficients of the additional "
+                "predictors are all zero",
+            alternative_hypothesis_description="At least one of the "
+                "coefficients of the additional predictors is not zero",
+            assumptions_description="The data must be homoscedastic and "
+            "have no autocorrelation",
+        )
+
+        return partial_f_result
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for

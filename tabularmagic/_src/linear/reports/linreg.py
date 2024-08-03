@@ -851,8 +851,24 @@ class LinearRegressionReport:
             OLSLinearModel(), new_datahandler, self._target, selected_vars
         )
 
-    def test_lr(self, alternative_report):
-        """To Do: Create docstring for likelihood ratio test"""
+    def test_lr(
+        self, 
+        alternative_report: "LinearRegressionReport"
+    ) -> StatisticalTestResult:
+        """Performs a likelihood ratio test to compare an alternative 
+        OLSLinearModel. Returns an object of class StatisticalTestResult 
+        describing the results.
+
+        Parameters
+        ----------
+        alternative_report : LinearRegressionReport
+            The report of an alternative OLSLinearModel. The alternative
+            model must be a nested version of the current model or vice-versa.
+
+        Returns
+        -------
+        StatisticalTestResult
+        """
         # Determine which report is the reduced model
 
         # Get the models from each report
@@ -901,7 +917,19 @@ class LinearRegressionReport:
         return lr_result
 
     def test_partialf(self, alternative_report):
-        """To Do: Create docstring for partial f test"""
+        """Performs a partial F-test to compare an alternative OLSLinearModel.
+        Returns an object of class StatisticalTestResult describing the results.
+
+        Parameters
+        ----------
+        alternative_report : LinearRegressionReport
+            The report of an alternative OLSLinearModel. The alternative
+            model must be a nested version of the current model or vice-versa.
+
+        Returns
+        -------
+        StatisticalTestResult
+        """
         # Determine which report is the reduced model
 
         # Get the models from each report
@@ -959,3 +987,238 @@ class LinearRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
+    
+    # Move methods in SingleDatasetLinRegReport up to LinearRegressionReport
+    # to allow useres to call methods from mutliple locations
+
+    def plot_obs_vs_pred(
+        self,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a scatter plot of the true and predicted y
+        values.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: True.
+            If True, then the outliers calculated using standard errors will be
+            shown in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0,5.0). Sets the size of the resulting graph.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        - Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_obs_vs_pred(
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_obs_vs_pred(
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+    
+    def plot_residuals_vs_fitted(
+        self,
+        standardized: bool = False,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: False. If True, plots the standardized residuals as
+            opposed to the raw residuals.
+
+        show_outliers : bool
+            Default: True. If True, colors the outliers determined by the
+            standardized residuals in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default = None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        - Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_fitted(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_residuals_vs_fitted(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        
+    def plot_residuals_vs_var(
+        self,
+        x_var: str,
+        standardized: bool = False,
+        show_outliers: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+
+        Parameters
+        ----------
+        x_var : str
+            The predictor variable whose values should be plotted on the x-axis.
+
+        standardized : bool
+            Default: False. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: False. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_var(
+                x_var = x_var,
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_residuals_vs_var(
+                x_var = x_var,
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        
+    def plot_residuals_hist(
+        self,
+        standardized: bool = False,
+        density: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a histogram of the residuals.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: False. If True, standardizes the residuals.
+
+        density : bool
+            Default: False. If True, plots density rather than frequency.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_hist(
+                standardized = standardized,
+                density = density,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_residuals_hist(
+                standardized = standardized,
+                density = density,
+                figsize = figsize,
+                ax = ax
+            )
+
+    def plot_scale_location(
+        self,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a plot of the
+        sqrt of the residuals versus the fitted.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: True. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_scale_location(
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_scale_location(
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+    
+        

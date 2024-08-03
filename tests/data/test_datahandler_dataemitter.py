@@ -524,3 +524,25 @@ def test_emitter_feature_selection_transform(setup_data):
     df_house_test = setup_data["df_house_test"]
 
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
+
+
+def test_datahandler_scale_(setup_data):
+    """Test DataEmitter with basic pipeline generation capabilities"""
+    train_data = setup_data["df_house_train"]
+    test_data = setup_data["df_house_test"]
+    dh = DataHandler(
+        train_data,
+        test_data,
+        verbose=False
+    )
+
+    dh.scale(
+        include_vars=[
+            "GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"
+        ],
+        strategy="standardize"
+    )
+
+    assert 'MSZoning' in dh.df_train().columns
+    dh.onehot(['MSZoning'])
+

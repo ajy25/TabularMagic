@@ -9,9 +9,7 @@ parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(parent_dir))
 
 from tabularmagic._src.data.datahandler import (
-    DataEmitter,
     DataHandler,
-    PreprocessStepTracer,
 )
 
 
@@ -43,22 +41,28 @@ def test_dataemitter_pipeline_basic(setup_data):
         test_data,
         verbose=False
     )
+
+    dh.scale(
+        include_vars=[
+            "GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"
+        ],
+        strategy="standardize"
+    )
+    dh.onehot(['MSZoning'])
+
     de = dh.train_test_emitter(
         y_var="SalePrice", 
         X_vars=["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "LotShape"],
     )
 
-
-    transformer = de.sklearn_preprocessing_transformer()
-
-    test_data_subset = test_data[
-        ["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "LotShape", "SalePrice"]
-    ]
-
-    transformer_df = transformer.transform(test_data_subset)
+    de.emit_train_test_Xy()
 
     emitted_test_Xy = de.emit_test_Xy()
     emitted_df = emitted_test_Xy[0].join(emitted_test_Xy[1])
+
+
+    transformer = de.sklearn_preprocessing_transformer()
+    transformer_df = transformer.transform(test_data)
 
     assert np.allclose(emitted_df.values, transformer_df.values, atol=1e-5)
 

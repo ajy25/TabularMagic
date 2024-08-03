@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import Literal
-from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import FunctionTransformer
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.exceptions import NotFittedError
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
@@ -25,41 +22,6 @@ from .preprocessing import (
 )
 from ..display.print_options import print_options
 from ..utils import ensure_arg_list_uniqueness
-
-
-
-class CustomTransformerWithExtraColumns(BaseEstimator, TransformerMixin):
-    def __init__(self, custom_transform_func):
-        self.custom_transform_func = custom_transform_func
-        self.output_feature_names = None
-
-    def fit(self, X, y=None):
-        # Apply the transformation to get the output shape and column names
-        transformed_data = self.custom_transform_func(X)
-        
-        if isinstance(transformed_data, pd.DataFrame):
-            self.output_feature_names = transformed_data.columns.tolist()
-        elif isinstance(transformed_data, np.ndarray):
-            # If the output is a numpy array, create generic feature names
-            self.output_feature_names = [f'feature_{i}' for i in range(transformed_data.shape[1])]
-        else:
-            raise ValueError("custom_transform_func must return a DataFrame or numpy array")
-        
-        return self
-
-    def transform(self, X):
-        transformed_data = self.custom_transform_func(X)
-        if isinstance(transformed_data, pd.DataFrame):
-            return transformed_data
-        elif isinstance(transformed_data, np.ndarray):
-            return pd.DataFrame(transformed_data, columns=self.output_feature_names)
-        else:
-            raise ValueError("custom_transform_func must return a DataFrame or numpy array")
-
-    def get_feature_names_out(self, input_features=None):
-        if self.output_feature_names is None:
-            raise NotFittedError("Transformer has not been fitted yet. Call 'fit' before using this method.")
-        return self.output_feature_names
 
 
 
@@ -167,6 +129,8 @@ class DataEmitter:
         self._categorical_imputer = None
         self._highly_missing_vars_dropped = None
         self._onehot_encoder = None
+        self._second_onehot_encoder = None
+        self._var_to_scaler = dict()
 
         self._yscaler = None
 
@@ -272,8 +236,16 @@ class DataEmitter:
                 f"out of a total of {prev_test_len} rows.",
                 type="WARNING",
             )
-        X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
-        X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
+        X_train_df = self._onehot_helper(
+            working_df_train[self._Xvars], 
+            fit=True, 
+            use_second_encoder=True
+        )
+        X_test_df = self._onehot_helper(
+            working_df_test[self._Xvars], 
+            fit=False, 
+            use_second_encoder=True
+        )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
             X_test_df = X_test_df[self._final_X_vars_subset]
@@ -321,7 +293,11 @@ class DataEmitter:
                 f"out of a total of {prev_train_len} rows.",
                 type="WARNING",
             )
-        X_train_df = self._onehot_helper(working_df_train[self._Xvars], fit=True)
+        X_train_df = self._onehot_helper(
+            working_df_train[self._Xvars], 
+            fit=True, 
+            use_second_encoder=True
+        )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
         return X_train_df, working_df_train[self._yvar]
@@ -362,7 +338,11 @@ class DataEmitter:
                 f"with missing values out of a total of {prev_test_len} rows.",
                 type="WARNING",
             )
-        X_test_df = self._onehot_helper(working_df_test[self._Xvars], fit=False)
+        X_test_df = self._onehot_helper(
+            working_df_test[self._Xvars], 
+            fit=False, 
+            use_second_encoder=True
+        )
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
@@ -611,7 +591,8 @@ class DataEmitter:
                 continue
 
             if X is not None:
-                X[var] = scaler.transform(X[var].to_numpy())
+                if var in self._var_to_scaler:
+                    X[var] = self._var_to_scaler[var].transform(X[var].to_numpy())
                 continue
 
             train_data = self._working_df_train[var].to_numpy()
@@ -625,6 +606,8 @@ class DataEmitter:
                 scaler = Log1PTransformSingleVar(var, train_data)
             else:
                 raise ValueError("Invalid scaling strategy.")
+            
+            self._var_to_scaler[var] = scaler
 
             self._working_df_train[var] = scaler.transform(
                 self._working_df_train[var].to_numpy()
@@ -930,6 +913,7 @@ class DataEmitter:
         vars: list[str] | None = None,
         dropfirst: bool = True,
         fit: bool = True,
+        use_second_encoder: bool = False,
     ) -> pd.DataFrame:
         """One-hot encodes all categorical variables with more than
         two categories.
@@ -950,6 +934,11 @@ class DataEmitter:
             If True, fits the encoder on the training data. Otherwise,
             only transforms the test data.
 
+        use_second_encoder : bool
+            Default: False. If True, uses a second encoder. The second encoder
+            is useful for emitting data that must be one-hot encoded but was 
+            not one-hot encoded by the user.
+
         Returns
         -------
         pd.DataFrame
@@ -965,6 +954,11 @@ class DataEmitter:
                     raise ValueError(f"Invalid variable name: {var}")
             categorical_vars = vars
 
+        if use_second_encoder:
+            encoder = self._second_onehot_encoder
+        else:
+            encoder = self._onehot_encoder
+
         if categorical_vars:
             if dropfirst:
                 drop = "first"
@@ -972,11 +966,11 @@ class DataEmitter:
                 drop = "if_binary"
 
             if fit:
-                self._onehot_encoder = CustomOneHotEncoder(
+                encoder = CustomOneHotEncoder(
                     drop=drop, sparse_output=False, handle_unknown="ignore"
                 )
-                encoded = self._onehot_encoder.fit_transform(df[categorical_vars])
-                feature_names = self._onehot_encoder.get_feature_names_out(
+                encoded = encoder.fit_transform(df[categorical_vars])
+                feature_names = encoder.get_feature_names_out(
                     categorical_vars
                 )
                 df_encoded = pd.DataFrame(
@@ -984,15 +978,20 @@ class DataEmitter:
                 )
 
             else:
-                encoded = ignore_warnings(self._onehot_encoder.transform)(
+                encoded = ignore_warnings(encoder.transform)(
                     df[categorical_vars]
                 )
-                feature_names = self._onehot_encoder.get_feature_names_out(
+                feature_names = encoder.get_feature_names_out(
                     categorical_vars
                 )
                 df_encoded = pd.DataFrame(
                     encoded, columns=feature_names, index=df.index
                 )
+
+            if use_second_encoder:
+                self._second_onehot_encoder = encoder
+            else:
+                self._onehot_encoder = encoder
 
             return pd.concat([df_encoded, df.drop(columns=categorical_vars)], axis=1)
         else:
@@ -1064,8 +1063,6 @@ class DataEmitter:
 
             if not isinstance(X, pd.DataFrame):
                 raise ValueError("Input must be a DataFrame.")
-            
-            self.emit_train_Xy()
 
             for step in self._step_tracer._steps:
                 if step["step"] == "onehot":
@@ -1090,9 +1087,14 @@ class DataEmitter:
                     X = self._add_scaler(X=X, **step["kwargs"])
                 else:
                     raise ValueError("Invalid step.")
-                
+            
+            X = X[self._Xvars + [self._yvar]]
             X = X.dropna()
-            X = self._onehot_helper(X[self._Xvars], fit=False).join(X[self._yvar])
+            X = self._onehot_helper(
+                X[self._Xvars], 
+                fit=False, 
+                use_second_encoder=True
+            ).join(X[self._yvar])
 
             if self._final_X_vars_subset is not None:
                 X = X[self._final_X_vars_subset]
@@ -2407,8 +2409,11 @@ class DataHandler:
         if vars is None:
             categorical_vars, _, _ = self._compute_categorical_numeric_vars(df)
         else:
+            print('test', vars)
+            print(df.columns)
             for var in vars:
                 if var not in df.columns:
+                    print('FAIL:', var in df.columns)
                     raise ValueError(f"Invalid variable name: {var}")
             categorical_vars = vars
 

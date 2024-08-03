@@ -5,3 +5,5 @@ local_tests
 .pytest_cache
 
 
+demo/regression/ignored*
+

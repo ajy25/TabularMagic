@@ -1050,6 +1050,63 @@ class DataEmitter:
         return self
     
 
+    def custom_transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Transforms the input DataFrame using the preprocessing steps
+        in the step tracer.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            The DataFrame to transform.
+
+        Returns
+        -------
+        pd.DataFrame
+            The transformed DataFrame.
+        """
+
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input must be a DataFrame.")
+
+        for step in self._step_tracer._steps:
+            if step["step"] == "onehot":
+                X = self._onehot(X=X, **step["kwargs"])
+            elif step["step"] == "impute":
+                X = self._impute(X=X, **step["kwargs"])
+            elif step["step"] == "scale":
+                X = self._scale(X=X, **step["kwargs"])
+            elif step["step"] == "drop_highly_missing_vars":
+                X = self._drop_highly_missing_vars(X=X, **step["kwargs"])
+            elif step["step"] == "force_numeric":
+                X = self._force_numeric(X=X, **step["kwargs"])
+            elif step["step"] == "force_binary":
+                X = self._force_binary(X=X, **step["kwargs"])
+            elif step["step"] == "force_categorical":
+                X = self._force_categorical(X=X, **step["kwargs"])
+            elif step["step"] == "select_vars":
+                X = self._select_vars(X=X, **step["kwargs"])
+            elif step["step"] == "drop_vars":
+                X = self._drop_vars(X=X, **step["kwargs"])
+            elif step["step"] == "add_scaler":
+                X = self._add_scaler(X=X, **step["kwargs"])
+            else:
+                raise ValueError("Invalid step.")
+        
+        X = X[self._Xvars]
+
+        X = X.dropna()
+        X = self._onehot_helper(
+            X[self._Xvars], 
+            fit=False, 
+            use_second_encoder=True
+        )
+
+        if self._final_X_vars_subset is not None:
+            X = X[self._final_X_vars_subset]
+        
+        return X
+    
+
     def sklearn_preprocessing_transformer(self) -> FunctionTransformer:
         """Builds a FunctionTransformer object for preprocessing. 
 
@@ -1059,51 +1116,8 @@ class DataEmitter:
             FunctionTransformer object.
         """
 
-        def custom_transform(X):
-
-            if not isinstance(X, pd.DataFrame):
-                raise ValueError("Input must be a DataFrame.")
-
-            for step in self._step_tracer._steps:
-                if step["step"] == "onehot":
-                    X = self._onehot(X=X, **step["kwargs"])
-                elif step["step"] == "impute":
-                    X = self._impute(X=X, **step["kwargs"])
-                elif step["step"] == "scale":
-                    X = self._scale(X=X, **step["kwargs"])
-                elif step["step"] == "drop_highly_missing_vars":
-                    X = self._drop_highly_missing_vars(X=X, **step["kwargs"])
-                elif step["step"] == "force_numeric":
-                    X = self._force_numeric(X=X, **step["kwargs"])
-                elif step["step"] == "force_binary":
-                    X = self._force_binary(X=X, **step["kwargs"])
-                elif step["step"] == "force_categorical":
-                    X = self._force_categorical(X=X, **step["kwargs"])
-                elif step["step"] == "select_vars":
-                    X = self._select_vars(X=X, **step["kwargs"])
-                elif step["step"] == "drop_vars":
-                    X = self._drop_vars(X=X, **step["kwargs"])
-                elif step["step"] == "add_scaler":
-                    X = self._add_scaler(X=X, **step["kwargs"])
-                else:
-                    raise ValueError("Invalid step.")
-            
-            X = X[self._Xvars]
-
-            X = X.dropna()
-            X = self._onehot_helper(
-                X[self._Xvars], 
-                fit=False, 
-                use_second_encoder=True
-            )
-
-            if self._final_X_vars_subset is not None:
-                X = X[self._final_X_vars_subset]
-            
-            return X
-
         custom_transformer = FunctionTransformer(
-            custom_transform, 
+            self.custom_transform, 
             validate=False, 
             check_inverse=False
         )
@@ -2497,7 +2511,7 @@ class DataHandler:
             subsequent_indent=2,
         )
 
-        numeric_message = color_text(bold_text("numeric variables:"), "none") + "\n"
+        numeric_message = color_text(bold_text("Numeric variables:"), "none") + "\n"
 
         numeric_vars = self.numeric_vars()
         numeric_var_message = ""

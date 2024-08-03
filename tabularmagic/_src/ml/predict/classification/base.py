@@ -136,10 +136,11 @@ class BaseC(BasePredictModel):
                     )
                     y_pred_encoded = y_pred_score[:, 1] > self._threshold
 
-                    print_wrapped(
-                        f"Optimal threshold set for {self._name} via F1 score.",
-                        type="PROGRESS",
-                    )
+                    if verbose:
+                        print_wrapped(
+                            f"Optimal threshold set for {self._name} via F1 score.",
+                            type="PROGRESS",
+                        )
 
             elif hasattr(self._estimator, "decision_function"):
                 y_pred_score = self._estimator.decision_function(X_train)

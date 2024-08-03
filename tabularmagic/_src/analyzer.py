@@ -839,3 +839,7 @@ class Analyzer:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
+
+
+
+

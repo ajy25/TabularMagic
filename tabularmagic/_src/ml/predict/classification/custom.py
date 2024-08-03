@@ -56,7 +56,7 @@ class CustomC(BaseC):
 
         if self._dataemitters is None and self._dataemitter is not None:
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
-            X_train = X_train_df.to_numpy()
+            X_train = X_train_df
             y_train = y_train_series.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
@@ -109,7 +109,7 @@ class CustomC(BaseC):
                     X_test_df,
                     y_test_series,
                 ) = emitter.emit_train_test_Xy()
-                X_train = X_train_df.to_numpy()
+                X_train = X_train_df
                 y_train = y_train_series.to_numpy()
 
                 y_train_encoded: np.ndarray = self._label_encoder.fit_transform(y_train)
@@ -117,7 +117,7 @@ class CustomC(BaseC):
                 if len(self._label_encoder.classes_) > 2:
                     self._is_binary = False
 
-                X_test = X_test_df.to_numpy()
+                X_test = X_test_df
                 y_test = y_test_series.to_numpy()
 
                 self._estimator.fit(X_train, y_train_encoded)
@@ -157,7 +157,7 @@ class CustomC(BaseC):
                 )
             # refit on all data
             X_train_df, y_train_series = self._dataemitter.emit_train_Xy()
-            X_train = X_train_df.to_numpy()
+            X_train = X_train_df
             y_train = y_train_series.to_numpy()
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
@@ -193,7 +193,7 @@ class CustomC(BaseC):
             raise ValueError("The datahandler must not be None")
 
         X_test_df, y_test_series = self._dataemitter.emit_test_Xy()
-        X_test = X_test_df.to_numpy()
+        X_test = X_test_df
         y_test = y_test_series.to_numpy()
 
         y_pred_encoded = self._estimator.predict(X_test)
@@ -222,6 +222,41 @@ class CustomC(BaseC):
                 ),
                 name=str(self),
             )
+
+    def sklearn_pipeline(self) -> Pipeline:
+        """Returns an sklearn pipeline object. The pipelien allows for 
+        retrieving model predictions directly from data formatted like the original
+        train and test data.
+        
+        It is not recommended to use TabularMagic for ML production.
+        We recommend using TabularMagic to quickly identify promising models
+        and then manually implementing and training
+        the best model in a production environment.
+
+        Returns
+        -------
+        Pipeline
+        """
+        if isinstance(self._estimator, Pipeline):
+            new_step = (
+                "custom_prep_data", 
+                self._dataemitter.sklearn_preprocessing_transformer()
+            )
+            new_pipeline = Pipeline(
+                steps=[new_step, ("model", self._estimator)]
+            )
+            return new_pipeline
+        else:
+            pipeline = Pipeline(
+                steps=[
+                    (
+                        "custom_prep_data",
+                        self._dataemitter.sklearn_preprocessing_transformer(),
+                    ),
+                    ("model", self._estimator),
+                ]
+            )
+            return pipeline
 
     def hyperparam_searcher(self):
         """Raises NotImplementedError. Not implemented for CustomC."""

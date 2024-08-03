@@ -1,7 +1,8 @@
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score
-
+from sklearn.pipeline import Pipeline
 from ..base_model import BasePredictModel, HyperparameterSearcher
 from ....data import DataEmitter
 from ....metrics import (
@@ -10,7 +11,8 @@ from ....metrics import (
 )
 from ....feature_selection import VotingSelectionReport
 from ....display.print_utils import print_wrapped
-import numpy as np
+from ..predict_utils import ColumnSelector
+
 
 
 class BaseC(BasePredictModel):
@@ -110,10 +112,10 @@ class BaseC(BasePredictModel):
                     verbose=verbose,
                 )
                 self._predictors = self._feature_selection_report.top_features()
-                X_train = self._feature_selection_report._emit_train_X().to_numpy()
+                X_train = self._feature_selection_report._emit_train_X()
             else:
                 self._predictors = X_train_df.columns.to_list()
-                X_train = X_train_df.to_numpy()
+                X_train = X_train_df
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
@@ -184,11 +186,11 @@ class BaseC(BasePredictModel):
                         max_n_features=self._max_n_features,
                         verbose=verbose,
                     )
-                    X_train = fold_selector._emit_train_X().to_numpy()
-                    X_test = fold_selector._emit_test_X().to_numpy()
+                    X_train = fold_selector._emit_train_X()
+                    X_test = fold_selector._emit_test_X()
                 else:
-                    X_train = X_train_df.to_numpy()
-                    X_test = X_test_df.to_numpy()
+                    X_train = X_train_df
+                    X_test = X_test_df
 
                 if len(self._label_encoder.classes_) > 2:
                     self._is_binary = False
@@ -256,11 +258,11 @@ class BaseC(BasePredictModel):
                     max_n_features=self._max_n_features,
                     verbose=verbose,
                 )
-                X_train = self._feature_selection_report._emit_train_X().to_numpy()
+                X_train = self._feature_selection_report._emit_train_X()
                 self._predictors = self._feature_selection_report.top_features()
             else:
                 self._predictors = X_train_df.columns.to_list()
-                X_train = X_train_df.to_numpy()
+                X_train = X_train_df
 
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
@@ -312,9 +314,9 @@ class BaseC(BasePredictModel):
         y_test = y_test_series.to_numpy()
 
         if self._feature_selectors is None:
-            X_test = X_test_df.to_numpy()
+            X_test = X_test_df
         else:
-            X_test = self._feature_selection_report._emit_test_X().to_numpy()
+            X_test = self._feature_selection_report._emit_test_X()
 
         y_pred_encoded = self._estimator.predict(X_test)
 
@@ -367,6 +369,54 @@ class BaseC(BasePredictModel):
         BaseEstimator
         """
         return self._estimator
+    
+    def sklearn_pipeline(self) -> Pipeline:
+        """Returns an sklearn pipeline object. The pipelien allows for 
+        retrieving model predictions directly from data formatted like the original
+        train and test data.
+        
+        It is not recommended to use TabularMagic for ML production.
+        We recommend using TabularMagic to quickly identify promising models
+        and then manually implementing and training
+        the best model in a production environment.
+
+        Returns
+        -------
+        Pipeline
+        """
+        if self._feature_selectors is not None:
+            pipeline = Pipeline(
+                steps=[
+                    (
+                        "custom_prep_data", 
+                        self._dataemitter.sklearn_preprocessing_transformer()
+                    ),
+                    (
+                        "feature_selector", ColumnSelector(
+                            self._feature_selection_report.top_features()
+                        )
+                    ),
+                    (
+                        "model", 
+                        self._hyperparam_searcher._searcher
+                    ),
+                ]
+            )
+        else: 
+            pipeline = Pipeline(
+                steps=[
+                    (
+                        "custom_prep_data", 
+                        self._dataemitter.sklearn_preprocessing_transformer()
+                    ),
+                    (
+                        "model", 
+                        self._hyperparam_searcher._searcher
+                    ),
+                ]
+            )
+        return pipeline
+
 
     def hyperparam_searcher(self) -> HyperparameterSearcher:
         """Returns the HyperparameterSearcher object.

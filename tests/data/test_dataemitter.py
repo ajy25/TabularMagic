@@ -32,8 +32,8 @@ def setup_data():
 
 
 
-def test_dataemitter_pipeline_basic(setup_data):
-    """Test DataEmitter with basic pipeline generation capabilities"""
+def test_dataemitter_sklearn_transformer_basic(setup_data):
+    """Test DataEmitter with basic sklearn transformer generation capabilities"""
     train_data = setup_data["df_house_train"]
     test_data = setup_data["df_house_test"]
     dh = DataHandler(
@@ -58,16 +58,17 @@ def test_dataemitter_pipeline_basic(setup_data):
     de.emit_train_test_Xy()
 
     emitted_test_Xy = de.emit_test_Xy()
-    emitted_df = emitted_test_Xy[0].join(emitted_test_Xy[1])
+    emitted_df = emitted_test_Xy[0]
 
 
     transformer = de.sklearn_preprocessing_transformer()
     transformer_df = transformer.transform(test_data)
 
+    assert "SalePrice" not in transformer_df.columns
     assert np.allclose(emitted_df.values, transformer_df.values, atol=1e-5)
 
 
-    
+
 
 
 

@@ -1088,13 +1088,14 @@ class DataEmitter:
                 else:
                     raise ValueError("Invalid step.")
             
-            X = X[self._Xvars + [self._yvar]]
+            X = X[self._Xvars]
+
             X = X.dropna()
             X = self._onehot_helper(
                 X[self._Xvars], 
                 fit=False, 
                 use_second_encoder=True
-            ).join(X[self._yvar])
+            )
 
             if self._final_X_vars_subset is not None:
                 X = X[self._final_X_vars_subset]

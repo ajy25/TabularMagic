@@ -18,8 +18,8 @@ def setup_data():
             "binary_var": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
             "categorical_var_1": ["A", "B", "C", "A", "B", "C", "A", "B", "C", "A"],
             "categorical_var_2": ["X", "Y", "Z", "X", "Y", "Z", "X", "Y", "Z", "X"],
-            "numerical_var_1": [5.2, 3.7, 8.1, 2.5, 6.9, 4.3, 7.8, 1.1, 3.4, 5.7],
-            "numerical_var_2": [1.2, 3.4, 5.6, 7.8, 9.1, 2.3, 4.5, 6.7, 8.9, 0.1],
+            "numeric_var_1": [5.2, 3.7, 8.1, 2.5, 6.9, 4.3, 7.8, 1.1, 3.4, 5.7],
+            "numeric_var_2": [1.2, 3.4, 5.6, 7.8, 9.1, 2.3, 4.5, 6.7, 8.9, 0.1],
         }
     )
     df_simple_train, df_simple_test = train_test_split(
@@ -43,8 +43,8 @@ def test_fs_simple(setup_data):
         predictors=[
             "categorical_var_1",
             "categorical_var_2",
-            "numerical_var_1",
-            "numerical_var_2",
+            "numeric_var_1",
+            "numeric_var_2",
         ],
         feature_selectors=[tm.fs.KBestSelectorC("chi2", 2)],
     )
@@ -63,8 +63,8 @@ def test_fs_simple(setup_data):
         predictors=[
             "categorical_var_1",
             "categorical_var_2",
-            "numerical_var_1",
-            "numerical_var_2",
+            "numeric_var_1",
+            "numeric_var_2",
         ],
     )
     assert report.model("simple_tester").sklearn_estimator().n_features_in_ == 2
@@ -87,8 +87,8 @@ def test_fs_simple(setup_data):
         predictors=[
             "categorical_var_1",
             "categorical_var_2",
-            "numerical_var_1",
-            "numerical_var_2",
+            "numeric_var_1",
+            "numeric_var_2",
         ],
         feature_selectors=[tm.fs.KBestSelectorC("chi2", 4)],
     )
@@ -107,12 +107,12 @@ def test_fs_simple(setup_data):
                 name="simple_tester_2",
             ),
         ],
-        target="numerical_var_2",
+        target="numeric_var_2",
         predictors=[
             "categorical_var_1",
             "categorical_var_2",
             "binary_var",
-            "numerical_var_1",
+            "numeric_var_1",
         ],
         feature_selectors=[tm.fs.KBestSelectorR("f_regression", 3)],
     )

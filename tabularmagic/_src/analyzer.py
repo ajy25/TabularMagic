@@ -149,7 +149,7 @@ class Analyzer:
         -------
         ComprehensiveEDA
             The ComprehensiveEDA object contains a variety of exploratory data
-            analysis methods, including summary statistics for numerical and
+            analysis methods, including summary statistics for numeric and
             categorical variables, t-tests, and data visualizations.
         """
         if dataset == "train":
@@ -572,7 +572,7 @@ class Analyzer:
         self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        numerical_strategy: Literal["median", "mean", "5nn"] = "median",
+        numeric_strategy: Literal["median", "mean", "5nn"] = "median",
         categorical_strategy: Literal["most_frequent"] = "most_frequent",
     ) -> "Analyzer":
         """Imputes missing values. The imputer is fit on the train DataFrame
@@ -588,9 +588,9 @@ class Analyzer:
             Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
 
-        numerical_strategy : Literal['median', 'mean', '5nn']
+        numeric_strategy : Literal['median', 'mean', '5nn']
             Default: 'median'.
-            Strategy for imputing missing values in numerical variables.
+            Strategy for imputing missing values in numeric variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
@@ -608,7 +608,7 @@ class Analyzer:
         self._datahandler.impute(
             include_vars=include_vars,
             exclude_vars=exclude_vars,
-            numerical_strategy=numerical_strategy,
+            numeric_strategy=numeric_strategy,
             categorical_strategy=categorical_strategy,
         )
         return self
@@ -724,20 +724,20 @@ class Analyzer:
         return self
 
     @ensure_arg_list_uniqueness()
-    def force_numerical(self, vars: list[str]) -> "Analyzer":
-        """Forces specificed variables to numerical (float).
+    def force_numeric(self, vars: list[str]) -> "Analyzer":
+        """Forces specificed variables to numeric (float).
 
         Parameters
         ----------
         vars : list[str]
-            Name of variables to force to numerical.
+            Name of variables to force to numeric.
 
         Returns
         -------
         Analyzer
             Returns self for method chaining.
         """
-        self._datahandler.force_numerical(vars)
+        self._datahandler.force_numeric(vars)
         return self
 
     @ensure_arg_list_uniqueness()
@@ -765,7 +765,7 @@ class Analyzer:
         ignore_multiclass: bool = False,
         rename: bool = False,
     ) -> "Analyzer":
-        """Forces variables to be binary (0 and 1 valued numerical variables).
+        """Forces variables to be binary (0 and 1 valued numeric variables).
         Does nothing if the data contains more than two classes unless
         ignore_multiclass is True and pos_label is specified,
         in which case all classes except pos_label are labeled with zero.

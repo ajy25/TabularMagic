@@ -57,9 +57,9 @@ def reshow(fig: plt.Figure):
     plt.show()
 
 train_eda = analyzer.eda()
-print(train_eda.numerical_stats())
+print(train_eda.numeric_stats())
 reshow(train_eda.plot_distribution('target'))
-reshow(train_eda.plot_numerical_pairs(['target', 'age', 'bmi', 'bp']))
+reshow(train_eda.plot_numeric_pairs(['target', 'age', 'bmi', 'bp']))
 ```
 
 TabularMagic streamlines regression analysis.

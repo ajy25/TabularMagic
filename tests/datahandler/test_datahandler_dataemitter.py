@@ -22,7 +22,7 @@ def setup_data():
         {
             "binary_var": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
             "categorical_var": ["A", "B", "C", "A", "B", "C", "A", "B", "C", "A"],
-            "numerical_var": [5.2, 3.7, 8.1, 2.5, 6.9, 4.3, 7.8, 1.1, 3.4, 5.7],
+            "numeric_var": [5.2, 3.7, 8.1, 2.5, 6.9, 4.3, 7.8, 1.1, 3.4, 5.7],
         }
     )
     df_simple_train, df_simple_test = train_test_split(
@@ -64,11 +64,11 @@ def test_basic_init(setup_data):
         df_simple_train,
         df_simple_test,
         "binary_var",
-        ["categorical_var", "numerical_var"],
+        ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numerical_var"]
+        "binary_var", ["categorical_var", "numeric_var"]
     )
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -77,7 +77,7 @@ def test_basic_init(setup_data):
 
 
 def test_force_categorical(setup_data):
-    """Test force categorical encoding of numerical or binary variables."""
+    """Test force categorical encoding of numeric or binary variables."""
     df_simple_train = setup_data["df_simple_train"]
     df_simple_test = setup_data["df_simple_test"]
 
@@ -86,12 +86,12 @@ def test_force_categorical(setup_data):
         df_simple_train,
         df_simple_test,
         "binary_var",
-        ["categorical_var", "numerical_var"],
+        ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
     dh.force_categorical(["binary_var"])
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numerical_var"]
+        "binary_var", ["categorical_var", "numeric_var"]
     )
     assert dh_emitter._working_df_train["binary_var"].dtype == "object"
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
@@ -101,8 +101,8 @@ def test_force_categorical(setup_data):
 # Continue converting the rest of the test methods in a similar manner...
 
 
-def test_force_numerical(setup_data):
-    """Test force numerical encoding of categorical variables."""
+def test_force_numeric(setup_data):
+    """Test force numeric encoding of categorical variables."""
     df_simple_train = setup_data["df_simple_train"]
     df_simple_test = setup_data["df_simple_test"]
 
@@ -111,12 +111,12 @@ def test_force_numerical(setup_data):
         df_simple_train,
         df_simple_test,
         "binary_var",
-        ["categorical_var", "numerical_var"],
+        ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
-    dh.force_numerical(["binary_var"])
+    dh.force_numeric(["binary_var"])
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numerical_var"]
+        "binary_var", ["categorical_var", "numeric_var"]
     )
     assert dh_emitter._working_df_train["binary_var"].dtype == "float64"
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
@@ -124,7 +124,7 @@ def test_force_numerical(setup_data):
 
 
 def test_force_binary(setup_data):
-    """Test force binary encoding of numerical or categorical variables."""
+    """Test force binary encoding of numeric or categorical variables."""
     df_simple_train = setup_data["df_simple_train"]
     df_simple_test = setup_data["df_simple_test"]
 
@@ -133,16 +133,16 @@ def test_force_binary(setup_data):
         df_simple_train,
         df_simple_test,
         "binary_var",
-        ["categorical_var", "numerical_var"],
+        ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
-    dh.force_binary(["numerical_var"], rename=True)
+    dh.force_binary(["numeric_var"], rename=True)
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numerical_var"]
+        "binary_var", ["categorical_var", "numeric_var"]
     )
     assert (
-        dh_emitter._working_df_train["numerical_var"].dtype
-        == de._working_df_train["numerical_var"].dtype
+        dh_emitter._working_df_train["numeric_var"].dtype
+        == de._working_df_train["numeric_var"].dtype
     )
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -152,7 +152,7 @@ def test_force_binary(setup_data):
         df_simple_train,
         df_simple_test,
         "binary_var",
-        ["categorical_var", "numerical_var"],
+        ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
     de._force_binary(
@@ -162,7 +162,7 @@ def test_force_binary(setup_data):
         ["categorical_var"], pos_labels=["A"], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn(categorical_var)", "numerical_var"]
+        "binary_var", ["A_yn(categorical_var)", "numeric_var"]
     )
     assert (
         dh_emitter._working_df_train["A_yn(categorical_var)"].dtype
@@ -172,12 +172,12 @@ def test_force_binary(setup_data):
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
 
     dh.force_binary(
-        ["numerical_var"], pos_labels=[5.2], ignore_multiclass=True, rename=True
+        ["numeric_var"], pos_labels=[5.2], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn(categorical_var)", "5.2_yn(numerical_var)"]
+        "binary_var", ["A_yn(categorical_var)", "5.2_yn(numeric_var)"]
     )
-    assert dh._working_df_train["5.2_yn(numerical_var)"].dtype == "int64"
+    assert dh._working_df_train["5.2_yn(numeric_var)"].dtype == "int64"
     assert dh_emitter._working_df_train.shape == dh._working_df_train.shape
 
 
@@ -215,7 +215,7 @@ def test_onehot(setup_data):
             "A_yn(categorical_var)",
             "B_yn(categorical_var)",
             "C_yn(categorical_var)",
-            "numerical_var",
+            "numeric_var",
         ],
     )
     assert all(
@@ -258,7 +258,7 @@ def test_onehot(setup_data):
     assert "A_yn(categorical_var)" not in dh._working_df_train.columns
 
     dh_emitter = dh.train_test_emitter(
-        "numerical_var",
+        "numeric_var",
         ["B_yn(categorical_var)", "C_yn(categorical_var)", "1_yn(binary_var)"],
     )
     assert all(
@@ -305,7 +305,7 @@ def test_multiple(setup_data):
 
 
 def test_scale(setup_data):
-    """Test scaling of numerical variables."""
+    """Test scaling of numeric variables."""
     df_iris_train = setup_data["df_iris_train"]
     df_iris_test = setup_data["df_iris_test"]
 
@@ -374,7 +374,7 @@ def test_impute(setup_data):
     df_house_test = setup_data["df_house_test"]
 
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
-    dh.impute(numerical_strategy="mean", categorical_strategy="most_frequent")
+    dh.impute(numeric_strategy="mean", categorical_strategy="most_frequent")
     assert all(
         not dh._working_df_train[col].isnull().any()
         for col in dh._working_df_train.columns

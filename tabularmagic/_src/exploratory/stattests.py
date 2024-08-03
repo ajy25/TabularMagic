@@ -21,31 +21,43 @@ class StatisticalTestResult:
         assumptions_description: str | None = None,
         long_description: str | None = None,
     ):
-        """
+        """Initializes a StatisticalTestResult object.
+
         Parameters
         ----------
-        description: str.
-        statistic : float.
+        description : str
+            A description of the statistical test.
+
+        statistic : float
             The statistic of the test. For example, the t-statistic for the
             two-sample t-test.
-        pval : float.
-        descriptive_statistic : float.
+
+        pval : float
+        
+        descriptive_statistic : float
             Default: None. The statistic that describes the values tested.
             For example, Pearson correlation coefficient for correlation test,
             or difference in means for two-sample t-test.
-        degfree : float.
+
+        degfree : float
             Default: None. Degrees of freedom.
-        statistic_description : str.
+
+        statistic_description : str
             Default: None. Description of the statistic.
-        descriptive_statistic_description : str.
+
+        descriptive_statistic_description : str
             Default: None. Description of the descriptive statistic.
-        null_hypothesis_description : str.
+
+        null_hypothesis_description : str
             Default: None. Description of the null hypothesis.
-        alternative_hypothesis_description : str.
+
+        alternative_hypothesis_description : str
             Default: None. Description of the alternative hypothesis.
-        assumptions_description : str.
+
+        assumptions_description : str
             Default: None. Description of the assumptions of the test.
-        long_description : str.
+
+        long_description : str
             Default: None. A long description of the test.
         """
 

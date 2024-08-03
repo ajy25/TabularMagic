@@ -7,7 +7,7 @@ from .._src.ml.predict.regression import (
     SVMR,
     CustomR,
     MLRegressionReport,
-    BaseR
+    BaseR,
 )
 from .._src.ml.predict.classification import (
     LinearC,
@@ -17,7 +17,7 @@ from .._src.ml.predict.classification import (
     SVMC,
     CustomC,
     MLClassificationReport,
-    BaseC
+    BaseC,
 )
 
 
@@ -38,5 +38,5 @@ __all__ = [
     "MLPC",
     "SVMC",
     "BaseR",
-    "BaseC"
+    "BaseC",
 ]

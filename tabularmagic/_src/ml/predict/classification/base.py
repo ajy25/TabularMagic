@@ -14,11 +14,10 @@ from ....display.print_utils import print_wrapped
 from ..predict_utils import ColumnSelector
 
 
-
 class BaseC(BasePredictModel):
     """BaseC is a class that provides a training and evaluation framework that all
-    TabularMagic classification classes inherit (i.e., all ___C classes are children
-      of BaseC). The primary purpose of BaseC is to automate the scoring and
+    TabularMagic classificaiton classes inherit (i.e., all ___C classes are children
+    of BaseC). The primary purpose of BaseC is to automate the scoring and
     model selection processes.
     """
 
@@ -71,6 +70,7 @@ class BaseC(BasePredictModel):
         """Fits and evaluates the model.
 
         The model fitting process is as follows:
+
         1. The train data is emitted. This means that the data is preprocessed based on
         user specifications AND necessary automatic preprocessing steps. That is,
         the DataEmitter will automatically drop observations with missing
@@ -86,6 +86,7 @@ class BaseC(BasePredictModel):
         Steps 1-4 are repeated for each fold.
 
         The fitting process yields three sets of metrics:
+
         1. The training set metrics.
         2. The cross validation set metrics. *only if cross validation was specified*
             Note that the cross validation metrics are computed on the test set of
@@ -370,12 +371,12 @@ class BaseC(BasePredictModel):
         BaseEstimator
         """
         return self._estimator
-    
+
     def sklearn_pipeline(self) -> Pipeline:
-        """Returns an sklearn pipeline object. The pipelien allows for 
+        """Returns an sklearn pipeline object. The pipelien allows for
         retrieving model predictions directly from data formatted like the original
         train and test data.
-        
+
         It is not recommended to use TabularMagic for ML production.
         We recommend using TabularMagic to quickly identify promising models
         and then manually implementing and training
@@ -389,35 +390,27 @@ class BaseC(BasePredictModel):
             pipeline = Pipeline(
                 steps=[
                     (
-                        "custom_prep_data", 
-                        self._dataemitter.sklearn_preprocessing_transformer()
+                        "custom_prep_data",
+                        self._dataemitter.sklearn_preprocessing_transformer(),
                     ),
                     (
-                        "feature_selector", ColumnSelector(
-                            self._feature_selection_report.top_features()
-                        )
+                        "feature_selector",
+                        ColumnSelector(self._feature_selection_report.top_features()),
                     ),
-                    (
-                        "model", 
-                        self._hyperparam_searcher._searcher
-                    ),
+                    ("model", self._hyperparam_searcher._searcher),
                 ]
             )
-        else: 
+        else:
             pipeline = Pipeline(
                 steps=[
                     (
-                        "custom_prep_data", 
-                        self._dataemitter.sklearn_preprocessing_transformer()
+                        "custom_prep_data",
+                        self._dataemitter.sklearn_preprocessing_transformer(),
                     ),
-                    (
-                        "model", 
-                        self._hyperparam_searcher._searcher
-                    ),
+                    ("model", self._hyperparam_searcher._searcher),
                 ]
             )
         return pipeline
-
 
     def hyperparam_searcher(self) -> HyperparameterSearcher:
         """Returns the HyperparameterSearcher object.

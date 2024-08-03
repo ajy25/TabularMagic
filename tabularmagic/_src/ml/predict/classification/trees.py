@@ -20,7 +20,7 @@ from ....feature_selection import BaseFSC
 class TreeC(BaseC):
     """Decision tree classifier.
 
-    Hyperparameter optimization is performed automatically during training. 
+    Hyperparameter optimization is performed automatically during training.
     The hyperparameter search process can be modified by the user.
     """
 
@@ -66,7 +66,7 @@ class TreeC(BaseC):
             If None, the name is set to be the class name.
 
         **kwargs : dict
-            Key word arguments are passed directly into the intialization of the 
+            Key word arguments are passed directly into the intialization of the
             HyperparameterSearcher class. See below for options.
 
             inner_cv : int | BaseCrossValidator
@@ -118,7 +118,7 @@ class TreeC(BaseC):
 class TreeEnsembleC(BaseC):
     """Tree ensemble classifier.
 
-    Hyperparameter optimization is performed automatically during training. 
+    Hyperparameter optimization is performed automatically during training.
     The hyperparameter search process can be modified by the user.
     """
 
@@ -176,7 +176,7 @@ class TreeEnsembleC(BaseC):
             If None, the name is set to be the class name.
 
         **kwargs : dict
-            Key word arguments are passed directly into the intialization of the 
+            Key word arguments are passed directly into the intialization of the
             HyperparameterSearcher class. See below for options.
 
             inner_cv : int | BaseCrossValidator

@@ -515,7 +515,7 @@ class Analyzer:
         """
         self._datahandler.load_data_checkpoint(checkpoint_name)
         return self
-    
+
     def save_data_checkpoint(self, checkpoint_name: str) -> "Analyzer":
         """Saves the current train and test DataFrames.
 
@@ -531,7 +531,7 @@ class Analyzer:
         """
         self._datahandler.save_data_checkpoint(checkpoint_name)
         return self
-    
+
     def remove_data_checkpoint(self, checkpoint_name: str) -> "Analyzer":
         """Deletes a saved checkpoint.
 
@@ -547,7 +547,6 @@ class Analyzer:
         """
         self._datahandler.remove_data_checkpoint(checkpoint_name)
         return self
-
 
     @ensure_arg_list_uniqueness()
     def scale(
@@ -839,7 +838,3 @@ class Analyzer:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
-
-
-
-

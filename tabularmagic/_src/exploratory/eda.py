@@ -291,8 +291,7 @@ class ComprehensiveEDA:
             numeric_vars = self._numeric_vars
         if len(numeric_vars) > 6:
             raise ValueError(
-                "No more than 6 numeric variables may be "
-                + "plotted at the same time."
+                "No more than 6 numeric variables may be " + "plotted at the same time."
             )
 
         if stratify_by is None:
@@ -799,8 +798,7 @@ class ComprehensiveEDA:
         """
         if numeric_var not in self._numeric_vars:
             raise ValueError(
-                f"Invalid input: {numeric_var}. "
-                "Must be a known numeric variable."
+                f"Invalid input: {numeric_var}. " "Must be a known numeric variable."
             )
         if stratify_by not in self._categorical_vars:
             raise ValueError(
@@ -821,9 +819,7 @@ class ComprehensiveEDA:
         groups = []
         for category in categories:
             groups.append(
-                local_df.loc[
-                    local_df[stratify_by] == category, numeric_var
-                ].to_numpy()
+                local_df.loc[local_df[stratify_by] == category, numeric_var].to_numpy()
             )
 
         auto_alpha = 0.05
@@ -919,8 +915,7 @@ class ComprehensiveEDA:
 
         if numeric_var not in self._numeric_vars:
             raise ValueError(
-                f"Invalid input: {numeric_var}. "
-                + "Must be a known numeric variable."
+                f"Invalid input: {numeric_var}. " + "Must be a known numeric variable."
             )
         if (stratify_by not in self._categorical_vars) and (
             stratify_by not in self._numeric_vars

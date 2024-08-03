@@ -13,7 +13,7 @@ from ....feature_selection import BaseFSC
 class LinearC(BaseC):
     """Logistic regression classifier.
 
-    Hyperparameter optimization is performed automatically during training. 
+    Hyperparameter optimization is performed automatically during training.
     The hyperparameter search process can be modified by the user.
     """
 
@@ -63,7 +63,7 @@ class LinearC(BaseC):
             If None, the name is set to be the class name.
 
         **kwargs : dict
-            Key word arguments are passed directly into the intialization of the 
+            Key word arguments are passed directly into the intialization of the
             HyperparameterSearcher class. See below for options.
 
             inner_cv : int | BaseCrossValidator

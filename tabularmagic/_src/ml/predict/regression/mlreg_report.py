@@ -120,7 +120,7 @@ class SingleModelMLRegReport:
         Parameters
         ----------
         model : BaseR
-            The data for the model must already be specified. 
+            The data for the model must already be specified.
             The model should already be trained on the specified data.
         """
         self._model = model
@@ -166,10 +166,10 @@ class SingleModelMLRegReport:
         dataset : Literal['train', 'test']
             Default: 'test'.
             The dataset for which to plot the observed vs predicted values.
-            
+
         figsize : Iterable
             Default: (5, 5). The size of the figure.
-            
+
         ax : plt.Axes | None
             Default: None. The axes on which to plot the figure. If None,
             a new figure is created.

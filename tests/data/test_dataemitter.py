@@ -13,8 +13,6 @@ from tabularmagic._src.data.datahandler import (
 )
 
 
-
-
 @pytest.fixture
 def setup_data():
     df_house = pd.read_csv(
@@ -30,28 +28,20 @@ def setup_data():
     }
 
 
-
-
 def test_dataemitter_sklearn_transformer_basic(setup_data):
     """Test DataEmitter with basic sklearn transformer generation capabilities"""
     train_data = setup_data["df_house_train"]
     test_data = setup_data["df_house_test"]
-    dh = DataHandler(
-        train_data,
-        test_data,
-        verbose=False
-    )
+    dh = DataHandler(train_data, test_data, verbose=False)
 
     dh.scale(
-        include_vars=[
-            "GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"
-        ],
-        strategy="standardize"
+        include_vars=["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"],
+        strategy="standardize",
     )
-    dh.onehot(['MSZoning'])
+    dh.onehot(["MSZoning"])
 
     de = dh.train_test_emitter(
-        y_var="SalePrice", 
+        y_var="SalePrice",
         X_vars=["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "LotShape"],
     )
 
@@ -60,15 +50,8 @@ def test_dataemitter_sklearn_transformer_basic(setup_data):
     emitted_test_Xy = de.emit_test_Xy()
     emitted_df = emitted_test_Xy[0]
 
-
     transformer = de.sklearn_preprocessing_transformer()
     transformer_df = transformer.transform(test_data)
 
     assert "SalePrice" not in transformer_df.columns
     assert np.allclose(emitted_df.values, transformer_df.values, atol=1e-5)
-
-
-
-
-
-

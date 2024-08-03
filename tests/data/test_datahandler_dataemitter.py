@@ -67,9 +67,7 @@ def test_basic_init(setup_data):
         ["categorical_var", "numeric_var"],
         PreprocessStepTracer(),
     )
-    dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numeric_var"]
-    )
+    dh_emitter = dh.train_test_emitter("binary_var", ["categorical_var", "numeric_var"])
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
     dh.drop_vars(["binary_var"])
@@ -90,9 +88,7 @@ def test_force_categorical(setup_data):
         PreprocessStepTracer(),
     )
     dh.force_categorical(["binary_var"])
-    dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numeric_var"]
-    )
+    dh_emitter = dh.train_test_emitter("binary_var", ["categorical_var", "numeric_var"])
     assert dh_emitter._working_df_train["binary_var"].dtype == "object"
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -115,9 +111,7 @@ def test_force_numeric(setup_data):
         PreprocessStepTracer(),
     )
     dh.force_numeric(["binary_var"])
-    dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numeric_var"]
-    )
+    dh_emitter = dh.train_test_emitter("binary_var", ["categorical_var", "numeric_var"])
     assert dh_emitter._working_df_train["binary_var"].dtype == "float64"
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -137,9 +131,7 @@ def test_force_binary(setup_data):
         PreprocessStepTracer(),
     )
     dh.force_binary(["numeric_var"], rename=True)
-    dh_emitter = dh.train_test_emitter(
-        "binary_var", ["categorical_var", "numeric_var"]
-    )
+    dh_emitter = dh.train_test_emitter("binary_var", ["categorical_var", "numeric_var"])
     assert (
         dh_emitter._working_df_train["numeric_var"].dtype
         == de._working_df_train["numeric_var"].dtype
@@ -530,19 +522,12 @@ def test_datahandler_scale_(setup_data):
     """Test DataEmitter with basic pipeline generation capabilities"""
     train_data = setup_data["df_house_train"]
     test_data = setup_data["df_house_test"]
-    dh = DataHandler(
-        train_data,
-        test_data,
-        verbose=False
-    )
+    dh = DataHandler(train_data, test_data, verbose=False)
 
     dh.scale(
-        include_vars=[
-            "GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"
-        ],
-        strategy="standardize"
+        include_vars=["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"],
+        strategy="standardize",
     )
 
-    assert 'MSZoning' in dh.df_train().columns
-    dh.onehot(['MSZoning'])
-
+    assert "MSZoning" in dh.df_train().columns
+    dh.onehot(["MSZoning"])

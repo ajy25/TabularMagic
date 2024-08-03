@@ -136,10 +136,10 @@ class CustomR(BaseR):
         )
 
     def sklearn_pipeline(self) -> Pipeline:
-        """Returns an sklearn pipeline object. The pipelien allows for 
+        """Returns an sklearn pipeline object. The pipelien allows for
         retrieving model predictions directly from data formatted like the original
         train and test data.
-        
+
         It is not recommended to use TabularMagic for ML production.
         We recommend using TabularMagic to quickly identify promising models
         and then manually implementing and training
@@ -151,12 +151,10 @@ class CustomR(BaseR):
         """
         if isinstance(self._estimator, Pipeline):
             new_step = (
-                "custom_prep_data", 
-                self._dataemitter.sklearn_preprocessing_transformer()
+                "custom_prep_data",
+                self._dataemitter.sklearn_preprocessing_transformer(),
             )
-            new_pipeline = Pipeline(
-                steps=[new_step, ("model", self._estimator)]
-            )
+            new_pipeline = Pipeline(steps=[new_step, ("model", self._estimator)])
             return new_pipeline
         else:
             pipeline = Pipeline(
@@ -169,7 +167,6 @@ class CustomR(BaseR):
                 ]
             )
             return pipeline
-
 
     def hyperparam_searcher(self):
         """Raises NotImplementedError. Not implemented for CustomR."""

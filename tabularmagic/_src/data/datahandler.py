@@ -24,7 +24,6 @@ from ..display.print_options import print_options
 from ..utils import ensure_arg_list_uniqueness
 
 
-
 class PreprocessStepTracer:
     """PreprocessStepTracer is a class that tracks preprocessing steps.
 
@@ -77,8 +76,6 @@ class PreprocessStepTracer:
         new = PreprocessStepTracer()
         new._steps = self._steps.copy()
         return new
-
-
 
 
 class DataEmitter:
@@ -172,7 +169,7 @@ class DataEmitter:
 
     def y_scaler(self) -> BaseSingleVarScaler | None:
         """Returns the scaler for the y variable, which could be None.
-        
+
         Returns
         -------
         BaseSingleVarScaler | None
@@ -237,14 +234,10 @@ class DataEmitter:
                 type="WARNING",
             )
         X_train_df = self._onehot_helper(
-            working_df_train[self._Xvars], 
-            fit=True, 
-            use_second_encoder=True
+            working_df_train[self._Xvars], fit=True, use_second_encoder=True
         )
         X_test_df = self._onehot_helper(
-            working_df_test[self._Xvars], 
-            fit=False, 
-            use_second_encoder=True
+            working_df_test[self._Xvars], fit=False, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
@@ -294,9 +287,7 @@ class DataEmitter:
                 type="WARNING",
             )
         X_train_df = self._onehot_helper(
-            working_df_train[self._Xvars], 
-            fit=True, 
-            use_second_encoder=True
+            working_df_train[self._Xvars], fit=True, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
@@ -339,9 +330,7 @@ class DataEmitter:
                 type="WARNING",
             )
         X_test_df = self._onehot_helper(
-            working_df_test[self._Xvars], 
-            fit=False, 
-            use_second_encoder=True
+            working_df_test[self._Xvars], fit=False, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]
@@ -358,12 +347,11 @@ class DataEmitter:
         """
         self._final_X_vars_subset = predictors
 
-
     def _onehot(
-        self, 
-        vars: list[str] | None = None, 
+        self,
+        vars: list[str] | None = None,
         dropfirst: bool = True,
-        X: pd.DataFrame | None = None
+        X: pd.DataFrame | None = None,
     ) -> pd.DataFrame | None:
         """One-hot encodes all categorical variables in-place.
 
@@ -406,9 +394,7 @@ class DataEmitter:
         return None
 
     def _drop_highly_missing_vars(
-        self, 
-        threshold: float = 0.5,
-        X: pd.DataFrame | None = None
+        self, threshold: float = 0.5, X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Drops columns with more than 50% missing values (on train) in-place.
 
@@ -418,7 +404,7 @@ class DataEmitter:
             Default: 0.5. Proportion of missing values above which a column is dropped.
 
         X : pd.DataFrame | None
-            Default: None. If not None, drops columns with more than 50% missing 
+            Default: None. If not None, drops columns with more than 50% missing
             values in X.
 
         Returns
@@ -438,7 +424,9 @@ class DataEmitter:
         curr_vars = self._working_df_train.columns.to_list()
         self._highly_missing_vars_dropped = set(prev_vars) - set(curr_vars)
 
-        self._working_df_test = self._working_df_test.drop(self._highly_missing_vars_dropped, axis=1)
+        self._working_df_test = self._working_df_test.drop(
+            self._highly_missing_vars_dropped, axis=1
+        )
         (
             self._categorical_vars,
             self._numeric_vars,
@@ -447,9 +435,7 @@ class DataEmitter:
         return self
 
     def _dropna(
-        self, 
-        vars: list[str], 
-        X: pd.DataFrame | None = None
+        self, vars: list[str], X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Drops rows with missing values in-place.
 
@@ -515,9 +501,7 @@ class DataEmitter:
 
         if X is not None:
             if len(numeric_vars) > 0:
-                X[numeric_vars] = self._numeric_imputer.transform(
-                    X[numeric_vars]
-                )
+                X[numeric_vars] = self._numeric_imputer.transform(X[numeric_vars])
             if len(categorical_vars) > 0:
                 X[categorical_vars] = self._categorical_imputer.transform(
                     X[categorical_vars]
@@ -557,7 +541,6 @@ class DataEmitter:
 
         return None
 
-
     def _scale(
         self,
         vars: list[str],
@@ -583,7 +566,6 @@ class DataEmitter:
             If X is None, returns None. Otherwise, returns the scaled DataFrame.
         """
         for var in vars:
-
             if var not in self._numeric_vars:
                 print_wrapped(
                     f"Variable {var} is not numeric. Skipping.", type="WARNING"
@@ -606,7 +588,7 @@ class DataEmitter:
                 scaler = Log1PTransformSingleVar(var, train_data)
             else:
                 raise ValueError("Invalid scaling strategy.")
-            
+
             self._var_to_scaler[var] = scaler
 
             self._working_df_train[var] = scaler.transform(
@@ -621,12 +603,8 @@ class DataEmitter:
 
         return X
 
-
-
     def _select_vars(
-        self, 
-        vars: list[str],
-        X: pd.DataFrame | None = None
+        self, vars: list[str], X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Selects subset of (column) variables in-place on the working
         train and test DataFrames.
@@ -656,9 +634,7 @@ class DataEmitter:
         return None
 
     def _drop_vars(
-        self, 
-        vars: list[str],
-        X: pd.DataFrame | None = None
+        self, vars: list[str], X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Drops subset of variables (columns) in-place on the working
         train and test DataFrames.
@@ -685,9 +661,7 @@ class DataEmitter:
         return None
 
     def _force_numeric(
-        self, 
-        vars: list[str],
-        X: pd.DataFrame | None = None
+        self, vars: list[str], X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Forces variables to numeric (floats).
 
@@ -709,9 +683,7 @@ class DataEmitter:
                 raise ValueError(f"Invalid variable name: {var}.")
             try:
                 if X is not None:
-                    X[var] = X[var].apply(
-                        lambda x: float(x) if pd.notna(x) else np.nan
-                    )
+                    X[var] = X[var].apply(lambda x: float(x) if pd.notna(x) else np.nan)
                     continue
                 self._working_df_train[var] = self._working_df_train[var].apply(
                     lambda x: float(x) if pd.notna(x) else np.nan
@@ -778,9 +750,7 @@ class DataEmitter:
                 pos_label = unique_vals[0]
 
                 if X is not None:
-                    X[var] = X[var].apply(
-                        lambda x: 1 if x == pos_label else 0
-                    )
+                    X[var] = X[var].apply(lambda x: 1 if x == pos_label else 0)
                     continue
 
                 self._working_df_train[var] = self._working_df_train[var].apply(
@@ -796,11 +766,9 @@ class DataEmitter:
                     if not ignore_multiclass:
                         continue
                 pos_label = pos_labels[i]
-                
+
                 if X is not None:
-                    X[var] = X[var].apply(
-                        lambda x: 1 if x == pos_label else 0
-                    )
+                    X[var] = X[var].apply(lambda x: 1 if x == pos_label else 0)
                     continue
 
                 self._working_df_train[var] = self._working_df_train[var].apply(
@@ -831,11 +799,8 @@ class DataEmitter:
 
         return None
 
-
     def _force_categorical(
-        self, 
-        vars: list[str],
-        X: pd.DataFrame | None = None
+        self, vars: list[str], X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Forces variables to become categorical.
         Example use case: create numericly-coded categorical variables.
@@ -846,7 +811,7 @@ class DataEmitter:
             Name of variables.
 
         X : pd.DataFrame | None
-            Default: None. If not None, forces the specified variables to categorical 
+            Default: None. If not None, forces the specified variables to categorical
             in X.
 
         Returns
@@ -858,9 +823,7 @@ class DataEmitter:
             vars = [vars]
         for var in vars:
             if X is not None:
-                X[var] = X[var].apply(
-                    lambda x: str(x) if pd.notna(x) else np.nan
-                )
+                X[var] = X[var].apply(lambda x: str(x) if pd.notna(x) else np.nan)
                 continue
             self._working_df_train[var] = self._working_df_train[var].apply(
                 lambda x: str(x) if pd.notna(x) else np.nan
@@ -881,9 +844,7 @@ class DataEmitter:
         return None
 
     def _compute_categories(
-        self, 
-        df: pd.DataFrame, 
-        categorical_vars: list[str]
+        self, df: pd.DataFrame, categorical_vars: list[str]
     ) -> dict:
         """Returns a dictionary containing the categorical variables
         each mapped to a list of all categories in the variable.
@@ -936,7 +897,7 @@ class DataEmitter:
 
         use_second_encoder : bool
             Default: False. If True, uses a second encoder. The second encoder
-            is useful for emitting data that must be one-hot encoded but was 
+            is useful for emitting data that must be one-hot encoded but was
             not one-hot encoded by the user.
 
         Returns
@@ -970,20 +931,14 @@ class DataEmitter:
                     drop=drop, sparse_output=False, handle_unknown="ignore"
                 )
                 encoded = encoder.fit_transform(df[categorical_vars])
-                feature_names = encoder.get_feature_names_out(
-                    categorical_vars
-                )
+                feature_names = encoder.get_feature_names_out(categorical_vars)
                 df_encoded = pd.DataFrame(
                     encoded, columns=feature_names, index=df.index
                 )
 
             else:
-                encoded = ignore_warnings(encoder.transform)(
-                    df[categorical_vars]
-                )
-                feature_names = encoder.get_feature_names_out(
-                    categorical_vars
-                )
+                encoded = ignore_warnings(encoder.transform)(df[categorical_vars])
+                feature_names = encoder.get_feature_names_out(categorical_vars)
                 df_encoded = pd.DataFrame(
                     encoded, columns=feature_names, index=df.index
                 )
@@ -998,8 +953,7 @@ class DataEmitter:
             return df
 
     def _compute_categorical_numeric_vars(
-        self, 
-        df: pd.DataFrame
+        self, df: pd.DataFrame
     ) -> tuple[list[str], list[str], dict]:
         """Returns the categorical and numeric columns.
         Also returns the categorical variables mapped to their categories.
@@ -1048,7 +1002,6 @@ class DataEmitter:
         if var == self._yvar:
             self._yscaler = scaler
         return self
-    
 
     def custom_transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """Transforms the input DataFrame using the preprocessing steps
@@ -1091,24 +1044,19 @@ class DataEmitter:
                 X = self._add_scaler(X=X, **step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
-        
+
         X = X[self._Xvars]
 
         X = X.dropna()
-        X = self._onehot_helper(
-            X[self._Xvars], 
-            fit=False, 
-            use_second_encoder=True
-        )
+        X = self._onehot_helper(X[self._Xvars], fit=False, use_second_encoder=True)
 
         if self._final_X_vars_subset is not None:
             X = X[self._final_X_vars_subset]
-        
+
         return X
-    
 
     def sklearn_preprocessing_transformer(self) -> FunctionTransformer:
-        """Builds a FunctionTransformer object for preprocessing. 
+        """Builds a FunctionTransformer object for preprocessing.
 
         Returns
         -------
@@ -1117,19 +1065,14 @@ class DataEmitter:
         """
 
         custom_transformer = FunctionTransformer(
-            self.custom_transform, 
-            validate=False, 
-            check_inverse=False
+            self.custom_transform, validate=False, check_inverse=False
         )
 
         return custom_transformer
 
 
-
-
 class DataHandler:
-    """DataHandler: a class that handles all aspects of data preprocessing and loading.
-    """
+    """DataHandler: a class that handles all aspects of data preprocessing and loading."""
 
     def __init__(
         self,
@@ -1147,10 +1090,10 @@ class DataHandler:
 
         df_test : pd.DataFrame
             The test DataFrame.
-            
+
         name : str | None
             Default: None. The name of the DataHandler object.
-            
+
         verbose : bool
             Default: True. If True, prints updates and warnings.
         """
@@ -1310,9 +1253,9 @@ class DataHandler:
 
     def df_all(self) -> pd.DataFrame:
         """Returns the working train and test DataFrames concatenated.
-        
+
         Returns
-        ------- 
+        -------
         pd.DataFrame
             Concatenated DataFrames.
         """
@@ -1329,7 +1272,7 @@ class DataHandler:
 
     def df_train(self) -> pd.DataFrame:
         """Returns the working train DataFrame.
-        
+
         Returns
         -------
         pd.DataFrame
@@ -1339,7 +1282,7 @@ class DataHandler:
 
     def df_test(self) -> pd.DataFrame:
         """Returns the working test DataFrame.
-        
+
         Returns
         -------
         pd.DataFrame
@@ -1349,7 +1292,7 @@ class DataHandler:
 
     def vars(self) -> list[str]:
         """Returns a list of all variables in the working DataFrames.
-        
+
         Returns
         -------
         list[str]
@@ -1360,7 +1303,7 @@ class DataHandler:
 
     def numeric_vars(self) -> list[str]:
         """Returns copy of list of numeric variables.
-        
+
         Returns
         -------
         list[str]
@@ -1371,7 +1314,7 @@ class DataHandler:
 
     def categorical_vars(self) -> list[str]:
         """Returns copy of list of categorical variables.
-        
+
         Returns
         -------
         list[str]
@@ -1886,7 +1829,7 @@ class DataHandler:
             print_wrapped(
                 f"Variable {var} has already been scaled. "
                 "The new scaler will replace the old one.",
-                type="WARNING"
+                type="WARNING",
             )
         self._numeric_var_to_scaler[var] = scaler
         self._preprocess_step_tracer.add_step(
@@ -2187,7 +2130,7 @@ class DataHandler:
         ----------
         df1 : pd.DataFrame
             The train DataFrame.
-            
+
         df2 : pd.DataFrame
             The test DataFrame.
 
@@ -2213,8 +2156,7 @@ class DataHandler:
             )
 
     def _compute_categorical_numeric_vars(
-        self, 
-        df: pd.DataFrame
+        self, df: pd.DataFrame
     ) -> tuple[list[str], list[str], dict]:
         """Returns the categorical and numeric column values.
         Also returns the categorical variables mapped to their categories.
@@ -2368,9 +2310,7 @@ class DataHandler:
         }
 
     def _compute_categories(
-        self, 
-        df: pd.DataFrame, 
-        categorical_vars: list[str]
+        self, df: pd.DataFrame, categorical_vars: list[str]
     ) -> dict:
         """Returns a dictionary containing the categorical variables
         each mapped to a list of all categories in the variable.
@@ -2424,11 +2364,11 @@ class DataHandler:
         if vars is None:
             categorical_vars, _, _ = self._compute_categorical_numeric_vars(df)
         else:
-            print('test', vars)
+            print("test", vars)
             print(df.columns)
             for var in vars:
                 if var not in df.columns:
-                    print('FAIL:', var in df.columns)
+                    print("FAIL:", var in df.columns)
                     raise ValueError(f"Invalid variable name: {var}")
             categorical_vars = vars
 

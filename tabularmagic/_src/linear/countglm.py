@@ -7,12 +7,13 @@ import pandas as pd
 from typing import Literal
 from ..utils import ensure_arg_list_uniqueness
 
+
 def score_count_model(
     X_train: pd.DataFrame,
     y_train: pd.DataFrame,
     feature_list: list[str],
     metric: Literal["aic", "bic"],
-    model: Literal["poisson", "negativebinomial"]
+    model: Literal["poisson", "negativebinomial"],
 ) -> float:
     """Calculates the AIC or BIC score for a given model.
 
@@ -44,8 +45,8 @@ def score_count_model(
     subset_X_train = X_train[feature_list]
     if model == "poisson":
         new_model = sm.GLM(y_train, subset_X_train, family=sm.families.Poisson()).fit(
-        cov_type="HC3"
-    )
+            cov_type="HC3"
+        )
     else:
         new_model = sm.NegativeBinomial(y_train, X_train).fit(cov_type="HC3")
 
@@ -82,7 +83,7 @@ class CountLinearModel:
 
         Parameters
         ----------
-        dataemitter : DataEmitter 
+        dataemitter : DataEmitter
             The DataEmitter containing all the data.
         """
         self._dataemitter = dataemitter
@@ -154,7 +155,6 @@ class CountLinearModel:
             name=self._name,
         )
 
-
     @ensure_arg_list_uniqueness()
     def step(
         self,
@@ -167,17 +167,17 @@ class CountLinearModel:
     ) -> list[str]:
         """This method implements stepwise selection for identifying important
         features. If the direction is set to forward, the algorithm will start
-        with no selected variables and will at each time step add every 
+        with no selected variables and will at each time step add every
         left-out feature to the model separately. the left-out feature
         that results in the best improvement in the metric (aic or bic) will
         be selected as an important feature. This happens until all variables
         are added or adding a left-out variable does not improve the metric
         of choice.
-        
+
         If the direction is set to backward, the algorithm will start with all
         variables selected and will at each time step remove each included
         variable separately. The variable that results in the best improvement
-        in the metric when removed from the model will be removed from the 
+        in the metric when removed from the model will be removed from the
         list of selected features.
 
         Categorical variables will either be included or excluded as a whole.
@@ -244,11 +244,7 @@ class CountLinearModel:
 
         # set our starting score and best models
         current_score = score_count_model(
-            X_train,
-            y_train,
-            included_vars,
-            metric=criteria,
-            model=self._type
+            X_train, y_train, included_vars, metric=criteria, model=self._type
         )
         current_step = 0
 
@@ -266,7 +262,7 @@ class CountLinearModel:
                         y_train,
                         candidate_features,
                         metric=criteria,
-                        model=self._type
+                        model=self._type,
                     )
                     if score < best_score:
                         best_score = score
@@ -297,7 +293,7 @@ class CountLinearModel:
                         y_train,
                         candidate_features,
                         metric=criteria,
-                        model=self._type
+                        model=self._type,
                     )
                     if score < best_score:
                         best_score = score
@@ -322,7 +318,7 @@ class CountLinearModel:
                         y_train,
                         candidate_features,
                         metric=criteria,
-                        model=self._type
+                        model=self._type,
                     )
                     if score < best_forward_score:
                         best_forward_score = score
@@ -342,7 +338,7 @@ class CountLinearModel:
                         y_train,
                         candidate_features,
                         metric=criteria,
-                        model=self._type
+                        model=self._type,
                     )
                     if score < best_backward_score:
                         best_backward_score = score
@@ -363,7 +359,6 @@ class CountLinearModel:
             current_step += 1
 
         return included_vars
-
 
     def __str__(self):
         return self._name

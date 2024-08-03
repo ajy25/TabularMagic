@@ -7,6 +7,7 @@ import pandas as pd
 from typing import Literal
 from ..utils import ensure_arg_list_uniqueness
 
+
 def score_binomial_model(
     X_train: pd.DataFrame,
     y_train: pd.DataFrame,
@@ -25,7 +26,7 @@ def score_binomial_model(
 
     feature_list : list[str]
         The list of features to include in the model.
-        
+
     metric : str
         The metric to use for scoring. Either 'aic' or 'bic'.
 
@@ -38,16 +39,16 @@ def score_binomial_model(
         return np.inf
 
     subset_X_train = X_train[feature_list]
-    new_model = sm.GLM(y_train, subset_X_train,
-                       family=sm.families.Binomial(link=sm.families.links.Logit())
-                       ).fit(cov_type="HC3")
+    new_model = sm.GLM(
+        y_train,
+        subset_X_train,
+        family=sm.families.Binomial(link=sm.families.links.Logit()),
+    ).fit(cov_type="HC3")
     if metric == "aic":
         score = new_model.aic
     elif metric == "bic":
         score = new_model.bic
     return score
-
-
 
 
 class BinomialLinearModel:
@@ -73,7 +74,7 @@ class BinomialLinearModel:
 
         Parameters
         ----------
-        dataemitter : DataEmitter 
+        dataemitter : DataEmitter
             The DataEmitter containing all the data.
         """
         self._dataemitter = dataemitter
@@ -87,7 +88,7 @@ class BinomialLinearModel:
         self.estimator = sm.GLM(
             y_train,
             X_train,
-            family=sm.families.Binomial(link=sm.families.links.Logit())
+            family=sm.families.Binomial(link=sm.families.links.Logit()),
         ).fit(cov_type="HC3")
 
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
@@ -110,7 +111,7 @@ class BinomialLinearModel:
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
-            pos_label = 1,
+            pos_label=1,
             y_pred_score=np.hstack(
                 [
                     np.zeros(shape=(len(y_pred_train), 1)),
@@ -126,7 +127,7 @@ class BinomialLinearModel:
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
             y_true=y_test.to_numpy(),
-            pos_label = 1,
+            pos_label=1,
             y_pred_score=np.hstack(
                 [np.zeros(shape=(len(y_pred_test), 1)), y_pred_test.reshape(-1, 1)]
             ),
@@ -145,17 +146,17 @@ class BinomialLinearModel:
     ) -> list[str]:
         """This method implements stepwise selection for identifying important
         features. If the direction is set to forward, the algorithm will start
-        with no selected variables and will at each time step add every 
+        with no selected variables and will at each time step add every
         left-out feature to the model separately. the left-out feature
         that results in the best improvement in the metric (aic or bic) will
         be selected as an important feature. This happens until all variables
         are added or adding a left-out variable does not improve the metric
         of choice.
-        
+
         If the direction is set to backward, the algorithm will start with all
         variables selected and will at each time step remove each included
         variable separately. The variable that results in the best improvement
-        in the metric when removed from the model will be removed from the 
+        in the metric when removed from the model will be removed from the
         list of selected features.
 
         Categorical variables will either be included or excluded as a whole.

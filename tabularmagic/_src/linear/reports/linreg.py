@@ -852,11 +852,10 @@ class LinearRegressionReport:
         )
 
     def test_lr(
-        self, 
-        alternative_report: "LinearRegressionReport"
+        self, alternative_report: "LinearRegressionReport"
     ) -> StatisticalTestResult:
-        """Performs a likelihood ratio test to compare an alternative 
-        OLSLinearModel. Returns an object of class StatisticalTestResult 
+        """Performs a likelihood ratio test to compare an alternative
+        OLSLinearModel. Returns an object of class StatisticalTestResult
         describing the results.
 
         Parameters
@@ -968,9 +967,9 @@ class LinearRegressionReport:
             degfree=dr_diff,
             statistic_description="F-statistic",
             null_hypothesis_description="The coefficients of the additional "
-                "predictors are all zero",
+            "predictors are all zero",
             alternative_hypothesis_description="At least one of the "
-                "coefficients of the additional predictors is not zero",
+            "coefficients of the additional predictors is not zero",
             assumptions_description="The data must be homoscedastic and "
             "have no autocorrelation",
         )
@@ -987,7 +986,7 @@ class LinearRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-    
+
     # Move methods in SingleDatasetLinRegReport up to LinearRegressionReport
     # to allow useres to call methods from mutliple locations
 
@@ -996,7 +995,7 @@ class LinearRegressionReport:
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test"
+        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
         values.
@@ -1023,24 +1022,20 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.plot_obs_vs_pred(
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                show_outliers=show_outliers, figsize=figsize, ax=ax
             )
         else:
             return self._test_report.plot_obs_vs_pred(
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                show_outliers=show_outliers, figsize=figsize, ax=ax
             )
-    
+
     def plot_residuals_vs_fitted(
         self,
         standardized: bool = False,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test"
+        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
@@ -1069,19 +1064,19 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.plot_residuals_vs_fitted(
-                standardized = standardized,
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
             )
         else:
             return self._test_report.plot_residuals_vs_fitted(
-                standardized = standardized,
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
             )
-        
+
     def plot_residuals_vs_var(
         self,
         x_var: str,
@@ -1089,7 +1084,7 @@ class LinearRegressionReport:
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test"
+        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
@@ -1119,28 +1114,28 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.plot_residuals_vs_var(
-                x_var = x_var,
-                standardized = standardized,
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                x_var=x_var,
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
             )
         else:
             return self._test_report.plot_residuals_vs_var(
-                x_var = x_var,
-                standardized = standardized,
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                x_var=x_var,
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
             )
-        
+
     def plot_residuals_hist(
         self,
         standardized: bool = False,
         density: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test"
+        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
 
@@ -1167,17 +1162,11 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.plot_residuals_hist(
-                standardized = standardized,
-                density = density,
-                figsize = figsize,
-                ax = ax
+                standardized=standardized, density=density, figsize=figsize, ax=ax
             )
         else:
             return self._test_report.plot_residuals_hist(
-                standardized = standardized,
-                density = density,
-                figsize = figsize,
-                ax = ax
+                standardized=standardized, density=density, figsize=figsize, ax=ax
             )
 
     def plot_scale_location(
@@ -1185,7 +1174,7 @@ class LinearRegressionReport:
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test"
+        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
         sqrt of the residuals versus the fitted.
@@ -1210,15 +1199,9 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.plot_scale_location(
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                show_outliers=show_outliers, figsize=figsize, ax=ax
             )
         else:
             return self._test_report.plot_scale_location(
-                show_outliers = show_outliers,
-                figsize = figsize,
-                ax = ax
+                show_outliers=show_outliers, figsize=figsize, ax=ax
             )
-    
-        

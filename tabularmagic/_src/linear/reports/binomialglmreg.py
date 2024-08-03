@@ -67,7 +67,7 @@ class SingleDatasetBinRegReport:
         Parameters
         ----------
         show_outliers : bool
-            Default: True. 
+            Default: True.
             If True, then the outliers calculated using standard errors will be
             shown in red.
 
@@ -85,9 +85,7 @@ class SingleDatasetBinRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(
-            self._y_pred, self._y_true, self.model._name, figsize, ax
-        )
+        plot_obs_vs_pred(self._y_pred, self._y_true, self.model._name, figsize, ax)
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],
@@ -132,7 +130,7 @@ class SingleDatasetBinRegReport:
             opposed to the raw residuals.
 
         show_outliers : bool
-            Default: True. If True, colors the outliers determined by the 
+            Default: True. If True, colors the outliers determined by the
             standardized residuals in red.
 
         figsize : tuple[float, float]
@@ -616,8 +614,7 @@ class SingleDatasetBinRegReport:
         return fig
 
     def plot_diagnostics(
-        self, show_outliers: bool = False, 
-        figsize: tuple[float, float] = (7.0, 7.0)
+        self, show_outliers: bool = False, figsize: tuple[float, float] = (7.0, 7.0)
     ) -> plt.Figure:
         """Plots several useful linear regression diagnostic plots.
 
@@ -773,9 +770,7 @@ class BinomialRegressionReport:
         """
         return self._model
 
-    def metrics(
-        self, dataset: Literal["train", "test"] = "test"
-    ) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 

@@ -54,7 +54,7 @@ class CountRegressionReport:
 
     def train_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
         """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
-        object for the train dataset depending on the statistical test 
+        object for the train dataset depending on the statistical test
         for overdispersion.
 
         Returns
@@ -65,7 +65,7 @@ class CountRegressionReport:
 
     def test_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
         """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
-        object for the test dataset depending on the statistical test 
+        object for the test dataset depending on the statistical test
         for overdispersion.
 
         Returns
@@ -84,9 +84,7 @@ class CountRegressionReport:
         """
         return self._model
 
-    def metrics(
-        self, dataset: Literal["train", "test"] = "test"
-    ) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 

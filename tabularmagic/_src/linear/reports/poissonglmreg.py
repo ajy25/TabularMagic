@@ -68,7 +68,7 @@ class SingleDatasetPoisRegReport:
         Parameters
         ----------
         show_outliers : bool
-            Default: True. 
+            Default: True.
             If True, then the outliers calculated using standard errors will be
             shown in red.
 
@@ -86,9 +86,7 @@ class SingleDatasetPoisRegReport:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        plot_obs_vs_pred(
-            self._y_pred, self._y_true, self.model._name, figsize, ax
-        )
+        plot_obs_vs_pred(self._y_pred, self._y_true, self.model._name, figsize, ax)
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],
@@ -825,9 +823,7 @@ class PoissonRegressionReport:
         """
         return self._model
 
-    def metrics(
-        self, dataset: Literal["train", "test"] = "test"
-    ) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
@@ -844,7 +840,7 @@ class PoissonRegressionReport:
             return self._train_report.metrics()
         else:
             return self._test_report.metrics()
-    
+
     def step(
         self,
         direction: Literal["both", "backward", "forward"] = "backward",

@@ -25,7 +25,7 @@ def score_ols_model(
 
     feature_list : list[str]
         The list of features to include in the model.
-        
+
     metric : str
         The metric to use for scoring. Either 'aic' or 'bic'.
 
@@ -122,17 +122,17 @@ class OLSLinearModel:
     ) -> list[str]:
         """This method implements stepwise selection for identifying important
         features. If the direction is set to forward, the algorithm will start
-        with no selected variables and will at each time step add every 
+        with no selected variables and will at each time step add every
         left-out feature to the model separately. the left-out feature
         that results in the best improvement in the metric (aic or bic) will
         be selected as an important feature. This happens until all variables
         are added or adding a left-out variable does not improve the metric
         of choice.
-        
+
         If the direction is set to backward, the algorithm will start with all
         variables selected and will at each time step remove each included
         variable separately. The variable that results in the best improvement
-        in the metric when removed from the model will be removed from the 
+        in the metric when removed from the model will be removed from the
         list of selected features.
 
         Categorical variables will either be included or excluded as a whole.

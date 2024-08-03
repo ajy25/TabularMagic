@@ -49,8 +49,7 @@ def setup_data():
 def test_pipeline_generation_regression(setup_data):
     """Tests pipeline generation for prediction with regression ml models"""
 
-
-    # STEP 1 
+    # STEP 1
     # test basic functionality of the pipeline
     train_data = setup_data["df_house_mini_train"]
     test_data = setup_data["df_house_mini_test"]
@@ -72,21 +71,15 @@ def test_pipeline_generation_regression(setup_data):
             "OverallQual",
         ],
     )
-    pipeline = report.model('LinearR(l2)').sklearn_pipeline()
-
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
 
     output = pipeline.predict(
-        test_data[[
-            "MSZoning", "ExterQual_binary", "LotArea", "OverallQual"
-        ]]
+        test_data[["MSZoning", "ExterQual_binary", "LotArea", "OverallQual"]]
     )
 
     assert np.allclose(
-        output,
-        report.model('LinearR(l2)')._test_scorer._y_pred,
-        atol=1e-5
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
-
 
     # STEP 2
     # test the pipeline with a feature selector
@@ -104,22 +97,17 @@ def test_pipeline_generation_regression(setup_data):
             "LotArea",
             "OverallQual",
         ],
-        feature_selectors=[tm.fs.KBestFSR("f_regression", 2)]
+        feature_selectors=[tm.fs.KBestFSR("f_regression", 2)],
     )
-    pipeline = report.model('LinearR(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
 
     output = pipeline.predict(
-        test_data[[
-            "MSZoning", "ExterQual_binary", "LotArea", "OverallQual"
-        ]]
+        test_data[["MSZoning", "ExterQual_binary", "LotArea", "OverallQual"]]
     )
 
     assert np.allclose(
-        output,
-        report.model('LinearR(l2)')._test_scorer._y_pred,
-        atol=1e-5
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
-
 
     # STEP 3
     # test the pipeline with a feature selector for specific model
@@ -128,7 +116,7 @@ def test_pipeline_generation_regression(setup_data):
             tm.ml.LinearR(
                 type="l2",
                 n_trials=1,
-                feature_selectors=[tm.fs.KBestFSR("f_regression", 3)]
+                feature_selectors=[tm.fs.KBestFSR("f_regression", 3)],
             ),
         ],
         target="SalePrice",
@@ -137,33 +125,22 @@ def test_pipeline_generation_regression(setup_data):
             "ExterQual_binary",
             "LotArea",
             "OverallQual",
-        ]
+        ],
     )
-    pipeline = report.model('LinearR(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
 
     output = pipeline.predict(
-        test_data[[
-            "MSZoning", "ExterQual_binary", "LotArea", "OverallQual"
-        ]]
+        test_data[["MSZoning", "ExterQual_binary", "LotArea", "OverallQual"]]
     )
 
     assert np.allclose(
-        output,
-        report.model('LinearR(l2)')._test_scorer._y_pred,
-        atol=1e-5
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
-
 
     # STEP 4
     # test the pipeline with feature scaling
     analyzer.load_data_checkpoint()
-    analyzer.scale(
-        include_vars=[
-            "LotArea",
-            "OverallQual"
-        ],
-        strategy="standardize"
-    )
+    analyzer.scale(include_vars=["LotArea", "OverallQual"], strategy="standardize")
 
     report = analyzer.regress(
         models=[
@@ -180,19 +157,14 @@ def test_pipeline_generation_regression(setup_data):
             "OverallQual",
         ],
     )
-    pipeline = report.model('LinearR(l2)').sklearn_pipeline()
-
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
 
     output = pipeline.predict(
-        test_data[[
-            "MSZoning", "ExterQual_binary", "LotArea", "OverallQual"
-        ]]
+        test_data[["MSZoning", "ExterQual_binary", "LotArea", "OverallQual"]]
     )
 
     assert np.allclose(
-        output,
-        report.model('LinearR(l2)')._test_scorer._y_pred,
-        atol=1e-5
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
 
 
@@ -221,20 +193,15 @@ def test_pipeline_generation_classification(setup_data):
             "YearBuilt",
         ],
     )
-    pipeline = report.model('LinearC(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
 
     output = pipeline.predict_proba(
-        test_data[[
-            "MSZoning", "LotArea", "OverallQual", "YearBuilt"
-        ]]
+        test_data[["MSZoning", "LotArea", "OverallQual", "YearBuilt"]]
     )[:, 1]
 
     assert np.allclose(
-        output,
-        report.model('LinearC(l2)')._test_scorer._y_pred_score,
-        atol=1e-5
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
     )
-
 
     # STEP 2
     # test the pipeline with a feature selector
@@ -252,22 +219,17 @@ def test_pipeline_generation_classification(setup_data):
             "OverallQual",
             "YearBuilt",
         ],
-        feature_selectors=[tm.fs.KBestFSC("f_classif", 2)]
+        feature_selectors=[tm.fs.KBestFSC("f_classif", 2)],
     )
-    pipeline = report.model('LinearC(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
 
     output = pipeline.predict_proba(
-        test_data[[
-            "MSZoning", "LotArea", "OverallQual", "YearBuilt"
-        ]]
+        test_data[["MSZoning", "LotArea", "OverallQual", "YearBuilt"]]
     )[:, 1]
 
     assert np.allclose(
-        output,
-        report.model('LinearC(l2)')._test_scorer._y_pred_score,
-        atol=1e-5
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
     )
-
 
     # STEP 3
     # test the pipeline with a feature selector for specific model
@@ -276,7 +238,7 @@ def test_pipeline_generation_classification(setup_data):
             tm.ml.LinearC(
                 type="l2",
                 n_trials=1,
-                feature_selectors=[tm.fs.KBestFSC("f_classif", 3)]
+                feature_selectors=[tm.fs.KBestFSC("f_classif", 3)],
             ),
         ],
         target="ExterQual_binary",
@@ -285,32 +247,22 @@ def test_pipeline_generation_classification(setup_data):
             "LotArea",
             "OverallQual",
             "YearBuilt",
-        ]
+        ],
     )
-    pipeline = report.model('LinearC(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
 
     output = pipeline.predict_proba(
-        test_data[[
-            "MSZoning", "LotArea", "OverallQual", "YearBuilt"
-        ]]
+        test_data[["MSZoning", "LotArea", "OverallQual", "YearBuilt"]]
     )[:, 1]
 
     assert np.allclose(
-        output,
-        report.model('LinearC(l2)')._test_scorer._y_pred_score,
-        atol=1e-5
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
     )
-    
+
     # STEP 4
     # test the pipeline with feature scaling
     analyzer.load_data_checkpoint()
-    analyzer.scale(
-        include_vars=[
-            "LotArea",
-            "OverallQual"
-        ],
-        strategy="standardize"
-    )
+    analyzer.scale(include_vars=["LotArea", "OverallQual"], strategy="standardize")
     report = analyzer.classify(
         models=[
             tm.ml.LinearC(
@@ -326,16 +278,12 @@ def test_pipeline_generation_classification(setup_data):
             "YearBuilt",
         ],
     )
-    pipeline = report.model('LinearC(l2)').sklearn_pipeline()
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
 
     output = pipeline.predict_proba(
-        test_data[[
-            "MSZoning", "LotArea", "OverallQual", "YearBuilt"
-        ]]
+        test_data[["MSZoning", "LotArea", "OverallQual", "YearBuilt"]]
     )[:, 1]
 
     assert np.allclose(
-        output,
-        report.model('LinearC(l2)')._test_scorer._y_pred_score,
-        atol=1e-5
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
     )

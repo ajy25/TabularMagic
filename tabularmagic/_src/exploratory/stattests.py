@@ -33,7 +33,7 @@ class StatisticalTestResult:
             two-sample t-test.
 
         pval : float
-        
+
         descriptive_statistic : float
             Default: None. The statistic that describes the values tested.
             For example, Pearson correlation coefficient for correlation test,

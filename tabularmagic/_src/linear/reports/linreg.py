@@ -11,6 +11,7 @@ from ...display.print_utils import print_wrapped
 from adjustText import adjust_text
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 from ...exploratory.stattests import StatisticalTestResult
+import warnings
 
 
 class SingleDatasetLinRegReport:
@@ -890,13 +891,19 @@ class LinearRegressionReport:
             # Raise an error if the number of predictors are the same
             raise ValueError("One model must be a reduced version of the other")
 
-        # Add error if one set of predictors is not a subset of the other
-        # to do
+        # Raise ValueError if one set of predictors is not a subset of the other
+        orig_var_set = set(self._train_report._X_eval_df.columns)
+        alt_var_set = set(alternative_report.train_report()._X_eval_df.columns)
 
-        # Implement test for heteroscedasticity
+        if not (orig_var_set < alt_var_set or orig_var_set > alt_var_set):
+            raise ValueError("One model must be a reduced version of the other")
 
-        # Extract the results of the test
-        lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
+
+        # Extract the results of the test and temporarily suppress warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
 
         # Initialize and return an object of class StatisticalTestResult
         lr_result = StatisticalTestResult(
@@ -951,13 +958,18 @@ class LinearRegressionReport:
             # Raise an error if the number of predictors are the same
             raise ValueError("One model must be a reduced version of the other")
 
-        # Add error if one set of predictors is not a subset of the other
-        # to do
+        # Raise ValueError if one set of predictors is not a subset of the other
+        orig_var_set = set(self._train_report._X_eval_df.columns)
+        alt_var_set = set(alternative_report.train_report()._X_eval_df.columns)
 
-        # Implement test for heteroscedasticity
+        if not (orig_var_set < alt_var_set or orig_var_set > alt_var_set):
+            raise ValueError("One model must be a reduced version of the other")
 
-        # Extract the results of the test
-        f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
+        # Extract the results of the test and suppress warnings temporarily
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
 
         # Initialize and return an object of class StatisticalTestResult
         partial_f_result = StatisticalTestResult(

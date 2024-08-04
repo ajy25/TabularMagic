@@ -1217,3 +1217,192 @@ class LinearRegressionReport:
             return self._test_report.plot_scale_location(
                 show_outliers=show_outliers, figsize=figsize, ax=ax
             )
+    
+    def plot_residuals_vs_leverage(
+        self,
+        standardized: bool = True,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a figure that is a plot of the residuals versus leverage.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: True. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: True. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_leverage(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_residuals_vs_leverage(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+    
+    def plot_qq(
+        self,
+        standardized: bool = True,
+        show_outliers: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Returns a quantile-quantile plot.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: True. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: False. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_qq(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+        else:
+            return self._test_report.plot_qq(
+                standardized = standardized,
+                show_outliers = show_outliers,
+                figsize = figsize,
+                ax = ax
+            )
+
+    def plot_diagnostics(
+        self, 
+        show_outliers: bool = False, 
+        figsize: tuple[float, float] = (7.0, 7.0),
+        dataset: Literal["train", "test"] = "test"
+    ) -> plt.Figure:
+        """Plots several useful linear regression diagnostic plots.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: False. If True, plots the residual outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (7.0, 7.0).
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_diagnostics(
+                show_outliers = show_outliers,
+                figsize = figsize
+            )
+        else:
+            return self._test_report.plot_diagnostics(
+                show_outliers = show_outliers,
+                figsize = figsize
+            )
+        
+    def set_outlier_threshold(
+            self, 
+            threshold: float, 
+            dataset: Literal["train", "test"] = "test"
+    ) -> "SingleDatasetLinRegReport":
+        """Standardized residuals threshold for outlier identification.
+        Recomputes the outliers.
+
+        Parameters
+        ----------
+        threshold : float
+            Default: 2. Must be a nonnegative value.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        self
+        """
+        if dataset == "train":
+            self._train_report.set_outlier_threshold(
+                threshold=threshold
+            )
+        else:
+            self._test_report.set_outlier_threshold(
+                threshold=threshold
+            )
+    
+    def get_outlier_indices(
+            self, 
+            dataset: Literal["train", "test"] = "test"
+        ) -> list:
+        """Returns the indices corresponding to DataFrame examples associated
+        with standardized residual outliers.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        outliers_df_idx : list ~ (n_outliers)
+        """
+        if dataset == "train":
+            return self._train_report.get_outlier_indices()
+        else:
+            return self._test_report.get_outlier_indices()
+        
+    def _compute_outliers(self, dataset: Literal["train", "test"] = "test"):
+        """Computes the outliers.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+        """
+        if dataset == "train":
+            return self._train_report._compute_outliers()
+        else:
+            return self._test_report._compute_outliers()

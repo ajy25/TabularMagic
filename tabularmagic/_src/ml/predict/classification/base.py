@@ -434,7 +434,7 @@ class BaseC(BasePredictModel):
         """
         self._feature_selection_report = voting_selection_report
 
-    def feature_selection_report(self) -> VotingSelectionReport | None:
+    def fs_report(self) -> VotingSelectionReport | None:
         """Returns the VotingSelectionReport object.
 
         Returns

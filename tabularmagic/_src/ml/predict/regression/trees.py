@@ -311,7 +311,7 @@ class TreeEnsembleR(BaseR):
                 }
 
         else:
-            raise ValueError("Invalid input: ensemble_type = " + f'"{type}".')
+            raise ValueError("Invalid input: type = " + f'"{type}".')
 
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._estimator,

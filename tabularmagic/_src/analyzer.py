@@ -21,7 +21,7 @@ from .linear import (
     parse_and_transform_rlike,
 )
 from .exploratory import (
-    ComprehensiveEDA,
+    EDAReport,
 )
 from .display.print_utils import print_wrapped
 from .feature_selection import BaseFSR, BaseFSC
@@ -136,8 +136,8 @@ class Analyzer:
     # --------------------------------------------------------------------------
     def eda(
         self, dataset: Literal["train", "test", "all"] = "train"
-    ) -> ComprehensiveEDA:
-        """Constructs a ComprehensiveEDA object for the working train
+    ) -> EDAReport:
+        """Constructs an EDAReport object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
 
         Parameters
@@ -147,17 +147,17 @@ class Analyzer:
 
         Returns
         -------
-        ComprehensiveEDA
-            The ComprehensiveEDA object contains a variety of exploratory data
+        EDAReport
+            The EDAReport object contains a variety of exploratory data
             analysis methods, including summary statistics for numeric and
             categorical variables, t-tests, and data visualizations.
         """
         if dataset == "train":
-            return ComprehensiveEDA(self._datahandler.df_train())
+            return EDAReport(self._datahandler.df_train())
         elif dataset == "test":
-            return ComprehensiveEDA(self._datahandler.df_test())
+            return EDAReport(self._datahandler.df_test())
         elif dataset == "all":
-            return ComprehensiveEDA(self._datahandler.df_all())
+            return EDAReport(self._datahandler.df_all())
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 

@@ -106,7 +106,9 @@ class HyperparameterSearcher:
                 warnings.filterwarnings(
                     "ignore", category=optuna.exceptions.ExperimentalWarning
                 )
-                warnings.filterwarnings("ignore", category=UserWarning)
+                warnings.filterwarnings(
+                    "ignore", category=UserWarning
+                )
                 self._searcher = optuna.integration.OptunaSearchCV(
                     estimator=estimator,
                     param_distributions=hyperparam_grid,

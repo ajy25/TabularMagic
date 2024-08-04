@@ -1,5 +1,4 @@
 import pandas as pd
-from typing import Iterable
 from . import BaseFS
 from ..data.datahandler import DataEmitter
 from ..display.print_utils import print_wrapped
@@ -10,7 +9,7 @@ class VotingSelectionReport:
 
     def __init__(
         self,
-        selectors: Iterable[BaseFS],
+        selectors: list[BaseFS],
         dataemitter: DataEmitter,
         max_n_features: int | None = None,
         verbose: bool = True,
@@ -20,15 +19,18 @@ class VotingSelectionReport:
 
         Parameters
         ----------
-        selectors : Iterable[BaseSelector].
+        selectors : list[BaseSelector]
             Each BaseSelector decides on a maximum of max_n_features.
-        dataemitter : DataEmitter.
+
+        dataemitter : DataEmitter
             The DataEmitter object that contains the data.
-        max_n_features : int.
+
+        max_n_features : int | None
             Default: None.
             Number of desired features. 0 < max_n_features < n_predictors.
             If None, then all features with at least 50% support are selected.
-        verbose : bool.
+
+        verbose : bool
             Default: True. If True, prints progress.
         """
         self._selector_to_support = {}
@@ -60,17 +62,35 @@ class VotingSelectionReport:
 
     def top_features(self) -> list:
         """Returns a list of top features determined by the voting
-        selectors."""
+        selectors.
+        
+        Returns
+        -------
+        list
+            Top features.
+        """
         return self._top_features
 
     def all_features(self) -> list:
         """Returns a list of all features considered by the voting
-        selectors."""
+        selectors.
+        
+        Returns
+        -------
+        list
+            All features.
+        """
         return self._all_features
 
     def votes(self) -> pd.DataFrame:
         """Returns a DataFrame that describes the distribution of
-        votes among selectors."""
+        votes among selectors.
+        
+        Returns
+        -------
+        pd.DataFrame
+            Votes DataFrame.
+        """
         return self._votes_df.T
 
     def _emit_train_X(self) -> pd.DataFrame:
@@ -84,3 +104,6 @@ class VotingSelectionReport:
     def __getitem__(self, index: str) -> BaseFS:
         """Returns the RegressionBaseSelector by nickname index."""
         return self._selector_dict_indexable_by_str[index]
+
+
+

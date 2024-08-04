@@ -9,6 +9,10 @@ from .._src.linear.reports import (
 from .._src.ml.predict.regression import MLRegressionReport
 from .._src.ml.predict.classification import MLClassificationReport
 
+from .._src.exploratory import EDAReport
+
+from .._src.feature_selection import VotingSelectionReport
+
 
 __all__ = [
     "PoissonRegressionReport",
@@ -18,4 +22,6 @@ __all__ = [
     "CountRegressionReport",
     "MLRegressionReport",
     "MLClassificationReport",
+    "EDAReport",
+    "VotingSelectionReport",
 ]

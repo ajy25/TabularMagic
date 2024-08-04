@@ -42,3 +42,18 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
         __init__, model, metrics, step, statsmodels_summary
 
 
+:py:mod:`tm._reports.EDAReport`
+-------------------------------
+
+.. autoclass:: EDAReport
+    :members:
+        __init__, plot_distribution, plot_distribution_stratified, plot_numeric_pairs, plot_pca, test_equal_means, anova, ttest, numeric_vars, categorical_vars, categorical_stats, numeric_stats
+
+
+:py:mod:`tm._reports.VotingSelectionReport`
+-------------------------------------------
+
+.. autoclass:: VotingSelectionReport
+    :members:
+        __init__, top_features, all_features, votes
+

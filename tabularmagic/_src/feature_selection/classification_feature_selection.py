@@ -1,5 +1,6 @@
 from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif, chi2
 from typing import Literal
+import numpy as np
 
 from ..data.datahandler import DataEmitter
 from .base_feature_selection import BaseFSC
@@ -16,16 +17,17 @@ class KBestFSC(BaseFSC):
         k: int,
         name: str | None = None,
     ):
-        """
-        Constructs a KBestFSC.
+        """Initializes a KBestFSC object.
 
         Parameters
         ----------
-        scorer : Literal['f_classif', 'mutual_info_classif'].
-        k : int.
+        scorer : Literal['f_classif', 'mutual_info_classif']
+
+        k : int
             Number of desired features, < n_predictors.
-        name : str.
-            Default: None. If None, then outputs the class name.
+
+        name : str | None
+            Default: None. If None, then outputs the default name.
         """
         if name is None:
             name = f"KBestFSC({scorer})"
@@ -33,22 +35,26 @@ class KBestFSC(BaseFSC):
         self._scorer = scorer
         self._k = k
 
-    def select(self, dataemitter: DataEmitter):
+    def select(
+        self, 
+        dataemitter: DataEmitter
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        Selects the top max_n_features features
-        based on the training data.
+        Selects the top max_n_features features based on the training data.
 
         Parameters
         ----------
-        dataemitter : DataEmitter.
+        dataemitter : DataEmitter
 
         Returns
         -------
-        np.ndarray ~ (n_in_features).
+        np.ndarray ~ (n_in_features)
             All features (variable names).
-        np.ndarray ~ (n_out_features).
+
+        np.ndarray ~ (n_out_features)
             Selected features.
-        np.ndarray ~ (n_in_features).
+
+        np.ndarray ~ (n_in_features)
             Boolean mask, the support for selected features.
         """
         scorer = None
@@ -71,3 +77,6 @@ class KBestFSC(BaseFSC):
         self._support = selector.get_support()
         self._selected_feature_scores = selector.scores_[self._support]
         return self._all_features, self._selected_features, self._support
+
+
+

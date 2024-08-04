@@ -18,6 +18,7 @@ class BaseFS:
         """
         self._name = name
         self._all_features, self._selected_features, self._support = None, None, None
+        self._all_feature_scores = None
 
     def select(self, dataemitter: DataEmitter):
         """

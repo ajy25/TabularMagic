@@ -1,11 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Iterable, Literal
+from typing import Literal
+import warnings
 from .base import BaseR
 from ....data.datahandler import DataHandler
 from ....metrics.visualization import plot_obs_vs_pred
 from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSR, VotingSelectionReport
+
+
+
+warnings.simplefilter("ignore", category=UserWarning)
+
 
 
 class SingleModelSingleDatasetMLRegReport:
@@ -88,7 +94,7 @@ class SingleModelSingleDatasetMLRegReport:
 
         Parameters
         ----------
-        figsize : Iterable
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax : plt.Axes | None
@@ -167,7 +173,7 @@ class SingleModelMLRegReport:
             Default: 'test'.
             The dataset for which to plot the observed vs predicted values.
 
-        figsize : Iterable
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax : plt.Axes | None
@@ -192,7 +198,7 @@ class SingleModelMLRegReport:
         VotingSelectionReport | None
             None is returned if no feature selectors were specified.
         """
-        return self._model.feature_selection_report()
+        return self._model.fs_report()
 
 
 class MLRegressionReport:
@@ -202,11 +208,11 @@ class MLRegressionReport:
 
     def __init__(
         self,
-        models: Iterable[BaseR],
+        models: list[BaseR],
         datahandler: DataHandler,
         target: str,
-        predictors: Iterable[str],
-        feature_selectors: Iterable[BaseFSR] | None = None,
+        predictors: list[str],
+        feature_selectors: list[BaseFSR] | None = None,
         max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
@@ -217,8 +223,8 @@ class MLRegressionReport:
 
         Parameters
         ----------
-        models : Iterable[BaseR]
-            The BaseRegression models must already be trained.
+        models : list[BaseR]
+            The models will be trained by the MLRegressionReport object.
 
         datahandler : DataHandler
             The DataHandler object that contains the data.
@@ -226,10 +232,10 @@ class MLRegressionReport:
         target : str
             The name of the target variable.
 
-        predictors : Iterable[str]
+        predictors : list[str]
             The names of the predictor variables.
 
-        feature_selectors : Iterable[BaseFSR] | None
+        feature_selectors : list[BaseFSR] | None
             Default: None.
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
@@ -308,6 +314,8 @@ class MLRegressionReport:
                     emitter.select_predictors(fold_selection_report.top_features())
 
         self._verbose = verbose
+
+
         for model in self._models:
             if self._verbose:
                 print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
@@ -315,6 +323,7 @@ class MLRegressionReport:
                 dataemitter=self._emitter,
                 dataemitters=self._emitters,
             )
+            
             model.fit(verbose=self._verbose)
 
             if (
@@ -403,7 +412,7 @@ class MLRegressionReport:
                 ],
                 axis=1,
             )
-        else:
+        elif dataset == "test":
             return pd.concat(
                 [
                     report.test_report().metrics()
@@ -411,6 +420,8 @@ class MLRegressionReport:
                 ],
                 axis=1,
             )
+        else:
+            raise ValueError('dataset must be either "train" or "test".')
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
@@ -483,7 +494,7 @@ class MLRegressionReport:
         dataset : Literal['train', 'test']
             Default: 'test'.
 
-        figsize : Iterable
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure.
 
         ax : plt.Axes | None

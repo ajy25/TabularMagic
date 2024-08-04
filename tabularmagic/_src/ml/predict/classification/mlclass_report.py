@@ -1,12 +1,16 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Iterable, Literal
+from typing import Literal
+import warnings
 from .base import BaseC
 from ....metrics.classification_scoring import ClassificationBinaryScorer
 from ....data.datahandler import DataHandler
 from ....metrics.visualization import plot_roc_curve, plot_confusion_matrix
 from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSC, VotingSelectionReport
+
+
+warnings.simplefilter("ignore", category=UserWarning)
 
 
 class SingleModelSingleDatasetMLClassReport:
@@ -327,7 +331,7 @@ class SingleModelMLClassReport:
         VotingSelectionReport | None
             None is returned if no feature selectors were specified.
         """
-        return self._model.feature_selection_report()
+        return self._model.fs_report()
 
 
 class MLClassificationReport:
@@ -337,11 +341,11 @@ class MLClassificationReport:
 
     def __init__(
         self,
-        models: Iterable[BaseC],
+        models: list[BaseC],
         datahandler: DataHandler,
         target: str,
-        predictors: Iterable[str],
-        feature_selectors: Iterable[BaseFSC] | None = None,
+        predictors: list[str],
+        feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int | None = None,
         outer_cv: int | None = None,
         outer_cv_seed: int = 42,
@@ -352,29 +356,37 @@ class MLClassificationReport:
 
         Parameters
         ----------
-        models: Iterable[BaseC].
-            The BaseC models must already be trained.
-        datahandler: DataHandler.
+        models: list[BaseC]
+            The models will be trained by the MLClassificationReport.
+
+        datahandler: DataHandler
             The DataHandler object that contains the data.
-        target : str.
+
+        target : str
             The name of the dependent variable.
-        predictors : Iterable[str].
+
+        predictors : list[str]
             The names of the independent variables.
-        feature_selectors : Iterable[BaseFSR].
+
+        feature_selectors : list[BaseFSR] | None
             Default: None.
             The feature selectors for voting selection. Feature selectors
             can be used to select the most important predictors.
-        max_n_features : int.
+
+        max_n_features : int | None
             Default: None.
             Maximum number of predictors to utilize. Ignored if feature_selectors
             is None.
-        outer_cv: int.
+
+        outer_cv: int | None
             Default: None.
             If not None, reports training scores via nested k-fold CV.
-        outer_cv_seed: int.
+
+        outer_cv_seed: int
             Default: 42.
             The random seed for the outer cross validation loop.
-        verbose: bool.
+
+        verbose: bool
             Default: True. If True, prints updates on model fitting.
         """
         self._models: list[BaseC] = models

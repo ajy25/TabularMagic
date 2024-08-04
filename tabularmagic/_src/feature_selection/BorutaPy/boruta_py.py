@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 """
 Copyright (c) 2016, Daniel Homola
 All rights reserved.
@@ -38,7 +40,6 @@ Original code and method by: Miron B Kursa, https://m2.icm.edu.pl/boruta/
 License: BSD 3 clause
 """
 
-from __future__ import print_function, division
 import numpy as np
 import scipy as sp
 from sklearn.utils import check_random_state, check_X_y

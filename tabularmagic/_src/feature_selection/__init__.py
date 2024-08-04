@@ -5,6 +5,10 @@ from .regression_feature_selection import (
 from .classification_feature_selection import (
     KBestFSC,
 )
+from .boruta_feature_selection import (
+    BorutaFSR,
+    BorutaFSC,
+)
 from .base_feature_selection import BaseFSR, BaseFSC, BaseFS
 from .voteselect import VotingSelectionReport
 
@@ -17,4 +21,6 @@ __all__ = [
     "BaseFSC",
     "BaseFS",
     "VotingSelectionReport",
+    "BorutaFSR",
+    "BorutaFSC",
 ]

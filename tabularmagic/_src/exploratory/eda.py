@@ -23,7 +23,7 @@ class CategoricalEDA:
 
         Parameters
         ----------
-        var_series : pd.Series.
+        var_series : pd.Series
             Pandas Series for a sample of the categorical variable.
         """
         self.variable_name = str(var_series.name)
@@ -97,22 +97,22 @@ class CategoricalEDA:
 
         Returns
         -------
-        pd.Series.
+        pd.Series
         """
         return self._var_series.value_counts(normalize=False)
 
 
-class numericEDA:
+class NumericEDA:
     """Class for generating EDA-relevant plots and tables for a
-    single numeric-valued variable."""
+    single numeric variable."""
 
     def __init__(self, var_series: pd.Series):
         """
-        Initializes a numericEDA object.
+        Initializes a NumericEDA object.
 
         Parameters
         ----------
-        var_series : pd.Series.
+        var_series : pd.Series
             Pandas Series for a sample of the numeric variable.
         """
         self.variable_name = str(var_series.name)
@@ -154,22 +154,25 @@ class numericEDA:
         Parameters
         ----------
         hypothetical_transform : Literal[None, 'minmax', 'standardize',
-        'log', 'log1p'].
+            'log', 'log1p'] | None
             Default: None. If not None, the data is transformed before
             plotting.
-        density : bool.
+
+        density : bool
             Default: False. If True, plots the density rather than the
             frequency.
-        figsize : Iterable.
+
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure. Only used if
             ax is None.
-        ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. The axes to plot on. If None, a new figure is
             created.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         values = self._var_series.to_numpy()
 
@@ -219,18 +222,18 @@ class numericEDA:
         return fig
 
 
-class ComprehensiveEDA:
+class EDAReport:
     """Class for generating EDA-relevant plots and tables for all
     variables.
     """
 
     def __init__(self, df: pd.DataFrame):
         """
-        Initializes a ComprehensiveEDA object.
+        Initializes a EDAReport object.
 
         Parameters
         ----------
-        df : pd.DataFrame.
+        df : pd.DataFrame
             The dataset.
         """
         self._df = df.copy()
@@ -244,7 +247,7 @@ class ComprehensiveEDA:
             var: CategoricalEDA(self._df[var]) for var in self._categorical_vars
         }
         self._numeric_eda_dict = {
-            var: numericEDA(self._df[var]) for var in self._numeric_vars
+            var: NumericEDA(self._df[var]) for var in self._numeric_vars
         }
 
         self._categorical_summary_statistics = None
@@ -275,12 +278,15 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        numeric_vars : list[str].
-            Default: None. A list of numeric variables. Default: None.
+        numeric_vars : list[str]
+            Default: None. A list of numeric variables.
             If None, all numeric variables are considered.
-        stratify_by : str.
-            Default: None. Categorical var name.
-        figsize : Iterable.
+
+        stratify_by : str
+            Default: None. Categorical var name. 
+            If not None, the plot is stratified by this variable.
+
+        figsize : tuple[float, float]
             Default: (7, 7). The size of the figure.
 
         Returns
@@ -365,7 +371,7 @@ class ComprehensiveEDA:
             "box",
             "box_swarm",
             "box_strip",
-        ],
+        ] = "box",
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -376,22 +382,26 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        numeric_var : str.
-            numeric variable of interest.
-        stratify_by : str.
+        numeric_var : str
+            Numeric variable of interest.
+
+        stratify_by : str
             Categorical variable to stratify by.
+
         strategy : Literal['stacked_kde_density', 'stacked_hist_kde_density',
-        'stacked_hist_kde_frequency', 'violin', 'violin_swarm', 'violin_strip',
-        'box', 'box_swarm', 'box_strip'].
-            The strategy for plotting the distribution.
-        figsize : Iterable.
+            'stacked_hist_kde_frequency', 'violin', 'violin_swarm', 'violin_strip',
+            'box', 'box_swarm', 'box_strip']
+            Default: 'box'. The strategy for plotting the distribution.
+
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure.
-        ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. If not None, the plot is drawn on the input Axes.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         fig = None
         if ax is None:
@@ -558,18 +568,22 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        var : str.
-        density : bool.
+        var : str
+            Variable name.
+
+        density : bool
             Default: False. If True, plots the density rather than the
             frequency.
-        - figsize : Iterable.
+
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure. Only used if ax is None.
-        - ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. If not None, the plot is drawn on the input Axes.
 
         Returns
         -------
-        - plt.Figure
+        plt.Figure
         """
         return self[var].plot_distribution(density=density, figsize=figsize, ax=ax)
 
@@ -590,31 +604,38 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        numeric_vars : list[str].
-            List of numeric variables across which the PCA will be performed
-        stratify_by : str.
+        numeric_vars : list[str]
+            List of numeric variables across which the PCA will be performed.
+
+        stratify_by : str
             Categorical variable from which strata are identified.
-        strata : Iterable[str].
+
+        strata : pd.Series | None
             Default: None.
             The lables/strata.
             Must be the same length as the dataset. Index must be compatible
             with self.df. Overidden by stratify_by if both provided.
+
         scale_strategy : Literal["standardize", "center", "none"].
-            Default: center.
-        whiten : bool.
-            Default: false. If True, performs whitening on the data during PCA.
-        three_components : bool.
+            Default: "center".
+
+        whiten : bool
+            Default: False. If True, performs whitening on the data during PCA.
+
+        three_components : bool
             Default: False. If True, returns a 3D plot. Otherwise plots the
             first two components only.
-        figsize : Iterable.
+
+        figsize : tuple[float, float]
             Default: (5, 5). The size of the figure. Only used if ax is None.
-        ax : plt.Axes.
+
+        ax : plt.Axes | None
             Default: None. If not None, does not return a figure; plots the
             plot directly onto the input Axes.
 
         Returns
         -------
-        plt.Figure.
+        plt.Figure
         """
         if strata is not None:
             if len(strata) != len(self._df):
@@ -741,10 +762,15 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        numeric_var : str.
-            numeric variable name to be stratified and compared.
-        stratify_by : str.
+        numeric_var : str
+            Numeric variable name to be stratified and compared.
+
+        stratify_by : str
             Categorical variable name.
+
+        Returns
+        -------
+        StatisticalTestResult
         """
         if stratify_by not in self._categorical_vars:
             raise ValueError(
@@ -770,19 +796,19 @@ class ComprehensiveEDA:
         """Tests for equal means between three or more groups.
 
         Null hypothesis: All group means are equal.
-        Alternative hypothesis: At least one group's mean is different from the
-            others.
+        Alternative hypothesis: At least one group's mean is different from the others.
 
-        NaNs in numeric_var and stratify_by
-            are dropped before the test is conducted.
+        NaNs in numeric_var and stratify_by are dropped before the test is conducted.
 
         Parameters
         ----------
-        numeric_var : str.
-            numeric variable name to be stratified and compared.
-        stratify_by : str.
+        numeric_var : str
+            Numeric variable name to be stratified and compared.
+
+        stratify_by : str
             Categorical variable name.
-        strategy : Literal['auto', 'anova_oneway', 'kruskal'].
+
+        strategy : Literal['auto', 'anova_oneway', 'kruskal']
             Default: 'auto'.
             If 'auto', a test is selected as follows:
                 - If the data in any group is not normally distributed or not
@@ -794,7 +820,7 @@ class ComprehensiveEDA:
 
         Returns
         -------
-        StatisticalTestResult.
+        StatisticalTestResult
         """
         if numeric_var not in self._numeric_vars:
             raise ValueError(
@@ -877,10 +903,9 @@ class ComprehensiveEDA:
         stratify_by: str,
         strategy: Literal["auto", "student", "welch", "yuen", "mann-whitney"] = "welch",
     ) -> StatisticalTestResult:
-        """Conducts the appropriate statistical test to
-        test for equal means between two groups.
-        The parameter stratify_by must be the name of a binary variable, i.e.
-            a categorical or numeric variable with exactly two unique values.
+        """Conducts the appropriate statistical test to test for equal means between 
+        two groups. The parameter stratify_by must be the name of a binary variable, 
+        i.e. a categorical or numeric variable with exactly two unique values.
 
         Null hypothesis: mu_1 = mu_2.
         Alternative hypothesis: mu_1 != mu_2
@@ -891,11 +916,13 @@ class ComprehensiveEDA:
 
         Parameters
         ----------
-        numeric_var : str.
+        numeric_var : str
             numeric variable name to be stratified and compared.
-        stratify_by : str.
+
+        stratify_by : str
             Categorical or numeric variable name. Must be binary.
-        strategy : Literal['auto', 'student', 'welch', 'yuen', 'mann-whitney'].
+
+        strategy : Literal['auto', 'student', 'welch', 'yuen', 'mann-whitney']
             Default: 'welch'.
             If 'auto', a test is selected as follows:
                 - If the data in either group is not normally distributed,
@@ -910,7 +937,7 @@ class ComprehensiveEDA:
 
         Returns
         -------
-        StatisticalTestResult.
+        StatisticalTestResult
         """
 
         if numeric_var not in self._numeric_vars:
@@ -1068,37 +1095,58 @@ class ComprehensiveEDA:
     # GETTERS
     # --------------------------------------------------------------------------
     def numeric_vars(self) -> list[str]:
-        """Returns a list of the names of all numeric variables."""
+        """Returns a list of the names of all numeric variables.
+        
+        Returns
+        -------
+        list[str]
+        """
         return self._numeric_vars
 
     def categorical_vars(self) -> list[str]:
-        """Returns a list of the names of all categorical variables."""
+        """Returns a list of the names of all categorical variables.
+        
+        Returns
+        -------
+        list[str]
+        """
         return self._categorical_vars
 
     def categorical_stats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         categorical variables.
 
-        Returns None if there are no categorical variables."""
+        Returns None if there are no categorical variables.
+        
+        Returns
+        -------
+        pd.DataFrame | None
+        """
         return self._categorical_summary_statistics
 
     def numeric_stats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
         numeric variables.
 
-        Returns None if there are no numeric variables."""
+        Returns None if there are no numeric variables.
+        
+        Returns
+        -------
+        pd.DataFrame | None
+        """
         return self._numeric_summary_statistics
 
-    def specific(self, var: str) -> CategoricalEDA | numericEDA:
-        """Returns either a CategoricalEDA or numericEDA object.
+    def specific(self, var: str) -> CategoricalEDA | NumericEDA:
+        """Returns the CategoricalEDA or NumericEDA object associated with 
+        the input variable.
 
         Parameters
         ----------
-        var : str.
+        var : str
 
         Returns
         -------
-        CategoricalEDA | numericEDA
+        CategoricalEDA | NumericEDA
         """
         if var in self._categorical_vars:
             return self._categorical_eda_dict[var]
@@ -1110,7 +1158,12 @@ class ComprehensiveEDA:
             )
 
     def _agentic_describe_json_str(self) -> str:
-        """Returns a jsonified string representation of the dataset."""
+        """Returns a jsonified string representation of the dataset.
+        
+        Returns
+        -------
+        str
+        """
         output = {}
         output[
             "categorical variable summary statistics"
@@ -1123,16 +1176,16 @@ class ComprehensiveEDA:
         output["number of examples/rows"] = len(self._df)
         return json.dumps(output)
 
-    def __getitem__(self, index: str) -> CategoricalEDA | numericEDA:
-        """Indexes into ComprehensiveRegressionReport.
+    def __getitem__(self, index: str) -> CategoricalEDA | NumericEDA:
+        """Indexes into EDAReport.
 
         Parameters
         ----------
-        index : str.
+        index : str
 
         Returns
         -------
-        CategoricalEDA | numericEDA.
+        CategoricalEDA | NumericEDA
         """
         if isinstance(index, str):
             if index in self._categorical_vars:
@@ -1146,3 +1199,6 @@ class ComprehensiveEDA:
                 )
         else:
             raise ValueError(f"Invalid input: {index}. Index must be a string.")
+
+
+

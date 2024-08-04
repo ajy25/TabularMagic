@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.feature_selection import (
     SelectKBest,
     f_regression,
@@ -5,7 +6,7 @@ from sklearn.feature_selection import (
     r_regression,
     SelectFromModel,
 )
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso, LassoCV
 from typing import Literal
 from .base_feature_selection import BaseFSR
 from ..data.datahandler import DataEmitter
@@ -29,9 +30,11 @@ class KBestFSR(BaseFSR):
         ----------
         scorer : Literal['f_regression', 'r_regression',
             'mutual_info_regression']
-        k : int.
+
+        k : int
             Number of desired features, < n_predictors.
-        name : str.
+
+        name : str | None
             Default: None. If None, then outputs the class name.
         """
         if name is None:
@@ -40,22 +43,27 @@ class KBestFSR(BaseFSR):
         self._scorer = scorer
         self._k = k
 
-    def select(self, dataemitter: DataEmitter):
+    def select(
+        self, 
+        dataemitter: DataEmitter
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the top k features
         based on the training data.
 
         Parameters
         ----------
-        dataemitter : DataEmitter.
+        dataemitter : DataEmitter
 
         Returns
         -------
-        np.ndarray ~ (n_in_features).
+        np.ndarray ~ (n_in_features)
             All features (variable names).
-        np.ndarray ~ (n_out_features).
+
+        np.ndarray ~ (n_out_features)
             Selected features.
-        np.ndarray ~ (n_in_features).
+
+        np.ndarray ~ (n_in_features)
             Boolean mask, the support for selected features.
         """
         scorer = None
@@ -68,7 +76,7 @@ class KBestFSR(BaseFSR):
         selector = SelectKBest(scorer, k=self._k)
 
         X_train, y_train = dataemitter.emit_train_Xy()
-        self._all_features = X_train.columns.to_list()
+        self._all_features = X_train.columns.to_numpy()
         selector.fit(X=X_train, y=y_train)
 
         self._selected_features = selector.get_feature_names_out()
@@ -86,7 +94,7 @@ class LassoFSR(BaseFSR):
     def __init__(
         self,
         max_n_features: int,
-        alpha: float = 0.0,
+        alpha: float | None = None,
         name: str | None = None,
     ):
         """
@@ -94,39 +102,50 @@ class LassoFSR(BaseFSR):
 
         Parameters
         ----------
-        max_n_features : int.
+        max_n_features : int
             Number of desired features, < n_predictors.
-        alpha : float.
-            Regularization term weight.
-        name : str.
+
+        alpha : float | None
+            Default: None. Regularization term weight. If None, 
+            then alpha is selected via cross-validation.
+
+        name : str | None
             Default: None. If None, then name is set to default.
         """
         if name is None:
             name = "LassoFSR"
         super().__init__(name)
-        self._model = Lasso(alpha=alpha)
+        if alpha is None:
+            self._model = LassoCV()
+        else:
+            self._model = Lasso(alpha=alpha)
         self._max_n_features = max_n_features
 
-    def select(self, dataemitter: DataEmitter):
+    def select(
+        self, 
+        dataemitter: DataEmitter
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the (at most) top max_n_features features
         based on the training data.
 
         Parameters
         ----------
-        dataemitter : DataEmitter.
+        dataemitter : DataEmitter
 
         Returns
         -------
-        np.ndarray ~ (n_in_features).
+        np.ndarray ~ (n_in_features)
             All features (variable names).
-        np.ndarray ~ (n_out_features).
+
+        np.ndarray ~ (n_out_features)
             Selected features.
-        np.ndarray ~ (n_in_features).
+
+        np.ndarray ~ (n_in_features)
             Boolean mask, the support for selected features.
         """
         X_train, y_train = dataemitter.emit_train_Xy()
-        self._all_features = X_train.columns.to_list()
+        self._all_features = X_train.columns.to_numpy()
 
         self._model.fit(X=X_train.to_numpy(), y=y_train.to_numpy())
         selector = SelectFromModel(
@@ -136,4 +155,8 @@ class LassoFSR(BaseFSR):
 
         self._selected_features = selector.get_feature_names_out()
         self._support = selector.get_support()
+        self._all_feature_scores = selector.estimator_.coef_
         return self._all_features, self._selected_features, self._support
+
+
+

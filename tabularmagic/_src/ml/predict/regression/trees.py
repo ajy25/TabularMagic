@@ -94,7 +94,7 @@ class TreeR(BaseR):
         else:
             self._name = name
 
-        self._estimator = DecisionTreeRegressor(random_state=model_random_state)
+        self._best_estimator = DecisionTreeRegressor(random_state=model_random_state)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 
@@ -107,7 +107,7 @@ class TreeR(BaseR):
                 "max_features": CategoricalDistribution(["sqrt", "log2"]),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,
@@ -208,7 +208,7 @@ class TreeEnsembleR(BaseR):
         self._max_n_features = max_n_features
 
         if type == "random_forest":
-            self._estimator = RandomForestRegressor(random_state=model_random_state)
+            self._best_estimator = RandomForestRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -219,7 +219,7 @@ class TreeEnsembleR(BaseR):
                     "max_depth": IntDistribution(3, 15, step=2),
                 }
         elif type == "adaboost":
-            self._estimator = AdaBoostRegressor(random_state=model_random_state)
+            self._best_estimator = AdaBoostRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -243,7 +243,7 @@ class TreeEnsembleR(BaseR):
                     ),
                 }
         elif type == "bagging":
-            self._estimator = BaggingRegressor(random_state=model_random_state)
+            self._best_estimator = BaggingRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -270,7 +270,7 @@ class TreeEnsembleR(BaseR):
                     ),
                 }
         elif type == "gradient_boosting":
-            self._estimator = GradientBoostingRegressor(random_state=model_random_state)
+            self._best_estimator = GradientBoostingRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -282,7 +282,7 @@ class TreeEnsembleR(BaseR):
                     "max_features": CategoricalDistribution(["sqrt", "log2"]),
                 }
         elif type == "xgboost":
-            self._estimator = xgb.XGBRegressor(random_state=model_random_state)
+            self._best_estimator = xgb.XGBRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -296,7 +296,7 @@ class TreeEnsembleR(BaseR):
                     "min_child_weight": CategoricalDistribution([1, 3, 5]),
                 }
         elif type == "xgboostrf":
-            self._estimator = xgb.XGBRFRegressor(random_state=model_random_state)
+            self._best_estimator = xgb.XGBRFRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -314,7 +314,7 @@ class TreeEnsembleR(BaseR):
             raise ValueError("Invalid input: type = " + f'"{type}".')
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

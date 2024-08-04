@@ -33,7 +33,7 @@ class CustomR(BaseR):
             __str__() implementation is used.
         """
         super().__init__()
-        self._estimator = estimator
+        self._best_estimator = estimator
         if name is None:
             self._name = str(estimator)
         else:
@@ -56,8 +56,8 @@ class CustomR(BaseR):
             y_train = y_train_series.to_numpy()
             if verbose:
                 print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
-            self._estimator.fit(X_train, y_train)
-            y_pred = self._estimator.predict(X_train)
+            self._best_estimator.fit(X_train, y_train)
+            y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
@@ -84,8 +84,8 @@ class CustomR(BaseR):
                 y_test = y_test_series.to_numpy()
                 if verbose:
                     print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
-                self._estimator.fit(X_train, y_train)
-                y_pred = self._estimator.predict(X_test)
+                self._best_estimator.fit(X_train, y_train)
+                y_pred = self._best_estimator.predict(X_test)
                 if y_scaler is not None:
                     y_pred = y_scaler.inverse_transform(y_pred)
                     y_test = y_scaler.inverse_transform(y_test)
@@ -106,8 +106,8 @@ class CustomR(BaseR):
             y_train = y_train_series.to_numpy()
             if verbose:
                 print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
-            self._estimator.fit(X_train, y_train)
-            y_pred = self._estimator.predict(X_train)
+            self._best_estimator.fit(X_train, y_train)
+            y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
@@ -126,7 +126,7 @@ class CustomR(BaseR):
         X_test = X_test_df
         y_test = y_test_series.to_numpy()
 
-        y_pred = self._estimator.predict(X_test)
+        y_pred = self._best_estimator.predict(X_test)
         if y_scaler is not None:
             y_pred = y_scaler.inverse_transform(y_pred)
             y_test = y_scaler.inverse_transform(y_test)
@@ -149,12 +149,12 @@ class CustomR(BaseR):
         -------
         Pipeline
         """
-        if isinstance(self._estimator, Pipeline):
+        if isinstance(self._best_estimator, Pipeline):
             new_step = (
                 "custom_prep_data",
                 self._dataemitter.sklearn_preprocessing_transformer(),
             )
-            new_pipeline = Pipeline(steps=[new_step, ("model", self._estimator)])
+            new_pipeline = Pipeline(steps=[new_step, ("model", self._best_estimator)])
             return new_pipeline
         else:
             pipeline = Pipeline(
@@ -163,7 +163,7 @@ class CustomR(BaseR):
                         "custom_prep_data",
                         self._dataemitter.sklearn_preprocessing_transformer(),
                     ),
-                    ("model", self._estimator),
+                    ("model", self._best_estimator),
                 ]
             )
             return pipeline

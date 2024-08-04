@@ -199,6 +199,15 @@ class SingleModelMLRegReport:
             None is returned if no feature selectors were specified.
         """
         return self._model.fs_report()
+    
+    def feature_importance(self) -> pd.DataFrame:
+        """Returns the feature importances of the model.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return self._model.feature_importance()
 
 
 class MLRegressionReport:
@@ -506,6 +515,22 @@ class MLRegressionReport:
         plt.Figure
         """
         return self._id_to_report[model_id].plot_obs_vs_pred(dataset, figsize, ax)
+    
+    def feature_importance(self, model_id: str) -> pd.DataFrame:
+        """Returns the feature importances of the model with the specified id.
+
+        Parameters
+        ----------
+        model_id : str
+            The id of the model.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return self._id_to_report[model_id].feature_importance()
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]
+
+

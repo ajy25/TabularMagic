@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from ....metrics import RegressionScorer
@@ -18,7 +20,7 @@ class BaseR(BasePredictModel):
     def __init__(self):
         """Initializes a BaseR object."""
         self._hyperparam_searcher: HyperparameterSearcher = None
-        self._estimator: BaseEstimator = None
+        self._best_estimator: BaseEstimator = None
         self._dataemitter = None
         self._dataemitters = None
         self._feature_selectors = None
@@ -114,8 +116,8 @@ class BaseR(BasePredictModel):
             y_train = y_train_series.to_numpy()
 
             self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
-            self._estimator = self._hyperparam_searcher._best_estimator
-            y_pred = self._estimator.predict(X_train)
+            self._best_estimator = self._hyperparam_searcher._best_estimator
+            y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
@@ -191,8 +193,8 @@ class BaseR(BasePredictModel):
                 X_train = X_train_df
 
             self._hyperparam_searcher.fit(X_train, y_train, verbose=verbose)
-            self._estimator = self._hyperparam_searcher._best_estimator
-            y_pred = self._estimator.predict(X_train)
+            self._best_estimator = self._hyperparam_searcher._best_estimator
+            y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:
                 y_pred = y_scaler.inverse_transform(y_pred)
                 y_train = y_scaler.inverse_transform(y_train)
@@ -216,7 +218,7 @@ class BaseR(BasePredictModel):
 
         y_test = y_test_series.to_numpy()
 
-        y_pred = self._estimator.predict(X_test)
+        y_pred = self._best_estimator.predict(X_test)
         if y_scaler is not None:
             y_pred = y_scaler.inverse_transform(y_pred)
             y_test = y_scaler.inverse_transform(y_test)
@@ -226,7 +228,8 @@ class BaseR(BasePredictModel):
         )
 
     def sklearn_estimator(self) -> BaseEstimator:
-        """Returns the sklearn estimator object.
+        """Returns the best estimator (sklearn estimator object). The best estimator
+        was fitted on the train data through the hyperparameter search process.
 
         Note that the sklearn estimator can be saved and used for future predictions.
         However, the input data must be preprocessed in the same way. If you intend
@@ -244,12 +247,17 @@ class BaseR(BasePredictModel):
         -------
         BaseEstimator
         """
-        return self._estimator
+        return self._best_estimator
 
     def sklearn_pipeline(self) -> Pipeline:
-        """Returns an sklearn pipeline object. The pipelien allows for
+        """Returns an sklearn pipeline object. The pipeline allows for
         retrieving model predictions directly from data formatted like the original
         train and test data.
+
+        The pipeline is composed of the following steps:
+            1. Custom data preprocessing steps.
+            2. Hyperparameter search object.
+            3. The best model determined from the hyperparameter search process.
 
         It is not recommended to use TabularMagic for ML production.
         We recommend using TabularMagic to quickly identify promising models
@@ -350,6 +358,34 @@ class BaseR(BasePredictModel):
                 type="WARNING",
             )
         return self._predictors
+    
+    def feature_importance(self) -> pd.DataFrame:
+        """Returns the feature importances of the best estimator.
+        
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with feature importances.
+        """
+        if self._best_estimator is None:
+            raise RuntimeError("Model has not been fitted.")
+        
+        if hasattr(self._best_estimator, "feature_importances_"):
+            importances = self._best_estimator.feature_importances_
+            type="Importance"
+        elif hasattr(self._best_estimator, "coef_"):
+            importances = np.abs(self._best_estimator.coef_)
+            type="Abs Coefs"
+        else:
+            raise AttributeError("Best estimator does not have feature importances.")
+        
+        
+        return pd.DataFrame(
+            data=importances,
+            index=pd.Series(self._predictors, name="Feature"),
+            columns=[type],
+        )
+
 
     def __str__(self):
         return self._name

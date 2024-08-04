@@ -31,11 +31,13 @@ class BaseFS:
 
         Returns
         -------
-        np.ndarray ~ (n_in_features).
+        np.ndarray ~ (n_in_features)
             All features (variable names).
-        np.ndarray ~ (n_out_features).
+            
+        np.ndarray ~ (n_out_features)
             Selected features.
-        np.ndarray ~ (n_in_features).
+
+        np.ndarray ~ (n_in_features)
             Boolean mask, the support for selected features.
         """
         return None, None, None

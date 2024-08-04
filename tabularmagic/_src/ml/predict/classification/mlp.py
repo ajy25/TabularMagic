@@ -90,7 +90,7 @@ class MLPC(BaseC):
         else:
             self._name = name
 
-        self._estimator = MLPClassifier(random_state=model_random_state)
+        self._best_estimator = MLPClassifier(random_state=model_random_state)
         if (hyperparam_search_method is None) or (hyperparam_search_space is None):
             hyperparam_search_method = "optuna"
             hyperparam_search_space = {
@@ -123,7 +123,7 @@ class MLPC(BaseC):
                 "learning_rate_init": FloatDistribution(1e-5, 1e-1, log=True),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

@@ -87,7 +87,7 @@ class SVMC(BaseC):
         else:
             self._name = name
 
-        self._estimator = SVC(kernel=type, max_iter=100, probability=True)
+        self._best_estimator = SVC(kernel=type, max_iter=100, probability=True)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 
@@ -112,7 +112,7 @@ class SVMC(BaseC):
                 }
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

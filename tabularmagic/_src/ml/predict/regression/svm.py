@@ -90,7 +90,7 @@ class SVMR(BaseR):
         else:
             self._name = name
 
-        self._estimator = SVR(kernel=type, max_iter=100)
+        self._best_estimator = SVR(kernel=type, max_iter=100)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 
@@ -120,7 +120,7 @@ class SVMR(BaseR):
                 raise ValueError(f"Invalid value for type: {type}.")
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

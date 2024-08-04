@@ -94,7 +94,7 @@ class TreeC(BaseC):
         else:
             self._name = name
 
-        self._estimator = DecisionTreeClassifier(random_state=model_random_state)
+        self._best_estimator = DecisionTreeClassifier(random_state=model_random_state)
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
 
@@ -107,7 +107,7 @@ class TreeC(BaseC):
                 "max_features": CategoricalDistribution(["sqrt", "log2", "auto"]),
             }
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,
@@ -209,7 +209,7 @@ class TreeEnsembleC(BaseC):
         self._max_n_features = max_n_features
 
         if type == "random_forest":
-            self._estimator = RandomForestClassifier(random_state=model_random_state)
+            self._best_estimator = RandomForestClassifier(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -221,7 +221,7 @@ class TreeEnsembleC(BaseC):
                 }
 
         elif type == "adaboost":
-            self._estimator = AdaBoostClassifier(random_state=model_random_state)
+            self._best_estimator = AdaBoostClassifier(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -246,7 +246,7 @@ class TreeEnsembleC(BaseC):
                 }
 
         elif type == "bagging":
-            self._estimator = BaggingClassifier(random_state=model_random_state)
+            self._best_estimator = BaggingClassifier(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "grid"
                 hyperparam_search_space = {
@@ -274,7 +274,7 @@ class TreeEnsembleC(BaseC):
                 }
 
         elif type == "gradient_boosting":
-            self._estimator = GradientBoostingClassifier(
+            self._best_estimator = GradientBoostingClassifier(
                 random_state=model_random_state
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -289,7 +289,7 @@ class TreeEnsembleC(BaseC):
                 }
 
         elif type == "xgboost":
-            self._estimator = xgb.XGBClassifier(random_state=model_random_state)
+            self._best_estimator = xgb.XGBClassifier(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -304,7 +304,7 @@ class TreeEnsembleC(BaseC):
                 }
 
         elif type == "xgboostrf":
-            self._estimator = xgb.XGBRFClassifier(random_state=model_random_state)
+            self._best_estimator = xgb.XGBRFClassifier(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -322,7 +322,7 @@ class TreeEnsembleC(BaseC):
             raise ValueError("Invalid value for type")
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

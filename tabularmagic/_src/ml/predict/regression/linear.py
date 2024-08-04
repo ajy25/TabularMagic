@@ -101,26 +101,26 @@ class LinearR(BaseR):
             self._name = name
 
         if type == "ols":
-            self._estimator = LinearRegression()
+            self._best_estimator = LinearRegression()
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "grid"
                 hyperparam_search_space = {"fit_intercept": [True]}
         elif type == "l1":
-            self._estimator = Lasso(selection="random", random_state=model_random_state)
+            self._best_estimator = Lasso(selection="random", random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
                     "alpha": FloatDistribution(1e-5, 1e1, log=True)
                 }
         elif type == "l2":
-            self._estimator = Ridge(random_state=model_random_state)
+            self._best_estimator = Ridge(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
                     "alpha": FloatDistribution(1e-5, 1e1, log=True)
                 }
         elif type == "elasticnet":
-            self._estimator = ElasticNet(
+            self._best_estimator = ElasticNet(
                 selection="random", random_state=model_random_state
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -133,7 +133,7 @@ class LinearR(BaseR):
             raise ValueError(f"Invalid value for type: {type}.")
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,
@@ -230,7 +230,7 @@ class RobustLinearR(BaseR):
             self._name = name
 
         if type == "huber":
-            self._estimator = HuberRegressor()
+            self._best_estimator = HuberRegressor()
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -238,7 +238,7 @@ class RobustLinearR(BaseR):
                     "alpha": FloatDistribution(1e-5, 1e1, log=True),
                 }
         elif type == "ransac":
-            self._estimator = RANSACRegressor(random_state=model_random_state)
+            self._best_estimator = RANSACRegressor(random_state=model_random_state)
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -250,7 +250,7 @@ class RobustLinearR(BaseR):
             raise ValueError(f"Invalid value for type: {type}.")
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

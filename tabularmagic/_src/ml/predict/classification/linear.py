@@ -94,7 +94,7 @@ class LinearC(BaseC):
             self._name = name
 
         if type == "no_penalty":
-            self._estimator = LogisticRegression(
+            self._best_estimator = LogisticRegression(
                 penalty=None, random_state=model_random_state
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -102,7 +102,7 @@ class LinearC(BaseC):
                 hyperparam_search_space = {"fit_intercept": [True]}
 
         elif type == "l1":
-            self._estimator = LogisticRegression(
+            self._best_estimator = LogisticRegression(
                 penalty="l1", random_state=model_random_state, solver="liblinear"
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -110,7 +110,7 @@ class LinearC(BaseC):
                 hyperparam_search_space = {"C": FloatDistribution(1e-2, 1e2, log=True)}
 
         elif type == "l2":
-            self._estimator = LogisticRegression(
+            self._best_estimator = LogisticRegression(
                 penalty="l2", random_state=model_random_state
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -118,7 +118,7 @@ class LinearC(BaseC):
                 hyperparam_search_space = {"C": FloatDistribution(1e-2, 1e2, log=True)}
 
         elif type == "elasticnet":
-            self._estimator = LogisticRegression(
+            self._best_estimator = LogisticRegression(
                 penalty="elasticnet", random_state=model_random_state, solver="saga"
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
@@ -131,7 +131,7 @@ class LinearC(BaseC):
             raise ValueError("Invalid value for type")
 
         self._hyperparam_searcher = HyperparameterSearcher(
-            estimator=self._estimator,
+            estimator=self._best_estimator,
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,

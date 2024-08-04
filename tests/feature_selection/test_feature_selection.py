@@ -120,5 +120,5 @@ def test_fs_simple(setup_data):
     assert report.model("simple_tester_2").sklearn_estimator().n_features_in_ == 3
     assert len(report.model("simple_tester").predictors()) == 2
     assert len(report.model("simple_tester_2").predictors()) == 3
-    assert report.model("simple_tester")._estimator.n_features_in_ == 2
-    assert report.model("simple_tester_2")._estimator.n_features_in_ == 3
+    assert report.model("simple_tester")._best_estimator.n_features_in_ == 2
+    assert report.model("simple_tester_2")._best_estimator.n_features_in_ == 3

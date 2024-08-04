@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score
@@ -25,7 +26,7 @@ class BaseC(BasePredictModel):
         """Initializes a BaseC object."""
         self._label_encoder = LabelEncoder()
         self._hyperparam_searcher: HyperparameterSearcher = None
-        self._estimator: BaseEstimator = None
+        self._best_estimator: BaseEstimator = None
         self._dataemitter = None
         self._dataemitters = None
         self._feature_selectors = None
@@ -124,12 +125,12 @@ class BaseC(BasePredictModel):
                 self._is_binary = False
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
-            self._estimator = self._hyperparam_searcher._best_estimator
+            self._best_estimator = self._hyperparam_searcher._best_estimator
 
-            y_pred_encoded = self._estimator.predict(X_train)
+            y_pred_encoded = self._best_estimator.predict(X_train)
 
-            if hasattr(self._estimator, "predict_proba"):
-                y_pred_score = self._estimator.predict_proba(X_train)
+            if hasattr(self._best_estimator, "predict_proba"):
+                y_pred_score = self._best_estimator.predict_proba(X_train)
 
                 if self._is_binary:
                     self._threshold = self._select_optimal_threshold_f1(
@@ -143,8 +144,8 @@ class BaseC(BasePredictModel):
                             type="PROGRESS",
                         )
 
-            elif hasattr(self._estimator, "decision_function"):
-                y_pred_score = self._estimator.decision_function(X_train)
+            elif hasattr(self._best_estimator, "decision_function"):
+                y_pred_score = self._best_estimator.decision_function(X_train)
 
             if self._is_binary:
                 self._train_scorer = ClassificationBinaryScorer(
@@ -161,7 +162,7 @@ class BaseC(BasePredictModel):
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
-                        self._estimator.classes_
+                        self._best_estimator.classes_
                     ),
                     name=str(self),
                 )
@@ -214,7 +215,7 @@ class BaseC(BasePredictModel):
                             y_pred_score_fold[:, 1],
                         )
                         y_pred_scores.append(y_pred_score_fold)
-                elif hasattr(self._estimator, "decision_function"):
+                elif hasattr(self._best_estimator, "decision_function"):
                     y_pred_score_fold = fold_estimator.decision_function(X_test)
                     y_pred_scores.append(y_pred_score_fold)
 
@@ -269,11 +270,11 @@ class BaseC(BasePredictModel):
             y_train_encoded = self._label_encoder.fit_transform(y_train)
 
             self._hyperparam_searcher.fit(X_train, y_train_encoded, verbose)
-            self._estimator = self._hyperparam_searcher._best_estimator
+            self._best_estimator = self._hyperparam_searcher._best_estimator
 
-            y_pred_encoded = self._estimator.predict(X_train)
-            if hasattr(self._estimator, "predict_proba"):
-                y_pred_score = self._estimator.predict_proba(X_train)
+            y_pred_encoded = self._best_estimator.predict(X_train)
+            if hasattr(self._best_estimator, "predict_proba"):
+                y_pred_score = self._best_estimator.predict_proba(X_train)
 
                 if self._is_binary:
                     self._threshold = self._select_optimal_threshold_f1(
@@ -286,8 +287,8 @@ class BaseC(BasePredictModel):
                         type="PROGRESS",
                     )
 
-            elif hasattr(self._estimator, "decision_function"):
-                y_pred_score = self._estimator.decision_function(X_train)
+            elif hasattr(self._best_estimator, "decision_function"):
+                y_pred_score = self._best_estimator.decision_function(X_train)
 
             if self._is_binary:
                 self._train_scorer = ClassificationBinaryScorer(
@@ -303,7 +304,7 @@ class BaseC(BasePredictModel):
                     y_true=y_train,
                     y_pred_score=y_pred_score,
                     y_pred_class_order=self._label_encoder.inverse_transform(
-                        self._estimator.classes_
+                        self._best_estimator.classes_
                     ),
                     name=str(self),
                 )
@@ -320,17 +321,17 @@ class BaseC(BasePredictModel):
         else:
             X_test = self._feature_selection_report._emit_test_X()
 
-        y_pred_encoded = self._estimator.predict(X_test)
+        y_pred_encoded = self._best_estimator.predict(X_test)
 
         y_pred_score = None
-        if hasattr(self._estimator, "predict_proba"):
-            y_pred_score = self._estimator.predict_proba(X_test)
+        if hasattr(self._best_estimator, "predict_proba"):
+            y_pred_score = self._best_estimator.predict_proba(X_test)
 
             if self._is_binary and self._threshold is not None:
                 y_pred_encoded = y_pred_score[:, 1] > self._threshold
 
-        elif hasattr(self._estimator, "decision_function"):
-            y_pred_score = self._estimator.decision_function(X_test)
+        elif hasattr(self._best_estimator, "decision_function"):
+            y_pred_score = self._best_estimator.decision_function(X_test)
 
         if self._is_binary:
             self._test_scorer = ClassificationBinaryScorer(
@@ -346,13 +347,14 @@ class BaseC(BasePredictModel):
                 y_true=y_test,
                 y_pred_score=y_pred_score,
                 y_pred_class_order=self._label_encoder.inverse_transform(
-                    self._estimator.classes_
+                    self._best_estimator.classes_
                 ),
                 name=str(self),
             )
 
     def sklearn_estimator(self):
-        """Returns the sklearn estimator object.
+        """Returns the best estimator (sklearn estimator object). The best estimator
+        was fitted on the train data through the hyperparameter search process.
 
         Note that the sklearn estimator can be saved and used for future predictions.
         However, the input data must be preprocessed in the same way. If you intend
@@ -370,12 +372,18 @@ class BaseC(BasePredictModel):
         -------
         BaseEstimator
         """
-        return self._estimator
+        return self._best_estimator
 
     def sklearn_pipeline(self) -> Pipeline:
-        """Returns an sklearn pipeline object. The pipelien allows for
+        """Returns an sklearn pipeline object. The pipeline allows for
         retrieving model predictions directly from data formatted like the original
         train and test data.
+
+        The pipeline is composed of the following steps:
+            1. Custom data preprocessing steps.
+            2. Hyperparameter search object.
+            3. The best model determined from the hyperparameter search process.
+            
 
         It is not recommended to use TabularMagic for ML production.
         We recommend using TabularMagic to quickly identify promising models
@@ -505,6 +513,34 @@ class BaseC(BasePredictModel):
                 type="WARNING",
             )
         return self._predictors
+    
+    def feature_importance(self) -> pd.DataFrame:
+        """Returns the feature importances of the best estimator.
+        
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with feature importances.
+        """
+        if self._best_estimator is None:
+            raise RuntimeError("Model has not been fitted.")
+        
+        if hasattr(self._best_estimator, "feature_importances_"):
+            importances = self._best_estimator.feature_importances_
+            type="Importance"
+        elif hasattr(self._best_estimator, "coef_"):
+            importances = np.abs(self._best_estimator.coef_.flatten())
+            type="Abs Coefs"
+        else:
+            raise AttributeError("Best estimator does not have feature importances.")
+        
+        
+        return pd.DataFrame(
+            data=importances,
+            index=pd.Series(self._predictors, name="Feature"),
+            columns=[type],
+        )
+
 
     def _select_optimal_threshold_f1(
         self, y_true: np.ndarray, y_pred_score: np.ndarray

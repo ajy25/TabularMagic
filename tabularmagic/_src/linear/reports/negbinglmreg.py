@@ -929,3 +929,400 @@ class NegativeBinomialRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
+
+    # Move methods in SingleDatasetNegBinRegReport up to LinearRegressionReport
+    # to allow useres to call methods from mutliple locations
+
+    def plot_obs_vs_pred(
+        self,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a scatter plot of the true and predicted y
+        values.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: True.
+            If True, then the outliers calculated using standard errors will be
+            shown in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0,5.0). Sets the size of the resulting graph.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        - Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_obs_vs_pred(
+                show_outliers=show_outliers, figsize=figsize, ax=ax
+            )
+        else:
+            return self._test_report.plot_obs_vs_pred(
+                show_outliers=show_outliers, figsize=figsize, ax=ax
+            )
+
+    def plot_residuals_vs_fitted(
+        self,
+        standardized: bool = False,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: False. If True, plots the standardized residuals as
+            opposed to the raw residuals.
+
+        show_outliers : bool
+            Default: True. If True, colors the outliers determined by the
+            standardized residuals in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default = None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        - Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_fitted(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+        else:
+            return self._test_report.plot_residuals_vs_fitted(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+
+    def plot_residuals_vs_var(
+        self,
+        x_var: str,
+        standardized: bool = False,
+        show_outliers: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+
+        Parameters
+        ----------
+        x_var : str
+            The predictor variable whose values should be plotted on the x-axis.
+
+        standardized : bool
+            Default: False. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: False. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_var(
+                x_var=x_var,
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+        else:
+            return self._test_report.plot_residuals_vs_var(
+                x_var=x_var,
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+
+    def plot_residuals_hist(
+        self,
+        standardized: bool = False,
+        density: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a histogram of the residuals.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: False. If True, standardizes the residuals.
+
+        density : bool
+            Default: False. If True, plots density rather than frequency.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0). Determines the size of the returned figure.
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_hist(
+                standardized=standardized, density=density, figsize=figsize, ax=ax
+            )
+        else:
+            return self._test_report.plot_residuals_hist(
+                standardized=standardized, density=density, figsize=figsize, ax=ax
+            )
+
+    def plot_scale_location(
+        self,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a plot of the
+        sqrt of the residuals versus the fitted.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: True. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_scale_location(
+                show_outliers=show_outliers, figsize=figsize, ax=ax
+            )
+        else:
+            return self._test_report.plot_scale_location(
+                show_outliers=show_outliers, figsize=figsize, ax=ax
+            )
+
+    def plot_residuals_vs_leverage(
+        self,
+        standardized: bool = True,
+        show_outliers: bool = True,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a figure that is a plot of the residuals versus leverage.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: True. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: True. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_residuals_vs_leverage(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+        else:
+            return self._test_report.plot_residuals_vs_leverage(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+
+    def plot_qq(
+        self,
+        standardized: bool = True,
+        show_outliers: bool = False,
+        figsize: tuple[float, float] = (5.0, 5.0),
+        ax: plt.Axes | None = None,
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Returns a quantile-quantile plot.
+
+        Parameters
+        ----------
+        standardized : bool
+            Default: True. If True, standardizes the residuals.
+
+        show_outliers : bool
+            Default: False. If True, plots the outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (5.0, 5.0).
+
+        ax : plt.Axes
+            Default: None.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_qq(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+        else:
+            return self._test_report.plot_qq(
+                standardized=standardized,
+                show_outliers=show_outliers,
+                figsize=figsize,
+                ax=ax,
+            )
+
+    def plot_diagnostics(
+        self,
+        show_outliers: bool = False,
+        figsize: tuple[float, float] = (7.0, 7.0),
+        dataset: Literal["train", "test"] = "test",
+    ) -> plt.Figure:
+        """Plots several useful linear regression diagnostic plots.
+
+        Parameters
+        ----------
+        show_outliers : bool
+            Default: False. If True, plots the residual outliers in red.
+
+        figsize : tuple[float, float]
+            Default: (7.0, 7.0).
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if dataset == "train":
+            return self._train_report.plot_diagnostics(
+                show_outliers=show_outliers, figsize=figsize
+            )
+        else:
+            return self._test_report.plot_diagnostics(
+                show_outliers=show_outliers, figsize=figsize
+            )
+
+    def set_outlier_threshold(
+        self, threshold: float, dataset: Literal["train", "test"] = "test"
+    ) -> "SingleDatasetNegBinRegReport":
+        """Standardized residuals threshold for outlier identification.
+        Recomputes the outliers.
+
+        Parameters
+        ----------
+        threshold : float
+            Default: 2. Must be a nonnegative value.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        self
+        """
+        if dataset == "train":
+            self._train_report.set_outlier_threshold(threshold=threshold)
+        else:
+            self._test_report.set_outlier_threshold(threshold=threshold)
+
+    def get_outlier_indices(self, dataset: Literal["train", "test"] = "test") -> list:
+        """Returns the indices corresponding to DataFrame examples associated
+        with standardized residual outliers.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
+        Returns
+        -------
+        outliers_df_idx : list ~ (n_outliers)
+        """
+        if dataset == "train":
+            return self._train_report.get_outlier_indices()
+        else:
+            return self._test_report.get_outlier_indices()
+
+    def _compute_outliers(self, dataset: Literal["train", "test"] = "test"):
+        """Computes the outliers.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+        """
+        if dataset == "train":
+            return self._train_report._compute_outliers()
+        else:
+            return self._test_report._compute_outliers()

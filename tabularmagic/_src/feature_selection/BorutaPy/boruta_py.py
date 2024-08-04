@@ -1,4 +1,9 @@
 from __future__ import print_function, division
+import numpy as np
+import scipy as sp
+from sklearn.utils import check_random_state, check_X_y
+from sklearn.base import TransformerMixin, BaseEstimator
+import warnings
 
 """
 Copyright (c) 2016, Daniel Homola
@@ -39,12 +44,6 @@ Original code and method by: Miron B Kursa, https://m2.icm.edu.pl/boruta/
 
 License: BSD 3 clause
 """
-
-import numpy as np
-import scipy as sp
-from sklearn.utils import check_random_state, check_X_y
-from sklearn.base import TransformerMixin, BaseEstimator
-import warnings
 
 
 class BorutaPy(BaseEstimator, TransformerMixin):
@@ -501,7 +500,7 @@ class BorutaPy(BaseEstimator, TransformerMixin):
                 "The estimator does not have a max_depth property, as a result "
                 " the number of trees to use cannot be estimated automatically."
             )
-        if depth == None:
+        if depth is None:
             depth = 10
         # how many times a feature should be considered on average
         f_repr = 100

@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
+from ....feature_selection import BaseFSR
 from ....metrics import RegressionScorer
 from ..base_model import BasePredictModel, HyperparameterSearcher
 from ....data import DataEmitter
@@ -34,6 +35,7 @@ class BaseR(BasePredictModel):
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
         self._dropfirst = False
+        
 
     def specify_data(
         self,
@@ -390,6 +392,24 @@ class BaseR(BasePredictModel):
             index=pd.Series(self._predictors, name="Feature"),
             columns=[type],
         )
+    
+    def _validate_inputs(self):
+        """Ensures that the inputs are valid.
+        
+        Raises
+        ------
+        ValueError
+            If the inputs are invalid.
+        """
+        if self._feature_selectors is not None:
+            if not isinstance(self._feature_selectors, list):
+                raise ValueError("feature_selectors must be a list.")
+            for selector in self._feature_selectors:
+                if not isinstance(selector, BaseFSR):
+                    raise ValueError(
+                        "Each feature selector must be a BaseFSR object. "
+                        f"Got {type(selector)}."
+                    )
 
     def __str__(self):
         return self._name

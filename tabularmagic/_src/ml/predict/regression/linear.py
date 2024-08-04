@@ -142,6 +142,8 @@ class LinearR(BaseR):
             **kwargs,
         )
 
+        self._validate_inputs()
+
 
 class RobustLinearR(BaseR):
     """Robust linear regressor.
@@ -258,3 +260,5 @@ class RobustLinearR(BaseR):
             estimator_name=self._name,
             **kwargs,
         )
+
+        self._validate_inputs()

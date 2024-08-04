@@ -129,3 +129,5 @@ class MLPC(BaseC):
             estimator_name=self._name,
             **kwargs,
         )
+
+        self._validate_inputs()

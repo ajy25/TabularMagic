@@ -8,12 +8,11 @@ from typing import Literal, Mapping, Iterable
 from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
 import optuna
+import warnings
+from ...display.print_utils import print_wrapped
+
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
-import warnings
-
-
-from ...display.print_utils import print_wrapped
 
 
 class BasePredictModel:
@@ -132,7 +131,7 @@ class HyperparameterSearcher:
                 **kwargs,
             )
         else:
-            raise ValueError("Invalid input: method.")
+            raise ValueError("Invalid input: method. Must be 'optuna' or 'grid'.")
 
     def fit(self, X: np.ndarray, y: np.ndarray, verbose: bool = False) -> BaseEstimator:
         """Cross validation search of optimal hyperparameters. Idenfities

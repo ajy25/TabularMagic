@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
+from ....feature_selection import BaseFSC
 from ..base_model import BasePredictModel, HyperparameterSearcher
 from ....data import DataEmitter
 from ....metrics import (
@@ -161,9 +162,7 @@ class BaseC(BasePredictModel):
                     y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    y_pred_class_order=self._label_encoder.inverse_transform(
-                        self._best_estimator.classes_
-                    ),
+                    y_pred_class_order=self._label_encoder.classes_,
                     name=str(self),
                 )
 
@@ -244,9 +243,7 @@ class BaseC(BasePredictModel):
                     ],
                     y_true=y_trues,
                     y_pred_score=y_pred_scores,
-                    y_pred_class_order=self._label_encoder.inverse_transform(
-                        fold_estimator.classes_
-                    ),
+                    y_pred_class_order=self._label_encoder.classes_,
                     name=str(self),
                 )
 
@@ -303,9 +300,7 @@ class BaseC(BasePredictModel):
                     y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                     y_true=y_train,
                     y_pred_score=y_pred_score,
-                    y_pred_class_order=self._label_encoder.inverse_transform(
-                        self._best_estimator.classes_
-                    ),
+                    y_pred_class_order=self._label_encoder.classes_,
                     name=str(self),
                 )
 
@@ -346,9 +341,7 @@ class BaseC(BasePredictModel):
                 y_pred=self._label_encoder.inverse_transform(y_pred_encoded),
                 y_true=y_test,
                 y_pred_score=y_pred_score,
-                y_pred_class_order=self._label_encoder.inverse_transform(
-                    self._best_estimator.classes_
-                ),
+                y_pred_class_order=self._label_encoder.classes_,
                 name=str(self),
             )
 
@@ -575,6 +568,25 @@ class BaseC(BasePredictModel):
             f1_scores.append(f1_score(y_true, y_pred))
         optimal_idx = np.argmax(f1_scores)
         return thresholds[optimal_idx]
+    
+    def _validate_inputs(self):
+        """Ensures that the inputs are valid.
+        
+        Raises
+        ------
+        ValueError
+            If the inputs are invalid.
+        """
+        if self._feature_selectors is not None:
+            if not isinstance(self._feature_selectors, list):
+                raise ValueError("feature_selectors must be a list.")
+            for selector in self._feature_selectors:
+                if not isinstance(selector, BaseFSC):
+                    raise ValueError(
+                        "Each feature selector must be a BaseFSC object. "
+                        f"Got {type(selector)}."
+                    )
+
 
     def __str__(self):
         return self._name

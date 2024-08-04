@@ -114,6 +114,8 @@ class TreeR(BaseR):
             **kwargs,
         )
 
+        self._validate_inputs()
+
 
 class TreeEnsembleR(BaseR):
     """Tree ensemble regressor.
@@ -324,3 +326,5 @@ class TreeEnsembleR(BaseR):
             estimator_name=self._name,
             **kwargs,
         )
+
+        self._validate_inputs()

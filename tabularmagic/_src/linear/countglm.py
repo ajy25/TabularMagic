@@ -212,7 +212,7 @@ class CountLinearModel:
             The subset of predictors that are most likely to be significant.
         """
         # This check is unique for count regression
-        if self.estimator == None:
+        if self.estimator is None:
             raise ValueError("Must fit model first")
 
         if max_steps <= 0:

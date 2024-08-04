@@ -126,3 +126,5 @@ class SVMR(BaseR):
             estimator_name=self._name,
             **kwargs,
         )
+
+        self._validate_inputs()

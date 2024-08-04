@@ -33,7 +33,7 @@ class BaseFS:
         -------
         np.ndarray ~ (n_in_features)
             All features (variable names).
-            
+
         np.ndarray ~ (n_out_features)
             Selected features.
 

@@ -1,6 +1,11 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import (
+    root_mean_squared_error,
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    r2_score,
+)
 from scipy.stats import pearsonr, spearmanr
 from ..._src.display.print_utils import print_wrapped
 
@@ -32,11 +37,14 @@ class RegressionScorer:
 
         Parameters
         ----------
-        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        n_predictors : int.
+        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
+        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
+        n_predictors : int | None
             Default: None.
-        name : str.
+
+        name : str | None
             Default: None.
         """
         if name is None:
@@ -61,7 +69,8 @@ class RegressionScorer:
             n = len(y_pred)
             df = pd.DataFrame(columns=[self._name])
             df.loc["rmse", self._name] = root_mean_squared_error(y_true, y_pred)
-            df.loc["mad", self._name] = mean_absolute_error(y_true, y_pred)
+            df.loc["mae", self._name] = mean_absolute_error(y_true, y_pred)
+            df.loc["mape", self._name] = mean_absolute_percentage_error(y_true, y_pred)
             df.loc["pearsonr", self._name] = pearsonr(y_true, y_pred)[0]
             df.loc["spearmanr", self._name] = spearmanr(y_true, y_pred)[0]
             df.loc["r2", self._name] = r2_score(y_true, y_pred)
@@ -97,8 +106,17 @@ class RegressionScorer:
                 )
                 cvdf.loc[len(cvdf)] = pd.Series(
                     {
-                        "Statistic": "mad",
+                        "Statistic": "mae",
                         self._name: mean_absolute_error(y_true_elem, y_pred_elem),
+                        "Fold": i,
+                    }
+                )
+                cvdf.loc[len(cvdf)] = pd.Series(
+                    {
+                        "Statistic": "mape",
+                        self._name: mean_absolute_percentage_error(
+                            y_true_elem, y_pred_elem
+                        ),
                         "Fold": i,
                     }
                 )
@@ -146,7 +164,16 @@ class RegressionScorer:
                 cvdf.groupby(["Statistic"])[[self._name]]
                 .mean()
                 .reindex(
-                    ["rmse", "mad", "pearsonr", "spearmanr", "r2", "adjr2", "n_obs"]
+                    [
+                        "rmse",
+                        "mae",
+                        "mape",
+                        "pearsonr",
+                        "spearmanr",
+                        "r2",
+                        "adjr2",
+                        "n_obs",
+                    ]
                 )
             )
 
@@ -158,7 +185,7 @@ class RegressionScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._stats_df
 
@@ -167,6 +194,6 @@ class RegressionScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._cv_stats_df

@@ -4,7 +4,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-from typing import Literal, Iterable
+from typing import Literal
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
@@ -283,7 +283,7 @@ class EDAReport:
             If None, all numeric variables are considered.
 
         stratify_by : str
-            Default: None. Categorical var name. 
+            Default: None. Categorical var name.
             If not None, the plot is stratified by this variable.
 
         figsize : tuple[float, float]
@@ -903,8 +903,8 @@ class EDAReport:
         stratify_by: str,
         strategy: Literal["auto", "student", "welch", "yuen", "mann-whitney"] = "welch",
     ) -> StatisticalTestResult:
-        """Conducts the appropriate statistical test to test for equal means between 
-        two groups. The parameter stratify_by must be the name of a binary variable, 
+        """Conducts the appropriate statistical test to test for equal means between
+        two groups. The parameter stratify_by must be the name of a binary variable,
         i.e. a categorical or numeric variable with exactly two unique values.
 
         Null hypothesis: mu_1 = mu_2.
@@ -1096,7 +1096,7 @@ class EDAReport:
     # --------------------------------------------------------------------------
     def numeric_vars(self) -> list[str]:
         """Returns a list of the names of all numeric variables.
-        
+
         Returns
         -------
         list[str]
@@ -1105,7 +1105,7 @@ class EDAReport:
 
     def categorical_vars(self) -> list[str]:
         """Returns a list of the names of all categorical variables.
-        
+
         Returns
         -------
         list[str]
@@ -1117,7 +1117,7 @@ class EDAReport:
         categorical variables.
 
         Returns None if there are no categorical variables.
-        
+
         Returns
         -------
         pd.DataFrame | None
@@ -1129,7 +1129,7 @@ class EDAReport:
         numeric variables.
 
         Returns None if there are no numeric variables.
-        
+
         Returns
         -------
         pd.DataFrame | None
@@ -1137,7 +1137,7 @@ class EDAReport:
         return self._numeric_summary_statistics
 
     def specific(self, var: str) -> CategoricalEDA | NumericEDA:
-        """Returns the CategoricalEDA or NumericEDA object associated with 
+        """Returns the CategoricalEDA or NumericEDA object associated with
         the input variable.
 
         Parameters
@@ -1159,7 +1159,7 @@ class EDAReport:
 
     def _agentic_describe_json_str(self) -> str:
         """Returns a jsonified string representation of the dataset.
-        
+
         Returns
         -------
         str
@@ -1199,6 +1199,3 @@ class EDAReport:
                 )
         else:
             raise ValueError(f"Invalid input: {index}. Index must be a string.")
-
-
-

@@ -134,9 +134,7 @@ class Analyzer:
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(
-        self, dataset: Literal["train", "test", "all"] = "train"
-    ) -> EDAReport:
+    def eda(self, dataset: Literal["train", "test", "all"] = "train") -> EDAReport:
         """Constructs an EDAReport object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
 

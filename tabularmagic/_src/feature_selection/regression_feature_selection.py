@@ -44,8 +44,7 @@ class KBestFSR(BaseFSR):
         self._k = k
 
     def select(
-        self, 
-        dataemitter: DataEmitter
+        self, dataemitter: DataEmitter
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the top k features
@@ -106,7 +105,7 @@ class LassoFSR(BaseFSR):
             Number of desired features, < n_predictors.
 
         alpha : float | None
-            Default: None. Regularization term weight. If None, 
+            Default: None. Regularization term weight. If None,
             then alpha is selected via cross-validation.
 
         name : str | None
@@ -122,8 +121,7 @@ class LassoFSR(BaseFSR):
         self._max_n_features = max_n_features
 
     def select(
-        self, 
-        dataemitter: DataEmitter
+        self, dataemitter: DataEmitter
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the (at most) top max_n_features features
@@ -157,6 +155,3 @@ class LassoFSR(BaseFSR):
         self._support = selector.get_support()
         self._all_feature_scores = selector.estimator_.coef_
         return self._all_features, self._selected_features, self._support
-
-
-

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 import numpy as np
 import pandas as pd
-from typing import Iterable
+from typing import Any
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
 import seaborn as sns
@@ -20,21 +20,25 @@ def plot_obs_vs_pred(
 
     Parameters
     ----------
-    y_pred : np.ndarray.
+    y_pred : np.ndarray
         The predicted y values.
-    y_true : np.ndarray.
+
+    y_true : np.ndarray
         The observed y values.
-    model_name : str.
+
+    model_name : str | None.
         Default: None. The name of the model to display in the title.
         If None, model name is not included in the title.
-    figsize : Iterable.
+
+    figsize : tuple[float, float]
         Default: (5, 5). The size of the figure. Only used if ax is None.
-    ax : plt.Axes.
+
+    ax : plt.Axes | None
         Default: None. The axes to plot on. If None, a new figure is created.
 
     Returns
     -------
-    plt.Figure.
+    plt.Figure
         Figure of the scatter plot.
     """
     fig = None
@@ -81,6 +85,8 @@ def plot_roc_curve(
     y_score: np.ndarray,
     y_true: np.ndarray,
     model_name: str | None = None,
+    label_curve: bool = False,
+    color: str | Any = "black",
     figsize: tuple[float, float] = (5, 5),
     ax: axes.Axes | None = None,
 ) -> plt.Figure:
@@ -88,21 +94,31 @@ def plot_roc_curve(
 
     Parameters
     ----------
-    y_score : np.ndarray.
+    y_score : np.ndarray
         Predicted probabilities or decision scores.
-    y_true : np.ndarray.
+
+    y_true : np.ndarray
         True binary labels.
-    model_name : str.
+
+    model_name : str | None
         Default: None. The name of the model to display in the title.
         If None, model name is not included in the title.
-    figsize : Iterable.
+
+    label_curve : bool
+        Default: False. Whether to label the ROC curve with model name and AUC.
+
+    color : str | Any
+        Default: "black". The color of the ROC curve.
+
+    figsize : tuple[float, float]
         Default: (5, 5). The size of the figure. Only used if ax is None.
-    ax : plt.Axes.
+
+    ax : plt.Axes | None
         Default: None. The axes to plot on. If None, a new figure is created.
 
     Returns
     -------
-    plt.Figure.
+    plt.Figure
         Figure of the ROC curve.
     """
     fig = None
@@ -113,16 +129,23 @@ def plot_roc_curve(
     roc_auc = auc(fpr, tpr)
 
     ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
-    ax.plot(fpr, tpr, color="black")
+    if label_curve:
+        if model_name is not None:
+            ax.plot(fpr, tpr, color=color, label=f"{model_name} | AUC = {roc_auc:.3f}")
+        else:
+            ax.plot(fpr, tpr, color=color, label=f"AUC = {roc_auc:.3f}")
+    else:
+        ax.plot(fpr, tpr, color=color)
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
 
-    if model_name is not None:
-        ax.set_title(f"{model_name}: ROC Curve | AUC = {roc_auc:.3f}")
-    else:
-        ax.set_title(f"ROC Curve | AUC = {roc_auc:.3f}")
+    if not label_curve:
+        if model_name is not None:
+            ax.set_title(f"{model_name}: ROC Curve | AUC = {roc_auc:.3f}")
+        else:
+            ax.set_title(f"ROC Curve | AUC = {roc_auc:.3f}")
 
     if fig is not None:
         fig.tight_layout()

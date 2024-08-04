@@ -15,13 +15,6 @@ class ClassificationBinaryScorer:
     classification models that predict two classes.
     Only inputs are predicted and true values.
     Capable of scoring cross-validation outputs.
-
-    ClassificationBinaryScorer is indexable by integers in the following order:
-        (Accuracy, F1 Score, Precision, Recall, ROC AUC).
-
-    ClassificationBinaryScorer also is indexable by a string key similar to the
-    dictionary: {'accuracy': Accuracy, 'f1': F1 Score, 'precision': Precision,
-                 'recall': Recall, 'roc_auc': ROC AUC}.
     """
 
     def __init__(
@@ -37,14 +30,18 @@ class ClassificationBinaryScorer:
 
         Parameters
         ----------
-        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        pos_label : float | int | str.
+        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
+        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
+        pos_label : float | int | str
             The positive class label.
-        y_pred_score : np.ndarray ~ (sample_size) |
-        list[np.ndarray ~ (sample_size)].
+
+        y_pred_score : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+            | None
             Default: None.
-        name : str.
+
+        name : str | None
             Default: None.
         """
 
@@ -171,7 +168,7 @@ class ClassificationBinaryScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._stats_df
 
@@ -181,7 +178,7 @@ class ClassificationBinaryScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._cv_stats_df
 
@@ -200,15 +197,6 @@ class ClassificationMulticlassScorer:
     classification models that predict multiple classes.
     Only inputs are predicted and true values.
     Capable of scoring cross-validation outputs.
-
-    ClassificationMulticlassScorer is indexable by integers in the
-        following order:
-        (Accuracy, F1 Score, Precision, Recall, ROC AUC).
-
-    ClassificationMulticlassScorer also is indexable by a string key
-    similar to the
-    dictionary: {'accuracy': Accuracy, 'f1': F1 Score, 'precision': Precision,
-                 'recall': Recall, 'roc_auc': ROC AUC}.
     """
 
     def __init__(
@@ -224,14 +212,18 @@ class ClassificationMulticlassScorer:
 
         Parameters
         ----------
-        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
-        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)].
+        y_pred : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
+        y_true : np.ndarray ~ (sample_size) | list[np.ndarray ~ (sample_size)]
+
         y_pred_score : np.ndarray ~ (sample_size, n_classes) |
-            list[np.ndarray ~ (sample_size, n_classes)].
+            list[np.ndarray ~ (sample_size, n_classes)] | None
             Default: None.
-        y_pred_class_order : np.ndarray ~ (n_classes).
-            Default: None.
-        name : str.
+
+        y_pred_class_order : np.ndarray ~ (n_classes) | None
+            Default: None
+
+        name : str | None
             Default: None.
         """
 
@@ -603,7 +595,7 @@ class ClassificationMulticlassScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._stats_df
 
@@ -613,7 +605,7 @@ class ClassificationMulticlassScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._cv_stats_df
 
@@ -623,7 +615,7 @@ class ClassificationMulticlassScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._stats_by_class_df
 
@@ -633,6 +625,6 @@ class ClassificationMulticlassScorer:
 
         Returns
         -------
-        pd.DataFrame.
+        pd.DataFrame
         """
         return self._cv_stats_by_class_df

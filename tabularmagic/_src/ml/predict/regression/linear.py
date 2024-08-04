@@ -106,7 +106,9 @@ class LinearR(BaseR):
                 hyperparam_search_method = "grid"
                 hyperparam_search_space = {"fit_intercept": [True]}
         elif type == "l1":
-            self._best_estimator = Lasso(selection="random", random_state=model_random_state)
+            self._best_estimator = Lasso(
+                selection="random", random_state=model_random_state
+            )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {

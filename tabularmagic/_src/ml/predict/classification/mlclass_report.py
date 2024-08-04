@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Literal
+import seaborn as sns
+from typing import Literal, Any
 import warnings
 from .base import BaseC
 from ....metrics.classification_scoring import ClassificationBinaryScorer
@@ -181,12 +182,25 @@ class SingleModelSingleDatasetMLClassReport:
         return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
 
     def plot_roc_curve(
-        self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
+        self,
+        label_curve: bool = False,
+        color: str | Any = "black",
+        figsize: tuple[float, float] = (5, 5),
+        ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
         """Returns a figure that is the ROC curve for the model.
 
         Parameters
         ----------
+        label_curve : bool
+            Default: False. Whether to label the ROC curve with model name and AUC.
+            If True, the model name and AUC are displayed on the ROC curve rather
+            than in the title. This is useful when plotting multiple ROC curves
+            on the same axes.
+
+        color : str | Any
+            Default: "black". The color of the ROC curve.
+
         figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
 
@@ -212,7 +226,15 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             y_score = self._model._test_scorer._y_pred_score
             y_true = self._model._test_scorer._y_true
-        return plot_roc_curve(y_score, y_true, self._model._name, figsize, ax)
+        return plot_roc_curve(
+            y_score=y_score,
+            y_true=y_true,
+            model_name=self._model._name,
+            label_curve=label_curve,
+            color=color,
+            figsize=figsize,
+            ax=ax,
+        )
 
 
 class SingleModelMLClassReport:
@@ -309,9 +331,9 @@ class SingleModelMLClassReport:
             Figure of the ROC curve. None is returned if the model is not binary.
         """
         if dataset == "train":
-            return self.train_report().plot_roc_curve(figsize, ax)
+            return self.train_report().plot_roc_curve(figsize=figsize, ax=ax)
         else:
-            return self.test_report().plot_roc_curve(figsize, ax)
+            return self.test_report().plot_roc_curve(figsize=figsize, ax=ax)
 
     def model(self) -> BaseC:
         """Returns the model.
@@ -332,9 +354,12 @@ class SingleModelMLClassReport:
             None is returned if no feature selectors were specified.
         """
         return self._model.fs_report()
-    
+
     def feature_importance(self) -> pd.DataFrame | None:
-        """Returns the feature importances for the model.
+        """Returns the feature importances for the model. If the model does not
+        have feature importances, the coefficients are returned instead.
+        If the model does not have feature importances or coefficients,
+        None is returned.
 
         Returns
         -------
@@ -548,7 +573,7 @@ class MLClassificationReport:
                 ],
                 axis=1,
             )
-        else:
+        elif dataset == "test":
             return pd.concat(
                 [
                     report.test_report().metrics()
@@ -556,6 +581,8 @@ class MLClassificationReport:
                 ],
                 axis=1,
             )
+        else:
+            raise ValueError('dataset must be either "train" or "test".')
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the evaluation metrics for
@@ -639,6 +666,60 @@ class MLClassificationReport:
         """
         return self._id_to_report[model_id].plot_confusion_matrix(dataset, figsize, ax)
 
+    def plot_roc_curves(
+        self,
+        dataset: Literal["train", "test"] = "test",
+        figsize: tuple[float, float] = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Plots the ROC curves for all models.
+
+        Parameters
+        ----------
+        dataset: Literal['train', 'test']
+            Default: 'test'. The dataset to plot the ROC curves for.
+
+        figsize: tuple[float, float]
+            Default: (5, 5). The size of the figure.
+
+        ax: plt.Axes | None
+            Default: None. The axes to plot on. If None, a new figure is created.
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+        else:
+            fig = ax.get_figure()
+
+        color_palette = sns.color_palette("tab10")
+
+        for i, model_id in enumerate(self._id_to_report):
+            if dataset == "train":
+                self._id_to_report[model_id].train_report().plot_roc_curve(
+                    label_curve=True, color=color_palette[i], figsize=figsize, ax=ax
+                )
+
+            elif dataset == "test":
+                self._id_to_report[model_id].test_report().plot_roc_curve(
+                    label_curve=True, color=color_palette[i], figsize=figsize, ax=ax
+                )
+
+            else:
+                raise ValueError('dataset must be either "train" or "test".')
+
+        ax.set_title("ROC Curves")
+        ax.legend(
+            fontsize=8,  # Set font size directly
+            handlelength=1,  # Reduce length of legend handles
+            handletextpad=0.5,  # Reduce space between handle and text
+            borderpad=0.2,  # Reduce internal padding
+            labelspacing=0.2,  # Reduce vertical space between legend entries
+            loc="lower right",  # Set a specific location
+        )
+        fig.tight_layout()
+        plt.close(fig)
+
+        return fig
+
     def plot_roc_curve(
         self,
         model_id: str,
@@ -646,7 +727,7 @@ class MLClassificationReport:
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
-        """Returns a figure that is the ROC curve for the model.
+        """Plots the ROC curve for a single model.
 
         Parameters
         ----------
@@ -745,9 +826,11 @@ class MLClassificationReport:
             ],
             axis=1,
         )
-    
-    def feature_importance(self, model_id: str) -> pd.DataFrame:
+
+    def feature_importance(self, model_id: str) -> pd.DataFrame | None:
         """Returns the feature importances of the model with the specified id.
+        If the model does not have feature importances, the coefficients are returned
+        instead. Otherwise, None is returned.
 
         Parameters
         ----------
@@ -756,13 +839,11 @@ class MLClassificationReport:
 
         Returns
         -------
-        pd.DataFrame
+        pd.DataFrame | None
+            None is returned if the model does not have feature importances
+            or coefficients.
         """
         return self._id_to_report[model_id].feature_importance()
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]
-
-
-
-

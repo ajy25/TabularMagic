@@ -36,8 +36,7 @@ class KBestFSC(BaseFSC):
         self._k = k
 
     def select(
-        self, 
-        dataemitter: DataEmitter
+        self, dataemitter: DataEmitter
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the top max_n_features features based on the training data.
@@ -77,6 +76,3 @@ class KBestFSC(BaseFSC):
         self._support = selector.get_support()
         self._selected_feature_scores = selector.scores_[self._support]
         return self._all_features, self._selected_features, self._support
-
-
-

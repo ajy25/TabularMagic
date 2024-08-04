@@ -208,7 +208,9 @@ class TreeEnsembleR(BaseR):
         self._max_n_features = max_n_features
 
         if type == "random_forest":
-            self._best_estimator = RandomForestRegressor(random_state=model_random_state)
+            self._best_estimator = RandomForestRegressor(
+                random_state=model_random_state
+            )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {
@@ -270,7 +272,9 @@ class TreeEnsembleR(BaseR):
                     ),
                 }
         elif type == "gradient_boosting":
-            self._best_estimator = GradientBoostingRegressor(random_state=model_random_state)
+            self._best_estimator = GradientBoostingRegressor(
+                random_state=model_random_state
+            )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "optuna"
                 hyperparam_search_space = {

@@ -63,7 +63,7 @@ class VotingSelectionReport:
     def top_features(self) -> list:
         """Returns a list of top features determined by the voting
         selectors.
-        
+
         Returns
         -------
         list
@@ -74,7 +74,7 @@ class VotingSelectionReport:
     def all_features(self) -> list:
         """Returns a list of all features considered by the voting
         selectors.
-        
+
         Returns
         -------
         list
@@ -85,7 +85,7 @@ class VotingSelectionReport:
     def votes(self) -> pd.DataFrame:
         """Returns a DataFrame that describes the distribution of
         votes among selectors.
-        
+
         Returns
         -------
         pd.DataFrame
@@ -104,6 +104,3 @@ class VotingSelectionReport:
     def __getitem__(self, index: str) -> BaseFS:
         """Returns the RegressionBaseSelector by nickname index."""
         return self._selector_dict_indexable_by_str[index]
-
-
-

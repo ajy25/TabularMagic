@@ -11,7 +11,7 @@ from ....metrics import (
     ClassificationBinaryScorer,
 )
 from ....feature_selection import VotingSelectionReport
-from ....display.print_utils import print_wrapped
+from ....display.print_utils import print_wrapped, color_text
 from ..predict_utils import ColumnSelector
 
 
@@ -383,7 +383,7 @@ class BaseC(BasePredictModel):
             1. Custom data preprocessing steps.
             2. Hyperparameter search object.
             3. The best model determined from the hyperparameter search process.
-            
+
 
         It is not recommended to use TabularMagic for ML production.
         We recommend using TabularMagic to quickly identify promising models
@@ -513,34 +513,39 @@ class BaseC(BasePredictModel):
                 type="WARNING",
             )
         return self._predictors
-    
-    def feature_importance(self) -> pd.DataFrame:
+
+    def feature_importance(self) -> pd.DataFrame | None:
         """Returns the feature importances of the best estimator.
-        
+        If the best estimator is a linear model, the coefficients are
+        returned.
+
         Returns
         -------
-        pd.DataFrame
-            A DataFrame with feature importances.
+        pd.DataFrame | None
+            A DataFrame with feature importances or coefficients. None if no importances
+            or coefficients are available.
         """
         if self._best_estimator is None:
             raise RuntimeError("Model has not been fitted.")
-        
+
         if hasattr(self._best_estimator, "feature_importances_"):
             importances = self._best_estimator.feature_importances_
-            type="Importance"
+            type = "Importances"
         elif hasattr(self._best_estimator, "coef_"):
-            importances = np.abs(self._best_estimator.coef_.flatten())
-            type="Abs Coefs"
+            importances = self._best_estimator.coef_.flatten()
+            type = "Coefficients"
         else:
-            raise AttributeError("Best estimator does not have feature importances.")
-        
-        
+            print_wrapped(
+                "No feature importances or coefficients are available for "
+                f"{color_text(self._name, 'yellow')}.",
+            )
+            return None
+
         return pd.DataFrame(
             data=importances,
             index=pd.Series(self._predictors, name="Feature"),
             columns=[type],
         )
-
 
     def _select_optimal_threshold_f1(
         self, y_true: np.ndarray, y_pred_score: np.ndarray

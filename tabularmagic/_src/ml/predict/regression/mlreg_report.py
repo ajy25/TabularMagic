@@ -9,9 +9,7 @@ from ....display.print_utils import print_wrapped
 from ....feature_selection import BaseFSR, VotingSelectionReport
 
 
-
 warnings.simplefilter("ignore", category=UserWarning)
-
 
 
 class SingleModelSingleDatasetMLRegReport:
@@ -199,13 +197,17 @@ class SingleModelMLRegReport:
             None is returned if no feature selectors were specified.
         """
         return self._model.fs_report()
-    
-    def feature_importance(self) -> pd.DataFrame:
-        """Returns the feature importances of the model.
+
+    def feature_importance(self) -> pd.DataFrame | None:
+        """Returns the feature importances for the model. If the model does not
+        have feature importances, the coefficients are returned instead.
+        If the model does not have feature importances or coefficients,
+        None is returned.
 
         Returns
         -------
-        pd.DataFrame
+        pd.DataFrame | None
+            None is returned if the model does not have feature importances.
         """
         return self._model.feature_importance()
 
@@ -324,7 +326,6 @@ class MLRegressionReport:
 
         self._verbose = verbose
 
-
         for model in self._models:
             if self._verbose:
                 print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
@@ -332,7 +333,7 @@ class MLRegressionReport:
                 dataemitter=self._emitter,
                 dataemitters=self._emitters,
             )
-            
+
             model.fit(verbose=self._verbose)
 
             if (
@@ -515,9 +516,11 @@ class MLRegressionReport:
         plt.Figure
         """
         return self._id_to_report[model_id].plot_obs_vs_pred(dataset, figsize, ax)
-    
-    def feature_importance(self, model_id: str) -> pd.DataFrame:
+
+    def feature_importance(self, model_id: str) -> pd.DataFrame | None:
         """Returns the feature importances of the model with the specified id.
+        If the model does not have feature importances, the coefficients are returned
+        instead. Otherwise, None is returned.
 
         Parameters
         ----------
@@ -526,11 +529,11 @@ class MLRegressionReport:
 
         Returns
         -------
-        pd.DataFrame
+        pd.DataFrame | None
+            None is returned if the model does not have feature importances
+            or coefficients.
         """
         return self._id_to_report[model_id].feature_importance()
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]
-
-

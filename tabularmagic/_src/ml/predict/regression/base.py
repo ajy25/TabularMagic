@@ -1,12 +1,11 @@
 import pandas as pd
-import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from ....metrics import RegressionScorer
 from ..base_model import BasePredictModel, HyperparameterSearcher
 from ....data import DataEmitter
 from ....feature_selection import VotingSelectionReport
-from ....display.print_utils import print_wrapped
+from ....display.print_utils import print_wrapped, color_text
 from ..predict_utils import ColumnSelector
 
 
@@ -358,34 +357,39 @@ class BaseR(BasePredictModel):
                 type="WARNING",
             )
         return self._predictors
-    
+
     def feature_importance(self) -> pd.DataFrame:
         """Returns the feature importances of the best estimator.
-        
+        If the best estimator is a linear model, the coefficients are
+        returned.
+
         Returns
         -------
-        pd.DataFrame
-            A DataFrame with feature importances.
+        pd.DataFrame | None
+            A DataFrame with feature importances or coefficients. None if no importances
+            or coefficients are available.
         """
         if self._best_estimator is None:
             raise RuntimeError("Model has not been fitted.")
-        
+
         if hasattr(self._best_estimator, "feature_importances_"):
             importances = self._best_estimator.feature_importances_
-            type="Importance"
+            type = "Importances"
         elif hasattr(self._best_estimator, "coef_"):
-            importances = np.abs(self._best_estimator.coef_)
-            type="Abs Coefs"
+            importances = self._best_estimator.coef_.flatten()
+            type = "Coefficients"
         else:
-            raise AttributeError("Best estimator does not have feature importances.")
-        
-        
+            print_wrapped(
+                "No feature importances or coefficients are available for "
+                f"{color_text(self._name, 'yellow')}.",
+            )
+            return None
+
         return pd.DataFrame(
             data=importances,
             index=pd.Series(self._predictors, name="Feature"),
             columns=[type],
         )
-
 
     def __str__(self):
         return self._name

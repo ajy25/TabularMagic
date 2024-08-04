@@ -1,16 +1,7 @@
 from typing import Literal
-from sklearn.tree import (
-    DecisionTreeClassifier, 
-    DecisionTreeRegressor
-)
-from xgboost import (
-    XGBClassifier, 
-    XGBRegressor
-)
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    RandomForestRegressor
-)
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from xgboost import XGBClassifier, XGBRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import numpy as np
 
 from .base_feature_selection import BaseFSC, BaseFSR
@@ -19,14 +10,12 @@ from .BorutaPy import BorutaPy
 from ..data.datahandler import DataEmitter
 
 
-
-
 class BorutaFSR(BaseFSR):
     def __init__(
-        self, 
+        self,
         estimator: Literal["tree", "rf", "xgb"] = "rf",
         n_estimators: int = 100,
-        name: str | None = None, 
+        name: str | None = None,
     ):
         """
         Constructs a BorutaFSR.
@@ -34,7 +23,7 @@ class BorutaFSR(BaseFSR):
         Parameters
         ----------
         estimator : Literal["tree", "rf", "xgb"]
-            Default: "rf". The estimator to use for Boruta. Default 
+            Default: "rf". The estimator to use for Boruta. Default
             hyperparameters are used for the estimator.
 
         n_estimators : int
@@ -59,14 +48,10 @@ class BorutaFSR(BaseFSR):
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
             )
 
-        self._selector = BorutaPy(
-            estimator=sk_estimator, 
-            n_estimators=n_estimators
-        )
+        self._selector = BorutaPy(estimator=sk_estimator, n_estimators=n_estimators)
 
     def select(
-        self, 
-        dataemitter: DataEmitter
+        self, dataemitter: DataEmitter
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the top k features
@@ -90,7 +75,6 @@ class BorutaFSR(BaseFSR):
         X_train, y_train = dataemitter.emit_train_Xy()
         self._all_features = X_train.columns.to_numpy()
 
-
         self._selector.fit(X=X_train.to_numpy(), y=y_train.to_numpy())
         self._support = self._selector.support_
         self._all_feature_scores = self._selector.ranking_
@@ -99,15 +83,12 @@ class BorutaFSR(BaseFSR):
         return self._all_features, self._selected_features, self._support
 
 
-
-
-
 class BorutaFSC(BaseFSC):
     def __init__(
-        self, 
+        self,
         estimator: Literal["tree", "rf", "xgb"] = "rf",
         n_estimators: int = 100,
-        name: str | None = None, 
+        name: str | None = None,
     ):
         """
         Constructs a BorutaFSC.
@@ -115,7 +96,7 @@ class BorutaFSC(BaseFSC):
         Parameters
         ----------
         estimator : Literal["tree", "rf", "xgb"]
-            Default: "rf". The estimator to use for Boruta. Default 
+            Default: "rf". The estimator to use for Boruta. Default
             hyperparameters are used for the estimator.
 
         n_estimators : int
@@ -127,7 +108,7 @@ class BorutaFSC(BaseFSC):
         if name is None:
             name = "BorutaFSC"
         super().__init__(name)
-        
+
         sk_estimator = None
         if estimator == "tree":
             sk_estimator = DecisionTreeClassifier()
@@ -140,14 +121,10 @@ class BorutaFSC(BaseFSC):
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
             )
 
-        self._selector = BorutaPy(
-            estimator=sk_estimator, 
-            n_estimators=n_estimators
-        )
+        self._selector = BorutaPy(estimator=sk_estimator, n_estimators=n_estimators)
 
     def select(
-        self, 
-        dataemitter: DataEmitter
+        self, dataemitter: DataEmitter
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Selects the top k features

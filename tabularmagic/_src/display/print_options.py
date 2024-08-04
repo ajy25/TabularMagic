@@ -1,5 +1,5 @@
 import logging
-import pathlib
+from pathlib import Path
 import sys
 
 
@@ -31,12 +31,12 @@ class _PrintOptions:
         if not self._muted:
             self._logger.debug(msg)
 
-    def reset_logger(self, logger: logging.Logger = None):
+    def reset_logger(self, logger: logging.Logger | None = None):
         """Sets a new logger.
 
         Parameters
         ----------
-        logger : logging.Logger.
+        logger : logging.Logger | None
             Default : None. If None, resets the logger to the default.
         """
         if logger is None:
@@ -44,14 +44,15 @@ class _PrintOptions:
         else:
             self._logger = logger
 
-    def add_log_file(self, path: pathlib.Path | str, level: int = logging.DEBUG):
+    def add_log_file(self, path: Path | str, level: int = logging.DEBUG):
         """Adds a file handler to the logger.
 
         Parameters
         ----------
-        path : pathlib.Path | str.
+        path : Path | str
             Path to the .log or .txt file.
-        level : int.
+
+        level : int
             Default: logging.DEBUG.
         """
         file_handler = logging.FileHandler(str(path))
@@ -59,9 +60,11 @@ class _PrintOptions:
         self._logger.addHandler(file_handler)
 
     def mute(self):
+        """Mutes. No messages will be printed."""
         self._muted = True
 
     def unmute(self):
+        """Unmutes. Messages will be printed."""
         self._muted = False
 
 

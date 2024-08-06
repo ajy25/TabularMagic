@@ -8,7 +8,6 @@ from .poissonglmreg import SingleDatasetPoisRegReport
 from ..countglm import CountLinearModel
 
 
-
 class CountRegressionReport:
     """CountRegressionReport.
     Fits the model based on provided DataHandler.
@@ -22,7 +21,7 @@ class CountRegressionReport:
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
-        dataemitter: DataEmitter | None = None
+        dataemitter: DataEmitter | None = None,
     ):
         """CountRegressionReport.
         Fits the model based on provided DataHandler.
@@ -44,8 +43,8 @@ class CountRegressionReport:
 
         dataemitter : DataEmitter
             Default: None. The DataEmitter object that emits the data.
-            Optionally you can initialize the report with a DataEmitter object 
-            instead of a DataHandler object. If not None, will ignore the 
+            Optionally you can initialize the report with a DataEmitter object
+            instead of a DataHandler object. If not None, will ignore the
             values of target and predictors.
         """
         self._model = model
@@ -166,16 +165,16 @@ class CountRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        
+
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors(selected_vars)
-        
+
         return CountRegressionReport(
-            CountLinearModel(), 
-            self._datahandler, 
-            self._target, 
+            CountLinearModel(),
+            self._datahandler,
+            self._target,
             self._predictors,
-            dataemitter=new_emitter
+            dataemitter=new_emitter,
         )
 
     def statsmodels_summary(self):
@@ -188,9 +187,9 @@ class CountRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-    
-    # Move methods in SingleDatasetPoisRegReport/SingleDatasetNegBinRegReport 
-    # up to LinearRegressionReport to allow useres to call methods from 
+
+    # Move methods in SingleDatasetPoisRegReport/SingleDatasetNegBinRegReport
+    # up to LinearRegressionReport to allow useres to call methods from
     # mutliple locations
 
     def plot_obs_vs_pred(

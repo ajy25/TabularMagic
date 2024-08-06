@@ -716,7 +716,7 @@ class BinomialRegressionReport:
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
-        dataemitter: DataEmitter | None = None
+        dataemitter: DataEmitter | None = None,
     ):
         """BinomialRegressionReport.
         Fits the model based on provided DataHandler.
@@ -842,16 +842,16 @@ class BinomialRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        
+
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors(selected_vars)
 
         return BinomialRegressionReport(
-            BinomialLinearModel(), 
-            self._datahandler, 
-            self._target, 
+            BinomialLinearModel(),
+            self._datahandler,
+            self._target,
             self._predictors,
-            new_emitter
+            new_emitter,
         )
 
     def statsmodels_summary(self):

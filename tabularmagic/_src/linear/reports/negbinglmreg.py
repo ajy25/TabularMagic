@@ -783,7 +783,7 @@ class NegativeBinomialRegressionReport:
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
-        dataemitter: DataEmitter | None = None
+        dataemitter: DataEmitter | None = None,
     ):
         """NegativeBinomialRegressionReport.
         Fits the model based on provided DataHandler.
@@ -804,8 +804,8 @@ class NegativeBinomialRegressionReport:
 
         dataemitter : DataEmitter
             Default: None. The DataEmitter object that emits the data.
-            Optionally you can initialize the report with a DataEmitter object 
-            instead of a DataHandler object. If not None, will ignore the 
+            Optionally you can initialize the report with a DataEmitter object
+            instead of a DataHandler object. If not None, will ignore the
             values of target and predictors.
         """
         self._model = model
@@ -916,16 +916,16 @@ class NegativeBinomialRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        
+
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors(selected_vars)
 
         return NegativeBinomialRegressionReport(
-            NegativeBinomialLinearModel(), 
+            NegativeBinomialLinearModel(),
             self._datahandler,
-            self._target, 
+            self._target,
             self._predictors,
-            new_emitter
+            new_emitter,
         )
 
     def statsmodels_summary(self):

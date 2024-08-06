@@ -1070,7 +1070,7 @@ class DataEmitter:
         )
 
         return custom_transformer
-    
+
     def copy(self) -> "DataEmitter":
         """Returns a copy of the DataEmitter object.
 
@@ -1080,7 +1080,6 @@ class DataEmitter:
             The copied DataEmitter object.
         """
         return copy.deepcopy(self)
-
 
 
 class DataHandler:

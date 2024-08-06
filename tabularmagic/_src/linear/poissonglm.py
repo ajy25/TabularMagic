@@ -90,11 +90,7 @@ class PoissonLinearModel:
         # Set the estimator to be a generalized linear model with a log link
         with suppress_stdout(), warnings.catch_warnings():
             warnings.filterwarnings("ignore")
-            self.estimator = sm.GLM(
-                y_train, 
-                X_train, 
-                family=sm.families.Poisson()
-            ).fit(
+            self.estimator = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit(
                 cov_type="HC3"
             )
 

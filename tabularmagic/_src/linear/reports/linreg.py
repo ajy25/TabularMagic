@@ -14,7 +14,6 @@ from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only
 from ...exploratory.stattests import StatisticalTestResult
 
 
-
 class SingleDatasetLinRegReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
@@ -718,7 +717,7 @@ class LinearRegressionReport:
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
-        dataemitter: DataEmitter | None = None
+        dataemitter: DataEmitter | None = None,
     ):
         """LinearRegressionReport.
         Fits the model based on provided DataHandler.
@@ -739,8 +738,8 @@ class LinearRegressionReport:
 
         dataemitter : DataEmitter
             Default: None. The DataEmitter object that emits the data.
-            Optionally you can initialize the report with a DataEmitter object 
-            instead of a DataHandler object. If not None, will ignore the 
+            Optionally you can initialize the report with a DataEmitter object
+            instead of a DataHandler object. If not None, will ignore the
             values of target and predictors.
         """
         self._model = model
@@ -856,11 +855,11 @@ class LinearRegressionReport:
         new_emitter.select_predictors(selected_vars)
 
         return LinearRegressionReport(
-            OLSLinearModel(), 
-            self._datahandler,      # only used for y var scaler
-            self._target,           # ignored
-            self._predictors,       # ignored
-            new_emitter
+            OLSLinearModel(),
+            self._datahandler,  # only used for y var scaler
+            self._target,  # ignored
+            self._predictors,  # ignored
+            new_emitter,
         )
 
     def test_lr(

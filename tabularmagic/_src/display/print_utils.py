@@ -9,7 +9,7 @@ def color_text(
     text, color: Literal["red", "blue", "green", "yellow", "purple", "none"]
 ) -> str:
     """Returns text in a specified color.
-    
+
     Parameters
     ----------
     text : str
@@ -146,7 +146,7 @@ def fill_ignore_format_single_line(
 
     width : int
         Default: print_options._max_line_width. The maximum width of the wrapped text.
-    
+
     initial_indent : int
         Default: 0. The number of spaces to indent the first line.
 

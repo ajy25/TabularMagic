@@ -769,7 +769,7 @@ class PoissonRegressionReport:
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
-        dataemitter: DataEmitter | None = None
+        dataemitter: DataEmitter | None = None,
     ):
         """PoissonRegressionReport.
         Fits the model based on provided DataHandler.
@@ -895,16 +895,16 @@ class PoissonRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        
+
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors(selected_vars)
 
         return PoissonRegressionReport(
-            PoissonLinearModel(), 
-            self._datahandler,      # only used for y var scaler
-            self._target,           # ignored
-            self._predictors,       # ignored
-            new_emitter
+            PoissonLinearModel(),
+            self._datahandler,  # only used for y var scaler
+            self._target,  # ignored
+            self._predictors,  # ignored
+            new_emitter,
         )
 
     def statsmodels_summary(self):
@@ -917,7 +917,7 @@ class PoissonRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-        
+
     # Move methods in SingleDatasetPoisRegReport up to LinearRegressionReport
     # to allow useres to call methods from mutliple locations
 

@@ -139,5 +139,3 @@ class LinearC(BaseC):
         )
 
         self._validate_inputs()
-     
-

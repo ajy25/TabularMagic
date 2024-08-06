@@ -71,12 +71,11 @@ class _PrintOptions:
         """Unmutes. Messages will be printed."""
         self._muted = False
 
-
     def unmute_warnings(self):
         """Unmutes warnings."""
         self._warnings = True
         warnings.filterwarnings("default")
-    
+
     def mute_warnings(self):
         """Mutes warnings."""
         self._warnings = False

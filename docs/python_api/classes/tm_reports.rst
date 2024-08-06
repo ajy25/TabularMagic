@@ -13,7 +13,6 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
 :py:mod:`tm._reports.MLClassificationReport`
 --------------------------------------------
 
-
 .. autoclass:: MLClassificationReport
     :members:
         __init__, model, metrics, cv_metrics, fs_report, plot_confusion_matrix, plot_roc_curve, metrics_by_class, cv_metrics_by_class 
@@ -26,20 +25,65 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
     :members:
         __init__, model, metrics, cv_metrics, fs_report, plot_obs_vs_pred
 
-:py:mod:`tm._reports.PoissonRegressionReport`
+:py:mod:`tm._reports.LinearRegressionReport`
 ---------------------------------------------
-
-.. autoclass:: PoissonRegressionReport
-    :members:
-        __init__, model, metrics, step, statsmodels_summary
-
-
-:py:mod:`tm._reports.LogisticRegressionReport`
-----------------------------------------------
 
 .. autoclass:: LinearRegressionReport
     :members:
-        __init__, model, metrics, step, statsmodels_summary
+        __init__, train_report, test_report, model, metrics, step, test_lr,
+        test_partialf, statsmodels_summary, plot_obs_vs_pred, 
+        plot_residuals_vs_fitted, plot_residuals_vs_var, plot_residuals_hist,
+        plot_scale_location, plot_residuals_vs_leverage, plot_qq, 
+        plot_diagnostics, set_outlier_threshold, get_outlier_indices,
+        _compute_outliers
+
+
+:py:mod:`tm._reports.PoissonRegressionReport`
+----------------------------------------------
+
+.. autoclass:: PoissonRegressionReport
+    :members:
+        __init__, train_report, test_report, model, metrics, step, 
+        statsmodels_summary, plot_obs_vs_pred, plot_residuals_vs_fitted, 
+        plot_residuals_vs_var, plot_residuals_hist, plot_scale_location,
+        plot_residuals_vs_leverage, plot_qq, plot_diagnostics, 
+        set_outlier_threshold, get_outlier_indices, _compute_outliers
+
+
+:py:mod:`tm._reports.NegativeBinomialRegressionReport`
+-------------------------------------------------------
+
+.. autoclass:: NegativeBinomialRegressionReport
+    :members:
+        __init__, train_report, test_report, model, metrics, step, 
+        statsmodels_summary, plot_obs_vs_pred, plot_residuals_vs_fitted, 
+        plot_residuals_vs_var, plot_residuals_hist, plot_scale_location,
+        plot_residuals_vs_leverage, plot_qq, plot_diagnostics, 
+        set_outlier_threshold, get_outlier_indices, _compute_outliers
+
+
+:py:mod:`tm._reports.BinomialRegressionReport`
+----------------------------------------------
+
+.. autoclass:: BinomialRegressionReport
+    :members:
+        __init__, train_report, test_report, model, metrics, step, 
+        statsmodels_summary, plot_obs_vs_pred, plot_residuals_vs_fitted, 
+        plot_residuals_vs_var, plot_residuals_hist, plot_scale_location,
+        plot_residuals_vs_leverage, plot_qq, plot_diagnostics, 
+        set_outlier_threshold, get_outlier_indices, _compute_outliers
+
+
+:py:mod:`tm._reports.CountRegressionReport`
+----------------------------------------------
+
+.. autoclass:: CountRegressionReport
+    :members:
+        __init__, train_report, test_report, model, metrics, step, 
+        statsmodels_summary, plot_obs_vs_pred, plot_residuals_vs_fitted, 
+        plot_residuals_vs_var, plot_residuals_hist, plot_scale_location,
+        plot_residuals_vs_leverage, plot_qq, plot_diagnostics, 
+        set_outlier_threshold, get_outlier_indices, _compute_outliers
 
 
 :py:mod:`tm._reports.EDAReport`

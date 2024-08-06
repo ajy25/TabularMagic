@@ -1,2 +1,0 @@
-tabularmagic
-tabularmagic_llm

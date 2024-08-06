@@ -1,10 +1,12 @@
 import pandas as pd
-from typing import Iterable, Literal
-from ...data.datahandler import DataHandler
+from typing import Literal
+import matplotlib.pyplot as plt
+from ...display.print_utils import suppress_stdout
+from ...data.datahandler import DataHandler, DataEmitter
 from .negbinglmreg import SingleDatasetNegBinRegReport
 from .poissonglmreg import SingleDatasetPoisRegReport
 from ..countglm import CountLinearModel
-import matplotlib.pyplot as plt
+
 
 
 class CountRegressionReport:
@@ -19,7 +21,8 @@ class CountRegressionReport:
         model: CountLinearModel,
         datahandler: DataHandler,
         target: str,
-        predictors: Iterable[str],
+        predictors: list[str],
+        dataemitter: DataEmitter | None = None
     ):
         """CountRegressionReport.
         Fits the model based on provided DataHandler.
@@ -36,16 +39,27 @@ class CountRegressionReport:
         target : str
             The name of the dependent variable.
 
-        predictors : Iterable[str]
+        predictors : list[str]
             The names of the independent variables.
+
+        dataemitter : DataEmitter
+            Default: None. The DataEmitter object that emits the data.
+            Optionally you can initialize the report with a DataEmitter object 
+            instead of a DataHandler object. If not None, will ignore the 
+            values of target and predictors.
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
+
+        if dataemitter is not None:
+            self._dataemitter = dataemitter
+        else:
+            self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
+
         self._model.specify_data(self._dataemitter)
         self._model.fit()
         self._target = target
-
+        self._predictors = predictors
         if self._model._type == "poisson":
             self._train_report = SingleDatasetPoisRegReport(model, "train")
             self._test_report = SingleDatasetPoisRegReport(model, "test")
@@ -152,18 +166,16 @@ class CountRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        new_datahandler = DataHandler(
-            df_train=self._datahandler.df_train(),
-            df_test=self._datahandler.df_test(),
-        )
-        y_scaler = self._datahandler.scaler(self._target)
-        if y_scaler is not None:
-            new_datahandler.add_scaler(
-                scaler=y_scaler,
-                var=self._target,
-            )
+        
+        new_emitter = self._dataemitter.copy()
+        new_emitter.select_predictors(selected_vars)
+        
         return CountRegressionReport(
-            CountLinearModel(), new_datahandler, self._target, selected_vars
+            CountLinearModel(), 
+            self._datahandler, 
+            self._target, 
+            self._predictors,
+            dataemitter=new_emitter
         )
 
     def statsmodels_summary(self):

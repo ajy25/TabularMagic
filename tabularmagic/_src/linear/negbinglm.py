@@ -1,10 +1,12 @@
 import statsmodels.api as sm
 import numpy as np
+from typing import Literal
+import pandas as pd
+import warnings
+from ..utils import ensure_arg_list_uniqueness
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
-from typing import Literal
-from ..utils import ensure_arg_list_uniqueness
-import pandas as pd
+from ..display.print_utils import suppress_stdout
 
 
 def score_nb_model(
@@ -38,7 +40,9 @@ def score_nb_model(
         return np.inf
 
     subset_X_train = X_train[feature_list]
-    new_model = sm.NegativeBinomial(y_train, subset_X_train).fit(cov_type="HC3")
+    with suppress_stdout(), warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        new_model = sm.NegativeBinomial(y_train, subset_X_train).fit(cov_type="HC3")
     if metric == "aic":
         score = new_model.aic
     elif metric == "bic":
@@ -84,7 +88,8 @@ class NegativeBinomialLinearModel:
         X_train = sm.add_constant(X_train)
 
         # Set the estimator to be a generalized linear model with a log link
-        self.estimator = sm.NegativeBinomial(y_train, X_train).fit(cov_type="HC3")
+        with suppress_stdout():
+            self.estimator = sm.NegativeBinomial(y_train, X_train).fit(cov_type="HC3")
 
         # Get the predictions from the training dataset
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()

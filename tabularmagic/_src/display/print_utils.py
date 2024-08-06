@@ -1,11 +1,27 @@
 from typing import Literal
+import sys
+import os
+from contextlib import contextmanager
 from .print_options import print_options
 
 
 def color_text(
     text, color: Literal["red", "blue", "green", "yellow", "purple", "none"]
-):
-    """Returns text in a specified color."""
+) -> str:
+    """Returns text in a specified color.
+    
+    Parameters
+    ----------
+    text : str
+        The input text.
+
+    color : Literal['red', 'blue', 'green', 'yellow', 'purple', 'none']
+        The color of the text.
+
+    Returns
+    -------
+    str
+    """
     if color == "none":
         return text
     elif color == "red":
@@ -50,11 +66,11 @@ def print_wrapped(
 
     if level == "DEBUG":
         print_options._log_debug(
-            fill_ignore_format(base_message, width=print_options.max_line_width)
+            fill_ignore_format(base_message, width=print_options._max_line_width)
         )
     elif level == "INFO":
         print_options._log_info(
-            fill_ignore_format(base_message, width=print_options.max_line_width)
+            fill_ignore_format(base_message, width=print_options._max_line_width)
         )
 
 
@@ -65,15 +81,18 @@ def list_to_string(
     Converts a Python list to a string representation with
     elements separated by commas.
 
-    Args:
-        lst (list): The input list to be converted to a string.
+    Parameters
+    ----------
+    lst : list
+        The input list.
 
-    Returns:
-        str: A string representation of the input list with elements
-        separated by commas.
+    color : Literal['red', 'blue', 'green', 'yellow', 'purple', 'none']
+        Default: 'purple'. The color of the elements.
+
+    Returns
+    -------
+    str
     """
-    # Join the string representations of each element in the list with a comma
-
     msg = ""
     for i, elem in enumerate(lst):
         elem = f"'{elem}'"
@@ -84,7 +103,7 @@ def list_to_string(
     return msg
 
 
-def len_ignore_format(text: str):
+def len_ignore_format(text: str) -> int:
     """Returns the length of a string without ANSI codes."""
     base_len = len(text)
     if "\033[91m" in text:
@@ -113,16 +132,30 @@ def len_ignore_format(text: str):
 
 def fill_ignore_format_single_line(
     text: str,
-    width: int = print_options.max_line_width,
+    width: int = print_options._max_line_width,
     initial_indent: int = 0,
     subsequent_indent: int = 6,
-):
+) -> str:
     """Wraps text to a max width of TOSTR_MAX_WIDTH. Text must NOT
     contain any newline characters.
 
     Parameters
     ----------
-    - text : str.
+    text : str
+        The text to be wrapped.
+
+    width : int
+        Default: print_options._max_line_width. The maximum width of the wrapped text.
+    
+    initial_indent : int
+        Default: 0. The number of spaces to indent the first line.
+
+    subsequent_indent : int
+        Default: 6. The number of spaces to indent subsequent lines.
+
+    Returns
+    -------
+    str
     """
     if "\n" in text:
         raise ValueError("Text must not contain newline characters.")
@@ -146,15 +179,29 @@ def fill_ignore_format_single_line(
 
 def fill_ignore_format(
     text: str,
-    width: int = print_options.max_line_width,
+    width: int = print_options._max_line_width,
     initial_indent: int = 0,
     subsequent_indent: int = 6,
-):
+) -> str:
     """Wraps text to a max width of TOSTR_MAX_WIDTH.
 
     Parameters
     ----------
-    - text : str.
+    test : str
+        The text to be wrapped.
+
+    width : int
+        Default: print_options._max_line_width. The maximum width of the wrapped text.
+
+    initial_indent : int
+        Default: 0. The number of spaces to indent the first line.
+
+    subsequent_indent : int
+        Default: 6. The number of spaces to indent subsequent lines.
+
+    Returns
+    -------
+    str
     """
     return "\n".join(
         [
@@ -164,3 +211,14 @@ def fill_ignore_format(
             for line in text.split("\n")
         ]
     )
+
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout

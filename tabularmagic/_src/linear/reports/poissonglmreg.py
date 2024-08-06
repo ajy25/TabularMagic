@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
-from typing import Iterable, Literal
-from ...data.datahandler import DataHandler
+from typing import Literal
+from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ...linear.poissonglm import PoissonLinearModel
 from ...display.print_utils import print_wrapped
@@ -768,7 +768,8 @@ class PoissonRegressionReport:
         model: PoissonLinearModel,
         datahandler: DataHandler,
         target: str,
-        predictors: Iterable[str],
+        predictors: list[str],
+        dataemitter: DataEmitter | None = None
     ):
         """PoissonRegressionReport.
         Fits the model based on provided DataHandler.
@@ -784,15 +785,19 @@ class PoissonRegressionReport:
         target : str
             The name of the dependent variable.
 
-        predictors : Iterable[str]
+        predictors : list[str]
             The names of the independent variables.
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
+        if dataemitter is None:
+            self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
+        else:
+            self._dataemitter = dataemitter
         self._model.specify_data(self._dataemitter)
         self._model.fit()
         self._target = target
+        self._predictors = predictors
         self._train_report = SingleDatasetPoisRegReport(model, "train")
         self._test_report = SingleDatasetPoisRegReport(model, "test")
 
@@ -890,18 +895,16 @@ class PoissonRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        new_datahandler = DataHandler(
-            df_train=self._datahandler.df_train(),
-            df_test=self._datahandler.df_test(),
-        )
-        y_scaler = self._datahandler.scaler(self._target)
-        if y_scaler is not None:
-            new_datahandler.add_scaler(
-                scaler=y_scaler,
-                var=self._target,
-            )
+        
+        new_emitter = self._dataemitter.copy()
+        new_emitter.select_predictors(selected_vars)
+
         return PoissonRegressionReport(
-            PoissonLinearModel(), new_datahandler, self._target, selected_vars
+            PoissonLinearModel(), 
+            self._datahandler,      # only used for y var scaler
+            self._target,           # ignored
+            self._predictors,       # ignored
+            new_emitter
         )
 
     def statsmodels_summary(self):

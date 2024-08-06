@@ -102,8 +102,8 @@ class StatisticalTestResult:
     def __str__(self):
         """Returns data and metadata in string form."""
 
-        max_width = print_options.max_line_width
-        n_dec = print_options.n_decimals
+        max_width = print_options._max_line_width
+        n_dec = print_options._n_decimals
 
         top_divider = color_text("=" * max_width, "none") + "\n"
         bottom_divider = "\n" + color_text("=" * max_width, "none")

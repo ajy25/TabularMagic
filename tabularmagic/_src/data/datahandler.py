@@ -2426,7 +2426,7 @@ class DataHandler:
         working_df_test = self._working_df_test
         working_df_train = self._working_df_train
 
-        max_width = print_options.max_line_width
+        max_width = print_options._max_line_width
 
         textlen_shapes = (
             len(str(working_df_train.shape) + str(working_df_test.shape)) + 25

@@ -5,6 +5,7 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
+import copy
 from ..display.print_utils import (
     print_wrapped,
     color_text,
@@ -1069,6 +1070,17 @@ class DataEmitter:
         )
 
         return custom_transformer
+    
+    def copy(self) -> "DataEmitter":
+        """Returns a copy of the DataEmitter object.
+
+        Returns
+        -------
+        DataEmitter
+            The copied DataEmitter object.
+        """
+        return copy.deepcopy(self)
+
 
 
 class DataHandler:

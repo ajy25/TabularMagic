@@ -3,15 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
-from typing import Iterable, Literal
-from ...data.datahandler import DataHandler
+from typing import Literal
+import warnings
+from adjustText import adjust_text
+from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..lm import OLSLinearModel
 from ...display.print_utils import print_wrapped
-from adjustText import adjust_text
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 from ...exploratory.stattests import StatisticalTestResult
-import warnings
 
 
 class SingleDatasetLinRegReport:
@@ -716,7 +716,8 @@ class LinearRegressionReport:
         model: OLSLinearModel,
         datahandler: DataHandler,
         target: str,
-        predictors: Iterable[str],
+        predictors: list[str],
+        dataemitter: DataEmitter | None = None,
     ):
         """LinearRegressionReport.
         Fits the model based on provided DataHandler.
@@ -732,15 +733,26 @@ class LinearRegressionReport:
         target : str
             The name of the target variable.
 
-        predictors : Iterable[str]
+        predictors : list[str]
             The names of the predictor variables.
+
+        dataemitter : DataEmitter
+            Default: None. The DataEmitter object that emits the data.
+            Optionally you can initialize the report with a DataEmitter object
+            instead of a DataHandler object. If not None, will ignore the
+            values of target and predictors.
         """
         self._model = model
         self._datahandler = datahandler
-        self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
+
+        if dataemitter is not None:
+            self._dataemitter = dataemitter
+        else:
+            self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
         self._model.fit()
         self._target = target
+        self._predictors = predictors
         self._train_report = SingleDatasetLinRegReport(model, "train")
         self._test_report = SingleDatasetLinRegReport(model, "test")
 
@@ -838,18 +850,16 @@ class LinearRegressionReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
-        new_datahandler = DataHandler(
-            df_train=self._datahandler.df_train(),
-            df_test=self._datahandler.df_test(),
-        )
-        y_scaler = self._datahandler.scaler(self._target)
-        if y_scaler is not None:
-            new_datahandler.add_scaler(
-                scaler=y_scaler,
-                var=self._target,
-            )
+
+        new_emitter = self._dataemitter.copy()
+        new_emitter.select_predictors(selected_vars)
+
         return LinearRegressionReport(
-            OLSLinearModel(), new_datahandler, self._target, selected_vars
+            OLSLinearModel(),
+            self._datahandler,  # only used for y var scaler
+            self._target,  # ignored
+            self._predictors,  # ignored
+            new_emitter,
         )
 
     def test_lr(

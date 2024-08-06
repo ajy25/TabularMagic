@@ -1,9 +1,11 @@
 import statsmodels.api as sm
 import numpy as np
-from ..metrics.regression_scoring import RegressionScorer
-from ..data.datahandler import DataEmitter
 import pandas as pd
 from typing import Literal
+import warnings
+from ..display.print_utils import suppress_stdout
+from ..metrics.regression_scoring import RegressionScorer
+from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
 
 
@@ -86,9 +88,11 @@ class PoissonLinearModel:
         X_train = sm.add_constant(X_train)
 
         # Set the estimator to be a generalized linear model with a log link
-        self.estimator = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit(
-            cov_type="HC3"
-        )
+        with suppress_stdout(), warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            self.estimator = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit(
+                cov_type="HC3"
+            )
 
         # Get the predictions from the training dataset
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()

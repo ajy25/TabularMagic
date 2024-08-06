@@ -35,7 +35,6 @@ class BaseR(BasePredictModel):
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
         self._dropfirst = False
-        
 
     def specify_data(
         self,
@@ -392,10 +391,10 @@ class BaseR(BasePredictModel):
             index=pd.Series(self._predictors, name="Feature"),
             columns=[type],
         )
-    
+
     def _validate_inputs(self):
         """Ensures that the inputs are valid.
-        
+
         Raises
         ------
         ValueError

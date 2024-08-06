@@ -92,15 +92,15 @@ class BinomialLinearModel:
         y_levels = y_train.unique()
         if y_levels.size != 2:
             raise ValueError("Dependent variable must have 2 levels")
-        
+
         y_test_levels = y_test.unique()
         if y_test_levels.size > 2:
-            raise ValueError("Dependent variable in test set detected to have ",
-                             "more than 3 levels")
+            raise ValueError(
+                "Dependent variable in test set detected to have ", "more than 3 levels"
+            )
 
         # Check to see if levels are not already encoded as ones and zeros
         if set(y_levels) != {0, 1}:
-    
             # Create a mapping dictionary
             mapping = {y_levels[0]: 1, y_levels[1]: 0}
 

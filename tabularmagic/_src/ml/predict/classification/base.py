@@ -568,10 +568,10 @@ class BaseC(BasePredictModel):
             f1_scores.append(f1_score(y_true, y_pred))
         optimal_idx = np.argmax(f1_scores)
         return thresholds[optimal_idx]
-    
+
     def _validate_inputs(self):
         """Ensures that the inputs are valid.
-        
+
         Raises
         ------
         ValueError
@@ -586,7 +586,6 @@ class BaseC(BasePredictModel):
                         "Each feature selector must be a BaseFSC object. "
                         f"Got {type(selector)}."
                     )
-
 
     def __str__(self):
         return self._name

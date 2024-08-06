@@ -5,6 +5,7 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
+import copy
 from ..display.print_utils import (
     print_wrapped,
     color_text,
@@ -1069,6 +1070,16 @@ class DataEmitter:
         )
 
         return custom_transformer
+
+    def copy(self) -> "DataEmitter":
+        """Returns a copy of the DataEmitter object.
+
+        Returns
+        -------
+        DataEmitter
+            The copied DataEmitter object.
+        """
+        return copy.deepcopy(self)
 
 
 class DataHandler:
@@ -2414,7 +2425,7 @@ class DataHandler:
         working_df_test = self._working_df_test
         working_df_train = self._working_df_train
 
-        max_width = print_options.max_line_width
+        max_width = print_options._max_line_width
 
         textlen_shapes = (
             len(str(working_df_train.shape) + str(working_df_test.shape)) + 25

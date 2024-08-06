@@ -82,8 +82,31 @@ class BinomialLinearModel:
     def fit(self):
         """Fits the model based on the data specified."""
 
+        # Emit all data
         X_train, y_train = self._dataemitter.emit_train_Xy()
         X_train = sm.add_constant(X_train)
+
+        X_test, y_test = self._dataemitter.emit_test_Xy()
+        X_test = sm.add_constant(X_test)
+
+        y_levels = y_train.unique()
+        if y_levels.size != 2:
+            raise ValueError("Dependent variable must have 2 levels")
+        
+        y_test_levels = y_test.unique()
+        if y_test_levels.size > 2:
+            raise ValueError("Dependent variable in test set detected to have ",
+                             "more than 3 levels")
+
+        # Check to see if levels are not already encoded as ones and zeros
+        if set(y_levels) != {0, 1}:
+    
+            # Create a mapping dictionary
+            mapping = {y_levels[0]: 1, y_levels[1]: 0}
+
+            # Encode labels using the mapping dictionary
+            y_train = y_train.map(mapping)
+            y_test = y_test.map(mapping)
 
         self.estimator = sm.GLM(
             y_train,
@@ -92,9 +115,6 @@ class BinomialLinearModel:
         ).fit(cov_type="HC3")
 
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
-
-        X_test, y_test = self._dataemitter.emit_test_Xy()
-        X_test = sm.add_constant(X_test)
 
         # Find the best threshold based on f1 score
         best_score = None
@@ -111,7 +131,7 @@ class BinomialLinearModel:
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
-            pos_label=1,
+            pos_label=y_levels[0],
             y_pred_score=np.hstack(
                 [
                     np.zeros(shape=(len(y_pred_train), 1)),

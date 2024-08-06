@@ -794,11 +794,10 @@ class EDAReport:
         strategy: Literal["auto", "anova_oneway", "kruskal"] = "auto",
     ) -> StatisticalTestResult:
         """Tests for equal means between three or more groups.
-
         Null hypothesis: All group means are equal.
         Alternative hypothesis: At least one group's mean is different from the others.
-
         NaNs in numeric_var and stratify_by are dropped before the test is conducted.
+
 
         Parameters
         ----------
@@ -809,14 +808,11 @@ class EDAReport:
             Categorical variable name.
 
         strategy : Literal['auto', 'anova_oneway', 'kruskal']
-            Default: 'auto'.
-            If 'auto', a test is selected as follows:
-                - If the data in any group is not normally distributed or not
-                    homoskedastic,
-                    then the Kruskal-Wallis test is used.
-                - Otherwise, the one-way ANOVA test is used. ANOVA is somewhat
-                    robust to heteroscedasticity and violations of the normality
-                    assumption.
+            Default: 'auto'. If 'auto', a test is selected as follows:
+            If the data in any group is not normally distributed or not
+            homoskedastic, then the Kruskal-Wallis test is used.
+            Otherwise, the one-way ANOVA test is used. ANOVA is somewhat
+            robust to heteroscedasticity and violations of the normality assumption.
 
         Returns
         -------
@@ -925,15 +921,15 @@ class EDAReport:
         strategy : Literal['auto', 'student', 'welch', 'yuen', 'mann-whitney']
             Default: 'welch'.
             If 'auto', a test is selected as follows:
-                - If the data in either group is not normally distributed,
-                    and the variances are not equal, then Yuen's
-                    (20% trimmed mean) t-test is used.
-                - If the data in either group is not normally distributed,
-                    but the variances are equal, then the Mann-Whitney U test
-                    is used.
-                - If the data in both groups are normally distributed but the
-                    variances are not equal, Welch's t-test is used.
-                - Otherwise, Student's t-test is used.
+            If the data in either group is not normally distributed,
+            and the variances are not equal, then Yuen's
+            (20% trimmed mean) t-test is used.
+            If the data in either group is not normally distributed,
+            but the variances are equal, then the Mann-Whitney U test
+            is used.
+            If the data in both groups are normally distributed but the
+            variances are not equal, Welch's t-test is used.
+            Otherwise, Student's t-test is used.
 
         Returns
         -------

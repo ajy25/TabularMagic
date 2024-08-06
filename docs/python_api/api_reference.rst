@@ -11,7 +11,7 @@ The Python API reference is a comprehensive list of all the classes and function
    
    classes/tm_analyzer
    classes/tm_ml
-   classes/reports
+   classes/tm_reports
 
 
 

@@ -1,4 +1,4 @@
-docs/_build
+docs/_build/*
 
 local_tests
 .ruff_cache

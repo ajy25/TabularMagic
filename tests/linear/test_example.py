@@ -15,7 +15,6 @@ import tabularmagic as tm
 SAMPLE_SIZE = 100
 
 
-
 @pytest.fixture
 def setup_data():
     df_house = pd.read_csv(
@@ -36,16 +35,14 @@ def setup_data():
 
     df_house_mini = df_house.sample(SAMPLE_SIZE, random_state=42)
 
-
     df_mtcars = pd.read_csv(
-    parent_dir / "demo" / "regression" / "mtcars_data" / "mtcars.csv"
+        parent_dir / "demo" / "regression" / "mtcars_data" / "mtcars.csv"
     )
-
 
     return {
         "df_house": df_house,
         "df_house_mini": df_house_mini,
-        "df_mtcars": df_mtcars
+        "df_mtcars": df_mtcars,
     }
 
 
@@ -65,8 +62,11 @@ def tm_linear_regression(data):
     analyzer = tm.Analyzer(data, test_size=0.0, verbose=False)
     report = analyzer.lm(formula="mpg ~ cyl + disp")
     extract_model = report._model.estimator
-    return (extract_model.params.iloc[0], extract_model.params.iloc[1],
-            extract_model.params.iloc[2])
+    return (
+        extract_model.params.iloc[0],
+        extract_model.params.iloc[1],
+        extract_model.params.iloc[2],
+    )
 
 
 # Test case to compare the outputs of our OLS wrapper and statsmodels OLS
@@ -96,6 +96,7 @@ def test_coefficients(setup_data):
     assert np.isclose(tm_b1, sm_b1)
     assert np.isclose(tm_b2, sm_b2)
 
+
 # Test case for partialf in OLS
 def test_partialf_ols(setup_data):
     df_mtcars = setup_data["df_mtcars"]
@@ -110,13 +111,13 @@ def test_partialf_ols(setup_data):
     r_f_stat, r_p_val = 0.4416, 0.5118
 
     analyzer = tm.Analyzer(df_mtcars, test_size=0.0, verbose=False)
-    lm_report_red = analyzer.lm(formula='hp ~ am + qsec')
-    lm_report_full = analyzer.lm(formula='hp ~ am + qsec + gear')
-    
+    lm_report_red = analyzer.lm(formula="hp ~ am + qsec")
+    lm_report_full = analyzer.lm(formula="hp ~ am + qsec + gear")
+
     tm_pval1 = lm_report_full.test_partialf(lm_report_red).pval()
     tm_pval2 = lm_report_red.test_partialf(lm_report_full).pval()
 
-    epsilon = .0001
+    epsilon = 0.0001
     assert np.isclose(tm_pval1, tm_pval2)
     assert np.isclose(tm_pval1, r_p_val, atol=epsilon)
     # To avoid propagation of error epsilon:
@@ -129,6 +130,7 @@ def test_partialf_ols(setup_data):
     assert np.isclose(tm_fstat1, r_f_stat, atol=epsilon)
     # To avoid propagation of error epsilon:
     assert np.isclose(tm_fstat2, r_f_stat, atol=epsilon)
+
 
 # Test if log transformations are being inverse transformed
 # Check to see that plotting and metrics are inverse transformed

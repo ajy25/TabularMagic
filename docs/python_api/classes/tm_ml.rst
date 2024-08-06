@@ -16,7 +16,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: LinearR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 :py:mod:`tm.ml.RobustLinearR`
@@ -24,7 +24,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: RobustLinearR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 :py:mod:`tm.ml.TreeR`
@@ -32,7 +32,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: TreeR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 :py:mod:`tm.ml.TreeEnsembleR`
@@ -40,7 +40,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: TreeEnsembleR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 :py:mod:`tm.ml.SVMR`
@@ -48,7 +48,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: SVMR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 :py:mod:`tm.ml.MLPR`
@@ -56,7 +56,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: MLPR
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
 
@@ -65,7 +65,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: LinearC
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 
 :py:mod:`tm.ml.TreeC`
@@ -73,7 +73,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: TreeC
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 
 :py:mod:`tm.ml.TreeEnsembleC`
@@ -81,7 +81,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: TreeEnsembleC
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 
 :py:mod:`tm.ml.SVMC`
@@ -89,7 +89,7 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: SVMC
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 
 :py:mod:`tm.ml.MLPC`
@@ -97,6 +97,6 @@ hyperparameter optimization, and cross-validation.
 
 .. autoclass:: MLPC
     :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors
+        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 

@@ -51,7 +51,7 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
 
 
 :py:mod:`tm._reports.NegativeBinomialRegressionReport`
-----------------------------------------------
+-------------------------------------------------------
 
 .. autoclass:: NegativeBinomialRegressionReport
     :members:

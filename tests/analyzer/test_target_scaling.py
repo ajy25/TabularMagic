@@ -43,7 +43,7 @@ def test_ols_scaling_simple(setup_data):
     analyzer.scale(strategy="minmax")
 
     report = analyzer.lm(target="y")
-    rmse_scaled = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_scaled = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
 
     assert isinstance(report.model()._dataemitter.y_scaler(), MinMaxSingleVar)
 
@@ -53,7 +53,7 @@ def test_ols_scaling_simple(setup_data):
     analyzer.load_data_checkpoint()
 
     report = analyzer.lm(target="y")
-    rmse_unscaled_2 = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_unscaled_2 = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
 
     assert report.model()._dataemitter.y_scaler() is None
 
@@ -62,7 +62,7 @@ def test_ols_scaling_simple(setup_data):
     # quick standardize test
     analyzer.scale(strategy="standardize")
     report = analyzer.lm(target="y")
-    rmse_scaled = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_scaled = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
     assert isinstance(report.model()._dataemitter.y_scaler(), StandardizeSingleVar)
     assert pytest.approx(rmse_unscaled) == pytest.approx(rmse_scaled)
 
@@ -71,7 +71,7 @@ def test_ols_scaling_simple(setup_data):
     analyzer.scale(include_vars=["y"], strategy="standardize")
     analyzer.scale(include_vars=["x1"], strategy="minmax")
     report = analyzer.lm(target="y")
-    rmse_scaled = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_scaled = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
     assert isinstance(report.model()._dataemitter.y_scaler(), StandardizeSingleVar)
     assert pytest.approx(rmse_unscaled) == pytest.approx(rmse_scaled)
 
@@ -107,12 +107,12 @@ def test_ols_scaling_with_formula(setup_data):
     # quick minmax test
     report = analyzer.lm(formula="log(y) ~ x1 + x2")
     assert isinstance(report.model()._dataemitter.y_scaler(), LogTransformSingleVar)
-    rmse_1 = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_1 = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
 
     analyzer.scale(include_vars=["y"], strategy="log")
     report = analyzer.lm(formula="y ~ x1 + x2")
     assert isinstance(report.model()._dataemitter.y_scaler(), LogTransformSingleVar)
-    rmse_2 = report.metrics().loc["rmse", "Ordinary Least Squares"]
+    rmse_2 = report.metrics("test").loc["rmse", "Ordinary Least Squares"]
 
     assert pytest.approx(rmse_1) == pytest.approx(rmse_2)
 
@@ -126,13 +126,13 @@ def test_ml_scaling_simple(setup_data):
 
     # quick minmax test
     report = analyzer.regress(models=[tm.ml.LinearR(name="ols")], target="y")
-    rmse_unscaled = report.metrics().loc["rmse", "ols"]
+    rmse_unscaled = report.metrics("test").loc["rmse", "ols"]
     assert report.model("ols")._dataemitter.y_scaler() is None
 
     analyzer.scale(strategy="minmax")
     report = analyzer.regress(models=[tm.ml.LinearR(name="ols")], target="y")
     assert isinstance(report.model("ols")._dataemitter.y_scaler(), MinMaxSingleVar)
-    rmse_scaled = report.metrics().loc["rmse", "ols"]
+    rmse_scaled = report.metrics("test").loc["rmse", "ols"]
 
     assert pytest.approx(rmse_unscaled) == pytest.approx(rmse_scaled)
 
@@ -140,7 +140,7 @@ def test_ml_scaling_simple(setup_data):
     analyzer.load_data_checkpoint()
     rmse_unscaled_2 = (
         analyzer.regress(models=[tm.ml.LinearR(name="ols")], target="y")
-        .metrics()
+        .metrics("test")
         .loc["rmse", "ols"]
     )
 
@@ -150,7 +150,7 @@ def test_ml_scaling_simple(setup_data):
     analyzer.scale(strategy="standardize")
     rmse_scaled = (
         analyzer.regress(models=[tm.ml.LinearR(name="ols")], target="y")
-        .metrics()
+        .metrics("test")
         .loc["rmse", "ols"]
     )
     assert pytest.approx(rmse_unscaled) == pytest.approx(rmse_scaled)

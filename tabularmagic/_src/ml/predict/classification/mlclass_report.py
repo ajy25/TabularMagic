@@ -302,8 +302,10 @@ class SingleModelMLClassReport:
         """
         if dataset == "train":
             return self.train_report().plot_confusion_matrix(figsize, ax)
-        else:
+        elif dataset == "test":
             return self.test_report().plot_confusion_matrix(figsize, ax)
+        else:
+            raise ValueError('dataset must be either "train" or "test".')
 
     def plot_roc_curve(
         self,
@@ -520,7 +522,7 @@ class MLClassificationReport:
             model._name: SingleModelMLClassReport(model) for model in models
         }
 
-    def model_report(self, model_id: str) -> SingleModelMLClassReport:
+    def _model_report(self, model_id: str) -> SingleModelMLClassReport:
         """Returns the SingleModelMLClassReport object for the specified model.
 
         Parameters
@@ -552,14 +554,14 @@ class MLClassificationReport:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
-    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics for
         all models on the specified data.
 
         Parameters
         ----------
         dataset: Literal['train', 'test']
-            Default: 'test'. The dataset to return the fit statistics for.
+            The dataset to return the fit statistics for.
 
         Returns
         -------
@@ -638,7 +640,7 @@ class MLClassificationReport:
     def plot_confusion_matrix(
         self,
         model_id: str,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -650,7 +652,7 @@ class MLClassificationReport:
             The id of the model.
 
         dataset: Literal['train', 'test']
-            Default: 'test'. The dataset to plot the confusion matrix for.
+            The dataset to plot the confusion matrix for.
 
         figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
@@ -668,7 +670,7 @@ class MLClassificationReport:
 
     def plot_roc_curves(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -677,7 +679,7 @@ class MLClassificationReport:
         Parameters
         ----------
         dataset: Literal['train', 'test']
-            Default: 'test'. The dataset to plot the ROC curves for.
+            The dataset to plot the ROC curves for.
 
         figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
@@ -723,7 +725,7 @@ class MLClassificationReport:
     def plot_roc_curve(
         self,
         model_id: str,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
@@ -735,7 +737,7 @@ class MLClassificationReport:
             The id of the model.
 
         dataset: Literal['train', 'test']
-            Default: 'test'. The dataset to plot the ROC curve for.
+            The dataset to plot the ROC curve for.
 
         figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.
@@ -748,7 +750,7 @@ class MLClassificationReport:
         return self._id_to_report[model_id].plot_roc_curve(dataset, figsize, ax)
 
     def metrics_by_class(
-        self, dataset: Literal["train", "test"] = "test"
+        self, dataset: Literal["train", "test"]
     ) -> pd.DataFrame | None:
         """Returns a DataFrame containing the evaluation metrics
         for all models on the specified data, broken down by class.
@@ -756,7 +758,7 @@ class MLClassificationReport:
         Parameters
         ----------
         dataset: Literal['train', 'test']
-            Default: 'test'. The dataset to return the fit statistics for.
+            The dataset to return the fit statistics for.
 
         Returns
         -------
@@ -778,7 +780,7 @@ class MLClassificationReport:
                 ],
                 axis=1,
             )
-        else:
+        elif dataset == "test":
             return pd.concat(
                 [
                     report.test_report().metrics_by_class()
@@ -786,6 +788,8 @@ class MLClassificationReport:
                 ],
                 axis=1,
             )
+        else:
+            raise ValueError('dataset must be either "train" or "test".')
 
     def cv_metrics_by_class(
         self,

@@ -1,7 +1,6 @@
 import pandas as pd
 from typing import Literal
 import matplotlib.pyplot as plt
-from ...display.print_utils import suppress_stdout
 from ...data.datahandler import DataHandler, DataEmitter
 from .negbinglmreg import SingleDatasetNegBinRegReport
 from .poissonglmreg import SingleDatasetPoisRegReport

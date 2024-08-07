@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 import sys
 import warnings
-import statsmodels
 
 
 def make_default_logger() -> logging.Logger:

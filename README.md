@@ -1,5 +1,6 @@
 # TabularMagic
 
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/tabularmagic/badge/?version=latest)](https://tabularmagic.readthedocs.io/en/latest/?badge=latest)
 
@@ -68,7 +69,7 @@ lm_report = analyzer.lm(
     formula='target ~ age + bmi'
 )
 print(lm_report.statsmodels_summary())
-reshow(lm_report.train_report().plot_diagnostics(show_outliers=True))
+reshow(lm_report.plot_diagnostics())
 print(lm_report.metrics('test'))
 ```
 

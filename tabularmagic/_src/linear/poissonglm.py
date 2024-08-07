@@ -66,7 +66,7 @@ class PoissonLinearModel:
         self.estimator = None
         self._name = name
         if self._name is None:
-            self._name = "PoissonLinearModel"
+            self._name = "Poisson GLM"
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.

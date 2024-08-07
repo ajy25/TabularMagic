@@ -184,8 +184,10 @@ class SingleModelMLRegReport:
         """
         if dataset == "train":
             return self.train_report().plot_obs_vs_pred(figsize, ax)
-        else:
+        elif dataset == "test":
             return self.test_report().plot_obs_vs_pred(figsize, ax)
+        else:
+            raise ValueError('dataset must be either "train" or "test".')
 
     def fs_report(self) -> VotingSelectionReport | None:
         """Returns the feature selection report. If feature selectors were
@@ -369,7 +371,7 @@ class MLRegressionReport:
             model._name: SingleModelMLRegReport(model) for model in models
         }
 
-    def model_report(self, model_id: str) -> SingleModelMLRegReport:
+    def _model_report(self, model_id: str) -> SingleModelMLRegReport:
         """Returns the SingleModelMLRegReport object for the specified model.
 
         Parameters
@@ -401,14 +403,14 @@ class MLRegressionReport:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
-    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics for
         all models on the specified data.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset for which to return the goodness-of-fit statistics.
 
         Returns
         -------
@@ -489,7 +491,7 @@ class MLRegressionReport:
     def plot_obs_vs_pred(
         self,
         model_id: str,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -502,7 +504,7 @@ class MLRegressionReport:
             The id of the model.
 
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset for which to plot the observed vs predicted values.
 
         figsize : tuple[float, float]
             Default: (5, 5). The size of the figure.

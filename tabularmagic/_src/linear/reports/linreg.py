@@ -756,7 +756,7 @@ class LinearRegressionReport:
         self._train_report = SingleDatasetLinRegReport(model, "train")
         self._test_report = SingleDatasetLinRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetLinRegReport:
+    def _train_report(self) -> SingleDatasetLinRegReport:
         """Returns an SingleDatasetLinRegReport object for the train dataset
 
         Returns
@@ -765,7 +765,7 @@ class LinearRegressionReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetLinRegReport:
+    def _test_report(self) -> SingleDatasetLinRegReport:
         """Returns an SingleDatasetLinRegReport object for the test dataset
 
         Returns
@@ -883,12 +883,12 @@ class LinearRegressionReport:
 
         # Get the models from each report
         original_model = self._train_report.model.estimator
-        alternative_model = alternative_report.train_report().model.estimator
+        alternative_model = alternative_report._train_report().model.estimator
 
         # Get the number of predictors for each model
         num_predictors_orig = len(self._train_report._X_eval_df.columns)
         num_predictors_alternative = len(
-            alternative_report.train_report()._X_eval_df.columns
+            alternative_report._train_report()._X_eval_df.columns
         )
 
         if num_predictors_orig > num_predictors_alternative:
@@ -903,7 +903,7 @@ class LinearRegressionReport:
 
         # Raise ValueError if one set of predictors is not a subset of the other
         orig_var_set = set(self._train_report._X_eval_df.columns)
-        alt_var_set = set(alternative_report.train_report()._X_eval_df.columns)
+        alt_var_set = set(alternative_report._train_report()._X_eval_df.columns)
 
         if not (orig_var_set < alt_var_set or orig_var_set > alt_var_set):
             raise ValueError("One model must be a reduced version of the other")

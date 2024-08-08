@@ -801,7 +801,7 @@ class PoissonRegressionReport:
         self._train_report = SingleDatasetPoisRegReport(model, "train")
         self._test_report = SingleDatasetPoisRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetPoisRegReport:
+    def _train_report(self) -> SingleDatasetPoisRegReport:
         """Returns an SingleDatasetPoisRegReport object for the train dataset
 
         Returns
@@ -810,7 +810,7 @@ class PoissonRegressionReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetPoisRegReport:
+    def _test_report(self) -> SingleDatasetPoisRegReport:
         """Returns an SingleDatasetPoisRegReport object for the test dataset
 
         Returns

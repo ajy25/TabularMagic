@@ -821,7 +821,7 @@ class NegativeBinomialRegressionReport:
         self._train_report = SingleDatasetNegBinRegReport(model, "train")
         self._test_report = SingleDatasetNegBinRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetNegBinRegReport:
+    def _train_report(self) -> SingleDatasetNegBinRegReport:
         """Returns an SingleDatasetNegBinRegReport object for the train
         dataset
 
@@ -831,7 +831,7 @@ class NegativeBinomialRegressionReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetNegBinRegReport:
+    def _test_report(self) -> SingleDatasetNegBinRegReport:
         """Returns an SingleDatasetNegBinRegReport object for the test dataset
 
         Returns

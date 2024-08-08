@@ -238,7 +238,7 @@ class SingleDatasetPoisRegReport:
 
     def plot_residuals_vs_var(
         self,
-        x_var: str,
+        predictor: str,
         standardized: bool = False,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -248,7 +248,7 @@ class SingleDatasetPoisRegReport:
 
         Parameters
         ----------
-        x_var : str
+        predictor : str
             The predictor variable whose values should be plotted on the x-axis.
 
         standardized : bool
@@ -275,7 +275,7 @@ class SingleDatasetPoisRegReport:
         if standardized:
             residuals = self._stdresiduals
 
-        x_vals = self._X_eval_df[x_var].to_numpy()
+        x_vals = self._X_eval_df[predictor].to_numpy()
 
         ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
         if show_outliers and self._n_outliers > 0:
@@ -309,13 +309,13 @@ class SingleDatasetPoisRegReport:
         else:
             ax.scatter(x_vals, residuals, s=2, color="black")
 
-        ax.set_xlabel(x_var)
+        ax.set_xlabel(predictor)
         if standardized:
             ax.set_ylabel("Standardized Residuals")
-            ax.set_title(f"Standardized Residuals vs {x_var}")
+            ax.set_title(f"Standardized Residuals vs {predictor}")
         else:
             ax.set_ylabel("Residuals")
-            ax.set_title(f"Residuals vs {x_var}")
+            ax.set_title(f"Residuals vs {predictor}")
         ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
 
         if fig is not None:
@@ -801,7 +801,7 @@ class PoissonRegressionReport:
         self._train_report = SingleDatasetPoisRegReport(model, "train")
         self._test_report = SingleDatasetPoisRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetPoisRegReport:
+    def _train_report(self) -> SingleDatasetPoisRegReport:
         """Returns an SingleDatasetPoisRegReport object for the train dataset
 
         Returns
@@ -810,7 +810,7 @@ class PoissonRegressionReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetPoisRegReport:
+    def _test_report(self) -> SingleDatasetPoisRegReport:
         """Returns an SingleDatasetPoisRegReport object for the test dataset
 
         Returns
@@ -923,16 +923,19 @@ class PoissonRegressionReport:
 
     def plot_obs_vs_pred(
         self,
+        dataset: Literal["train", "test"] = "test",
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a scatter plot of the true and predicted y
         values.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         show_outliers : bool
             Default: True.
             If True, then the outliers calculated using standard errors will be
@@ -943,9 +946,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default: None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -962,16 +962,19 @@ class PoissonRegressionReport:
 
     def plot_residuals_vs_fitted(
         self,
+        dataset: Literal["train", "test"] = "test",
         standardized: bool = False,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         standardized : bool
             Default: False. If True, plots the standardized residuals as
             opposed to the raw residuals.
@@ -985,9 +988,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default = None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -1010,19 +1010,22 @@ class PoissonRegressionReport:
 
     def plot_residuals_vs_var(
         self,
-        x_var: str,
+        predictor: str,
+        dataset: Literal["train", "test"] = "test",
         standardized: bool = False,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a residuals vs fitted (y_pred) plot.
 
         Parameters
         ----------
-        x_var : str
+        predictor : str
             The predictor variable whose values should be plotted on the x-axis.
+
+        dataset : Literal['train', 'test']
+            Default: 'test'.
 
         standardized : bool
             Default: False. If True, standardizes the residuals.
@@ -1036,16 +1039,13 @@ class PoissonRegressionReport:
         ax : plt.Axes
             Default: None.
 
-        dataset : Literal['train', 'test']
-            Default: 'test'.
-
         Returns
         -------
         plt.Figure
         """
         if dataset == "train":
             return self._train_report.plot_residuals_vs_var(
-                x_var=x_var,
+                predictor=predictor,
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
@@ -1053,7 +1053,7 @@ class PoissonRegressionReport:
             )
         else:
             return self._test_report.plot_residuals_vs_var(
-                x_var=x_var,
+                predictor=predictor,
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
@@ -1062,16 +1062,19 @@ class PoissonRegressionReport:
 
     def plot_residuals_hist(
         self,
+        dataset: Literal["train", "test"] = "test",
         standardized: bool = False,
         density: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a histogram of the residuals.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         standardized : bool
             Default: False. If True, standardizes the residuals.
 
@@ -1083,9 +1086,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default: None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -1102,16 +1102,19 @@ class PoissonRegressionReport:
 
     def plot_scale_location(
         self,
+        dataset: Literal["train", "test"] = "test",
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a plot of the
         sqrt of the residuals versus the fitted.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         show_outliers : bool
             Default: True. If True, plots the outliers in red.
 
@@ -1120,9 +1123,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default: None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -1139,16 +1139,19 @@ class PoissonRegressionReport:
 
     def plot_residuals_vs_leverage(
         self,
+        dataset: Literal["train", "test"] = "test",
         standardized: bool = True,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a figure that is a plot of the residuals versus leverage.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         standardized : bool
             Default: True. If True, standardizes the residuals.
 
@@ -1160,9 +1163,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default: None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -1185,16 +1185,19 @@ class PoissonRegressionReport:
 
     def plot_qq(
         self,
+        dataset: Literal["train", "test"] = "test",
         standardized: bool = True,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Returns a quantile-quantile plot.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         standardized : bool
             Default: True. If True, standardizes the residuals.
 
@@ -1206,9 +1209,6 @@ class PoissonRegressionReport:
 
         ax : plt.Axes
             Default: None.
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------
@@ -1231,22 +1231,22 @@ class PoissonRegressionReport:
 
     def plot_diagnostics(
         self,
+        dataset: Literal["train", "test"] = "test",
         show_outliers: bool = False,
         figsize: tuple[float, float] = (7.0, 7.0),
-        dataset: Literal["train", "test"] = "test",
     ) -> plt.Figure:
         """Plots several useful linear regression diagnostic plots.
 
         Parameters
         ----------
+        dataset : Literal['train', 'test']
+            Default: 'test'.
+
         show_outliers : bool
             Default: False. If True, plots the residual outliers in red.
 
         figsize : tuple[float, float]
             Default: (7.0, 7.0).
-
-        dataset : Literal['train', 'test']
-            Default: 'test'.
 
         Returns
         -------

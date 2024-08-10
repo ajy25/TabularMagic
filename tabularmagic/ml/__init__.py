@@ -1,8 +1,7 @@
 from .._src.ml.predict.regression import (
     LinearR,
     RobustLinearR,
-    TreeR,
-    TreeEnsembleR,
+    TreesR,
     MLPR,
     SVMR,
     CustomR,
@@ -10,8 +9,7 @@ from .._src.ml.predict.regression import (
 )
 from .._src.ml.predict.classification import (
     LinearC,
-    TreeC,
-    TreeEnsembleC,
+    TreesC,
     MLPC,
     SVMC,
     CustomC,
@@ -22,14 +20,12 @@ from .._src.ml.predict.classification import (
 __all__ = [
     "LinearR",
     "RobustLinearR",
-    "TreeR",
-    "TreeEnsembleR",
+    "TreesR",
     "MLPR",
     "SVMR",
     "CustomR",
     "LinearC",
-    "TreeC",
-    "TreeEnsembleC",
+    "TreesC",
     "CustomC",
     "MLPC",
     "SVMC",

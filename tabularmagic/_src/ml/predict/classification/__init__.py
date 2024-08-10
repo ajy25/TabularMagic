@@ -1,5 +1,5 @@
 from .linear import LinearC
-from .trees import TreeC, TreeEnsembleC
+from .trees import TreesC
 from .custom import CustomC
 from .mlp import MLPC
 from .svm import SVMC
@@ -9,8 +9,7 @@ from .mlclass_report import MLClassificationReport
 
 __all__ = [
     "LinearC",
-    "TreeC",
-    "TreeEnsembleC",
+    "TreesC",
     "CustomC",
     "MLPC",
     "SVMC",

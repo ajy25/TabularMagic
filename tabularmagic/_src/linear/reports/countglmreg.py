@@ -65,7 +65,7 @@ class CountRegressionReport:
             self._train_report = SingleDatasetNegBinRegReport(model, "train")
             self._test_report = SingleDatasetNegBinRegReport(model, "test")
 
-    def _train_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
+    def train_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
         """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
         object for the train dataset depending on the statistical test
         for overdispersion.
@@ -76,7 +76,7 @@ class CountRegressionReport:
         """
         return self._train_report
 
-    def _test_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
+    def test_report(self) -> SingleDatasetPoisRegReport | SingleDatasetNegBinRegReport:
         """Returns a SingleDatasetPoisRegReport or a SingleDatasetNegBinRegReport
         object for the test dataset depending on the statistical test
         for overdispersion.

@@ -748,7 +748,7 @@ class BinomialRegressionReport:
         self._train_report = SingleDatasetBinRegReport(model, "train")
         self._test_report = SingleDatasetBinRegReport(model, "test")
 
-    def _train_report(self) -> SingleDatasetBinRegReport:
+    def train_report(self) -> SingleDatasetBinRegReport:
         """Returns a SingleDatasetBinRegReport object for the train dataset
 
         Returns
@@ -757,7 +757,7 @@ class BinomialRegressionReport:
         """
         return self._train_report
 
-    def _test_report(self) -> SingleDatasetBinRegReport:
+    def test_report(self) -> SingleDatasetBinRegReport:
         """Returns a SingleDatasetBinRegReport object for the test dataset
 
         Returns

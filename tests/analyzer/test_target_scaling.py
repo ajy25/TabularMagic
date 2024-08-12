@@ -165,7 +165,7 @@ def test_ml_scaling_simple(setup_data):
     analyzer.load_data_checkpoint()
     analyzer.scale(include_vars=["y"], strategy="log1p")
     report = analyzer.regress(
-        models=[tm.ml.LinearR(name="ols"), tm.ml.TreeR(name="tree", n_trials=3)],
+        models=[tm.ml.LinearR(name="ols"), tm.ml.TreesR(name="tree", n_trials=3)],
         target="y",
     )
     assert isinstance(

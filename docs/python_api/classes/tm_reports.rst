@@ -103,3 +103,13 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
     :members:
         top_features, all_features, votes
 
+:py:mod:`tm._reports.StatisticalTestReport`
+-------------------------------------------
+
+.. autoclass:: StatisticalTestReport
+    :members:
+        pval, statistic
+        
+
+
+

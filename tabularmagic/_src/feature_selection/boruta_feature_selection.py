@@ -88,6 +88,7 @@ class BorutaFSC(BaseFSC):
         self,
         estimator: Literal["tree", "rf", "xgb"] = "rf",
         n_estimators: int = 100,
+        model_random_state: int = 42,
         name: str | None = None,
     ):
         """
@@ -100,7 +101,10 @@ class BorutaFSC(BaseFSC):
             hyperparameters are used for the estimator.
 
         n_estimators : int
-            Default: 100. The number of estimators to use for Boruta.
+            Default: 100. The number of estimators to use for Boruta's estimator.
+
+        model_random_state : int
+            Default: 42. The random state to use for the estimator.
 
         name : str | None
             Default: None. If None, then outputs the default name.
@@ -111,11 +115,11 @@ class BorutaFSC(BaseFSC):
 
         sk_estimator = None
         if estimator == "tree":
-            sk_estimator = DecisionTreeClassifier()
+            sk_estimator = DecisionTreeClassifier(random_state=model_random_state)
         elif estimator == "rf":
-            sk_estimator = RandomForestClassifier()
+            sk_estimator = RandomForestClassifier(random_state=model_random_state)
         elif estimator == "xgb":
-            sk_estimator = XGBClassifier()
+            sk_estimator = XGBClassifier(random_state=model_random_state)
         else:
             raise ValueError(
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"

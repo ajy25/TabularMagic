@@ -27,18 +27,10 @@ hyperparameter optimization, and cross-validation.
         __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
 
-:py:mod:`tm.ml.TreeR`
----------------------
-
-.. autoclass:: TreeR
-    :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
-
-
-:py:mod:`tm.ml.TreeEnsembleR`
+:py:mod:`tm.ml.TreesR`
 -----------------------------
 
-.. autoclass:: TreeEnsembleR
+.. autoclass:: TreesR
     :members: 
         __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, predictors, feature_importance
 
@@ -68,18 +60,10 @@ hyperparameter optimization, and cross-validation.
         __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 
 
-:py:mod:`tm.ml.TreeC`
----------------------
-
-.. autoclass:: TreeC
-    :members: 
-        __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
-
-
-:py:mod:`tm.ml.TreeEnsembleC`
+:py:mod:`tm.ml.TreesC`
 -----------------------------
 
-.. autoclass:: TreeEnsembleC
+.. autoclass:: TreesC
     :members: 
         __init__, specify_data, fit, sklearn_estimator, sklearn_pipeline, hyperparam_searcher, fs_report, is_cross_validated, is_binary, predictors, feature_importance
 

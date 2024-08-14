@@ -1,4 +1,4 @@
-from .eda import EDAReport, StatisticalTestResult
+from .eda import EDAReport, StatisticalTestReport
 
 
-__all__ = ["EDAReport", "StatisticalTestResult"]
+__all__ = ["EDAReport", "StatisticalTestReport"]

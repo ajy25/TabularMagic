@@ -17,8 +17,6 @@ from optuna.distributions import (
 from ....feature_selection import BaseFSC
 
 
-
-
 class TreesC(BaseC):
     """Tree ensemble classifier.
 
@@ -112,7 +110,6 @@ class TreesC(BaseC):
 
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features
-
 
         if type == "decision_tree":
             self._best_estimator = DecisionTreeClassifier(
@@ -251,5 +248,3 @@ class TreesC(BaseC):
         )
 
         self._validate_inputs()
-
-

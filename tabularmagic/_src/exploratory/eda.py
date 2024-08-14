@@ -8,7 +8,7 @@ from typing import Literal
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
-from .stattests import StatisticalTestResult
+from ..stattests import StatisticalTestReport
 from ..display.print_utils import print_wrapped
 
 
@@ -756,7 +756,7 @@ class EDAReport:
 
     def test_equal_means(
         self, numeric_var: str, stratify_by: str
-    ) -> StatisticalTestResult:
+    ) -> StatisticalTestReport:
         """Conducts the appropriate statistical test to
         test for equal means between two ore more groups (null hypothesis).
 
@@ -792,7 +792,7 @@ class EDAReport:
         numeric_var: str,
         stratify_by: str,
         strategy: Literal["auto", "anova_oneway", "kruskal"] = "auto",
-    ) -> StatisticalTestResult:
+    ) -> StatisticalTestReport:
         """Tests for equal means between three or more groups.
         Null hypothesis: All group means are equal.
         Alternative hypothesis: At least one group's mean is different from the others.
@@ -861,7 +861,7 @@ class EDAReport:
 
         if strategy == "kruskal":
             h_stat, p_val = stats.kruskal(*groups)
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="Kruskal-Wallis test",
                 statistic=h_stat,
                 pval=p_val,
@@ -877,7 +877,7 @@ class EDAReport:
         elif strategy == "anova_oneway":
             f_stat, p_val = stats.f_oneway(*groups)
 
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="One-way ANOVA",
                 statistic=f_stat,
                 pval=p_val,
@@ -898,7 +898,7 @@ class EDAReport:
         numeric_var: str,
         stratify_by: str,
         strategy: Literal["auto", "student", "welch", "yuen", "mann-whitney"] = "welch",
-    ) -> StatisticalTestResult:
+    ) -> StatisticalTestReport:
         """Conducts the appropriate statistical test to test for equal means between
         two groups. The parameter stratify_by must be the name of a binary variable,
         i.e. a categorical or numeric variable with exactly two unique values.
@@ -1007,7 +1007,7 @@ class EDAReport:
             ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=True, alternative="two-sided"
             )
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="Student's t-test",
                 statistic=ttest_result.statistic,
                 pval=ttest_result.pvalue,
@@ -1028,7 +1028,7 @@ class EDAReport:
             ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=False, alternative="two-sided"
             )
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="Welch's t-test",
                 statistic=ttest_result.statistic,
                 pval=ttest_result.pvalue,
@@ -1047,7 +1047,7 @@ class EDAReport:
             ttest_result = stats.ttest_ind(
                 group_1, group_2, equal_var=False, trim=0.1, alternative="two-sided"
             )
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="Yuen's (20% trimmed mean) t-test",
                 statistic=ttest_result.statistic,
                 pval=ttest_result.pvalue,
@@ -1069,7 +1069,7 @@ class EDAReport:
             u_stat, p_val = stats.mannwhitneyu(
                 group_1, group_2, alternative="two-sided"
             )
-            return StatisticalTestResult(
+            return StatisticalTestReport(
                 description="Mann-Whitney U test",
                 statistic=u_stat,
                 pval=p_val,

@@ -1,10 +1,8 @@
 import pandas as pd
 
 
-
-
 class DataHandler_v2:
-    """DataHandler: a class that handles all aspects of data 
+    """DataHandler: a class that handles all aspects of data
     preprocessing and loading."""
 
     def __init__(
@@ -31,6 +29,7 @@ class DataHandler_v2:
             Default: True. If True, prints updates and warnings.
         """
 
-    
-    
-
+        self._og_df_train = df_train
+        self._og_df_test = df_test
+        self._name = name
+        self._verbose = verbose

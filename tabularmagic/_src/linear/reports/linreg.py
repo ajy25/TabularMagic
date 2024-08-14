@@ -11,7 +11,7 @@ from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..lm import OLSLinearModel
 from ...display.print_utils import print_wrapped
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
-from ...exploratory.stattests import StatisticalTestResult
+from ...stattests import StatisticalTestReport
 
 
 class SingleDatasetLinRegReport:
@@ -864,7 +864,7 @@ class LinearRegressionReport:
 
     def test_lr(
         self, alternative_report: "LinearRegressionReport"
-    ) -> StatisticalTestResult:
+    ) -> StatisticalTestReport:
         """Performs a likelihood ratio test to compare an alternative
         OLSLinearModel. Returns an object of class StatisticalTestResult
         describing the results.
@@ -915,7 +915,7 @@ class LinearRegressionReport:
             lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
 
         # Initialize and return an object of class StatisticalTestResult
-        lr_result = StatisticalTestResult(
+        lr_result = StatisticalTestReport(
             description="Likelihood Ratio Test",
             statistic=lr_stat,
             pval=p_value,
@@ -981,7 +981,7 @@ class LinearRegressionReport:
             f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
 
         # Initialize and return an object of class StatisticalTestResult
-        partial_f_result = StatisticalTestResult(
+        partial_f_result = StatisticalTestReport(
             description="Partial F-Test",
             statistic=f_value,
             pval=p_value,
@@ -1352,9 +1352,7 @@ class LinearRegressionReport:
             )
 
     def set_outlier_threshold(
-        self, 
-        threshold: float, 
-        dataset: Literal["train", "test"] = "test"
+        self, threshold: float, dataset: Literal["train", "test"] = "test"
     ) -> "SingleDatasetLinRegReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.

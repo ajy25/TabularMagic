@@ -23,10 +23,8 @@ from ..display.print_options import print_options
 from .dataemitter import DataEmitter, PreprocessStepTracer
 
 
-
-
 class DataHandler:
-    """DataHandler: a class that handles all aspects of data 
+    """DataHandler: a class that handles all aspects of data
     preprocessing and loading."""
 
     def __init__(

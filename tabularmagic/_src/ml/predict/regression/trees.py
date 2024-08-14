@@ -17,7 +17,6 @@ from optuna.distributions import (
 from ....feature_selection import BaseFSR
 
 
-
 class TreesR(BaseR):
     """Tree ensemble regressor.
 

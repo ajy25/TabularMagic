@@ -13,6 +13,8 @@ from .._src.exploratory import EDAReport
 
 from .._src.feature_selection import VotingSelectionReport
 
+from .._src.stattests import StatisticalTestReport
+
 
 __all__ = [
     "PoissonRegressionReport",
@@ -24,4 +26,5 @@ __all__ = [
     "MLClassificationReport",
     "EDAReport",
     "VotingSelectionReport",
+    "StatisticalTestReport",
 ]

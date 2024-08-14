@@ -41,25 +41,31 @@ class HyperparameterSearcher:
         inner_cv: int | BaseCrossValidator = 5,
         inner_cv_seed: int = 42,
         estimator_name: str | None = None,
-        **kwargs,
+        **kwargs: dict,
     ):
         """Initializes a HyperparameterSearch object.
 
         Parameters
         ----------
-        estimator : sklearn.base.BaseEstimator.
-        method : str.
+        estimator : BaseEstimator
+
+        method : str
             Must be an element in ['optuna', 'grid'].
-        hyperparam_grid : Mapping[str, Iterable | BaseDistribution].
+
+        hyperparam_grid : Mapping[str, Iterable | BaseDistribution]
             Specification of the set/distribution of hyperparameters to
             search through.
-        inner_cv : int | BaseCrossValidator.
+
+        inner_cv : int | BaseCrossValidator
             Default: 5-fold cross validation.
-        inner_cv_seed : int.
+
+        inner_cv_seed : int
             Default: 42.
-        estimator_name : str.
+
+        estimator_name : str
             Default: None. Name of the estimator.
-        kwargs.
+
+        **kwargs : dict
             Key word arguments are passed directly into the intialization of the
             hyperparameter search method.
         """

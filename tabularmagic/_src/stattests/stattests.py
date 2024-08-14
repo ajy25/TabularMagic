@@ -4,7 +4,7 @@ from ..display.print_utils import color_text, bold_text, fill_ignore_format
 from ..display.print_options import print_options
 
 
-class StatisticalTestResult:
+class StatisticalTestReport:
     """Class for storing and displaying statistical test results."""
 
     def __init__(
@@ -73,11 +73,11 @@ class StatisticalTestResult:
         self._assumptions_description = assumptions_description
         self._long_description = long_description
 
-    def pval(self):
+    def pval(self) -> float:
         """Returns the p-value."""
         return self._pval
 
-    def statistic(self):
+    def statistic(self) -> float:
         """Returns the statistic."""
         return self._statistic
 

@@ -81,7 +81,7 @@ class DataHandler:
 
         # set the name
         if name is None:
-            self._name = "DataHandler"
+            self._name = "Unnamed Dataset"
         else:
             self._name = name
 
@@ -135,7 +135,7 @@ class DataHandler:
                 shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
                     "Working DataFrames reset to checkpoint "
-                    + f'{color_text(checkpoint, "yellow")}. '
+                    + f'{color_text(checkpoint, "blue")}. '
                     + "Shapes of train, test DataFrames: "
                     + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type="UPDATE",
@@ -166,7 +166,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 "Saved working DataFrames checkpoint "
-                + f'{color_text(checkpoint, "yellow")}.',
+                + f'{color_text(checkpoint, "blue")}.',
                 type="UPDATE",
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -195,7 +195,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 "Removed working DataFrames checkpoint "
-                + f'{color_text(out_chkpt, "yellow")}.',
+                + f'{color_text(out_chkpt, "blue")}.',
                 type="UPDATE",
             )
         return self
@@ -526,6 +526,11 @@ class DataHandler:
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
 
+        if len(include_vars) == 0:
+            if self._verbose:
+                print_wrapped("No categorical variables found.", type="WARNING")
+            return self
+
         self._working_df_train = self._onehot_helper(
             self._working_df_train, vars=include_vars, dropfirst=dropfirst, fit=True
         )
@@ -669,9 +674,9 @@ class DataHandler:
                 print_wrapped(
                     "Imputed missing values with "
                     + "numeric strategy "
-                    + f'{color_text(numeric_strategy, "yellow")} and '
+                    + f'{color_text(numeric_strategy, "blue")} and '
                     + "categorical strategy "
-                    + f'{color_text(categorical_strategy, "yellow")}.',
+                    + f'{color_text(categorical_strategy, "blue")}.',
                     type="UPDATE",
                 )
 
@@ -753,7 +758,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 f"Scaled variables {list_to_string(include_vars)} "
-                + f'using strategy {color_text(strategy, "yellow")}.',
+                + f'using strategy {color_text(strategy, "blue")}.',
                 type="UPDATE",
             )
 
@@ -925,7 +930,7 @@ class DataHandler:
 
         rename : bool
             Default: False. If True, the variables are renamed to
-            {pos_label}_yn({var}).
+            {pos_label}_yn::{var}.
 
         Returns
         -------
@@ -984,7 +989,7 @@ class DataHandler:
                     lambda x: 1 if x == pos_label else 0
                 )
 
-            vars_to_renamed[var] = f"{pos_label}_yn({var})"
+            vars_to_renamed[var] = f"{pos_label}_yn::{var}"
 
         if rename:
             self._working_df_train = self._working_df_train.rename(
@@ -1033,8 +1038,8 @@ class DataHandler:
         return self
 
     def force_categorical(self, vars: list[str]) -> "DataHandler":
-        """Forces variables to become categorical.
-        Example use case: create numericly-coded categorical variables.
+        """Forces variables to become categorical. That is, converts the
+        variables to string dtype.
 
         Parameters
         ----------
@@ -1187,12 +1192,14 @@ class DataHandler:
         return df_train, df_test
 
     def _rename_varnames(self, df_train: pd.DataFrame, df_test: pd.DataFrame):
-        """Renames variables to remove 'problematic' characters.
+        """Renames variables to remove 'problematic' characters. We allow
+        underscores, colons, semicolons, and parentheses in variable names,
+        in addition to alphanumeric characters. We replace other characters with
+        underscores.
 
         We remove the following characters from variable names:
-        1. ' ' (whitespace)
-        2. '\\n' (newline)
-        3. '\\t' (tab)
+            '.', ',', '[', ']', '{', '}', '+', '-', '*', '/', '\\', '|', '&',
+            '%', '$', '#', '\\n', '\\t'
 
         Parameters
         ----------
@@ -1214,6 +1221,22 @@ class DataHandler:
 
         problematic_chars = [
             " ",
+            ".",
+            ",",
+            "[",
+            "]",
+            "{",
+            "}",
+            "+",
+            "-",
+            "*",
+            "/",
+            "\\",
+            "|",
+            "&",
+            "%",
+            "$",
+            "#",
             "\n",
             "\t",
         ]
@@ -1225,7 +1248,7 @@ class DataHandler:
             orig_var = var
             for char in problematic_chars:
                 if char in var:
-                    var = var.replace(char, "")
+                    var = var.replace(char, "_")
 
             if var != orig_var:
                 renamed_vars.append(var)
@@ -1258,8 +1281,8 @@ class DataHandler:
             }
         """
         return {
-            "train": color_text(str(self._working_df_train.shape), color="yellow"),
-            "test": color_text(str(self._working_df_test.shape), color="yellow"),
+            "train": color_text(str(self._working_df_train.shape), color="blue"),
+            "test": color_text(str(self._working_df_test.shape), color="blue"),
         }
 
     def _compute_categories(
@@ -1317,11 +1340,8 @@ class DataHandler:
         if vars is None:
             categorical_vars, _, _ = self._compute_categorical_numeric_vars(df)
         else:
-            print("test", vars)
-            print(df.columns)
             for var in vars:
                 if var not in df.columns:
-                    print("FAIL:", var in df.columns)
                     raise ValueError(f"Invalid variable name: {var}")
             categorical_vars = vars
 
@@ -1377,10 +1397,10 @@ class DataHandler:
 
         shapes_message = (
             color_text(bold_text("Train shape: "), "none")
-            + color_text(str(working_df_train.shape), "yellow")
+            + color_text(str(working_df_train.shape), "blue")
             + " " * shapes_message_buffer_left
             + color_text(bold_text("Test shape: "), "none")
-            + color_text(str(working_df_test.shape), "yellow")
+            + color_text(str(working_df_test.shape), "blue")
             + " " * shapes_message_buffer_right
         )
 
@@ -1394,7 +1414,7 @@ class DataHandler:
         categorical_vars = self.categorical_vars()
         categorical_var_message = ""
         if len(categorical_vars) == 0:
-            categorical_var_message += color_text("None", "yellow")
+            categorical_var_message += color_text("None", "blue")
         else:
             categorical_var_message += list_to_string(categorical_vars)
         categorical_var_message = fill_ignore_format(
@@ -1409,7 +1429,7 @@ class DataHandler:
         numeric_vars = self.numeric_vars()
         numeric_var_message = ""
         if len(numeric_vars) == 0:
-            numeric_var_message += color_text("None", "yellow")
+            numeric_var_message += color_text("None", "blue")
         else:
             numeric_var_message += list_to_string(numeric_vars)
         numeric_var_message = fill_ignore_format(

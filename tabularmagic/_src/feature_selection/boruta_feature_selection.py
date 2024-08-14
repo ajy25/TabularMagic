@@ -15,6 +15,7 @@ class BorutaFSR(BaseFSR):
         self,
         estimator: Literal["tree", "rf", "xgb"] = "rf",
         n_estimators: int = 100,
+        model_random_state: int = 42,
         name: str | None = None,
     ):
         """
@@ -29,6 +30,9 @@ class BorutaFSR(BaseFSR):
         n_estimators : int
             Default: 100. The number of estimators to use for Boruta.
 
+        model_random_state : int
+            Default: 42. The random state to use for the estimator.
+
         name : str | None
             Default: None. If None, then outputs the default name.
         """
@@ -38,17 +42,21 @@ class BorutaFSR(BaseFSR):
 
         sk_estimator = None
         if estimator == "tree":
-            sk_estimator = DecisionTreeRegressor()
+            sk_estimator = DecisionTreeRegressor(random_state=model_random_state)
         elif estimator == "rf":
-            sk_estimator = RandomForestRegressor()
+            sk_estimator = RandomForestRegressor(random_state=model_random_state)
         elif estimator == "xgb":
-            sk_estimator = XGBRegressor()
+            sk_estimator = XGBRegressor(random_state=model_random_state)
         else:
             raise ValueError(
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
             )
 
-        self._selector = BorutaPy(estimator=sk_estimator, n_estimators=n_estimators)
+        self._selector = BorutaPy(
+            estimator=sk_estimator,
+            n_estimators=n_estimators,
+            random_state=model_random_state,
+        )
 
     def select(
         self, dataemitter: DataEmitter
@@ -125,7 +133,11 @@ class BorutaFSC(BaseFSC):
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
             )
 
-        self._selector = BorutaPy(estimator=sk_estimator, n_estimators=n_estimators)
+        self._selector = BorutaPy(
+            estimator=sk_estimator,
+            n_estimators=n_estimators,
+            random_state=model_random_state,
+        )
 
     def select(
         self, dataemitter: DataEmitter

@@ -11,12 +11,16 @@ def is_numeric(var: str, df: pd.DataFrame):
 
     Parameters
     ----------
-    var : str. The name of the column to be checked.
-    df : pd.DataFrame. The DataFrame containing the variable.
+    var : str
+        The name of the column to be checked.
+
+    df : pd.DataFrame
+        The DataFrame containing the variable.
 
     Returns
     -------
-    bool. True if the variable is numeric, False otherwise.
+    bool
+        True if the variable is numeric, False otherwise.
     """
     dtype = df[var].dtype
     if pd.api.types.is_numeric_dtype(dtype):
@@ -30,12 +34,13 @@ def poly(x: np.ndarray, degree: int):
 
     Parameters
     ----------
-    - x : np.ndarray ~ (n)
-    - degree : int
+    x : np.ndarray
+
+    degree : int
 
     Returns
     -------
-    - x_transformed : np.ndarray ~ (n, degree)
+    np.ndarray ~ (n, degree)
     """
     assert len(x.shape) == 1
     x = np.array(x)
@@ -73,8 +78,9 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
 
     Parameters
     ----------
-    expression : str.
-    df : pd.DataFrame.
+    expression : str
+
+    df : pd.DataFrame
 
     Returns
     -------

@@ -5,7 +5,14 @@ import warnings
 from .base import BaseR
 from ....data.datahandler import DataHandler
 from ....metrics.visualization import plot_obs_vs_pred
-from ....display.print_utils import print_wrapped
+from ....display.print_utils import (
+    print_wrapped,
+    color_text,
+    bold_text,
+    list_to_string,
+    fill_ignore_format,
+)
+from ....display.print_options import print_options
 from ....feature_selection import BaseFSR, VotingSelectionReport
 
 
@@ -539,3 +546,46 @@ class MLRegressionReport:
 
     def __getitem__(self, model_id: str) -> SingleModelMLRegReport:
         return self._id_to_report[model_id]
+
+    def __str__(self) -> str:
+        max_width = print_options._max_line_width
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("ML Regression Report")
+
+        target_var = "'" + self._y_var + "'"
+        target_message = fill_ignore_format(
+            f"{bold_text('Target variable:')} " f'{color_text(target_var, "purple")}'
+        )
+
+        predictors_message = fill_ignore_format(
+            f"{bold_text('Predictor variables:')} " f"{list_to_string(self._X_vars)}"
+        )
+
+        models_str = list_to_string(
+            [model._name for model in self._models],
+            color="yellow",
+            include_quotes=False,
+        )
+
+        models_message = fill_ignore_format(
+            f"{bold_text('Models evaluated:')} " f"{models_str}"
+        )
+
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider
+            + models_message
+            + bottom_divider
+        )
+
+        return final_message

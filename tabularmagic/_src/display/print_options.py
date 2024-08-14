@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 import sys
-import warnings
 
 
 def make_default_logger() -> logging.Logger:
@@ -23,8 +22,6 @@ class _PrintOptions:
 
         self._n_decimals = 5
         self._max_line_width = 88  # consistent with Python Black
-        self._warnings = False
-        warnings.filterwarnings("ignore")
 
     def _log_info(self, msg: str):
         if not self._muted:
@@ -69,16 +66,6 @@ class _PrintOptions:
     def unmute(self):
         """Unmutes. Messages will be printed."""
         self._muted = False
-
-    def unmute_warnings(self):
-        """Unmutes warnings."""
-        self._warnings = True
-        warnings.filterwarnings("default")
-
-    def mute_warnings(self):
-        """Mutes warnings."""
-        self._warnings = False
-        warnings.filterwarnings("ignore")
 
 
 print_options = _PrintOptions()

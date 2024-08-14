@@ -87,7 +87,7 @@ class KBestFSR(BaseFSR):
 
 class LassoFSR(BaseFSR):
     """Selects the (at most) k best features via Lasso regression model-inherent
-    feature selection based on the training data.
+    feature selection.
     """
 
     def __init__(
@@ -106,7 +106,8 @@ class LassoFSR(BaseFSR):
 
         alpha : float | None
             Default: None. Regularization term weight. If None,
-            then alpha is selected via cross-validation.
+            then alpha is selected via five-fold cross validation from a default
+            grid of candidate alphas.
 
         name : str | None
             Default: None. If None, then name is set to default.
@@ -115,7 +116,7 @@ class LassoFSR(BaseFSR):
             name = "LassoFSR"
         super().__init__(name)
         if alpha is None:
-            self._model = LassoCV()
+            self._model = LassoCV(cv=5)
         else:
             self._model = Lasso(alpha=alpha)
         self._max_n_features = max_n_features

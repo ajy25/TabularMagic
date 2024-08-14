@@ -75,7 +75,9 @@ def print_wrapped(
 
 
 def list_to_string(
-    lst, color: Literal["red", "blue", "green", "yellow", "purple", "none"] = "purple"
+    lst,
+    color: Literal["red", "blue", "green", "yellow", "purple", "none"] = "purple",
+    include_quotes: bool = True,
 ) -> str:
     """
     Converts a Python list to a string representation with
@@ -89,13 +91,17 @@ def list_to_string(
     color : Literal['red', 'blue', 'green', 'yellow', 'purple', 'none']
         Default: 'purple'. The color of the elements.
 
+    include_quotes : bool
+        Default: True. If True, the elements are enclosed in quotes.
+
     Returns
     -------
     str
     """
     msg = ""
     for i, elem in enumerate(lst):
-        elem = f"'{elem}'"
+        if include_quotes:
+            elem = f"'{elem}'"
         if i == len(lst) - 1:
             msg += color_text(elem, color)
         else:

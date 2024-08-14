@@ -23,7 +23,7 @@ from .linear import (
 from .exploratory import (
     EDAReport,
 )
-from .display.print_utils import print_wrapped
+from .display.print_utils import print_wrapped, color_text
 from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
 from .utils import ensure_arg_list_uniqueness
@@ -55,7 +55,7 @@ class Analyzer:
         test_size: float = 0.0,
         split_seed: int = 42,
         verbose: bool = True,
-        name: str = "Analyzer",
+        name: str = "Unnamed Dataset",
     ):
         """Initializes a Analyzer object.
 
@@ -81,10 +81,11 @@ class Analyzer:
 
         verbose : bool
             Default: False. If True, prints helpful update messages for certain
-                Analyzer function calls.
+            Analyzer function calls.
 
         name : str
-            Default: 'Analyzer'. Identifier for the Analyzer.
+            Default: 'Unnamed Dataset'. Name of the dataset the Analyzer is
+            initialized for.
         """
 
         self._verbose = verbose
@@ -124,7 +125,7 @@ class Analyzer:
         if self._verbose:
             shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
-                "Analyzer initialized. "
+                f"Analyzer initialized for dataset {color_text(self._name, 'blue')}. "
                 + "Shapes of train, test DataFrames: "
                 + f'{shapes_dict["train"]}, '
                 + f'{shapes_dict["test"]}.',

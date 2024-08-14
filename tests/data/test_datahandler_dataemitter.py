@@ -154,11 +154,11 @@ def test_force_binary(setup_data):
         ["categorical_var"], pos_labels=["A"], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn(categorical_var)", "numeric_var"]
+        "binary_var", ["A_yn::categorical_var", "numeric_var"]
     )
     assert (
-        dh_emitter._working_df_train["A_yn(categorical_var)"].dtype
-        == de._working_df_train["A_yn(categorical_var)"].dtype
+        dh_emitter._working_df_train["A_yn::categorical_var"].dtype
+        == de._working_df_train["A_yn::categorical_var"].dtype
     )
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -167,9 +167,9 @@ def test_force_binary(setup_data):
         ["numeric_var"], pos_labels=[5.2], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn(categorical_var)", "5.2_yn(numeric_var)"]
+        "binary_var", ["A_yn::categorical_var", "5.2_yn::numeric_var"]
     )
-    assert dh._working_df_train["5.2_yn(numeric_var)"].dtype == "int64"
+    assert dh._working_df_train["5.2_yn::numeric_var"].dtype == "int64"
     assert dh_emitter._working_df_train.shape == dh._working_df_train.shape
 
 
@@ -184,9 +184,9 @@ def test_onehot(setup_data):
         [
             col in dh._working_df_train.columns
             for col in [
-                "A_yn(categorical_var)",
-                "B_yn(categorical_var)",
-                "C_yn(categorical_var)",
+                "A_yn::categorical_var",
+                "B_yn::categorical_var",
+                "C_yn::categorical_var",
             ]
         ]
     )
@@ -194,9 +194,9 @@ def test_onehot(setup_data):
         [
             col in dh._working_df_test.columns
             for col in [
-                "A_yn(categorical_var)",
-                "B_yn(categorical_var)",
-                "C_yn(categorical_var)",
+                "A_yn::categorical_var",
+                "B_yn::categorical_var",
+                "C_yn::categorical_var",
             ]
         ]
     )
@@ -204,9 +204,9 @@ def test_onehot(setup_data):
     dh_emitter = dh.train_test_emitter(
         "binary_var",
         [
-            "A_yn(categorical_var)",
-            "B_yn(categorical_var)",
-            "C_yn(categorical_var)",
+            "A_yn::categorical_var",
+            "B_yn::categorical_var",
+            "C_yn::categorical_var",
             "numeric_var",
         ],
     )
@@ -214,9 +214,9 @@ def test_onehot(setup_data):
         [
             col in dh_emitter._working_df_test.columns
             for col in [
-                "A_yn(categorical_var)",
-                "B_yn(categorical_var)",
-                "C_yn(categorical_var)",
+                "A_yn::categorical_var",
+                "B_yn::categorical_var",
+                "C_yn::categorical_var",
             ]
         ]
     )
@@ -224,9 +224,9 @@ def test_onehot(setup_data):
         [
             col in dh_emitter._working_df_train.columns
             for col in [
-                "A_yn(categorical_var)",
-                "B_yn(categorical_var)",
-                "C_yn(categorical_var)",
+                "A_yn::categorical_var",
+                "B_yn::categorical_var",
+                "C_yn::categorical_var",
             ]
         ]
     )
@@ -238,31 +238,31 @@ def test_onehot(setup_data):
     assert all(
         [
             col in dh._working_df_train.columns
-            for col in ["B_yn(categorical_var)", "C_yn(categorical_var)"]
+            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
         ]
     )
     assert all(
         [
             col in dh._working_df_test.columns
-            for col in ["B_yn(categorical_var)", "C_yn(categorical_var)"]
+            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
         ]
     )
-    assert "A_yn(categorical_var)" not in dh._working_df_train.columns
+    assert "A_yn::categorical_var" not in dh._working_df_train.columns
 
     dh_emitter = dh.train_test_emitter(
         "numeric_var",
-        ["B_yn(categorical_var)", "C_yn(categorical_var)", "1_yn(binary_var)"],
+        ["B_yn::categorical_var", "C_yn::categorical_var", "1_yn::binary_var"],
     )
     assert all(
         [
             col in dh_emitter._working_df_test.columns
-            for col in ["B_yn(categorical_var)", "C_yn(categorical_var)"]
+            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
         ]
     )
     assert all(
         [
             col in dh_emitter._working_df_train.columns
-            for col in ["B_yn(categorical_var)", "C_yn(categorical_var)"]
+            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
         ]
     )
     assert dh_emitter._working_df_test.shape == dh._working_df_test.shape
@@ -275,11 +275,13 @@ def test_multiple(setup_data):
     df_iris_test = setup_data["df_iris_test"]
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
+    print(dh)
+
     dh.force_categorical(["target"])
-    dh.scale(["sepallength(cm)"], strategy="log")
-    dh.drop_vars(["sepalwidth(cm)"])
+    dh.scale(["sepal_length_(cm)"], strategy="log")
+    dh.drop_vars(["sepal_width_(cm)"])
     dh_emitter = dh.train_test_emitter(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
     )
     assert all(
         col1 == col2
@@ -303,44 +305,48 @@ def test_scale(setup_data):
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     dh.scale(strategy="minmax")
-    assert dh._working_df_train["sepallength(cm)"].min() == pytest.approx(0)
-    assert dh._working_df_train["sepallength(cm)"].max() == pytest.approx(1)
-    assert dh._working_df_train["petallength(cm)"].min() == pytest.approx(0)
-    assert dh._working_df_train["petallength(cm)"].max() == pytest.approx(1)
+    assert dh._working_df_train["sepal_length_(cm)"].min() == pytest.approx(0)
+    assert dh._working_df_train["sepal_length_(cm)"].max() == pytest.approx(1)
+    assert dh._working_df_train["petal_length_(cm)"].min() == pytest.approx(0)
+    assert dh._working_df_train["petal_length_(cm)"].max() == pytest.approx(1)
 
     dh_emitter = dh.train_test_emitter(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
     )
-    assert dh_emitter._working_df_train["sepallength(cm)"].min() == pytest.approx(0)
-    assert dh_emitter._working_df_train["sepallength(cm)"].max() == pytest.approx(1)
-    assert dh_emitter._working_df_train["petallength(cm)"].min() == pytest.approx(0)
-    assert dh_emitter._working_df_train["petallength(cm)"].max() == pytest.approx(1)
+    assert dh_emitter._working_df_train["sepal_length_(cm)"].min() == pytest.approx(0)
+    assert dh_emitter._working_df_train["sepal_length_(cm)"].max() == pytest.approx(1)
+    assert dh_emitter._working_df_train["petal_length_(cm)"].min() == pytest.approx(0)
+    assert dh_emitter._working_df_train["petal_length_(cm)"].max() == pytest.approx(1)
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     dh.scale(strategy="standardize")
-    assert dh._working_df_train["sepallength(cm)"].mean() == pytest.approx(0, abs=0.02)
-    assert dh._working_df_train["sepallength(cm)"].std() == pytest.approx(1, abs=0.02)
-    assert dh._working_df_train["petallength(cm)"].mean() == pytest.approx(0, abs=0.02)
-    assert dh._working_df_train["petallength(cm)"].std() == pytest.approx(1, abs=0.02)
-
-    dh_emitter = dh.train_test_emitter(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
-    )
-    assert dh_emitter._working_df_train["sepallength(cm)"].mean() == pytest.approx(
+    assert dh._working_df_train["sepal_length_(cm)"].mean() == pytest.approx(
         0, abs=0.02
     )
-    assert dh_emitter._working_df_train["sepallength(cm)"].std() == pytest.approx(
+    assert dh._working_df_train["sepal_length_(cm)"].std() == pytest.approx(1, abs=0.02)
+    assert dh._working_df_train["petal_length_(cm)"].mean() == pytest.approx(
+        0, abs=0.02
+    )
+    assert dh._working_df_train["petal_length_(cm)"].std() == pytest.approx(1, abs=0.02)
+
+    dh_emitter = dh.train_test_emitter(
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
+    )
+    assert dh_emitter._working_df_train["sepal_length_(cm)"].mean() == pytest.approx(
+        0, abs=0.02
+    )
+    assert dh_emitter._working_df_train["sepal_length_(cm)"].std() == pytest.approx(
         1, abs=0.02
     )
 
     dh_emitters = dh.kfold_emitters(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
     )
     for emitter in dh_emitters:
-        assert emitter._working_df_train["sepallength(cm)"].mean() == pytest.approx(
+        assert emitter._working_df_train["sepal_length_(cm)"].mean() == pytest.approx(
             0, abs=0.02
         )
-        assert emitter._working_df_train["sepallength(cm)"].std() == pytest.approx(
+        assert emitter._working_df_train["sepal_length_(cm)"].std() == pytest.approx(
             1, abs=0.1
         )
 
@@ -351,13 +357,15 @@ def test_drop_vars(setup_data):
     df_iris_test = setup_data["df_iris_test"]
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
-    dh.drop_vars(["sepallength(cm)"])
-    assert "sepallength(cm)" not in dh._working_df_train.columns
-    assert "sepallength(cm)" not in dh._working_df_test.columns
+    dh.drop_vars(["sepal_length_(cm)"])
+    assert "sepal_length_(cm)" not in dh._working_df_train.columns
+    assert "sepal_length_(cm)" not in dh._working_df_test.columns
 
-    dh_emitter = dh.train_test_emitter("target", ["petallength(cm)", "petalwidth(cm)"])
-    assert "sepallength(cm)" not in dh_emitter._working_df_train.columns
-    assert "sepallength(cm)" not in dh_emitter._working_df_test.columns
+    dh_emitter = dh.train_test_emitter(
+        "target", ["petal_length_(cm)", "petal_width_(cm)"]
+    )
+    assert "sepal_length_(cm)" not in dh_emitter._working_df_train.columns
+    assert "sepal_length_(cm)" not in dh_emitter._working_df_test.columns
 
 
 def test_impute(setup_data):
@@ -420,10 +428,10 @@ def test_kfold_basic_init(setup_data):
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     dh.force_categorical(["target"])
-    dh.scale(["sepallength(cm)"], strategy="log")
-    dh.drop_vars(["sepalwidth(cm)"])
+    dh.scale(["sepal_length_(cm)"], strategy="log")
+    dh.drop_vars(["sepal_width_(cm)"])
     emitters = dh.kfold_emitters(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
     )
     idxs = []
     for emitter in emitters:
@@ -439,11 +447,11 @@ def test_kfold_basic_init(setup_data):
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     dh.force_categorical(["target"])
     dh.onehot(["target"])
-    dh.scale(["sepallength(cm)"], strategy="minmax")
-    dh.drop_vars(["sepalwidth(cm)"])
+    dh.scale(["sepal_length_(cm)"], strategy="minmax")
+    dh.drop_vars(["sepal_width_(cm)"])
     emitters = dh.kfold_emitters(
-        "sepallength(cm)",
-        ["1_yn(target)", "2_yn(target)", "petallength(cm)", "petalwidth(cm)"],
+        "sepal_length_(cm)",
+        ["1_yn::target", "2_yn::target", "petal_length_(cm)", "petal_width_(cm)"],
         n_folds=5,
         shuffle=True,
         random_state=42,
@@ -468,16 +476,16 @@ def test_emitter_feature_selection(setup_data):
 
     dh = DataHandler(df_iris_train, df_iris_test, verbose=False)
     emitter = dh.train_test_emitter(
-        "target", ["sepallength(cm)", "petallength(cm)", "petalwidth(cm)"]
+        "target", ["sepal_length_(cm)", "petal_length_(cm)", "petal_width_(cm)"]
     )
-    emitter.select_predictors(["sepallength(cm)", "petallength(cm)"])
+    emitter.select_predictors(["sepal_length_(cm)", "petal_length_(cm)"])
     assert np.allclose(
         emitter.emit_train_Xy()[0].to_numpy(),
-        df_iris_train[["sepallength(cm)", "petallength(cm)"]].to_numpy(),
+        df_iris_train[["sepal_length_(cm)", "petal_length_(cm)"]].to_numpy(),
     )
     assert np.allclose(
         emitter.emit_test_Xy()[0].to_numpy(),
-        df_iris_test[["sepallength(cm)", "petallength(cm)"]].to_numpy(),
+        df_iris_test[["sepal_length_(cm)", "petal_length_(cm)"]].to_numpy(),
     )
     assert np.allclose(
         emitter.emit_train_Xy()[1].to_numpy(), df_iris_train["target"].to_numpy()

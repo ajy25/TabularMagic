@@ -104,7 +104,9 @@ class HyperparameterSearcher:
                     else:
                         optuna.logging.set_verbosity(optuna.logging.WARNING)
             self._fit_message = (
-                "Search method: OptunaSearchCV " + f'({kwargs["n_trials"]} trials).'
+                "Search method: OptunaSearchCV "
+                f'({kwargs["n_trials"]} trials, '
+                f'{self.inner_cv.get_n_splits() * kwargs["n_trials"]} total fits).'
             )
 
             with warnings.catch_warnings():

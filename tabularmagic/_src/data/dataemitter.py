@@ -719,7 +719,7 @@ class DataEmitter:
 
         rename : bool
             Default: False. If True, the variables are renamed to
-            {pos_label}_yn({var}).
+            {pos_label}_yn::{var}.
 
         X : pd.DataFrame | None
             Default: None. If not None, forces the specified variables to binary
@@ -774,7 +774,7 @@ class DataEmitter:
                     lambda x: 1 if x == pos_label else 0
                 )
 
-            vars_to_renamed[var] = f"{pos_label}_yn({var})"
+            vars_to_renamed[var] = f"{pos_label}_yn::{var}"
 
         if X is not None:
             return X
@@ -792,7 +792,6 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
-
         return None
 
     def _force_categorical(

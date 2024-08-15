@@ -23,7 +23,7 @@ from .linear import (
 from .exploratory import (
     EDAReport,
 )
-from .display.print_utils import print_wrapped, color_text
+from .display.print_utils import print_wrapped, quote_and_color
 from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
 from .utils import ensure_arg_list_uniqueness
@@ -125,7 +125,8 @@ class Analyzer:
         if self._verbose:
             shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
-                f"Analyzer initialized for dataset {color_text(self._name, 'blue')}. "
+                "Analyzer initialized for dataset "
+                f"{quote_and_color(self._name, 'yellow')}. "
                 + "Shapes of train, test DataFrames: "
                 + f'{shapes_dict["train"]}, '
                 + f'{shapes_dict["test"]}.',
@@ -660,7 +661,7 @@ class Analyzer:
         return self
 
     def drop_highly_missing_vars(self, threshold: float = 0.5) -> "Analyzer":
-        """Drops variables with missing values above a specified threshold.
+        """Drops variables with missingness rate above a specified threshold.
 
         Parameters
         ----------

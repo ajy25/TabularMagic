@@ -415,7 +415,7 @@ class DataEmitter:
 
         prev_vars = self._working_df_train.columns.to_list()
         self._working_df_train = self._working_df_train.dropna(
-            axis=1, thresh=threshold * len(self._working_df_train)
+            axis=1, thresh=round((1 - threshold) * len(self._working_df_train))
         )
         curr_vars = self._working_df_train.columns.to_list()
         self._highly_missing_vars_dropped = set(prev_vars) - set(curr_vars)

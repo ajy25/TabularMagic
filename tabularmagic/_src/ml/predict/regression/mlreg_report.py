@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from typing import Literal
 import warnings
@@ -11,6 +12,8 @@ from ....display.print_utils import (
     bold_text,
     list_to_string,
     fill_ignore_format,
+    quote_and_color,
+    format_two_column,
 )
 from ....display.print_options import print_options
 from ....feature_selection import BaseFSR, VotingSelectionReport
@@ -280,19 +283,23 @@ class MLRegressionReport:
         for model in self._models:
             if not isinstance(model, BaseR):
                 raise ValueError(
-                    f"Model {model} is not an instance of BaseR. "
-                    "All models must be instances of BaseR."
+                    f"Model {quote_and_color(model._name)} is not an instance "
+                    "of BaseR. All models must be instances of BaseR."
                 )
 
         self._id_to_model = {}
         for model in models:
             if model._name in self._id_to_model:
-                raise ValueError(f"Duplicate model name: {model._name}.")
+                raise ValueError(
+                    f"Duplicate model name: {quote_and_color(model._name)}."
+                )
             self._id_to_model[model._name] = model
 
         self._feature_selection_report = None
+        self._feature_selectors = feature_selectors
 
         self._y_var = target
+        self._predictors = predictors
         self._X_vars = predictors
 
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
@@ -300,8 +307,9 @@ class MLRegressionReport:
             for feature_selector in feature_selectors:
                 if not isinstance(feature_selector, BaseFSR):
                     raise ValueError(
-                        f"Feature selector {feature_selector} is not an instance of "
-                        "BaseFSR. All feature selectors must be instances of BaseFSR."
+                        f"Feature selector {quote_and_color(model._name)} "
+                        "is not an instance of BaseFSR. "
+                        "All feature selectors must be instances of BaseFSR."
                     )
 
             self._feature_selection_report = VotingSelectionReport(
@@ -337,7 +345,10 @@ class MLRegressionReport:
 
         for model in self._models:
             if self._verbose:
-                print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
+                print_wrapped(
+                    f"Evaluating model {quote_and_color(model._name)}.",
+                    type="UPDATE",
+                )
             model.specify_data(
                 dataemitter=self._emitter,
                 dataemitters=self._emitters,
@@ -352,8 +363,9 @@ class MLRegressionReport:
                 if self._verbose:
                     print_wrapped(
                         "Feature selectors were specified for all models as well as "
-                        f"for the model {str(model)}. "
-                        f"The feature selection report attributed to {str(model)} "
+                        f"for the model {quote_and_color(model._name)}. "
+                        f"The feature selection report attributed "
+                        f"to {quote_and_color(model._name)} "
                         "will be for the model-specific feature selectors. "
                         "Note that the feature selectors for all models "
                         "were used to select a subset of the predictors first. "
@@ -371,7 +383,8 @@ class MLRegressionReport:
 
             if self._verbose:
                 print_wrapped(
-                    f"Successfully evaluated model {model._name}.", type="UPDATE"
+                    f"Successfully evaluated model {quote_and_color(model._name)}.",
+                    type="UPDATE",
                 )
 
         self._id_to_report = {
@@ -548,6 +561,7 @@ class MLRegressionReport:
         return self._id_to_report[model_id]
 
     def __str__(self) -> str:
+        n_dec = print_options._n_decimals
         max_width = print_options._max_line_width
 
         top_divider = color_text("=" * max_width, "none") + "\n"
@@ -558,23 +572,66 @@ class MLRegressionReport:
         title_message = bold_text("ML Regression Report")
 
         target_var = "'" + self._y_var + "'"
-        target_message = fill_ignore_format(
-            f"{bold_text('Target variable:')} " f'{color_text(target_var, "purple")}'
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
         )
 
-        predictors_message = fill_ignore_format(
-            f"{bold_text('Predictor variables:')} " f"{list_to_string(self._X_vars)}"
+        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
         )
 
         models_str = list_to_string(
             [model._name for model in self._models],
-            color="yellow",
-            include_quotes=False,
+            color="blue",
+        )
+        models_message = f"{bold_text('Models evaluated:')}\n"
+        models_message += fill_ignore_format(
+            models_str,
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
         )
 
-        models_message = fill_ignore_format(
-            f"{bold_text('Models evaluated:')} " f"{models_str}"
+        if self._feature_selectors is not None:
+            fs_str = list_to_string(
+                [fs._name for fs in self._feature_selectors], color="blue"
+            )
+        else:
+            fs_str = color_text("None", "yellow")
+        feature_selectors_message = f"{bold_text('Feature selectors:')}\n"
+        feature_selectors_message += fill_ignore_format(
+            fs_str,
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
         )
+
+        top_models_message = f"{bold_text('Best models:')}\n"
+        top_models_df = (
+            self.metrics("test").T.sort_values("rmse", ascending=True).head(3)
+        )
+        for i, model in enumerate(top_models_df.index):
+            top_models_message += fill_ignore_format(
+                format_two_column(
+                    f"{i+1}. " + quote_and_color(str(model)),
+                    "Test RMSE: "
+                    + color_text(
+                        str(np.round(top_models_df.loc[model, "rmse"], n_dec)), "yellow"
+                    ),
+                    total_len=max_width - 2,
+                ),
+                initial_indent=2,
+            )
+            if i < len(top_models_df) - 1:
+                top_models_message += "\n"
 
         final_message = (
             top_divider
@@ -583,9 +640,16 @@ class MLRegressionReport:
             + target_message
             + divider_invisible
             + predictors_message
-            + divider
+            + divider_invisible
             + models_message
+            + divider_invisible
+            + feature_selectors_message
+            + divider
+            + top_models_message
             + bottom_divider
         )
 
         return final_message
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))

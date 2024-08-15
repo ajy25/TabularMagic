@@ -3,11 +3,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Literal, Any
 import warnings
+import numpy as np
 from .base import BaseC
 from ....metrics.classification_scoring import ClassificationBinaryScorer
 from ....data.datahandler import DataHandler
 from ....metrics.visualization import plot_roc_curve, plot_confusion_matrix
-from ....display.print_utils import print_wrapped
+from ....display.print_utils import (
+    print_wrapped,
+    color_text,
+    bold_text,
+    list_to_string,
+    fill_ignore_format,
+    quote_and_color,
+    format_two_column,
+)
+from ....display.print_options import print_options
 from ....feature_selection import BaseFSC, VotingSelectionReport
 
 
@@ -442,9 +452,13 @@ class MLClassificationReport:
             self._id_to_model[model._name] = model
 
         self._y_var = target
+        self._predictors = predictors
         self._X_vars = predictors
+
+        self._feature_selectors = feature_selectors
         self._feature_selection_report = None
 
+        self._datahandler = datahandler
         self._emitter = datahandler.train_test_emitter(y_var=target, X_vars=predictors)
         if feature_selectors is not None:
             for feature_selector in feature_selectors:
@@ -485,7 +499,9 @@ class MLClassificationReport:
         self._verbose = verbose
         for model in self._models:
             if self._verbose:
-                print_wrapped(f"Evaluating model {model._name}.", type="UPDATE")
+                print_wrapped(
+                    f"Evaluating model {quote_and_color(model._name)}.", type="UPDATE"
+                )
             model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
             model.fit(verbose=self._verbose)
 
@@ -496,8 +512,9 @@ class MLClassificationReport:
                 if self._verbose:
                     print_wrapped(
                         "Feature selectors were specified for all models as well as "
-                        f"for the model {str(model)}. "
-                        f"The feature selection report attributed to {str(model)} "
+                        f"for the model {quote_and_color(model._name)}. "
+                        "The feature selection report attributed to "
+                        f"{quote_and_color(model._name)} "
                         "will be for the model-specific feature selectors. "
                         "Note that the feature selectors for all models "
                         "were used to select a subset of the predictors first. "
@@ -515,7 +532,8 @@ class MLClassificationReport:
 
             if self._verbose:
                 print_wrapped(
-                    f"Successfully evaluated model {model._name}.", type="UPDATE"
+                    f"Successfully evaluated model {quote_and_color(model._name)}.",
+                    type="UPDATE",
                 )
 
         self._id_to_report = {
@@ -849,5 +867,123 @@ class MLClassificationReport:
         """
         return self._id_to_report[model_id].feature_importance()
 
+    def is_binary(self) -> bool:
+        """Returns True if the target variable is binary.
+
+        Returns
+        -------
+        bool
+            True if the target variable is binary.
+        """
+        if self._models[0].is_binary() and self._datahandler.is_binary(self._y_var):
+            return True
+        return False
+
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]
+
+    def __str__(self) -> str:
+        max_width = print_options._max_line_width
+        n_dec = print_options._n_decimals
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("ML Classification Report")
+
+        target_var = "'" + self._y_var + "'"
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        models_str = list_to_string(
+            [model._name for model in self._models],
+            color="blue",
+        )
+        models_message = f"{bold_text('Models evaluated:')}\n"
+        models_message += fill_ignore_format(
+            models_str,
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        if self._feature_selectors is not None:
+            fs_str = list_to_string(
+                [fs._name for fs in self._feature_selectors], color="blue"
+            )
+        else:
+            fs_str = color_text("None", "yellow")
+        feature_selectors_message = f"{bold_text('Feature selectors:')}\n"
+        feature_selectors_message += fill_ignore_format(
+            fs_str,
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        top_models_message = f"{bold_text('Best models:')}\n"
+
+        if self.is_binary():
+            top_models_df = (
+                self.metrics("test").T.sort_values("roc_auc", ascending=False).head(3)
+            )
+        else:
+            top_models_df = (
+                self.metrics("test").T.sort_values("f1", ascending=False).head(3)
+            )
+        for i, model in enumerate(top_models_df.index):
+            if self.is_binary():
+                statistic_message = "Test AUROC: " + color_text(
+                    str(np.round(top_models_df.loc[model, "roc_auc"], n_dec)), "yellow"
+                )
+            else:
+                statistic_message = "Test F1: " + color_text(
+                    str(np.round(top_models_df.loc[model, "f1"], n_dec)), "yellow"
+                )
+
+            top_models_message += fill_ignore_format(
+                format_two_column(
+                    f"{i+1}. " + quote_and_color(str(model)),
+                    statistic_message,
+                    total_len=max_width - 2,
+                ),
+                initial_indent=2,
+            )
+            if i < len(top_models_df) - 1:
+                top_models_message += "\n"
+
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider_invisible
+            + models_message
+            + divider_invisible
+            + feature_selectors_message
+            + divider
+            + top_models_message
+            + bottom_divider
+        )
+
+        return final_message
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))

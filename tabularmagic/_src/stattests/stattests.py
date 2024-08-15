@@ -115,6 +115,12 @@ class StatisticalTestReport:
         )
 
         pval_str = f"{self._pval:.{n_dec}e}"
+
+        if self._pval <= 0.05:
+            pval_color = "green"
+        else:
+            pval_color = "red"
+
         statistic_str = str(round(self._statistic, n_dec))
         textlen_pval = (
             len(pval_str)
@@ -129,7 +135,7 @@ class StatisticalTestReport:
             + color_text(statistic_str, "yellow")
             + " " * pval_str_message_buffer_left
             + bold_text("p-value: ")
-            + color_text(pval_str, "yellow")
+            + color_text(pval_str, pval_color)
             + " " * pval_str_message_buffer_right,
             max_width,
         )

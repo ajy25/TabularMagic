@@ -7,6 +7,7 @@ from sklearn.utils._testing import ignore_warnings
 from ..display.print_utils import (
     print_wrapped,
     color_text,
+    quote_and_color,
     bold_text,
     list_to_string,
     fill_ignore_format,
@@ -119,7 +120,8 @@ class DataHandler:
                 print_wrapped(
                     "Working DataFrames reset to original DataFrames. "
                     + "Shapes of train, test DataFrames: "
-                    + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                    + f'{color_text(shapes_dict["train"], "yellow")}, '
+                    + f'{color_text(shapes_dict["test"], "yellow")}.',
                     type="UPDATE",
                 )
         else:
@@ -135,7 +137,7 @@ class DataHandler:
                 shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
                     "Working DataFrames reset to checkpoint "
-                    + f'{color_text(checkpoint, "blue")}. '
+                    + f'{quote_and_color(checkpoint, "yellow")}. '
                     + "Shapes of train, test DataFrames: "
                     + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type="UPDATE",
@@ -166,7 +168,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 "Saved working DataFrames checkpoint "
-                + f'{color_text(checkpoint, "blue")}.',
+                + f'{color_text(checkpoint, "yellow")}.',
                 type="UPDATE",
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -195,7 +197,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 "Removed working DataFrames checkpoint "
-                + f'{color_text(out_chkpt, "blue")}.',
+                + f'{color_text(out_chkpt, "yellow")}.',
                 type="UPDATE",
             )
         return self
@@ -439,6 +441,16 @@ class DataHandler:
                 )
             return out
 
+    def is_binary(self, var: str) -> bool:
+        """Checks if a given variable is binary (i.e., it only has two unique values).
+
+        Returns
+        -------
+        bool
+            True if the input variable is binary.
+        """
+        return len(self.df_all()[var].unique()) == 2
+
     # --------------------------------------------------------------------------
     # PREPROCESSING
     # --------------------------------------------------------------------------
@@ -528,7 +540,10 @@ class DataHandler:
 
         if len(include_vars) == 0:
             if self._verbose:
-                print_wrapped("No categorical variables found.", type="WARNING")
+                print_wrapped(
+                    "No categorical variables found. Skipping one-hot encoding.",
+                    type="WARNING",
+                )
             return self
 
         self._working_df_train = self._onehot_helper(
@@ -547,7 +562,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 f"One-hot encoded {list_to_string(include_vars)}. "
-                + f"Drop first: {dropfirst}.",
+                + f"Drop first: {color_text(dropfirst, 'yellow')}.",
                 type="UPDATE",
             )
 
@@ -557,7 +572,7 @@ class DataHandler:
         return self
 
     def drop_highly_missing_vars(self, threshold: float = 0.5) -> "DataHandler":
-        """Drops columns with more than 50% missing values
+        """Drops columns with more than a provided percentage of missing values
         (computed on train) in-place for both the working train and test
         DataFrames.
 
@@ -571,18 +586,32 @@ class DataHandler:
         DataHandler
             Returns self for method chaining.
         """
+        if threshold < 0 or threshold > 1:
+            raise ValueError("The threshold value must be between 0 and 1.")
+
         prev_vars = self._working_df_train.columns.to_list()
         self._working_df_train = self._working_df_train.dropna(
-            axis=1, thresh=threshold * len(self._working_df_train)
+            axis=1, thresh=round((1 - threshold) * len(self._working_df_train))
         )
         curr_vars = self._working_df_train.columns.to_list()
         vars_dropped = set(prev_vars) - set(curr_vars)
+
+        if len(vars_dropped) == 0:
+            print_wrapped(
+                f"No variables found with at least {threshold*100}% of values missing.",
+                type="WARNING",
+            )
+            self._preprocess_step_tracer.add_step(
+                "drop_highly_missing_vars", {"threshold": threshold}
+            )
+            return self
+
         self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
         if self._verbose:
             print_wrapped(
                 f"Dropped variables {list_to_string(vars_dropped)} "
-                + f"with more than {threshold*100}% "
-                + "missing values.",
+                + f"with at least {threshold*100}% of "
+                + "values missing.",
                 type="UPDATE",
             )
         (
@@ -634,6 +663,7 @@ class DataHandler:
         """
         numeric_vars = self.numeric_vars()
         categorical_vars = self.categorical_vars()
+
         if include_vars is not None:
             include_vars_set = set(include_vars)
             numeric_vars = list(include_vars_set & set(numeric_vars))
@@ -642,6 +672,9 @@ class DataHandler:
             exclude_vars_set = set(exclude_vars)
             numeric_vars = list(set(numeric_vars) - exclude_vars_set)
             categorical_vars = list(set(categorical_vars) - exclude_vars_set)
+
+        if len(numeric_vars) == 0 and len(categorical_vars) == 0:
+            raise ValueError("No variables were provided.")
 
         # impute numeric variables
         if len(numeric_vars) > 0:
@@ -670,15 +703,27 @@ class DataHandler:
                 self._working_df_test[categorical_vars]
             )
 
-            if self._verbose:
-                print_wrapped(
-                    "Imputed missing values with "
-                    + "numeric strategy "
-                    + f'{color_text(numeric_strategy, "blue")} and '
-                    + "categorical strategy "
-                    + f'{color_text(categorical_strategy, "blue")}.',
-                    type="UPDATE",
+        if self._verbose:
+            message = "Imputed missing values with "
+
+            if len(numeric_vars) > 0:
+                message += (
+                    f"strategy {quote_and_color(numeric_strategy, 'yellow')} "
+                    + f"for numeric variables {list_to_string(numeric_vars)} "
                 )
+                if len(categorical_vars) > 0:
+                    message += "and "
+
+            if len(categorical_vars) > 0:
+                message += (
+                    f"strategy {quote_and_color(categorical_strategy, 'yellow')} "
+                    + f"for categorical variables {list_to_string(categorical_vars)}"
+                )
+
+            print_wrapped(
+                message,
+                type="UPDATE",
+            )
 
         self._preprocess_step_tracer.add_step(
             "impute",
@@ -758,7 +803,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 f"Scaled variables {list_to_string(include_vars)} "
-                + f'using strategy {color_text(strategy, "blue")}.',
+                + f'using strategy {quote_and_color(strategy, "yellow")}.',
                 type="UPDATE",
             )
 
@@ -1281,8 +1326,8 @@ class DataHandler:
             }
         """
         return {
-            "train": color_text(str(self._working_df_train.shape), color="blue"),
-            "test": color_text(str(self._working_df_test.shape), color="blue"),
+            "train": color_text(str(self._working_df_train.shape), color="yellow"),
+            "test": color_text(str(self._working_df_test.shape), color="yellow"),
         }
 
     def _compute_categories(
@@ -1397,10 +1442,10 @@ class DataHandler:
 
         shapes_message = (
             color_text(bold_text("Train shape: "), "none")
-            + color_text(str(working_df_train.shape), "blue")
+            + color_text(str(working_df_train.shape), "yellow")
             + " " * shapes_message_buffer_left
             + color_text(bold_text("Test shape: "), "none")
-            + color_text(str(working_df_test.shape), "blue")
+            + color_text(str(working_df_test.shape), "yellow")
             + " " * shapes_message_buffer_right
         )
 
@@ -1414,7 +1459,7 @@ class DataHandler:
         categorical_vars = self.categorical_vars()
         categorical_var_message = ""
         if len(categorical_vars) == 0:
-            categorical_var_message += color_text("None", "blue")
+            categorical_var_message += color_text("None", "yellow")
         else:
             categorical_var_message += list_to_string(categorical_vars)
         categorical_var_message = fill_ignore_format(
@@ -1429,7 +1474,7 @@ class DataHandler:
         numeric_vars = self.numeric_vars()
         numeric_var_message = ""
         if len(numeric_vars) == 0:
-            numeric_var_message += color_text("None", "blue")
+            numeric_var_message += color_text("None", "yellow")
         else:
             numeric_var_message += list_to_string(numeric_vars)
         numeric_var_message = fill_ignore_format(

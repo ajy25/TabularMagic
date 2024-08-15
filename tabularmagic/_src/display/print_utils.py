@@ -110,7 +110,17 @@ def list_to_string(
 
 
 def len_ignore_format(text: str) -> int:
-    """Returns the length of a string without ANSI codes."""
+    """Returns the length of a string without ANSI codes.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    int
+        The length without ANSI codes.
+    """
     base_len = len(text)
     if "\033[91m" in text:
         count = text.count("\033[91m")
@@ -219,6 +229,29 @@ def fill_ignore_format(
     )
 
 
+def quote_and_color(
+    text: str,
+    color: Literal["red", "blue", "green", "yellow", "purple", "none"] = "blue",
+) -> str:
+    """Wraps provided text in quotations. Then, colors the result a given color.
+
+    Parameters
+    ----------
+    text : str
+
+    color : Literal["red", "blue", "green", "yellow", "purple", "none"]
+        Default: "blue".
+
+    Returns
+    -------
+    str
+        Transformed text.
+    """
+    output = f"'{text}'"
+    output = color_text(output, color=color)
+    return output
+
+
 @contextmanager
 def suppress_stdout():
     with open(os.devnull, "w") as devnull:
@@ -228,3 +261,37 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
+
+
+def format_two_column(
+    left_text: str, right_text: str, total_len: int = print_options._max_line_width
+) -> str:
+    """Attempts to reformat two strings in two-column format. If the provided
+    strings are two long, simply returns the two strings separated by a newline
+    character.
+
+    Parameters
+    ----------
+    left_text : str
+
+    right_text : str
+
+    total_len : int
+        Default: default max line width.
+
+    Returns
+    -------
+    str
+        Reformatted string combining the two input strings in two-column format.
+    """
+
+    half_length = int(total_len / 2)
+    if (
+        len_ignore_format(left_text) >= half_length
+        or len_ignore_format(right_text) >= half_length
+    ):
+        return left_text + "\n" + right_text
+
+    left_buffer = half_length - len_ignore_format(left_text)
+
+    return left_text + " " * left_buffer + right_text

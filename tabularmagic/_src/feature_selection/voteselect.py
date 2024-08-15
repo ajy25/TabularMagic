@@ -1,7 +1,7 @@
 import pandas as pd
 from . import BaseFS
 from ..data.datahandler import DataEmitter
-from ..display.print_utils import print_wrapped
+from ..display.print_utils import print_wrapped, quote_and_color
 
 
 class VotingSelectionReport:
@@ -38,7 +38,7 @@ class VotingSelectionReport:
 
         for selector in selectors:
             if verbose:
-                print_wrapped(f"Fitting {selector}.", type="PROGRESS")
+                print_wrapped(f"Fitting {quote_and_color(selector)}.", type="PROGRESS")
             features, _, support = selector.select(self._emitter)
             self._selector_to_support[str(selector)] = support
         self._all_features = features

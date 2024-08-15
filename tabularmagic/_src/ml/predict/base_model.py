@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
 import optuna
 import warnings
-from ...display.print_utils import print_wrapped
+from ...display.print_utils import print_wrapped, fill_ignore_format, quote_and_color
 
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -141,6 +141,8 @@ class HyperparameterSearcher:
         else:
             raise ValueError("Invalid input: method. Must be 'optuna' or 'grid'.")
 
+        self._fit_message = fill_ignore_format(self._fit_message)
+
     def fit(self, X: np.ndarray, y: np.ndarray, verbose: bool = False) -> BaseEstimator:
         """Cross validation search of optimal hyperparameters. Idenfities
         best estimator.
@@ -158,7 +160,8 @@ class HyperparameterSearcher:
         """
         if verbose:
             print_wrapped(
-                f"Fitting {self._estimator_name}. " + self._fit_message,
+                f"Fitting {quote_and_color(self._estimator_name)}. "
+                + self._fit_message,
                 type="PROGRESS",
             )
         ignore_warnings(self._searcher.fit)(X, y)

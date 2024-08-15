@@ -301,7 +301,7 @@ class ClassificationMulticlassScorer:
                     print_wrapped(
                         "Error occured when computing the roc_auc "
                         + "score: "
-                        + color_text(str(e), "yellow"),
+                        + color_text(str(e), "blue"),
                         type="WARNING",
                     )
                     df.loc[len(df)] = pd.Series(
@@ -378,7 +378,7 @@ class ClassificationMulticlassScorer:
                         print_wrapped(
                             "Error occured when computing the roc_auc(ovo) "
                             + "score: "
-                            + color_text(str(e), "yellow"),
+                            + color_text(str(e), "blue"),
                             type="WARNING",
                         )
                         cvdf.loc[len(cvdf)] = pd.Series(

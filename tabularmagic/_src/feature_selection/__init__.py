@@ -4,6 +4,7 @@ from .regression_feature_selection import (
 )
 from .classification_feature_selection import (
     KBestFSC,
+    LassoFSC
 )
 from .boruta_feature_selection import (
     BorutaFSR,
@@ -17,6 +18,7 @@ __all__ = [
     "KBestFSR",
     "LassoFSR",
     "KBestFSC",
+    "LassoFSC",
     "BaseFSR",
     "BaseFSC",
     "BaseFS",

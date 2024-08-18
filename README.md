@@ -24,24 +24,25 @@ To uninstall TabularMagic:
 python tmbuild.py uninstall
 ```
 
-TabularMagic is built with the standard Python data science stack. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
+TabularMagic is built with the standard Python data science stack. That is, TabularMagic is really just a fancy wrapper for scikit-learn and statsmodels. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
 
 
 ## Quick start
 
-You'll probably be using TabularMagic for ML model benchmarking. Here's how to do it.
+You'll probably use TabularMagic for ML model benchmarking. Here's how to do it.
 
 ```python
 import tabularmagic as tm
 import pandas as pd
+import joblib
 
 df = ...
 
 # initialize an Analyzer object
 analyzer = tm.Analyzer(df, test_size=0.2)
 
-# scale and impute values (with default strategies, see docs for how to specify)
-analyzer.scale().impute()
+# preprocess data
+analyzer.drop_highly_missing().scale().impute()
 
 # conduct a regression model benchmarking exercise
 reg_report = analyzer.regress(
@@ -54,6 +55,13 @@ reg_report = analyzer.regress(
     predictors=['x1', 'x2', 'x3']
 )
 print(reg_report.metrics('test'))
+
+# predict on new data
+new_df = ...
+y_pred = reg_report.model('LinearR(l2)').predict(new_df)
+
+# save model
+joblib.dump(reg_report.model('LinearR(l2)'), 'l2_pipeline.joblib')
 ```
 
 Check out the `./demo` directory for detailed examples and discussion of other functionality.
@@ -63,29 +71,17 @@ Check out the `./demo` directory for detailed examples and discussion of other f
 
 Under active development. We intend to push an initial releaase to Test PyPI soon.
 
-### Motivation: low-code machine learning for research, not production
+### Motivation: low-code ML for research
 
 Though numerous open-source automatic/low-code machine learning packages have emerged to streamline model selection and deployment, packages tailored specifically for research on tabular datasets remain scarce.
 
-TabularMagic provides a straightforward Python API that significantly accelerates machine learning model benchmarking by seemlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
+TabularMagic provides a straightforward Python API that exponentially accelerates machine learning model benchmarking by seemlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
 1. **Preprocess-as-you-explore functionality.** TabularMagic remembers each feature transformation you make and automatically preprocesses your train, validation, and test datasets when you fit and evaluate models down the line. 
-2. **Automatic hyperparameter optimization and feature selection.** TabularMagic automatically selects features and identifies optimal hyperparameters for you.
-3. **Flexibility.** Though TabularMagic provides many out-of-the-box models with default hyperparameter search spaces, it also supports custom estimators and pipelines. Any scikit-learn `BaseEstimator`/`Pipeline`-like object with fit and predict methods can be used. You'll need to specify the hyperparameter tuning strategy (e.g. `GridSearchCV`) yourself, though.
+2. **Automatic hyperparameter optimization and feature selection.** TabularMagic automatically selects features and identifies optimal hyperparameters for you. All TabularMagic models come with preset hyperparameter search methods. 
+3. **Flexibility.** Though TabularMagic provides many out-of-the-box models with default hyperparameter search spaces, it also supports custom estimators and pipelines. Any scikit-learn `BaseEstimator`/`Pipeline`-like object with fit and predict methods can be used. 
 4. **LLM support.**  (coming soon!) TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data.
 
-
-### FAQs (why does TabularMagic exist?):
-
-1. 
-    Q: Why not just use scikit-learn for machine learning? 
-
-    A: scikit-learn is *the* Python machine learning modeling package; TabularMagic and many other solutions rely heavily on scikit-learn. Though sklearn pipelines allows for streamlined data preprocessing and ML modeling, they are by no means low-code and require a nontrivial amount of documentation reading, programming experience, and machine learning knowledge to use. 
-
-
-2. 
-    Q: Are there si
-
-
+See more in `./dev_notes/notes.md`.
 
 
 

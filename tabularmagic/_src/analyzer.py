@@ -634,7 +634,7 @@ class Analyzer:
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
     ) -> "Analyzer":
-        """Drops rows with missing values on both the train
+        """Drops observations (rows) with missing values on both the train
         and test DataFrames.
 
         Parameters
@@ -661,7 +661,7 @@ class Analyzer:
         return self
 
     def drop_highly_missing_vars(self, threshold: float = 0.5) -> "Analyzer":
-        """Drops variables with missingness rate above a specified threshold.
+        """Drops variables (columns) with missingness rate above a specified threshold.
 
         Parameters
         ----------
@@ -683,13 +683,13 @@ class Analyzer:
         exclude_vars: list[str] | None = None,
         dropfirst: bool = True,
     ) -> "Analyzer":
-        """One-hot encodes the specified columns.
+        """One-hot encodes the specified variables (columns).
 
         Parameters
         ----------
         include_vars : list[str]
             Default: None. List of variables to one-hot encode.
-            If None, one-hot encodes all columns.
+            If None, one-hot encodes all categorical variables.
 
         exclude_vars : list[str]
             Default: None. List of variables to exclude from one-hot encoding.
@@ -757,7 +757,8 @@ class Analyzer:
 
     @ensure_arg_list_uniqueness()
     def force_categorical(self, vars: list[str]) -> "Analyzer":
-        """Forces specificed variables to categorical.
+        """Forces specificed variables (columns) to have categorical values. 
+        That is, the variables' values are converted to strings.
 
         Parameters
         ----------

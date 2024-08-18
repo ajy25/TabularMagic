@@ -410,7 +410,7 @@ class DataEmitter:
         """
         if X is not None:
             prev_vars = X.columns.to_list()
-            kept_vars = set(prev_vars) - self._highly_missing_vars_dropped
+            kept_vars = list(set(prev_vars) - self._highly_missing_vars_dropped)
             return X[kept_vars]
 
         prev_vars = self._working_df_train.columns.to_list()
@@ -1015,6 +1015,8 @@ class DataEmitter:
 
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input must be a DataFrame.")
+        
+        X = X.copy()
 
         for step in self._step_tracer._steps:
             if step["step"] == "onehot":
@@ -1058,9 +1060,12 @@ class DataEmitter:
         FunctionTransformer
             FunctionTransformer object.
         """
+        new_emitter = self.copy()
+        del new_emitter._working_df_train
+        del new_emitter._working_df_test
 
         custom_transformer = FunctionTransformer(
-            self.custom_transform, validate=False, check_inverse=False
+            new_emitter.custom_transform, validate=False, check_inverse=False
         )
 
         return custom_transformer

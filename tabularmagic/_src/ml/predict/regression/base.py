@@ -289,7 +289,10 @@ class BaseR(BasePredictModel):
                         "custom_prep_data",
                         self._dataemitter.sklearn_preprocessing_transformer(),
                     ),
-                    ("model", self._hyperparam_searcher._searcher),
+                    (
+                        "model", 
+                        self._hyperparam_searcher._searcher
+                    ),
                 ]
             )
         return pipeline

@@ -1,13 +1,14 @@
 import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
+from sklearn.compose import TransformedTargetRegressor
 from ....feature_selection import BaseFSR
 from ....metrics import RegressionScorer
 from ..base_model import BasePredictModel, HyperparameterSearcher
 from ....data import DataEmitter
 from ....feature_selection import VotingSelectionReport
 from ....display.print_utils import print_wrapped, color_text
-from ..predict_utils import ColumnSelector
+from ..predict_utils import ColumnSelector, InverseTransformRegressor
 
 
 class BaseR(BasePredictModel):
@@ -249,7 +250,7 @@ class BaseR(BasePredictModel):
         """
         return self._best_estimator
 
-    def sklearn_pipeline(self) -> Pipeline:
+    def sklearn_pipeline(self) -> Pipeline | InverseTransformRegressor:
         """Returns an sklearn pipeline object. The pipeline allows for
         retrieving model predictions directly from data formatted like the original
         train and test data.
@@ -266,7 +267,12 @@ class BaseR(BasePredictModel):
 
         Returns
         -------
-        Pipeline
+        Pipeline | InverseTransformRegressor
+            Returns either a Pipeline (from scikit-learn) or InverseTransformRegressor
+            object. Both objects have a :pymod:`.predict(X)` method. 
+            In the case that the target variable was transformed, an 
+            InverseTransformRegressor object is returned, which simply wraps around 
+            the Pipeline and inverse transforms the predictions as the final step.
         """
         if self._feature_selectors is not None:
             pipeline = Pipeline(
@@ -295,6 +301,13 @@ class BaseR(BasePredictModel):
                     ),
                 ]
             )
+
+        if self._dataemitter._yscaler is not None:
+            pipeline = InverseTransformRegressor(
+                model=pipeline,
+                inverse_func=self._dataemitter._yscaler.inverse_transform
+            )
+
         return pipeline
 
     def hyperparam_searcher(self) -> HyperparameterSearcher:

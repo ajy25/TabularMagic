@@ -287,3 +287,39 @@ def test_pipeline_generation_classification(setup_data):
     assert np.allclose(
         output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
     )
+
+
+def test_pipeline_inverse_scaling_regression(setup_data):
+    train_data = setup_data["df_house_mini_train"]
+    test_data = setup_data["df_house_mini_test"]
+
+    analyzer = tm.Analyzer(train_data, test_data, verbose=False)
+
+    analyzer.scale(strategy="standardize")
+
+    report = analyzer.regress(
+        models=[
+            tm.ml.LinearR(
+                type="l2",
+                n_trials=1,
+            ),
+        ],
+        target="SalePrice",
+        predictors=[
+            "MSZoning",
+            "ExterQual_binary",
+            "LotArea",
+            "OverallQual",
+        ],
+    )
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
+
+    output = pipeline.predict(
+        test_data
+    )
+
+    assert np.allclose(
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
+    )
+
+

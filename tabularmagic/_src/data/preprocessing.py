@@ -22,6 +22,7 @@ class BaseSingleVarScaler:
         self.var_name = var_name
         self.x = x[~np.isnan(x)]
         self.fit()
+        del self.x
 
     def fit(self):
         pass

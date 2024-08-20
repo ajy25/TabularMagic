@@ -12,7 +12,7 @@ from ....metrics import (
     ClassificationBinaryScorer,
 )
 from ....feature_selection import VotingSelectionReport
-from ....display.print_utils import print_wrapped, color_text
+from ....display.print_utils import print_wrapped, color_text, quote_and_color
 from ..predict_utils import ColumnSelector
 
 
@@ -141,7 +141,8 @@ class BaseC(BasePredictModel):
 
                     if verbose:
                         print_wrapped(
-                            f"Optimal threshold set for {self._name} via F1 score.",
+                            f"Optimal threshold set for {quote_and_color(self._name)} "
+                            f"via F1 score.",
                             type="PROGRESS",
                         )
 
@@ -279,10 +280,11 @@ class BaseC(BasePredictModel):
                     )
                     y_pred_encoded = y_pred_score[:, 1] > self._threshold
 
-                    print_wrapped(
-                        f"Optimal threshold set for {self._name} via F1 score.",
-                        type="PROGRESS",
-                    )
+                    if verbose:
+                        print_wrapped(
+                            f"Optimal threshold set for {self._name} via F1 score.",
+                            type="PROGRESS",
+                        )
 
             elif hasattr(self._best_estimator, "decision_function"):
                 y_pred_score = self._best_estimator.decision_function(X_train)

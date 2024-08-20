@@ -13,7 +13,7 @@ sys.path.append(str(parent_dir))
 
 import tabularmagic as tm
 
-SAMPLE_SIZE = 100
+SAMPLE_SIZE = 150
 
 
 @pytest.fixture

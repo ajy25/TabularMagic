@@ -607,6 +607,9 @@ class DataHandler:
             return self
 
         self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
+        assert self._working_df_test.shape[1] == self._working_df_train.shape[1]
+
+
         if self._verbose:
             print_wrapped(
                 f"Dropped variables {list_to_string(vars_dropped)} "

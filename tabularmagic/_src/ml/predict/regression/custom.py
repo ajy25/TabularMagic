@@ -3,7 +3,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from .base import BaseR
 from ....metrics import RegressionScorer
-from ....display.print_utils import print_wrapped
+from ....display.print_utils import print_wrapped, quote_and_color
 
 
 class CustomR(BaseR):
@@ -55,7 +55,10 @@ class CustomR(BaseR):
             X_train = X_train_df
             y_train = y_train_series.to_numpy()
             if verbose:
-                print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
+                print_wrapped(
+                    f"Fitting {quote_and_color(self._name)}.", 
+                    type="PROGRESS"
+                )
             self._best_estimator.fit(X_train, y_train)
             y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:
@@ -83,7 +86,10 @@ class CustomR(BaseR):
                 X_test = X_test_df
                 y_test = y_test_series.to_numpy()
                 if verbose:
-                    print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
+                    print_wrapped(
+                        f"Fitting {quote_and_color(self._name)}.", 
+                        type="PROGRESS"
+                    )
                 self._best_estimator.fit(X_train, y_train)
                 y_pred = self._best_estimator.predict(X_test)
                 if y_scaler is not None:
@@ -105,7 +111,10 @@ class CustomR(BaseR):
             X_train = X_train_df
             y_train = y_train_series.to_numpy()
             if verbose:
-                print_wrapped(f"Fitting {self._name}.", type="PROGRESS")
+                print_wrapped(
+                    f"Fitting {quote_and_color(self._name)}.", 
+                    type="PROGRESS"
+                )
             self._best_estimator.fit(X_train, y_train)
             y_pred = self._best_estimator.predict(X_train)
             if y_scaler is not None:

@@ -4,7 +4,7 @@ from sklearn.model_selection import (
     KFold,
     BaseCrossValidator,
 )
-from typing import Literal, Mapping, Iterable
+from typing import Literal, Mapping, Iterable, Any
 from sklearn.base import BaseEstimator
 from sklearn.utils._testing import ignore_warnings
 import optuna
@@ -12,7 +12,6 @@ import warnings
 from ...display.print_utils import print_wrapped, fill_ignore_format, quote_and_color
 
 
-optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
 class BasePredictModel:
@@ -149,14 +148,19 @@ class HyperparameterSearcher:
 
         Parameters
         ----------
-        X : np.ndarray ~ (sample_size, n_predictors).
-        y : np.ndarray ~ (sample_size).
-        verbose : bool.
+        X : np.ndarray ~ (n_obs, n_predictors)
+            NumPy array of predictor variables' values.
+
+        y : np.ndarray ~ (n_obs)
+            NumPy array of target variable values.
+
+        verbose : bool
             Default: False. If True, prints progress.
 
         Returns
         -------
-        best_estimator : BaseEstimator.
+        BaseEstimator
+            The best estimator.
         """
         if verbose:
             print_wrapped(
@@ -174,15 +178,17 @@ class HyperparameterSearcher:
 
         Returns
         -------
-        - BaseEstimator
+        BaseEstimator
+            The best estimator.
         """
         return self._best_estimator
 
-    def best_params(self) -> Mapping:
+    def best_params(self) -> Any:
         """Returns the best parameters.
 
         Returns
         -------
-        - Mapping
+        Any
+            The best set of hyperparameters.
         """
         return self._best_params

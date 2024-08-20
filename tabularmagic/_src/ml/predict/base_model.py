@@ -12,8 +12,6 @@ import warnings
 from ...display.print_utils import print_wrapped, fill_ignore_format, quote_and_color
 
 
-
-
 class BasePredictModel:
     """Base class for typing assistance of BaseR and BaseC.
 

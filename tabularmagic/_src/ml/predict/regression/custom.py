@@ -56,8 +56,7 @@ class CustomR(BaseR):
             y_train = y_train_series.to_numpy()
             if verbose:
                 print_wrapped(
-                    f"Fitting {quote_and_color(self._name)}.", 
-                    type="PROGRESS"
+                    f"Fitting {quote_and_color(self._name)}.", type="PROGRESS"
                 )
             self._best_estimator.fit(X_train, y_train)
             y_pred = self._best_estimator.predict(X_train)
@@ -87,8 +86,7 @@ class CustomR(BaseR):
                 y_test = y_test_series.to_numpy()
                 if verbose:
                     print_wrapped(
-                        f"Fitting {quote_and_color(self._name)}.", 
-                        type="PROGRESS"
+                        f"Fitting {quote_and_color(self._name)}.", type="PROGRESS"
                     )
                 self._best_estimator.fit(X_train, y_train)
                 y_pred = self._best_estimator.predict(X_test)
@@ -112,8 +110,7 @@ class CustomR(BaseR):
             y_train = y_train_series.to_numpy()
             if verbose:
                 print_wrapped(
-                    f"Fitting {quote_and_color(self._name)}.", 
-                    type="PROGRESS"
+                    f"Fitting {quote_and_color(self._name)}.", type="PROGRESS"
                 )
             self._best_estimator.fit(X_train, y_train)
             y_pred = self._best_estimator.predict(X_train)

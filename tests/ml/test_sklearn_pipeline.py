@@ -314,12 +314,8 @@ def test_pipeline_inverse_scaling_regression(setup_data):
     )
     pipeline = report.model("LinearR(l2)").sklearn_pipeline()
 
-    output = pipeline.predict(
-        test_data
-    )
+    output = pipeline.predict(test_data)
 
     assert np.allclose(
         output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
-
-

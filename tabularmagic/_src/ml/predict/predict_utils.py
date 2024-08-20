@@ -21,10 +21,11 @@ class InverseTransformRegressor(BaseEstimator, RegressorMixin):
 
     def predict(self, X):
         y_pred_transformed = self.model.predict(X)
-        return self.inverse_func(y_pred_transformed) if \
-            self.inverse_func else y_pred_transformed
+        return (
+            self.inverse_func(y_pred_transformed)
+            if self.inverse_func
+            else y_pred_transformed
+        )
 
     def score(self, X, y):
         return self.model.score(X, y)
-    
-

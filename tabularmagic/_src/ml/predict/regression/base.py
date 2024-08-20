@@ -269,9 +269,9 @@ class BaseR(BasePredictModel):
         -------
         Pipeline | InverseTransformRegressor
             Returns either a Pipeline (from scikit-learn) or InverseTransformRegressor
-            object. Both objects have a :pymod:`.predict(X)` method. 
-            In the case that the target variable was transformed, an 
-            InverseTransformRegressor object is returned, which simply wraps around 
+            object. Both objects have a `.predict(X)` method.
+            In the case that the target variable was transformed, an
+            InverseTransformRegressor object is returned, which simply wraps around
             the Pipeline and inverse transforms the predictions as the final step.
         """
         if self._feature_selectors is not None:
@@ -295,17 +295,14 @@ class BaseR(BasePredictModel):
                         "custom_prep_data",
                         self._dataemitter.sklearn_preprocessing_transformer(),
                     ),
-                    (
-                        "model", 
-                        self._hyperparam_searcher._searcher
-                    ),
+                    ("model", self._hyperparam_searcher._searcher),
                 ]
             )
 
         if self._dataemitter._yscaler is not None:
             pipeline = InverseTransformRegressor(
                 model=pipeline,
-                inverse_func=self._dataemitter._yscaler.inverse_transform
+                inverse_func=self._dataemitter._yscaler.inverse_transform,
             )
 
         return pipeline

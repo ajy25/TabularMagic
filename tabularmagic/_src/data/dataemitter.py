@@ -1015,7 +1015,7 @@ class DataEmitter:
 
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input must be a DataFrame.")
-        
+
         X = X.copy()
 
         for step in self._step_tracer._steps:

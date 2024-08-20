@@ -10,7 +10,7 @@ TabularMagic is a Python package for rapid exploratory statistical analysis and 
 
 ## Installation and dependencies
 
-TabularMagic can be installed via pip. The Python scripts below handle package setup and pip installation. 
+TabularMagic can be installed from source. The Python scripts below handle installation. 
 
 To install TabularMagic: 
 ```
@@ -39,20 +39,22 @@ import joblib
 df = ...
 
 # initialize an Analyzer object
-analyzer = tm.Analyzer(df, test_size=0.2)
+a = tm.Analyzer(df, test_size=0.2)
 
 # preprocess data
-analyzer.drop_highly_missing().scale().impute()
+a.drop_highly_missing().scale().impute()
 
 # conduct a regression model benchmarking exercise
-reg_report = analyzer.regress(
+reg_report = a.regress(
     models=[
         tm.ml.LinearR('l2'),
         tm.ml.TreesR('random_forest'),
         tm.ml.TreesR('xgboost'),
     ],
     target='y',
-    predictors=['x1', 'x2', 'x3']
+    feature_selectors=[
+        tm.fs.BorutaFSR()
+    ]
 )
 print(reg_report.metrics('test'))
 
@@ -67,9 +69,9 @@ joblib.dump(reg_report.model('LinearR(l2)'), 'l2_pipeline.joblib')
 Check out the `./demo` directory for detailed examples and discussion of other functionality.
 
 
-## Development notes
+## Notes
 
-Under active development. We intend to push an initial releaase to Test PyPI soon.
+TabularMagic is under active development. We intend to release a test version to Test PyPI soon.
 
 ### Motivation: low-code ML for research
 
@@ -77,9 +79,10 @@ Though numerous open-source automatic/low-code machine learning packages have em
 
 TabularMagic provides a straightforward Python API that exponentially accelerates machine learning model benchmarking by seemlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
 1. **Preprocess-as-you-explore functionality.** TabularMagic remembers each feature transformation you make and automatically preprocesses your train, validation, and test datasets when you fit and evaluate models down the line. 
-2. **Automatic hyperparameter optimization and feature selection.** TabularMagic automatically selects features and identifies optimal hyperparameters for you. All TabularMagic models come with preset hyperparameter search methods. 
+2. **Automatic hyperparameter optimization and feature selection.** TabularMagic can automatically select features and identify optimal hyperparameters for you. All TabularMagic ML models come with preset hyperparameter search methods. 
 3. **Flexibility.** Though TabularMagic provides many out-of-the-box models with default hyperparameter search spaces, it also supports custom estimators and pipelines. Any scikit-learn `BaseEstimator`/`Pipeline`-like object with fit and predict methods can be used. 
-4. **LLM support.**  (coming soon!) TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data.
+4. **Linear regression.** TabularMagic contains numerous methods to support statsmodels' classical linear statistical models, including diagnostic plots, stepwise feature selection, and statistical tests, enabling you to seemlessly switch between linear statistical modeling and ML modeling.
+5. **LLM support.**  (coming soon!) TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data. 
 
 See more in `./dev_notes/notes.md`.
 

@@ -2,10 +2,7 @@ from .regression_feature_selection import (
     KBestFSR,
     LassoFSR,
 )
-from .classification_feature_selection import (
-    KBestFSC,
-    LassoFSC
-)
+from .classification_feature_selection import KBestFSC, LassoFSC
 from .boruta_feature_selection import (
     BorutaFSR,
     BorutaFSC,

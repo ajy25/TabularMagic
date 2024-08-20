@@ -757,7 +757,7 @@ class Analyzer:
 
     @ensure_arg_list_uniqueness()
     def force_categorical(self, vars: list[str]) -> "Analyzer":
-        """Forces specificed variables (columns) to have categorical values. 
+        """Forces specificed variables (columns) to have categorical values.
         That is, the variables' values are converted to strings.
 
         Parameters

@@ -81,7 +81,7 @@ class OLSLinearModel:
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
         n_predictors = X_train.shape[1]
-        X_train = sm.add_constant(X_train, has_constant='add')
+        X_train = sm.add_constant(X_train, has_constant="add")
         self.estimator = sm.OLS(y_train, X_train).fit(cov_type="HC3")
 
         y_pred_train = self.estimator.predict(X_train).to_numpy()
@@ -97,7 +97,7 @@ class OLSLinearModel:
         )
 
         X_test, y_test = self._dataemitter.emit_test_Xy()
-        X_test = sm.add_constant(X_test, has_constant='add')
+        X_test = sm.add_constant(X_test, has_constant="add")
 
         if X_train.shape[1] == n_predictors:
             exception_vars = set(X_train.columns).symmetric_difference(
@@ -107,7 +107,6 @@ class OLSLinearModel:
                 "Mismatched train/test predictors. "
                 f"{exception_vars} not found in both train and test."
             )
-
 
         y_pred_test = self.estimator.predict(X_test).to_numpy()
         if y_scaler is not None:
@@ -178,7 +177,7 @@ class OLSLinearModel:
             The subset of predictors that are most likely to be significant.
         """
         if max_steps <= 0:
-            raise ValueError("max_steps cannot be non-positive")
+            raise ValueError("max_steps cannot be negative")
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
 

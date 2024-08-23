@@ -10,18 +10,18 @@ TabularMagic is a Python package for rapid exploratory statistical analysis and 
 
 ## Installation and dependencies
 
-TabularMagic can be installed from source. The Python scripts below handle installation. 
+TabularMagic can be installed from source.
 
-To install TabularMagic: 
+To install TabularMagic:
 ```
 git clone https://github.com/ajy25/TabularMagic.git
 cd TabularMagic
-python tmbuild.py install
+pip install .
 ```
 
 To uninstall TabularMagic:
 ```
-python tmbuild.py uninstall
+pip uninstall tabularmagic
 ```
 
 TabularMagic is built with the standard Python data science stack. That is, TabularMagic is really just a fancy wrapper for scikit-learn and statsmodels. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
@@ -39,13 +39,13 @@ import joblib
 df = ...
 
 # initialize an Analyzer object
-a = tm.Analyzer(df, test_size=0.2)
+analyzer = tm.Analyzer(df, test_size=0.2)
 
 # preprocess data
-a.drop_highly_missing_vars().scale().impute()
+analyzer.drop_highly_missing_vars().scale().impute()
 
 # conduct a regression model benchmarking exercise
-reg_report = a.regress(
+reg_report = analyzer.regress(
     models=[
         tm.ml.LinearR('l2'),
         tm.ml.TreesR('random_forest'),

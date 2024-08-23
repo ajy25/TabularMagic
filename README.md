@@ -42,7 +42,7 @@ df = ...
 a = tm.Analyzer(df, test_size=0.2)
 
 # preprocess data
-a.drop_highly_missing().scale().impute()
+a.drop_highly_missing_vars().scale().impute()
 
 # conduct a regression model benchmarking exercise
 reg_report = a.regress(

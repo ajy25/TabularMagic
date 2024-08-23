@@ -1,17 +1,7 @@
-Getting Started
-===============
-
-..    :maxdepth: 2
-..    :caption: Contents:
-
-..    install
-..    tutorials/predicting_house_price
+Introduction
+============
 
 .. currentmodule:: tabularmagic
-
-
-Introduction: What is TabularMagic?
------------------------------------
 
 Domain expertise is extremely valuable in data science and quantitative research.
 However, experts in fields such as medicine and healthcare often lack the 

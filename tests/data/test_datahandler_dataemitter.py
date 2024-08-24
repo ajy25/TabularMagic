@@ -494,8 +494,8 @@ def test_emitter_feature_selection(setup_data):
         emitter.emit_test_Xy()[1].to_numpy(), df_iris_test["target"].to_numpy()
     )
 
-    df_house_train = setup_data["df_house_train"]
-    df_house_test = setup_data["df_house_test"]
+    df_house_train: pd.DataFrame = setup_data["df_house_train"]
+    df_house_test: pd.DataFrame = setup_data["df_house_test"]
 
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
     all_vars = ["SalePrice", "LotFrontage", "LotArea", "OverallQual", "LotShape"]
@@ -526,16 +526,21 @@ def test_emitter_feature_selection_transform(setup_data):
     dh = DataHandler(df_house_train, df_house_test, verbose=False)
 
 
-def test_datahandler_scale_(setup_data):
+def test_datahandler_dropna_drop_highly_missing(setup_data):
     """Test DataEmitter with basic pipeline generation capabilities"""
     train_data = setup_data["df_house_train"]
     test_data = setup_data["df_house_test"]
     dh = DataHandler(train_data, test_data, verbose=False)
 
-    dh.scale(
-        include_vars=["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"],
-        strategy="standardize",
-    )
+    dh.drop_highly_missing_vars(threshold=0.5)
+    dh.dropna()
+    assert "PoolQC" not in dh._working_df_train.columns
 
-    assert "MSZoning" in dh.df_train().columns
-    dh.onehot(["MSZoning"])
+    de = dh.train_test_emitter("SalePrice", ["LotFrontage", "LotArea", "OverallQual"])
+
+    assert "PoolQC" not in de._working_df_train.columns
+
+    train_X, _, _, _ = de.emit_train_test_Xy()
+
+    assert len(de._working_df_train) == len(train_X)
+    

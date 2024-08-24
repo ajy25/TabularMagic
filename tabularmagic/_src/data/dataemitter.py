@@ -148,6 +148,8 @@ class DataEmitter:
                 self._scale(**step["kwargs"])
             elif step["step"] == "drop_highly_missing_vars":
                 self._drop_highly_missing_vars(**step["kwargs"])
+            elif step["step"] == "dropna":
+                self._dropna(**step["kwargs"])
             elif step["step"] == "force_numeric":
                 self._force_numeric(**step["kwargs"])
             elif step["step"] == "force_binary":

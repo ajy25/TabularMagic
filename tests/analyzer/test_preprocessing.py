@@ -38,6 +38,8 @@ def test_standard_scaling(setup_data):
 
     scaled_vars = ["GrLivArea", "YearBuilt", "OverallQual", "LotArea", "SalePrice"]
 
+    analyzer.dropna(include_vars=scaled_vars)
+
     analyzer.scale(include_vars=scaled_vars, strategy="standardize")
 
     analyzer_working_df_train = analyzer.datahandler().df_train()[scaled_vars]

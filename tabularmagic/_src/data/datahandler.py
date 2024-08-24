@@ -613,28 +613,37 @@ class DataHandler:
         if exclude_vars is not None:
             prev_vars = list(set(prev_vars) - set(exclude_vars))
 
-        self._working_df_train = self._working_df_train.dropna(
-            axis=1, thresh=round((1 - threshold) * len(self._working_df_train))
-        )
-        curr_vars = self._working_df_train.columns.to_list()
-        vars_dropped = set(prev_vars) - set(curr_vars)
 
-        if len(vars_dropped) == 0:
+        missingness = self._working_df_train[prev_vars].isna().mean()
+        vars_to_drop = missingness[missingness >= threshold].index.to_list()
+
+
+        if len(vars_to_drop) == 0:
             print_wrapped(
                 f"No variables found with at least {threshold*100}% of values missing.",
                 type="WARNING",
             )
             self._preprocess_step_tracer.add_step(
-                "drop_highly_missing_vars", {"threshold": threshold}
+                "drop_highly_missing_vars", {
+                    "include_vars": include_vars,
+                    "exclude_vars": exclude_vars,
+                    "threshold": threshold
+                }
             )
             return self
+        
 
-        self._working_df_test = self._working_df_test.drop(vars_dropped, axis=1)
-        assert self._working_df_test.shape[1] == self._working_df_train.shape[1]
+        self._working_df_train = self._working_df_train.drop(vars_to_drop, axis=1)
+        self._working_df_test = self._working_df_test.drop(vars_to_drop, axis=1)
+
+        assert (
+            self._working_df_test.shape[1] == self._working_df_train.shape[1], 
+            "Train and test DataFrames have different number of columns."
+        )
 
         if self._verbose:
             print_wrapped(
-                f"Dropped variables {list_to_string(vars_dropped)} "
+                f"Dropped variables {list_to_string(vars_to_drop)} "
                 + f"with at least {threshold*100}% of "
                 + "values missing.",
                 type="UPDATE",

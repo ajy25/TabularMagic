@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from sklearn.compose import TransformedTargetRegressor
 from ....feature_selection import BaseFSR
 from ....metrics import RegressionScorer
 from ..base_model import BasePredictModel, HyperparameterSearcher

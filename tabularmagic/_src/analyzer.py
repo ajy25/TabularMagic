@@ -660,20 +660,41 @@ class Analyzer:
         )
         return self
 
-    def drop_highly_missing_vars(self, threshold: float = 0.5) -> "Analyzer":
+    @ensure_arg_list_uniqueness()
+    def drop_highly_missing_vars(
+        self, 
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        threshold: float = 0.5
+    ) -> "Analyzer":
         """Drops variables (columns) with missingness rate above a specified threshold.
 
         Parameters
         ----------
+        include_vars : list[str] | None
+            Default: None. If not None, only drops columns with more than 50% missing
+            values in the specified variables. Otherwise, drops columns with more than
+            50% missing values in all variables.
+
+        exclude_vars : list[str] | None
+            Default: None. If not None, excludes the specified variables from the
+            list of variables to drop (which is set to all variables by default).
+        
         threshold : float
-            Default: 0.5. The threshold above which variables are dropped.
+            Default: 0.5. Proportion of missing values above which a column is dropped.
+            For example, if threshold = 0.2, then columns with more than 20% missing
+            values are dropped.
 
         Returns
         -------
         Analyzer
             Returns self for method chaining.
         """
-        self._datahandler.drop_highly_missing_vars(threshold)
+        self._datahandler.drop_highly_missing_vars(
+            include_vars, 
+            exclude_vars, 
+            threshold
+        )
         return self
 
     @ensure_arg_list_uniqueness()

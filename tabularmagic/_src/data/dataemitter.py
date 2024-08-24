@@ -438,21 +438,21 @@ class DataEmitter:
         if exclude_vars is not None:
             prev_vars = list(set(prev_vars) - set(exclude_vars))
 
-        self._working_df_train = self._working_df_train.dropna(
-            axis=1, thresh=round((1 - threshold) * len(self._working_df_train))
-        )
-        curr_vars = self._working_df_train.columns.to_list()
-        vars_dropped = set(prev_vars) - set(curr_vars)
+        missingness = self._working_df_train[prev_vars].isna().mean()
+        vars_to_drop = missingness[missingness >= threshold].index.to_list()
 
         if self._highly_missing_vars_dropped is None:
-            self._highly_missing_vars_dropped = vars_dropped
+            self._highly_missing_vars_dropped = vars_to_drop
         else:
             self._highly_missing_vars_dropped = self._highly_missing_vars_dropped.add(
-                vars_dropped
+                vars_to_drop
             )
 
+        self._working_df_train = self._working_df_train.drop(
+            vars_to_drop, axis=1
+        )
         self._working_df_test = self._working_df_test.drop(
-            vars_dropped, axis=1
+            vars_to_drop, axis=1
         )
         (
             self._categorical_vars,

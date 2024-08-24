@@ -392,14 +392,29 @@ class DataEmitter:
         return None
 
     def _drop_highly_missing_vars(
-        self, threshold: float = 0.5, X: pd.DataFrame | None = None
+        self, 
+        include_vars: list[str] | None = None,
+        exclude_vars: list[str] | None = None,
+        threshold: float = 0.5, 
+        X: pd.DataFrame | None = None
     ) -> pd.DataFrame | None:
         """Drops columns with more than 50% missing values (on train) in-place.
 
         Parameters
         ----------
+        include_vars : list[str] | None
+            Default: None. If not None, only drops columns with more than 50% missing
+            values in the specified variables. Otherwise, drops columns with more than
+            50% missing values in all variables.
+
+        exclude_vars : list[str] | None
+            Default: None. If not None, excludes the specified variables from the
+            list of variables to drop (which is set to all variables by default).
+        
         threshold : float
             Default: 0.5. Proportion of missing values above which a column is dropped.
+            For example, if threshold = 0.2, then columns with more than 20% missing
+            values are dropped.
 
         X : pd.DataFrame | None
             Default: None. If not None, drops columns with more than 50% missing
@@ -415,15 +430,29 @@ class DataEmitter:
             kept_vars = list(set(prev_vars) - self._highly_missing_vars_dropped)
             return X[kept_vars]
 
-        prev_vars = self._working_df_train.columns.to_list()
+        if include_vars is None:
+            prev_vars = self._working_df_train.columns.to_list()
+        else:
+            prev_vars = include_vars
+
+        if exclude_vars is not None:
+            prev_vars = list(set(prev_vars) - set(exclude_vars))
+
         self._working_df_train = self._working_df_train.dropna(
             axis=1, thresh=round((1 - threshold) * len(self._working_df_train))
         )
         curr_vars = self._working_df_train.columns.to_list()
-        self._highly_missing_vars_dropped = set(prev_vars) - set(curr_vars)
+        vars_dropped = set(prev_vars) - set(curr_vars)
+
+        if self._highly_missing_vars_dropped is None:
+            self._highly_missing_vars_dropped = vars_dropped
+        else:
+            self._highly_missing_vars_dropped = self._highly_missing_vars_dropped.add(
+                vars_dropped
+            )
 
         self._working_df_test = self._working_df_test.drop(
-            self._highly_missing_vars_dropped, axis=1
+            vars_dropped, axis=1
         )
         (
             self._categorical_vars,

@@ -10,6 +10,7 @@ from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..lm import OLSLinearModel
 from ...display.print_utils import print_wrapped
+from ...display.plot_options import plot_options
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 from ...stattests import StatisticalTestReport
 
@@ -152,18 +153,23 @@ class SingleDatasetLinRegReport:
         if standardized:
             residuals = self._stdresiduals
 
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
+        ax.axhline(
+            y=0,
+            color=plot_options._reference_line_color,
+            linestyle="--",
+            linewidth=plot_options._line_width,
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[~self._outliers_residual_mask],
                 residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
             )
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],
                 residuals[self._outliers_residual_mask],
-                s=2,
+                s=plot_options._dot_size,
                 color="red",
             )
             if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
@@ -177,12 +183,17 @@ class SingleDatasetLinRegReport:
                                 residuals[self._outliers_residual_mask][i],
                             ),
                             color="red",
-                            fontsize=6,
+                            fontsize=plot_options._axis_minor_ticklabel_font_size,
                         )
                     )
                 adjust_text(annotations, ax=ax)
         else:
-            ax.scatter(self._y_pred, residuals, s=2, color="black")
+            ax.scatter(
+                self._y_pred,
+                residuals,
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
+            )
 
         ax.set_xlabel("Fitted")
         if standardized:
@@ -191,7 +202,21 @@ class SingleDatasetLinRegReport:
         else:
             ax.set_ylabel("Residuals")
             ax.set_title("Residuals vs Fitted")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -239,18 +264,23 @@ class SingleDatasetLinRegReport:
 
         x_vals = self._X_eval_df[predictor].to_numpy()
 
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
+        ax.axhline(
+            y=0,
+            color=plot_options._reference_line_color,
+            linestyle="--",
+            linewidth=plot_options._line_width,
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 x_vals[~self._outliers_residual_mask],
                 residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
             )
             ax.scatter(
                 x_vals[self._outliers_residual_mask],
                 residuals[self._outliers_residual_mask],
-                s=2,
+                s=plot_options._dot_size,
                 color="red",
             )
             if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
@@ -264,12 +294,17 @@ class SingleDatasetLinRegReport:
                                 residuals[self._outliers_residual_mask][i],
                             ),
                             color="red",
-                            fontsize=6,
+                            fontsize=plot_options._axis_minor_ticklabel_font_size,
                         )
                     )
                 adjust_text(annotations, ax=ax)
         else:
-            ax.scatter(x_vals, residuals, s=2, color="black")
+            ax.scatter(
+                x_vals,
+                residuals,
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
+            )
 
         ax.set_xlabel(predictor)
         if standardized:
@@ -278,7 +313,21 @@ class SingleDatasetLinRegReport:
         else:
             ax.set_ylabel("Residuals")
             ax.set_title(f"Residuals vs {predictor}")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -327,12 +376,12 @@ class SingleDatasetLinRegReport:
         sns.histplot(
             residuals,
             bins="auto",
-            color="black",
-            edgecolor="none",
+            color=plot_options._bar_color,
+            edgecolor=plot_options._bar_edgecolor,
             stat=stat,
             ax=ax,
             kde=True,
-            alpha=0.2,
+            alpha=plot_options._bar_alpha,
         )
         if standardized:
             ax.set_title("Distribution of Standardized Residuals")
@@ -344,7 +393,21 @@ class SingleDatasetLinRegReport:
             ax.set_ylabel("Density")
         else:
             ax.set_ylabel("Frequency")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -381,18 +444,23 @@ class SingleDatasetLinRegReport:
 
         residuals = np.sqrt(np.abs(self._stdresiduals))
 
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
+        ax.axhline(
+            y=0,
+            color=plot_options._reference_line_color,
+            linestyle="--",
+            linewidth=plot_options._line_width,
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 self._y_pred[~self._outliers_residual_mask],
                 residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
             )
             ax.scatter(
                 self._y_pred[self._outliers_residual_mask],
                 residuals[self._outliers_residual_mask],
-                s=2,
+                s=plot_options._dot_size,
                 color="red",
             )
             if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
@@ -406,18 +474,38 @@ class SingleDatasetLinRegReport:
                                 residuals[self._outliers_residual_mask][i],
                             ),
                             color="red",
-                            fontsize=6,
+                            fontsize=plot_options._axis_minor_ticklabel_font_size,
                         )
                     )
                 adjust_text(annotations, ax=ax)
 
         else:
-            ax.scatter(self._y_pred, residuals, s=2, color="black")
+            ax.scatter(
+                self._y_pred,
+                residuals,
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
+            )
 
         ax.set_xlabel("Fitted")
         ax.set_ylabel("sqrt(Standardized Residuals)")
         ax.set_title("Scale-Location")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
+
         if fig is not None:
             fig.tight_layout()
             plt.close()
@@ -463,18 +551,23 @@ class SingleDatasetLinRegReport:
         if standardized:
             residuals = self._stdresiduals
 
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
+        ax.axhline(
+            y=0,
+            color=plot_options._reference_line_color,
+            linestyle="--",
+            linewidth=plot_options._line_width,
+        )
         if show_outliers and self._n_outliers > 0:
             ax.scatter(
                 leverage[~self._outliers_residual_mask],
                 residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
             )
             ax.scatter(
                 leverage[self._outliers_residual_mask],
                 residuals[self._outliers_residual_mask],
-                s=2,
+                s=plot_options._dot_size,
                 color="red",
             )
             if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
@@ -488,13 +581,18 @@ class SingleDatasetLinRegReport:
                                 residuals[self._outliers_residual_mask][i],
                             ),
                             color="red",
-                            fontsize=6,
+                            fontsize=plot_options._axis_minor_ticklabel_font_size,
                         )
                     )
                 adjust_text(annotations, ax=ax)
 
         else:
-            ax.scatter(leverage, residuals, s=2, color="black")
+            ax.scatter(
+                leverage,
+                residuals,
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
+            )
 
         ax.set_xlabel("Leverage")
         if standardized:
@@ -503,7 +601,21 @@ class SingleDatasetLinRegReport:
         else:
             ax.set_ylabel("Residuals")
             ax.set_title("Residuals vs Leverage")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -563,9 +675,9 @@ class SingleDatasetLinRegReport:
         ax.plot(
             [min_val, max_val],
             [min_val * slope + intercept, max_val * slope + intercept],
-            color="gray",
+            color=plot_options._reference_line_color,
             linestyle="--",
-            linewidth=1,
+            linewidth=plot_options._line_width,
         )
 
         if show_outliers and self._n_outliers > 0:
@@ -584,13 +696,13 @@ class SingleDatasetLinRegReport:
             ax.scatter(
                 residuals_df_not_outliers["theoretical_quantile"],
                 residuals_df_not_outliers["ordered_value"],
-                s=2,
-                color="black",
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
             )
             ax.scatter(
                 residuals_df_outliers["theoretical_quantile"],
                 residuals_df_outliers["ordered_value"],
-                s=2,
+                s=plot_options._dot_size,
                 color="red",
             )
             if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
@@ -601,13 +713,32 @@ class SingleDatasetLinRegReport:
                             row["label"],
                             (row["theoretical_quantile"], row["ordered_value"]),
                             color="red",
-                            fontsize=6,
+                            fontsize=plot_options._axis_minor_ticklabel_font_size,
                         )
                     )
                 adjust_text(annotations, ax=ax)
 
         else:
-            ax.scatter(theoretical_quantitles, ordered_vals, s=2, color="black")
+            ax.scatter(
+                theoretical_quantitles,
+                ordered_vals,
+                s=plot_options._dot_size,
+                color=plot_options._dot_color,
+            )
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -645,7 +776,7 @@ class SingleDatasetLinRegReport:
 
         fig.subplots_adjust(hspace=0.3, wspace=0.3)
 
-        decrease_font_sizes_axs(axs, 5, 5, 0)
+        decrease_font_sizes_axs(axs, 2, 2, 0)
 
         plt.close()
         return fig

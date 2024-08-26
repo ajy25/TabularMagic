@@ -543,4 +543,3 @@ def test_datahandler_dropna_drop_highly_missing(setup_data):
     train_X, _, _, _ = de.emit_train_test_Xy()
 
     assert len(de._working_df_train) == len(train_X)
-    

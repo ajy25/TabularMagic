@@ -572,10 +572,10 @@ class DataHandler:
         return self
 
     def drop_highly_missing_vars(
-        self, 
+        self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        threshold: float = 0.5
+        threshold: float = 0.5,
     ) -> "DataHandler":
         """Drops columns with more than a provided percentage of missing values
         (computed on train) in-place for both the working train and test
@@ -591,7 +591,7 @@ class DataHandler:
         exclude_vars : list[str] | None
             Default: None. If not None, excludes the specified variables from the
             list of variables to drop (which is set to all variables by default).
-        
+
         threshold : float
             Default: 0.5. Proportion of missing values above which a column is dropped.
             For example, if threshold = 0.2, then columns with more than 20% missing
@@ -613,10 +613,8 @@ class DataHandler:
         if exclude_vars is not None:
             prev_vars = list(set(prev_vars) - set(exclude_vars))
 
-
         missingness = self._working_df_train[prev_vars].isna().mean()
         vars_to_drop = missingness[missingness >= threshold].index.to_list()
-
 
         if len(vars_to_drop) == 0:
             print_wrapped(
@@ -624,22 +622,21 @@ class DataHandler:
                 type="WARNING",
             )
             self._preprocess_step_tracer.add_step(
-                "drop_highly_missing_vars", {
+                "drop_highly_missing_vars",
+                {
                     "include_vars": include_vars,
                     "exclude_vars": exclude_vars,
-                    "threshold": threshold
-                }
+                    "threshold": threshold,
+                },
             )
             return self
-        
 
         self._working_df_train = self._working_df_train.drop(vars_to_drop, axis=1)
         self._working_df_test = self._working_df_test.drop(vars_to_drop, axis=1)
 
         assert (
-            self._working_df_test.shape[1] == self._working_df_train.shape[1], 
-            "Train and test DataFrames have different number of columns."
-        )
+            self._working_df_test.shape[1] == self._working_df_train.shape[1]
+        ), "Train and test DataFrames have different number of columns."
 
         if self._verbose:
             print_wrapped(
@@ -654,11 +651,12 @@ class DataHandler:
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
         self._preprocess_step_tracer.add_step(
-            "drop_highly_missing_vars", {
+            "drop_highly_missing_vars",
+            {
                 "include_vars": include_vars,
                 "exclude_vars": exclude_vars,
-                "threshold": threshold
-            }
+                "threshold": threshold,
+            },
         )
         return self
 
@@ -974,7 +972,7 @@ class DataHandler:
                 if self._verbose:
                     print_wrapped(
                         "Unable to force variable "
-                        + f'{quote_and_color(var)} to numeric.',
+                        + f"{quote_and_color(var)} to numeric.",
                         type="WARNING",
                     )
 
@@ -982,8 +980,8 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f'Forced variables {list_to_string(successfully_forced)} ' + 
-                "to numeric.",
+                f"Forced variables {list_to_string(successfully_forced)} "
+                + "to numeric.",
                 type="UPDATE",
             )
 

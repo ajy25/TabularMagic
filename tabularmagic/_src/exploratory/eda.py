@@ -10,6 +10,7 @@ from sklearn.decomposition import PCA
 from textwrap import fill
 from ..stattests import StatisticalTestReport
 from ..display.print_utils import print_wrapped
+from ..display.plot_options import plot_options
 
 
 class CategoricalEDA:
@@ -78,14 +79,43 @@ class CategoricalEDA:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        ax.bar(value_freqs.index, value_freqs.values, color="gray", edgecolor="none")
-        ax.set_title(f"Distrubution of {self.variable_name}")
-        ax.set_xlabel("Categories")
+        ax.bar(
+            value_freqs.index,
+            value_freqs.values,
+            color=plot_options._bar_color,
+            edgecolor=plot_options._bar_edgecolor,
+            alpha=plot_options._bar_alpha,
+        )
+        ax.set_title(
+            f"Distrubution of {self.variable_name}",
+        )
+        ax.set_xlabel(
+            "Categories",
+        )
+
         if density:
-            ax.set_ylabel("Density")
+            ax.set_ylabel(
+                "Density",
+            )
         else:
-            ax.set_ylabel("Frequency")
-        ax.ticklabel_format(style="sci", axis="y", scilimits=(-3, 3))
+            ax.set_ylabel(
+                "Frequency",
+            )
+        ax.ticklabel_format(style="sci", axis="y", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -149,7 +179,7 @@ class NumericEDA:
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a histogram.
+        """Returns a histogram Figure.
 
         Parameters
         ----------
@@ -201,12 +231,12 @@ class NumericEDA:
         sns.histplot(
             values,
             bins="auto",
-            color="black",
-            edgecolor="none",
+            color=plot_options._bar_color,
+            edgecolor=plot_options._bar_edgecolor,
             stat=stat,
             ax=ax,
             kde=True,
-            alpha=0.2,
+            alpha=plot_options._bar_alpha,
         )
         ax.set_title(f"Distribution of {self.variable_name}")
         ax.set_xlabel("Values")
@@ -214,7 +244,21 @@ class NumericEDA:
             ax.set_ylabel("Density")
         else:
             ax.set_ylabel("Frequency")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -293,6 +337,8 @@ class EDAReport:
         -------
         plt.Figure
         """
+        font_adjustment = 1
+
         if numeric_vars is None:
             numeric_vars = self._numeric_vars
         if len(numeric_vars) > 6:
@@ -307,12 +353,18 @@ class EDAReport:
             grid = sns.PairGrid(
                 self._df[numeric_vars + [stratify_by]].dropna(),
                 hue=stratify_by,
-                palette=sns.color_palette()[: len(self._df[stratify_by].unique())],
+                palette=plot_options._color_palette[
+                    : len(self._df[stratify_by].unique())
+                ],
             )
             right_adjust = 0.85
 
         grid.map_diag(
-            sns.histplot, color="black", edgecolor="none", kde=True, alpha=0.2
+            sns.histplot,
+            color=plot_options._bar_color,
+            edgecolor=plot_options._bar_edgecolor,
+            kde=True,
+            alpha=plot_options._bar_alpha,
         )
 
         if stratify_by is None:
@@ -325,22 +377,50 @@ class EDAReport:
                     ha="center",
                     va="center",
                     transform=plt.gca().transAxes,
-                    fontsize=8,
+                    fontsize=plot_options._axis_title_font_size - font_adjustment,
                 )
             )
         else:
-            grid.map_upper(sns.scatterplot, s=2, color="black")
+            grid.map_upper(
+                sns.scatterplot, s=plot_options._dot_size, color=plot_options._dot_color
+            )
 
-        grid.map_lower(sns.scatterplot, s=2, color="black")
+        grid.map_lower(
+            sns.scatterplot, s=plot_options._dot_size, color=plot_options._dot_color
+        )
 
         grid.add_legend()
+
         for ax in grid.axes.flat:
-            ax.tick_params(axis="both", which="both", labelsize=5)
-            ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-            ax.xaxis.offsetText.set_fontsize(5)
-            ax.yaxis.offsetText.set_fontsize(5)
-            ax.set_xlabel(ax.get_xlabel(), fontsize=6)
-            ax.set_ylabel(ax.get_ylabel(), fontsize=6)
+            ax.ticklabel_format(
+                style="sci", axis="both", scilimits=plot_options._scilimits
+            )
+
+            ax.xaxis.offsetText.set_fontsize(
+                plot_options._axis_major_ticklabel_font_size - font_adjustment
+            )
+            ax.yaxis.offsetText.set_fontsize(
+                plot_options._axis_major_ticklabel_font_size - font_adjustment
+            )
+
+            ax.xaxis.label.set_fontsize(
+                plot_options._axis_title_font_size - font_adjustment
+            )
+            ax.yaxis.label.set_fontsize(
+                plot_options._axis_title_font_size - font_adjustment
+            )
+            ax.tick_params(
+                axis="both",
+                which="major",
+                labelsize=plot_options._axis_major_ticklabel_font_size
+                - font_adjustment,
+            )
+            ax.tick_params(
+                axis="both",
+                which="minor",
+                labelsize=plot_options._axis_minor_ticklabel_font_size
+                - font_adjustment,
+            )
 
         fig = grid.figure
         fig.set_size_inches(*figsize)
@@ -348,11 +428,13 @@ class EDAReport:
 
         if stratify_by is not None:
             legend = fig.legends[0]
-            legend.set_title(legend.get_title().get_text(), prop={"size": 7})
-            # TODO: Fix label spacing
+            legend.set_title(
+                legend.get_title().get_text(),
+                prop={"size": plot_options._axis_title_font_size},
+            )
             for text in legend.get_texts():
                 text.set_text(fill(text.get_text(), 10))
-                text.set_fontsize(6)
+                text.set_fontsize(plot_options._axis_title_font_size - font_adjustment)
         fig.subplots_adjust(left=0.1, bottom=0.1)
         plt.close(fig)
         return fig
@@ -422,11 +504,11 @@ class EDAReport:
                         bins="auto",
                         kde=True,
                         label=str(category),
-                        alpha=0.2,
+                        alpha=plot_options._bar_alpha,
                         stat="density",
                         ax=ax,
-                        color=sns.color_palette()[i],
-                        edgecolor="none",
+                        color=plot_options._color_palette[i],
+                        edgecolor=plot_options._bar_edgecolor,
                     )
                 elif strategy == "stacked_hist_kde_frequency":
                     sns.histplot(
@@ -434,11 +516,11 @@ class EDAReport:
                         bins="auto",
                         kde=True,
                         label=str(category),
-                        alpha=0.2,
+                        alpha=plot_options._bar_alpha,
                         stat="frequency",
                         ax=ax,
-                        color=sns.color_palette()[i],
-                        edgecolor="none",
+                        color=plot_options._color_palette[i],
+                        edgecolor=plot_options._bar_edgecolor,
                     )
                 elif strategy == "stacked_kde_density":
                     sns.kdeplot(subset[numeric_var], label=str(category), ax=ax)
@@ -446,7 +528,9 @@ class EDAReport:
             legend = ax.legend()
             legend.set_title(stratify_by)
 
-            ax.ticklabel_format(style="sci", axis="x", scilimits=(-3, 3))
+            ax.ticklabel_format(
+                style="sci", axis="x", scilimits=plot_options._scilimits
+            )
 
         elif strategy == "violin_swarm":
             sns.violinplot(
@@ -454,16 +538,17 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
-                edgecolor="none",
-                alpha=0.2,
+                inner=None,
+                color=plot_options._bar_color,
+                edgecolor=plot_options._bar_edgecolor,
+                alpha=plot_options._bar_alpha,
             )
             sns.swarmplot(
                 data=local_df,
                 x=stratify_by,
                 y=numeric_var,
-                color="black",
-                size=2,
+                color=plot_options._dot_color,
+                size=plot_options._dot_size,
                 ax=ax,
             )
 
@@ -473,9 +558,10 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
-                edgecolor="none",
-                alpha=0.2,
+                color=plot_options._bar_color,
+                edgecolor=plot_options._bar_color,
+                inner="box",
+                alpha=plot_options._bar_alpha,
             )
 
         elif strategy == "violin_strip":
@@ -484,16 +570,17 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
-                edgecolor="none",
-                alpha=0.2,
+                inner=None,
+                color=plot_options._bar_color,
+                edgecolor=plot_options._bar_edgecolor,
+                alpha=plot_options._bar_alpha,
             )
             sns.stripplot(
                 data=local_df,
                 x=stratify_by,
                 y=numeric_var,
-                color="black",
-                size=2,
+                color=plot_options._dot_color,
+                size=plot_options._dot_size,
                 ax=ax,
             )
 
@@ -503,7 +590,8 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
+                color=plot_options._bar_color,
+                edgecolor=plot_options._bar_edgecolor,
                 fill=False,
                 linewidth=0.5,
             )
@@ -511,8 +599,8 @@ class EDAReport:
                 data=local_df,
                 x=stratify_by,
                 y=numeric_var,
-                color="black",
-                size=2,
+                color=plot_options._dot_color,
+                size=plot_options._dot_size,
                 ax=ax,
             )
 
@@ -522,7 +610,7 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
+                color=plot_options._bar_color,
                 fill=False,
                 linewidth=0.5,
             )
@@ -530,8 +618,8 @@ class EDAReport:
                 data=local_df,
                 x=stratify_by,
                 y=numeric_var,
-                color="black",
-                size=2,
+                color=plot_options._dot_color,
+                size=plot_options._dot_size,
                 ax=ax,
             )
 
@@ -541,7 +629,7 @@ class EDAReport:
                 x=stratify_by,
                 y=numeric_var,
                 ax=ax,
-                color="black",
+                color=plot_options._bar_color,
                 fill=False,
                 linewidth=0.5,
             )
@@ -549,8 +637,24 @@ class EDAReport:
         else:
             raise ValueError(f"Invalid input: {strategy}.")
 
-        ax.ticklabel_format(style="sci", axis="y", scilimits=(-3, 3))
-        ax.set_title(f"Distribution of {numeric_var}")
+        ax.ticklabel_format(style="sci", axis="y", scilimits=plot_options._scilimits)
+        ax.set_title(
+            f"Distribution of {numeric_var}",
+        )
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
 
         if fig is not None:
             fig.tight_layout()
@@ -667,7 +771,9 @@ class EDAReport:
                 X = X - np.mean(X, axis=0)
             components = pca.fit_transform(X)
             categories = X_y[stratify_by].to_numpy()
-            for category in np.unique(categories):
+            for color, category in zip(
+                plot_options._color_palette, np.unique(categories)
+            ):
                 mask = categories == category
                 if three_components:
                     ax.scatter(
@@ -675,14 +781,19 @@ class EDAReport:
                         components[mask, 1],
                         components[mask, 2],
                         label=category,
-                        s=2,
+                        s=plot_options._dot_size,
+                        color=color,
                     )
                     ax.set_xlabel("Principle Component 1")
                     ax.set_ylabel("Principle Component 2")
                     ax.set_zlabel("Principle Component 3")
                 else:
                     ax.scatter(
-                        components[mask, 0], components[mask, 1], label=category, s=2
+                        components[mask, 0],
+                        components[mask, 1],
+                        label=category,
+                        s=plot_options._dot_size,
+                        color=color,
                     )
                     ax.set_xlabel("Principle Component 1")
                     ax.set_ylabel("Principle Component 2")
@@ -698,7 +809,9 @@ class EDAReport:
             components = pca.fit_transform(X)
             labels_name = strata.name
             categories = X_y[labels_name].to_numpy()
-            for category in np.unique(categories):
+            for color, category in zip(
+                plot_options._color_palette, np.unique(categories)
+            ):
                 mask = categories == category
                 if three_components:
                     ax.scatter(
@@ -706,14 +819,19 @@ class EDAReport:
                         components[mask, 1],
                         components[mask, 2],
                         label=category,
-                        s=2,
+                        s=plot_options._dot_size,
+                        color=color,
                     )
                     ax.set_xlabel("Principle Component 1")
                     ax.set_ylabel("Principle Component 2")
                     ax.set_zlabel("Principle Component 3")
                 else:
                     ax.scatter(
-                        components[mask, 0], components[mask, 1], label=category, s=2
+                        components[mask, 0],
+                        components[mask, 1],
+                        label=category,
+                        s=plot_options._dot_size,
+                        color=color,
                     )
                     ax.set_xlabel("Principle Component 1")
                     ax.set_ylabel("Principle Component 2")
@@ -728,19 +846,50 @@ class EDAReport:
             components = pca.fit_transform(X)
             if three_components:
                 ax.scatter(
-                    components[:, 0], components[:, 1], components[:, 2], color="black"
+                    components[:, 0],
+                    components[:, 1],
+                    components[:, 2],
+                    color=plot_options._dot_color,
+                    s=plot_options._dot_size,
                 )
                 ax.set_xlabel("Principle Component 1")
                 ax.set_ylabel("Principle Component 2")
                 ax.set_zlabel("Principle Component 3")
             else:
-                ax.scatter(components[:, 0], components[:, 1], color="black", s=2)
+                ax.scatter(
+                    components[:, 0],
+                    components[:, 1],
+                    color=plot_options._dot_color,
+                    s=plot_options._dot_size,
+                )
                 ax.set_xlabel("Principle Component 1")
                 ax.set_ylabel("Principle Component 2")
 
         title_str = ", ".join(numeric_vars)
         ax.set_title(f"PCA({title_str})", wrap=True)
         ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
+
+        legend = ax.legend_
+        legend.set_title(
+            legend.get_title().get_text(),
+            prop={"size": plot_options._axis_title_font_size},
+        )
+        for text in legend.get_texts():
+            text.set_fontsize(plot_options._axis_title_font_size)
 
         if fig is not None:
             if not three_components:
@@ -750,8 +899,82 @@ class EDAReport:
             plt.close()
         return fig
 
+    def plot_correlation_heatmap(
+        self,
+        numeric_vars: list[str] | None = None,
+        cmap: str | plt.Colormap = "coolwarm",
+        figsize: tuple[float, float] = (5, 5),
+        ax: plt.Axes | None = None,
+    ) -> plt.Figure:
+        """Plots a heatmap of the correlation matrix of the numeric variables.
+
+        Parameters
+        ----------
+        numeric_vars : list[str] | None
+            Default: None. A list of numeric variables.
+            If None, all numeric variables are considered.
+
+        cmap : str | plt.Colormap
+            Default: "coolwarm". The colormap to use.
+
+        figsize : tuple[float, float]
+            Default: (5, 5). The size of the figure. Only used if ax is None.
+
+        ax : plt.Axes | None
+            Default: None. If not None, the plot is drawn on the input Axes.
+
+        Returns
+        -------
+        plt.Figure
+        """
+        if numeric_vars is None:
+            numeric_vars = self._numeric_vars
+
+        else:
+            for var in numeric_vars:
+                if var not in self._numeric_vars:
+                    raise ValueError(
+                        f"Invalid input: {var}. " "Must be a known numeric variable."
+                    )
+
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+
+        corr = self._df[numeric_vars].corr()
+        sns.heatmap(
+            corr,
+            annot=True,
+            annot_kws={"size": plot_options._axis_title_font_size},
+            fmt=".3f",
+            cmap=cmap,
+            ax=ax,
+            cbar=False,
+        )
+        ax.set_title("Correlation Heatmap")
+
+        ax.title.set_fontsize(plot_options._title_font_size)
+        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            labelrotation=45,
+            labelsize=plot_options._axis_major_ticklabel_font_size,
+        )
+        ax.tick_params(
+            axis="both",
+            which="minor",
+            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        )
+
+        if fig is not None:
+            fig.tight_layout()
+            plt.close()
+        return fig
+
     # --------------------------------------------------------------------------
-    # TESTING
+    # STATISTICAL TESTING
     # --------------------------------------------------------------------------
 
     def test_equal_means(

@@ -392,11 +392,11 @@ class DataEmitter:
         return None
 
     def _drop_highly_missing_vars(
-        self, 
+        self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        threshold: float = 0.5, 
-        X: pd.DataFrame | None = None
+        threshold: float = 0.5,
+        X: pd.DataFrame | None = None,
     ) -> pd.DataFrame | None:
         """Drops columns with more than 50% missing values (on train) in-place.
 
@@ -410,7 +410,7 @@ class DataEmitter:
         exclude_vars : list[str] | None
             Default: None. If not None, excludes the specified variables from the
             list of variables to drop (which is set to all variables by default).
-        
+
         threshold : float
             Default: 0.5. Proportion of missing values above which a column is dropped.
             For example, if threshold = 0.2, then columns with more than 20% missing
@@ -448,12 +448,8 @@ class DataEmitter:
                 vars_to_drop
             )
 
-        self._working_df_train = self._working_df_train.drop(
-            vars_to_drop, axis=1
-        )
-        self._working_df_test = self._working_df_test.drop(
-            vars_to_drop, axis=1
-        )
+        self._working_df_train = self._working_df_train.drop(vars_to_drop, axis=1)
+        self._working_df_test = self._working_df_test.drop(vars_to_drop, axis=1)
         (
             self._categorical_vars,
             self._numeric_vars,

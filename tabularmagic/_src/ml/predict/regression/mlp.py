@@ -26,7 +26,7 @@ class MLPR(BaseR):
         max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initializes an MLPR object.
@@ -126,7 +126,7 @@ class MLPR(BaseR):
             method=hyperparam_search_method,
             hyperparam_grid=hyperparam_search_space,
             estimator_name=self._name,
-            **kwargs
+            **kwargs,
         )
 
         self._validate_inputs()

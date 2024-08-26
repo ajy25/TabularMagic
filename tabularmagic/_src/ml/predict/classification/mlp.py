@@ -26,7 +26,7 @@ class MLPC(BaseC):
         max_n_features: int | None = 10,
         model_random_state: int = 42,
         name: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initializes an MLPC object.

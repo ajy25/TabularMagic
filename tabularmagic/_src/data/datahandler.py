@@ -168,7 +168,7 @@ class DataHandler:
         if self._verbose:
             print_wrapped(
                 "Saved working DataFrames checkpoint "
-                + f'{color_text(checkpoint, "yellow")}.',
+                + f'{quote_and_color(checkpoint, "yellow")}.',
                 type="UPDATE",
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -193,11 +193,11 @@ class DataHandler:
         DataHandler
             Returns self for method chaining.
         """
-        out_chkpt = self._checkpoint_name_to_df.pop(checkpoint)
+        self._checkpoint_name_to_df.pop(checkpoint)
         if self._verbose:
             print_wrapped(
                 "Removed working DataFrames checkpoint "
-                + f'{color_text(out_chkpt, "yellow")}.',
+                + f'{quote_and_color(checkpoint, "yellow")}.',
                 type="UPDATE",
             )
         return self
@@ -958,6 +958,8 @@ class DataHandler:
         DataHandler
             Returns self for method chaining.
         """
+        successfully_forced = []
+
         for var in vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")
@@ -972,15 +974,18 @@ class DataHandler:
                 if self._verbose:
                     print_wrapped(
                         "Unable to force variable "
-                        + f'{color_text(var, "purple")} to numeric.',
+                        + f'{quote_and_color(var)} to numeric.',
                         type="WARNING",
                     )
 
-            if self._verbose:
-                print_wrapped(
-                    f'Forced variable {color_text(var, "purple")} ' + "to numeric.",
-                    type="UPDATE",
-                )
+            successfully_forced.append(var)
+
+        if self._verbose:
+            print_wrapped(
+                f'Forced variables {list_to_string(successfully_forced)} ' + 
+                "to numeric.",
+                type="UPDATE",
+            )
 
         self._preprocess_step_tracer.add_step("force_numeric", {"vars": vars})
 

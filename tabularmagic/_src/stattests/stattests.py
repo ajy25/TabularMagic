@@ -18,7 +18,7 @@ class StatisticalTestReport:
         descriptive_statistic_description: str | None = None,
         null_hypothesis_description: str | None = None,
         alternative_hypothesis_description: str | None = None,
-        assumptions_description: str | None = None,
+        assumptions_description: str | list | None = None,
         long_description: str | None = None,
     ):
         """Initializes a StatisticalTestResult object.
@@ -33,28 +33,29 @@ class StatisticalTestReport:
             two-sample t-test.
 
         pval : float
+            The p-value of the test.
 
-        descriptive_statistic : float
+        descriptive_statistic : float | None
             Default: None. The statistic that describes the values tested.
             For example, Pearson correlation coefficient for correlation test,
             or difference in means for two-sample t-test.
 
-        degfree : float
+        degfree : float | None
             Default: None. Degrees of freedom.
 
-        statistic_description : str
+        statistic_description : str | None
             Default: None. Description of the statistic.
 
-        descriptive_statistic_description : str
+        descriptive_statistic_description : str | None
             Default: None. Description of the descriptive statistic.
 
-        null_hypothesis_description : str
+        null_hypothesis_description : str | None
             Default: None. Description of the null hypothesis.
 
-        alternative_hypothesis_description : str
+        alternative_hypothesis_description : str | None
             Default: None. Description of the alternative hypothesis.
 
-        assumptions_description : str
+        assumptions_description : str | list | None
             Default: None. Description of the assumptions of the test.
 
         long_description : str
@@ -70,8 +71,18 @@ class StatisticalTestReport:
         self._statistic_description = statistic_description
         self._null_hypothesis_description = null_hypothesis_description
         self._alternative_hypothesis_description = alternative_hypothesis_description
-        self._assumptions_description = assumptions_description
+
+        if isinstance(assumptions_description, list):
+            self._assumptions_description = ""
+            for i, assumption in enumerate(assumptions_description):
+                self._assumptions_description += f"{i+1}. {assumption}"
+                if i != len(assumptions_description) - 1:
+                    self._assumptions_description += "\n"
+        else:
+            self._assumptions_description = assumptions_description
+
         self._long_description = long_description
+
 
     def pval(self) -> float:
         """Returns the p-value."""
@@ -108,7 +119,6 @@ class StatisticalTestReport:
         top_divider = color_text("=" * max_width, "none") + "\n"
         bottom_divider = "\n" + color_text("=" * max_width, "none")
         divider = "\n" + color_text("-" * max_width, "none") + "\n"
-        # divider_invisible = '\n' + ' '*max_width + '\n'
 
         description_message = fill_ignore_format(
             bold_text(self._description), max_width
@@ -140,58 +150,87 @@ class StatisticalTestReport:
             max_width,
         )
 
-        supplementary_message = divider[:-1]
+        supplementary_message = ""
+
         if self._null_hypothesis_description is not None:
-            supplementary_message += "\n"
+            supplementary_message += "\n\n"
+            supplementary_message += bold_text("H0:") + "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("H0: ")
-                + color_text(self._null_hypothesis_description, "yellow"),
+                color_text(self._null_hypothesis_description, "blue"),
                 max_width,
+                initial_indent=2,
+                subsequent_indent=2
             )
         if self._alternative_hypothesis_description is not None:
-            supplementary_message += "\n"
+            supplementary_message += "\n\n"
+            supplementary_message += bold_text("HA:") + "\n"
             supplementary_message += fill_ignore_format(
-                bold_text("HA: ")
-                + color_text(self._alternative_hypothesis_description, "yellow"),
+                color_text(self._alternative_hypothesis_description, "blue"),
                 max_width,
+                initial_indent=2,
+                subsequent_indent=2
             )
         if (
             self._descriptive_statistic is not None
             and self._descriptive_statistic_description is not None
         ):
-            supplementary_message += "\n"
+            supplementary_message += "\n\n"
+            supplementary_message += fill_ignore_format(bold_text(
+                f"{self._descriptive_statistic_description}:"
+            ), max_width) + "\n"
             supplementary_message += fill_ignore_format(
-                bold_text(f"{self._descriptive_statistic_description}: ")
-                + color_text(str(round(self._descriptive_statistic, n_dec)), "yellow"),
+                color_text(str(round(self._descriptive_statistic, n_dec)), "yellow"),
                 max_width,
+                initial_indent=2,
+                subsequent_indent=2,
             )
         if self._degfree is not None:
-            supplementary_message += "\n"
+            supplementary_message += "\n\n"
             supplementary_message += fill_ignore_format(
-                bold_text("Degrees of freedom: ")
-                + color_text(str(round(self._degfree, n_dec)), "yellow"),
+                bold_text("Degrees of freedom:"),
+                max_width
+            ) + "\n"
+            supplementary_message += fill_ignore_format(
+                color_text(str(round(self._degfree, n_dec)), "yellow"),
                 max_width,
+                initial_indent=2,
+                subsequent_indent=2,
             )
         if self._assumptions_description is not None:
-            supplementary_message += "\n"
+            supplementary_message += "\n\n"
             supplementary_message += fill_ignore_format(
-                bold_text("Assumptions: ")
-                + color_text(self._assumptions_description, "yellow"),
+                bold_text("Assumptions:"),
+                max_width
+            ) + "\n"
+            supplementary_message += fill_ignore_format(
+                color_text(self._assumptions_description, "blue"),
                 max_width,
-                subsequent_indent=13,
+                initial_indent=2,
+                subsequent_indent=5,
             )
         if self._long_description is not None:
             supplementary_message += divider
             supplementary_message += fill_ignore_format(
-                bold_text("More info: ") + color_text(self._long_description, "yellow"),
-                subsequent_indent=11,
+                bold_text("More info:"),
+                max_width
+            ) + "\n"
+            supplementary_message += fill_ignore_format(
+                color_text(self._long_description, "blue"),
+                max_width,
+                initial_indent=2,
+                subsequent_indent=2,
             )
+
+        if len(supplementary_message) > 0:
+            if supplementary_message[0:2] == "\n\n":
+                supplementary_message = supplementary_message[2:]
 
         final_message = (
             top_divider
             + description_message
             + divider
             + statistic_pval_message
+            + divider
             + supplementary_message
             + bottom_divider
         )

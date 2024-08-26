@@ -1016,7 +1016,7 @@ class DataHandler:
 
         rename : bool
             Default: False. If True, the variables are renamed to
-            {pos_label}_yn::{var}.
+            {pos_label}::{var}.
 
         Returns
         -------
@@ -1075,7 +1075,7 @@ class DataHandler:
                     lambda x: 1 if x == pos_label else 0
                 )
 
-            vars_to_renamed[var] = f"{pos_label}_yn::{var}"
+            vars_to_renamed[var] = f"{pos_label}::{var}"
 
         if rename:
             self._working_df_train = self._working_df_train.rename(

@@ -154,11 +154,11 @@ def test_force_binary(setup_data):
         ["categorical_var"], pos_labels=["A"], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn::categorical_var", "numeric_var"]
+        "binary_var", ["A::categorical_var", "numeric_var"]
     )
     assert (
-        dh_emitter._working_df_train["A_yn::categorical_var"].dtype
-        == de._working_df_train["A_yn::categorical_var"].dtype
+        dh_emitter._working_df_train["A::categorical_var"].dtype
+        == de._working_df_train["A::categorical_var"].dtype
     )
     assert dh_emitter._working_df_test.shape == de._working_df_test.shape
     assert dh_emitter._working_df_train.shape == de._working_df_train.shape
@@ -167,9 +167,9 @@ def test_force_binary(setup_data):
         ["numeric_var"], pos_labels=[5.2], ignore_multiclass=True, rename=True
     )
     dh_emitter = dh.train_test_emitter(
-        "binary_var", ["A_yn::categorical_var", "5.2_yn::numeric_var"]
+        "binary_var", ["A::categorical_var", "5.2::numeric_var"]
     )
-    assert dh._working_df_train["5.2_yn::numeric_var"].dtype == "int64"
+    assert dh._working_df_train["5.2::numeric_var"].dtype == "int64"
     assert dh_emitter._working_df_train.shape == dh._working_df_train.shape
 
 
@@ -184,9 +184,9 @@ def test_onehot(setup_data):
         [
             col in dh._working_df_train.columns
             for col in [
-                "A_yn::categorical_var",
-                "B_yn::categorical_var",
-                "C_yn::categorical_var",
+                "A::categorical_var",
+                "B::categorical_var",
+                "C::categorical_var",
             ]
         ]
     )
@@ -194,9 +194,9 @@ def test_onehot(setup_data):
         [
             col in dh._working_df_test.columns
             for col in [
-                "A_yn::categorical_var",
-                "B_yn::categorical_var",
-                "C_yn::categorical_var",
+                "A::categorical_var",
+                "B::categorical_var",
+                "C::categorical_var",
             ]
         ]
     )
@@ -204,9 +204,9 @@ def test_onehot(setup_data):
     dh_emitter = dh.train_test_emitter(
         "binary_var",
         [
-            "A_yn::categorical_var",
-            "B_yn::categorical_var",
-            "C_yn::categorical_var",
+            "A::categorical_var",
+            "B::categorical_var",
+            "C::categorical_var",
             "numeric_var",
         ],
     )
@@ -214,9 +214,9 @@ def test_onehot(setup_data):
         [
             col in dh_emitter._working_df_test.columns
             for col in [
-                "A_yn::categorical_var",
-                "B_yn::categorical_var",
-                "C_yn::categorical_var",
+                "A::categorical_var",
+                "B::categorical_var",
+                "C::categorical_var",
             ]
         ]
     )
@@ -224,9 +224,9 @@ def test_onehot(setup_data):
         [
             col in dh_emitter._working_df_train.columns
             for col in [
-                "A_yn::categorical_var",
-                "B_yn::categorical_var",
-                "C_yn::categorical_var",
+                "A::categorical_var",
+                "B::categorical_var",
+                "C::categorical_var",
             ]
         ]
     )
@@ -238,31 +238,31 @@ def test_onehot(setup_data):
     assert all(
         [
             col in dh._working_df_train.columns
-            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
+            for col in ["B::categorical_var", "C::categorical_var"]
         ]
     )
     assert all(
         [
             col in dh._working_df_test.columns
-            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
+            for col in ["B::categorical_var", "C::categorical_var"]
         ]
     )
-    assert "A_yn::categorical_var" not in dh._working_df_train.columns
+    assert "A::categorical_var" not in dh._working_df_train.columns
 
     dh_emitter = dh.train_test_emitter(
         "numeric_var",
-        ["B_yn::categorical_var", "C_yn::categorical_var", "1_yn::binary_var"],
+        ["B::categorical_var", "C::categorical_var", "1::binary_var"],
     )
     assert all(
         [
             col in dh_emitter._working_df_test.columns
-            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
+            for col in ["B::categorical_var", "C::categorical_var"]
         ]
     )
     assert all(
         [
             col in dh_emitter._working_df_train.columns
-            for col in ["B_yn::categorical_var", "C_yn::categorical_var"]
+            for col in ["B::categorical_var", "C::categorical_var"]
         ]
     )
     assert dh_emitter._working_df_test.shape == dh._working_df_test.shape
@@ -451,7 +451,7 @@ def test_kfold_basic_init(setup_data):
     dh.drop_vars(["sepal_width_(cm)"])
     emitters = dh.kfold_emitters(
         "sepal_length_(cm)",
-        ["1_yn::target", "2_yn::target", "petal_length_(cm)", "petal_width_(cm)"],
+        ["1::target", "2::target", "petal_length_(cm)", "petal_width_(cm)"],
         n_folds=5,
         shuffle=True,
         random_state=42,

@@ -9,7 +9,7 @@ from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
 from ..stattests import StatisticalTestReport
-from ..display.print_utils import print_wrapped
+from ..display.print_utils import print_wrapped, quote_and_color
 from ..display.plot_options import plot_options
 
 
@@ -1225,6 +1225,17 @@ class EDAReport:
 
         else:
             raise ValueError(f"Invalid input: {strategy}.")
+        
+
+        group_1_str = f"{categories[0]}::{stratify_by}"
+        group_2_str = f"{categories[1]}::{stratify_by}"
+
+        group_1_full_str = f"{numeric_var}_{group_1_str}"
+        group_2_full_str = f"{numeric_var}_{group_2_str}"
+
+        mu_1_str = f"Mean({group_1_full_str})"
+        mu_2_str = f"Mean({group_2_full_str})"
+
 
         if test_type == "student":
             ttest_result = stats.ttest_ind(
@@ -1237,14 +1248,14 @@ class EDAReport:
                 descriptive_statistic=float(group_1.mean() - group_2.mean()),
                 degfree=ttest_result.df,
                 statistic_description="t-statistic",
-                descriptive_statistic_description="mu_1 - mu_2",
-                null_hypothesis_description="mu_1 = mu_2",
-                alternative_hypothesis_description="mu_1 != mu_2",
-                assumptions_description="1. Var(Group 1) = Var(Group 2). "
-                "2. Data in both groups are normally distributed.",
-                long_description=f"Group 1 label: '{categories[0]}'. "
-                f"Group 2 label: '{categories[1]}'. "
-                "Variances of two groups are assumed to be equal.",
+                descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
+                null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
+                alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
+                assumptions_description=[
+                    f"Var({group_1_full_str}) = Var({group_2_full_str}).",
+                    f"Values for {numeric_var} in groups {group_1_str} and "
+                    f"{group_2_str} are normally distributed.",
+                ]
             )
 
         elif test_type == "welch":
@@ -1258,12 +1269,12 @@ class EDAReport:
                 descriptive_statistic=float(group_1.mean() - group_2.mean()),
                 degfree=ttest_result.df,
                 statistic_description="t-statistic",
-                descriptive_statistic_description="mu_1 - mu_2",
-                null_hypothesis_description="mu_1 = mu_2",
-                alternative_hypothesis_description="mu_1 != mu_2",
-                assumptions_description="Data in both groups are normally distributed.",
-                long_description=f"Group 1 label: '{categories[0]}'. "
-                f"Group 2 label: '{categories[1]}'.",
+                descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
+                null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
+                alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
+                assumptions_description=
+                    f"Values for {numeric_var} in groups {group_1_str} and "
+                    f"{group_2_str} are normally distributed."
             )
 
         elif test_type == "yuen":
@@ -1277,15 +1288,15 @@ class EDAReport:
                 descriptive_statistic=float(group_1.mean() - group_2.mean()),
                 degfree=ttest_result.df,
                 statistic_description="t-statistic",
-                descriptive_statistic_description="mu_1 - mu_2",
-                null_hypothesis_description="mu_1 = mu_2",
-                alternative_hypothesis_description="mu_1 != mu_2",
-                long_description=f"Group 1 label: '{categories[0]}'. "
-                f"Group 2 label: '{categories[1]}'. "
-                "Yuen's test is a robust alternative to Welch's "
-                "t-test when the assumption of homogeneity of variance "
-                "is violated. "
-                "10% of the data is trimmed from each tail.",
+                descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
+                null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
+                alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
+                long_description=
+                    "Yuen's test is a robust alternative to Welch's "
+                    "t-test when the assumption of homogeneity of variance "
+                    "is violated. "
+                    "For both groups, 10% of the most extreme observations are trimmed "
+                    "from each tail.",
             )
 
         elif test_type == "mann-whitney":
@@ -1296,18 +1307,18 @@ class EDAReport:
                 description="Mann-Whitney U test",
                 statistic=u_stat,
                 pval=p_val,
-                descriptive_statistic=None,
+                descriptive_statistic=float(group_1.mean() - group_2.mean()),
                 degfree=None,
                 statistic_description="U-statistic",
-                descriptive_statistic_description=None,
-                null_hypothesis_description="mu_1 = mu_2",
-                alternative_hypothesis_description="mu_1 != mu_2",
-                assumptions_description="Var(Group 1) = Var(Group 2).",
-                long_description=f"Group 1 label: '{categories[0]}'. "
-                f"Group 2 label: '{categories[1]}'. "
-                "Mann-Whitney U test is a non-parametric test for "
-                "testing the null hypothesis that the distributions "
-                "of two independent samples are equal.",
+                descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
+                null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
+                alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
+                assumptions_description=
+                    f"Var({group_1_full_str}) = Var({group_2_full_str}).",
+                long_description=
+                    "Mann-Whitney U test is a non-parametric test for "
+                    "testing the null hypothesis that the distributions "
+                    "of two independent samples are equal.",
             )
 
     # --------------------------------------------------------------------------

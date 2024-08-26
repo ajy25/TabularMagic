@@ -136,14 +136,14 @@ class Analyzer:
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(self, dataset: Literal["train", "test", "all"] = "train") -> EDAReport:
+    def eda(self, dataset: Literal["train", "test", "all"]) -> EDAReport:
         """Constructs an EDAReport object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
 
         Parameters
         ----------
         dataset : Literal['train', 'test', 'all']
-            Default: 'train'. The dataset to be analyzed.
+            The dataset to be analyzed.
 
         Returns
         -------
@@ -820,7 +820,7 @@ class Analyzer:
 
         rename : bool
             Default: False. If True, the variables are renamed to
-            {pos_label}_yn({var}).
+            {pos_label}::{var}.
 
         Returns
         -------

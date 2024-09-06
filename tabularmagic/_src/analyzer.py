@@ -174,14 +174,14 @@ class Analyzer:
 
         Parameters
         ----------
-        target : str
+        target : str | None
             Default: None. The variable to be predicted.
 
         predictors : list[str]
             Default: None.
             If None, all variables except target will be used as predictors.
 
-        formula : str
+        formula : str | None
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 

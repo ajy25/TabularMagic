@@ -83,7 +83,6 @@ class StatisticalTestReport:
 
         self._long_description = long_description
 
-
     def pval(self) -> float:
         """Returns the p-value."""
         return self._pval
@@ -159,7 +158,7 @@ class StatisticalTestReport:
                 color_text(self._null_hypothesis_description, "blue"),
                 max_width,
                 initial_indent=2,
-                subsequent_indent=2
+                subsequent_indent=2,
             )
         if self._alternative_hypothesis_description is not None:
             supplementary_message += "\n\n"
@@ -168,16 +167,19 @@ class StatisticalTestReport:
                 color_text(self._alternative_hypothesis_description, "blue"),
                 max_width,
                 initial_indent=2,
-                subsequent_indent=2
+                subsequent_indent=2,
             )
         if (
             self._descriptive_statistic is not None
             and self._descriptive_statistic_description is not None
         ):
             supplementary_message += "\n\n"
-            supplementary_message += fill_ignore_format(bold_text(
-                f"{self._descriptive_statistic_description}:"
-            ), max_width) + "\n"
+            supplementary_message += (
+                fill_ignore_format(
+                    bold_text(f"{self._descriptive_statistic_description}:"), max_width
+                )
+                + "\n"
+            )
             supplementary_message += fill_ignore_format(
                 color_text(str(round(self._descriptive_statistic, n_dec)), "yellow"),
                 max_width,
@@ -186,10 +188,9 @@ class StatisticalTestReport:
             )
         if self._degfree is not None:
             supplementary_message += "\n\n"
-            supplementary_message += fill_ignore_format(
-                bold_text("Degrees of freedom:"),
-                max_width
-            ) + "\n"
+            supplementary_message += (
+                fill_ignore_format(bold_text("Degrees of freedom:"), max_width) + "\n"
+            )
             supplementary_message += fill_ignore_format(
                 color_text(str(round(self._degfree, n_dec)), "yellow"),
                 max_width,
@@ -198,10 +199,9 @@ class StatisticalTestReport:
             )
         if self._assumptions_description is not None:
             supplementary_message += "\n\n"
-            supplementary_message += fill_ignore_format(
-                bold_text("Assumptions:"),
-                max_width
-            ) + "\n"
+            supplementary_message += (
+                fill_ignore_format(bold_text("Assumptions:"), max_width) + "\n"
+            )
             supplementary_message += fill_ignore_format(
                 color_text(self._assumptions_description, "blue"),
                 max_width,
@@ -210,10 +210,9 @@ class StatisticalTestReport:
             )
         if self._long_description is not None:
             supplementary_message += divider
-            supplementary_message += fill_ignore_format(
-                bold_text("More info:"),
-                max_width
-            ) + "\n"
+            supplementary_message += (
+                fill_ignore_format(bold_text("More info:"), max_width) + "\n"
+            )
             supplementary_message += fill_ignore_format(
                 color_text(self._long_description, "blue"),
                 max_width,

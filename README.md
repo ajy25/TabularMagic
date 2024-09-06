@@ -73,15 +73,15 @@ Check out the `./demo` directory for detailed examples and discussion of other f
 
 TabularMagic is under active development. We intend to release a test version to Test PyPI soon.
 
-### Motivation: low-code ML for research
+### Motivation: low-code data science and ML modeling for research purposes
 
 Though numerous open-source automatic/low-code machine learning packages have emerged to streamline model selection and deployment, packages tailored specifically for research on tabular datasets remain scarce.
 
-TabularMagic provides a straightforward Python API that exponentially accelerates machine learning model benchmarking by seemlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
+TabularMagic provides a straightforward Python API that exponentially accelerates machine learning model benchmarking by seamlessly connecting the data exploration and processing steps to the modeling steps. TabularMagic offers the following:
 1. **Preprocess-as-you-explore functionality.** TabularMagic remembers each feature transformation you make and automatically preprocesses your train, validation, and test datasets when you fit and evaluate models down the line. 
 2. **Automatic hyperparameter optimization and feature selection.** TabularMagic can automatically select features and identify optimal hyperparameters for you. All TabularMagic ML models come with preset hyperparameter search methods. 
 3. **Flexibility.** Though TabularMagic provides many out-of-the-box models with default hyperparameter search spaces, it also supports custom estimators and pipelines. Any scikit-learn `BaseEstimator`/`Pipeline`-like object with fit and predict methods can be used. 
-4. **Linear regression.** TabularMagic contains numerous methods to support statsmodels' classical linear statistical models, including diagnostic plots, stepwise feature selection, and statistical tests, enabling you to seemlessly switch between linear statistical modeling and ML modeling.
+4. **Linear regression.** TabularMagic contains numerous methods to support statsmodels' classical linear statistical models, including diagnostic plots, stepwise feature selection, and statistical tests, enabling you to seamlessly switch between linear statistical modeling and ML modeling.
 5. **LLM support.**  (coming soon!) TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data. 
 
 See more in `./dev_notes/notes.md`.

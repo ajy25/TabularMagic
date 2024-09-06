@@ -1225,7 +1225,6 @@ class EDAReport:
 
         else:
             raise ValueError(f"Invalid input: {strategy}.")
-        
 
         group_1_str = f"{categories[0]}::{stratify_by}"
         group_2_str = f"{categories[1]}::{stratify_by}"
@@ -1235,7 +1234,6 @@ class EDAReport:
 
         mu_1_str = f"Mean({group_1_full_str})"
         mu_2_str = f"Mean({group_2_full_str})"
-
 
         if test_type == "student":
             ttest_result = stats.ttest_ind(
@@ -1255,7 +1253,7 @@ class EDAReport:
                     f"Var({group_1_full_str}) = Var({group_2_full_str}).",
                     f"Values for {numeric_var} in groups {group_1_str} and "
                     f"{group_2_str} are normally distributed.",
-                ]
+                ],
             )
 
         elif test_type == "welch":
@@ -1272,9 +1270,8 @@ class EDAReport:
                 descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
                 null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
-                assumptions_description=
-                    f"Values for {numeric_var} in groups {group_1_str} and "
-                    f"{group_2_str} are normally distributed."
+                assumptions_description=f"Values for {numeric_var} in groups {group_1_str} and "
+                f"{group_2_str} are normally distributed.",
             )
 
         elif test_type == "yuen":
@@ -1291,12 +1288,11 @@ class EDAReport:
                 descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
                 null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
-                long_description=
-                    "Yuen's test is a robust alternative to Welch's "
-                    "t-test when the assumption of homogeneity of variance "
-                    "is violated. "
-                    "For both groups, 10% of the most extreme observations are trimmed "
-                    "from each tail.",
+                long_description="Yuen's test is a robust alternative to Welch's "
+                "t-test when the assumption of homogeneity of variance "
+                "is violated. "
+                "For both groups, 10% of the most extreme observations are trimmed "
+                "from each tail.",
             )
 
         elif test_type == "mann-whitney":
@@ -1313,12 +1309,10 @@ class EDAReport:
                 descriptive_statistic_description=f"{mu_1_str} - {mu_2_str}",
                 null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
-                assumptions_description=
-                    f"Var({group_1_full_str}) = Var({group_2_full_str}).",
-                long_description=
-                    "Mann-Whitney U test is a non-parametric test for "
-                    "testing the null hypothesis that the distributions "
-                    "of two independent samples are equal.",
+                assumptions_description=f"Var({group_1_full_str}) = Var({group_2_full_str}).",
+                long_description="Mann-Whitney U test is a non-parametric test for "
+                "testing the null hypothesis that the distributions "
+                "of two independent samples are equal.",
             )
 
     # --------------------------------------------------------------------------

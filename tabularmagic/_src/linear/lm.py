@@ -4,8 +4,6 @@ from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
 from .lmutils.score import score_model
-from ..display.print_utils import quote_and_color
-from ..display.plot_options import plot_options
 
 
 class OLSModel:

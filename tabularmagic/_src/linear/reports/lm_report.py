@@ -615,7 +615,7 @@ class OLSRegressionReport:
         self, alternative_report: "OLSRegressionReport"
     ) -> StatisticalTestReport:
         """Performs a likelihood ratio test to compare an alternative
-        OLSLinearModel. Returns an object of class StatisticalTestResult
+        OLSLinearModel. Returns an object of class StatisticalTestReport
         describing the results.
 
         Parameters
@@ -626,7 +626,7 @@ class OLSRegressionReport:
 
         Returns
         -------
-        StatisticalTestResult
+        StatisticalTestReport
         """
         # Determine which report is the reduced model
 
@@ -663,7 +663,7 @@ class OLSRegressionReport:
 
             lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
 
-        # Initialize and return an object of class StatisticalTestResult
+        # Initialize and return an object of class StatisticalTestReport
         lr_result = StatisticalTestReport(
             description="Likelihood Ratio Test",
             statistic=lr_stat,
@@ -684,7 +684,7 @@ class OLSRegressionReport:
         self, alternative_report: "OLSRegressionReport"
     ) -> StatisticalTestReport:
         """Performs a partial F-test to compare an alternative OLSLinearModel.
-        Returns an object of class StatisticalTestResult describing the results.
+        Returns an object of class StatisticalTestReport describing the results.
 
         Parameters
         ----------
@@ -694,7 +694,7 @@ class OLSRegressionReport:
 
         Returns
         -------
-        StatisticalTestResult
+        StatisticalTestReport
         """
         # Determine which report is the reduced model
 
@@ -731,7 +731,7 @@ class OLSRegressionReport:
 
             f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
 
-        # Initialize and return an object of class StatisticalTestResult
+        # Initialize and return an object of class StatisticalTestReport
         partial_f_result = StatisticalTestReport(
             description="Partial F-Test",
             statistic=f_value,
@@ -766,8 +766,7 @@ class OLSRegressionReport:
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a scatter plot of the true and predicted y
-        values.
+        """Plots a scatter plot of the true and predicted y values.
 
         Parameters
         ----------
@@ -806,7 +805,7 @@ class OLSRegressionReport:
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+        """Plots the residuals versus the fitted values.
 
         Parameters
         ----------
@@ -825,11 +824,11 @@ class OLSRegressionReport:
             Default: (5.0, 5.0). Determines the size of the returned figure.
 
         ax : plt.Axes
-            Default = None.
+            Default: None.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         if dataset == "train":
             return self._train_report.plot_residuals_vs_fitted(
@@ -838,18 +837,20 @@ class OLSRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_fitted(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_vs_var(
         self,
         predictor: str,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -863,7 +864,7 @@ class OLSRegressionReport:
             The predictor variable whose values should be plotted on the x-axis.
 
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, standardizes the residuals.
@@ -889,7 +890,7 @@ class OLSRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_var(
                 predictor=predictor,
                 standardized=standardized,
@@ -897,10 +898,12 @@ class OLSRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_hist(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         density: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -911,7 +914,7 @@ class OLSRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, standardizes the residuals.
@@ -933,14 +936,16 @@ class OLSRegressionReport:
             return self._train_report.plot_residuals_hist(
                 standardized=standardized, density=density, figsize=figsize, ax=ax
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_hist(
                 standardized=standardized, density=density, figsize=figsize, ax=ax
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_scale_location(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
@@ -951,7 +956,7 @@ class OLSRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: True. If True, plots the outliers in red.
@@ -970,20 +975,22 @@ class OLSRegressionReport:
             return self._train_report.plot_scale_location(
                 show_outliers=show_outliers, figsize=figsize, ax=ax
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_scale_location(
                 show_outliers=show_outliers, figsize=figsize, ax=ax
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_vs_leverage(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = True,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a plot of the residuals versus leverage.
+        """Plots the residuals versus leverage.
 
         Parameters
         ----------
@@ -1013,28 +1020,30 @@ class OLSRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_leverage(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_qq(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = True,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a quantile-quantile plot.
+        """Plots a quantile-quantile plot of the residuals.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: True. If True, standardizes the residuals.
@@ -1059,17 +1068,20 @@ class OLSRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_qq(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
+
 
     def plot_diagnostics(
         self,
-        dataset: Literal["train", "test"] = "train",
+        dataset: Literal["train", "test"],
         show_outliers: bool = False,
         figsize: tuple[float, float] = (7.0, 7.0),
     ) -> plt.Figure:
@@ -1078,7 +1090,7 @@ class OLSRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'train'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: False. If True, plots the residual outliers in red.
@@ -1094,10 +1106,12 @@ class OLSRegressionReport:
             return self._train_report.plot_diagnostics(
                 show_outliers=show_outliers, figsize=figsize
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_diagnostics(
                 show_outliers=show_outliers, figsize=figsize
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def set_outlier_threshold(self, threshold: float) -> "OLSRegressionReport":
         """Standardized residuals threshold for outlier identification.

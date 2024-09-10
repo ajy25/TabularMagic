@@ -168,7 +168,7 @@ class SingleModelMLRegReport:
 
     def plot_obs_vs_pred(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
@@ -178,7 +178,6 @@ class SingleModelMLRegReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
             The dataset for which to plot the observed vs predicted values.
 
         figsize : tuple[float, float]

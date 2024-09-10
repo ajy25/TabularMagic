@@ -1,6 +1,6 @@
 from .poissonglmreg import PoissonRegressionReport
 from .binomialglmreg import BinomialRegressionReport
-from .linreg import OLSRegressionReport
+from .lm_report import OLSRegressionReport
 from .negbinglmreg import NegativeBinomialRegressionReport
 from .countglmreg import CountRegressionReport
 

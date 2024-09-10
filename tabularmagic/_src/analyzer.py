@@ -8,7 +8,7 @@ from .ml.predict import (
     MLClassificationReport,
 )
 from .linear import (
-    OLSLinearModel,
+    OLSModel,
     PoissonLinearModel,
     NegativeBinomialLinearModel,
     CountLinearModel,
@@ -16,7 +16,7 @@ from .linear import (
     BinomialRegressionReport,
     PoissonRegressionReport,
     NegativeBinomialRegressionReport,
-    LinearRegressionReport,
+    OLSRegressionReport,
     CountRegressionReport,
     parse_and_transform_rlike,
 )
@@ -167,7 +167,7 @@ class Analyzer:
         target: str | None = None,
         predictors: list[str] | None = None,
         formula: str | None = None,
-    ) -> LinearRegressionReport:
+    ) -> OLSRegressionReport:
         """Conducts a simple OLS regression analysis exercise.
         If formula is provided, performs regression with OLS via formula.
         Examples with missing data will be dropped.
@@ -197,8 +197,8 @@ class Analyzer:
                 predictors = self._datahandler.vars()
                 if target in predictors:
                     predictors.remove(target)
-            return LinearRegressionReport(
-                OLSLinearModel(), self._datahandler, target, predictors
+            return OLSRegressionReport(
+                OLSModel(), self._datahandler, target, predictors
             )
 
         else:
@@ -236,9 +236,7 @@ class Analyzer:
             elif self._datahandler.scaler(target) is not None:
                 datahandler.add_scaler(self._datahandler.scaler(target), target)
 
-            return LinearRegressionReport(
-                OLSLinearModel(), datahandler, target, predictors
-            )
+            return OLSRegressionReport(OLSModel(), datahandler, target, predictors)
 
     @ensure_arg_list_uniqueness()
     def glm(

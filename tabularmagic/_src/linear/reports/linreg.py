@@ -1,17 +1,22 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 from typing import Literal
 import warnings
 from adjustText import adjust_text
 from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ..lm import OLSLinearModel
+from ..lm import OLSModel
 from ...display.print_utils import print_wrapped
-from ...display.plot_options import plot_options
-from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
+from ..lmutils.constants import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
+from ..lmutils.plot import (
+    plot_residuals_vs_var,
+    plot_residuals_vs_fitted,
+    plot_residuals_hist,
+    plot_scale_location,
+    plot_residuals_vs_leverage,
+    plot_qq,
+)
 from ...stattests import StatisticalTestReport
 
 
@@ -20,7 +25,7 @@ class SingleDatasetLinRegReport:
     plots and tables for a single linear regression model.
     """
 
-    def __init__(self, model: OLSLinearModel, dataset: Literal["train", "test"]):
+    def __init__(self, model: OLSModel, dataset: Literal["train", "test"]):
         """
         Initializes a SingleDatasetLinRegReport object.
 
@@ -81,7 +86,7 @@ class SingleDatasetLinRegReport:
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         fig = None
         if ax is None:
@@ -139,89 +144,23 @@ class SingleDatasetLinRegReport:
             Default: (5.0, 5.0). Determines the size of the returned figure.
 
         ax : plt.Axes
-            Default = None.
+            Default: None.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-
-        ax.axhline(
-            y=0,
-            color=plot_options._reference_line_color,
-            linestyle="--",
-            linewidth=plot_options._line_width,
+        return plot_residuals_vs_fitted(
+            y_pred=self._y_pred,
+            residuals=self._residuals,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            standardized=standardized,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                self._y_pred[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-            ax.scatter(
-                self._y_pred[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                self._y_pred[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=plot_options._axis_minor_ticklabel_font_size,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-        else:
-            ax.scatter(
-                self._y_pred,
-                residuals,
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-
-        ax.set_xlabel("Fitted")
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title("Standardized Residuals vs Fitted")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title("Residuals vs Fitted")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_residuals_vs_var(
         self,
@@ -254,85 +193,18 @@ class SingleDatasetLinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-
-        x_vals = self._X_eval_df[predictor].to_numpy()
-
-        ax.axhline(
-            y=0,
-            color=plot_options._reference_line_color,
-            linestyle="--",
-            linewidth=plot_options._line_width,
+        return plot_residuals_vs_var(
+            predictor=predictor,
+            X_eval_df=self._X_eval_df,
+            residuals=self._residuals,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            standardized=standardized,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                x_vals[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-            ax.scatter(
-                x_vals[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                x_vals[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=plot_options._axis_minor_ticklabel_font_size,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-        else:
-            ax.scatter(
-                x_vals,
-                residuals,
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-
-        ax.set_xlabel(predictor)
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title(f"Standardized Residuals vs {predictor}")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title(f"Residuals vs {predictor}")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_residuals_hist(
         self,
@@ -361,58 +233,13 @@ class SingleDatasetLinRegReport:
         -------
         plt.Figure
         """
-        if density:
-            stat = "density"
-        else:
-            stat = "count"
-
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-        sns.histplot(
-            residuals,
-            bins="auto",
-            color=plot_options._bar_color,
-            edgecolor=plot_options._bar_edgecolor,
-            stat=stat,
+        return plot_residuals_hist(
+            residuals=self._residuals,
+            standardized=standardized,
+            density=density,
+            figsize=figsize,
             ax=ax,
-            kde=True,
-            alpha=plot_options._bar_alpha,
         )
-        if standardized:
-            ax.set_title("Distribution of Standardized Residuals")
-            ax.set_xlabel("Standardized Residuals")
-        else:
-            ax.set_title("Distribution of Residuals")
-            ax.set_xlabel("Residuals")
-        if density:
-            ax.set_ylabel("Density")
-        else:
-            ax.set_ylabel("Frequency")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_scale_location(
         self,
@@ -438,78 +265,16 @@ class SingleDatasetLinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = np.sqrt(np.abs(self._stdresiduals))
-
-        ax.axhline(
-            y=0,
-            color=plot_options._reference_line_color,
-            linestyle="--",
-            linewidth=plot_options._line_width,
+        return plot_scale_location(
+            y_pred=self._y_pred,
+            std_residuals=self._residuals / np.std(self._residuals),
+            show_outliers=show_outliers,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                self._y_pred[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-            ax.scatter(
-                self._y_pred[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                self._y_pred[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=plot_options._axis_minor_ticklabel_font_size,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(
-                self._y_pred,
-                residuals,
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-
-        ax.set_xlabel("Fitted")
-        ax.set_ylabel("sqrt(Standardized Residuals)")
-        ax.set_title("Scale-Location")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_residuals_vs_leverage(
         self,
@@ -539,88 +304,21 @@ class SingleDatasetLinRegReport:
         plt.Figure
         """
         if not self._is_train:
-            print_wrapped(train_only_message, type="WARNING")
+            print_wrapped(TRAIN_ONLY_MESSAGE, type="WARNING")
             return None
-
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
         leverage = self.model.estimator._results.get_influence().hat_matrix_diag
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
 
-        ax.axhline(
-            y=0,
-            color=plot_options._reference_line_color,
-            linestyle="--",
-            linewidth=plot_options._line_width,
+        return plot_residuals_vs_leverage(
+            leverage=leverage,
+            residuals=self._residuals,
+            standardized=standardized,
+            show_outliers=show_outliers,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                leverage[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-            ax.scatter(
-                leverage[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=plot_options._dot_size,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                leverage[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=plot_options._axis_minor_ticklabel_font_size,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(
-                leverage,
-                residuals,
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-
-        ax.set_xlabel("Leverage")
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title("Standardized Residuals vs Leverage")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title("Residuals vs Leverage")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_qq(
         self,
@@ -649,101 +347,17 @@ class SingleDatasetLinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        if standardized:
-            residuals = self._stdresiduals
-        else:
-            residuals = self._residuals
-
-        tup1, tup2 = stats.probplot(residuals, dist="norm")
-        theoretical_quantitles, ordered_vals = tup1
-        slope, intercept, _ = tup2
-
-        ax.set_title("Q-Q Plot")
-        ax.set_xlabel("Theoretical Quantiles")
-
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-        else:
-            ax.set_ylabel("Residuals")
-
-        min_val = np.min(theoretical_quantitles)
-        max_val = np.max(theoretical_quantitles)
-        ax.plot(
-            [min_val, max_val],
-            [min_val * slope + intercept, max_val * slope + intercept],
-            color=plot_options._reference_line_color,
-            linestyle="--",
-            linewidth=plot_options._line_width,
+        return plot_qq(
+            df_idx=self._X_eval_df.index,
+            residuals=self._residuals,
+            standardized=standardized,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-
-        if show_outliers and self._n_outliers > 0:
-            residuals_sorted_idx = reverse_argsort(np.argsort(residuals))
-
-            residuals_df = pd.DataFrame(residuals, columns=["residuals"])
-            residuals_df["label"] = self._X_eval_df.index
-            residuals_df["is_outlier"] = self._outliers_residual_mask
-            residuals_df["theoretical_quantile"] = theoretical_quantitles[
-                residuals_sorted_idx
-            ]
-            residuals_df["ordered_value"] = ordered_vals[residuals_sorted_idx]
-            residuals_df_outliers = residuals_df[residuals_df["is_outlier"]]
-            residuals_df_not_outliers = residuals_df[~residuals_df["is_outlier"]]
-
-            ax.scatter(
-                residuals_df_not_outliers["theoretical_quantile"],
-                residuals_df_not_outliers["ordered_value"],
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-            ax.scatter(
-                residuals_df_outliers["theoretical_quantile"],
-                residuals_df_outliers["ordered_value"],
-                s=plot_options._dot_size,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for _, row in residuals_df_outliers.iterrows():
-                    annotations.append(
-                        ax.annotate(
-                            row["label"],
-                            (row["theoretical_quantile"], row["ordered_value"]),
-                            color="red",
-                            fontsize=plot_options._axis_minor_ticklabel_font_size,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(
-                theoretical_quantitles,
-                ordered_vals,
-                s=plot_options._dot_size,
-                color=plot_options._dot_color,
-            )
-
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelsize=plot_options._axis_major_ticklabel_font_size,
-        )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
-        )
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_diagnostics(
         self, show_outliers: bool = False, figsize: tuple[float, float] = (7.0, 7.0)
@@ -836,27 +450,29 @@ class SingleDatasetLinRegReport:
             self._include_text = True
 
 
-class LinearRegressionReport:
-    """LinearRegressionReport.
+class OLSRegressionReport:
+    """OLSRegressionReport.
     Fits the model based on provided DataHandler.
-    Wraps train and test SingleDatasetLinRegReport objects.
+    Contains methods for generating regression-relevant diagnostic
+    plots and tables for a single linear regression model.
     """
 
     def __init__(
         self,
-        model: OLSLinearModel,
+        model: OLSModel,
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
         dataemitter: DataEmitter | None = None,
     ):
-        """LinearRegressionReport.
+        """OLSRegressionReport.
         Fits the model based on provided DataHandler.
-        Wraps train and test SingleDatasetLinRegReport objects.
+        Contains methods for generating regression-relevant diagnostic
+        plots and tables for a single linear regression model.
 
         Parameters
         ----------
-        model : OrdinaryLeastSquares
+        model : OLSModel
 
         datahandler : DataHandler
             The DataHandler object that contains the data.
@@ -905,7 +521,7 @@ class LinearRegressionReport:
         """
         return self._test_report
 
-    def model(self) -> OLSLinearModel:
+    def model(self) -> OLSModel:
         """Returns the fitted OLSLinearModel object.
 
         Returns
@@ -914,14 +530,14 @@ class LinearRegressionReport:
         """
         return self._model
 
-    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to compute the metrics for.
 
         Returns
         -------
@@ -929,8 +545,10 @@ class LinearRegressionReport:
         """
         if dataset == "train":
             return self._train_report.metrics()
-        else:
+        elif dataset == "test":
             return self._test_report.metrics()
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def step(
         self,
@@ -940,9 +558,9 @@ class LinearRegressionReport:
         all_vars: list[str] | None = None,
         start_vars: list[str] | None = None,
         max_steps: int = 100,
-    ) -> "LinearRegressionReport":
+    ) -> "OLSRegressionReport":
         """Performs stepwise selection on the model. Returns a new
-        LinearRegressionReport object with the updated model.
+        OLSRegressionReport object with the updated model.
 
         Parameters
         ----------
@@ -971,7 +589,7 @@ class LinearRegressionReport:
 
         Returns
         -------
-        LinearRegressionReport
+        OLSRegressionReport
         """
         selected_vars = self._model.step(
             direction=direction,
@@ -985,8 +603,8 @@ class LinearRegressionReport:
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors(selected_vars)
 
-        return LinearRegressionReport(
-            OLSLinearModel(),
+        return OLSRegressionReport(
+            OLSModel(),
             self._datahandler,  # only used for y var scaler
             self._target,  # ignored
             self._predictors,  # ignored
@@ -994,7 +612,7 @@ class LinearRegressionReport:
         )
 
     def test_lr(
-        self, alternative_report: "LinearRegressionReport"
+        self, alternative_report: "OLSRegressionReport"
     ) -> StatisticalTestReport:
         """Performs a likelihood ratio test to compare an alternative
         OLSLinearModel. Returns an object of class StatisticalTestResult
@@ -1002,7 +620,7 @@ class LinearRegressionReport:
 
         Parameters
         ----------
-        alternative_report : LinearRegressionReport
+        alternative_report : OLSRegressionReport
             The report of an alternative OLSLinearModel. The alternative
             model must be a nested version of the current model or vice-versa.
 
@@ -1062,13 +680,15 @@ class LinearRegressionReport:
 
         return lr_result
 
-    def test_partialf(self, alternative_report):
+    def test_partialf(
+        self, alternative_report: "OLSRegressionReport"
+    ) -> StatisticalTestReport:
         """Performs a partial F-test to compare an alternative OLSLinearModel.
         Returns an object of class StatisticalTestResult describing the results.
 
         Parameters
         ----------
-        alternative_report : LinearRegressionReport
+        alternative_report : OLSRegressionReport
             The report of an alternative OLSLinearModel. The alternative
             model must be a nested version of the current model or vice-versa.
 
@@ -1139,12 +759,9 @@ class LinearRegressionReport:
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
 
-    # Move methods in SingleDatasetLinRegReport up to LinearRegressionReport
-    # to allow useres to call methods from mutliple locations
-
     def plot_obs_vs_pred(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
@@ -1155,7 +772,7 @@ class LinearRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: True.
@@ -1183,7 +800,7 @@ class LinearRegressionReport:
 
     def plot_residuals_vs_fitted(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -1194,7 +811,7 @@ class LinearRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, plots the standardized residuals as
@@ -1452,7 +1069,7 @@ class LinearRegressionReport:
 
     def plot_diagnostics(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"] = "train",
         show_outliers: bool = False,
         figsize: tuple[float, float] = (7.0, 7.0),
     ) -> plt.Figure:
@@ -1461,7 +1078,7 @@ class LinearRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            Default: 'train'.
 
         show_outliers : bool
             Default: False. If True, plots the residual outliers in red.
@@ -1482,9 +1099,7 @@ class LinearRegressionReport:
                 show_outliers=show_outliers, figsize=figsize
             )
 
-    def set_outlier_threshold(
-        self, threshold: float, dataset: Literal["train", "test"] = "test"
-    ) -> "SingleDatasetLinRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "OLSRegressionReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -1493,17 +1108,14 @@ class LinearRegressionReport:
         threshold : float
             Default: 2. Must be a nonnegative value.
 
-        dataset : Literal['train', 'test']
-            Default: 'test'.
-
         Returns
         -------
-        self
+        OLSRegressionReport
+            Returns self for method chaining.
         """
-        if dataset == "train":
-            self._train_report.set_outlier_threshold(threshold=threshold)
-        else:
-            self._test_report.set_outlier_threshold(threshold=threshold)
+        self._train_report.set_outlier_threshold(threshold=threshold)
+        self._test_report.set_outlier_threshold(threshold=threshold)
+        return self
 
     def get_outlier_indices(self, dataset: Literal["train", "test"] = "test") -> list:
         """Returns the indices corresponding to DataFrame examples associated

@@ -1,58 +1,19 @@
 import statsmodels.api as sm
-import numpy as np
-import pandas as pd
 from typing import Literal
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
+from .lmutils.score import score_model
 from ..display.print_utils import quote_and_color
+from ..display.plot_options import plot_options
 
 
-def score_ols_model(
-    X_train: pd.DataFrame,
-    y_train: pd.DataFrame,
-    feature_list: list[str],
-    metric: Literal["aic", "bic"],
-) -> float:
-    """Calculates the AIC or BIC score for a given model.
-
-    Parameters
-    ----------
-    X_train : pd.DataFrame
-        The training data.
-
-    y_train : pd.DataFrame
-        The training target.
-
-    feature_list : list[str]
-        The list of features to include in the model.
-
-    metric : str
-        The metric to use for scoring. Either 'aic' or 'bic'.
-
-    Returns
-    -------
-    float
-        The AIC or BIC score for the model.
-    """
-    if len(feature_list) == 0:
-        return np.inf
-
-    subset_X_train = X_train[feature_list]
-    new_model = sm.OLS(y_train, subset_X_train).fit(cov_type="HC3")
-    if metric == "aic":
-        score = new_model.aic
-    elif metric == "bic":
-        score = new_model.bic
-    return score
-
-
-class OLSLinearModel:
+class OLSModel:
     """Statsmodels OLS wrapper."""
 
     def __init__(self, name: str | None = None):
         """
-        Initializes a OrdinaryLeastSquares object. Regresses y on X.
+        Initializes a OLSModel object. Regresses y on X.
 
         Parameters
         ----------
@@ -204,10 +165,11 @@ class OLSLinearModel:
                 included_vars = start_vars.copy()
 
         # set our starting score and best models
-        current_score = score_ols_model(
+        current_score = score_model(
             X_train,
             y_train,
             included_vars,
+            model="ols",
             metric=criteria,
         )
         current_step = 0
@@ -221,10 +183,11 @@ class OLSLinearModel:
                 var_to_add = None
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
-                    score = score_ols_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="ols",
                         metric=criteria,
                     )
                     if score < best_score:
@@ -251,10 +214,11 @@ class OLSLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_ols_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="ols",
                         metric=criteria,
                     )
                     if score < best_score:
@@ -275,10 +239,11 @@ class OLSLinearModel:
                 var_to_add = None
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
-                    score = score_ols_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="ols",
                         metric=criteria,
                     )
                     if score < best_forward_score:
@@ -294,10 +259,11 @@ class OLSLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_ols_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="ols",
                         metric=criteria,
                     )
                     if score < best_backward_score:

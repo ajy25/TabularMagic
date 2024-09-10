@@ -2,7 +2,7 @@ from .._src.linear.reports import (
     BinomialRegressionReport,
     PoissonRegressionReport,
     NegativeBinomialRegressionReport,
-    LinearRegressionReport,
+    OLSRegressionReport,
     CountRegressionReport,
 )
 
@@ -20,7 +20,7 @@ __all__ = [
     "PoissonRegressionReport",
     "BinomialRegressionReport",
     "NegativeBinomialRegressionReport",
-    "LinearRegressionReport",
+    "OLSRegressionReport",
     "CountRegressionReport",
     "MLRegressionReport",
     "MLClassificationReport",

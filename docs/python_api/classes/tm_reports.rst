@@ -26,10 +26,10 @@ relevant statistics. They also have methods for plotting relevant diagnostic fig
     :members:
         model, metrics, cv_metrics, fs_report, plot_obs_vs_pred, feature_importance
 
-:py:mod:`tm._reports.LinearRegressionReport`
----------------------------------------------
+:py:mod:`tm._reports.OLSRegressionReport`
+-----------------------------------------
 
-.. autoclass:: LinearRegressionReport
+.. autoclass:: OLSRegressionReport
     :members:
         metrics, step, test_lr,
         test_partialf, statsmodels_summary, plot_obs_vs_pred, 

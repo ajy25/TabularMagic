@@ -1,4 +1,4 @@
-from .lm import OLSLinearModel
+from .lm import OLSModel
 from .poissonglm import PoissonLinearModel
 from .binomialglm import BinomialLinearModel
 from .negbinglm import NegativeBinomialLinearModel
@@ -9,12 +9,12 @@ from .reports import (
     PoissonRegressionReport,
     NegativeBinomialRegressionReport,
     CountRegressionReport,
-    LinearRegressionReport,
+    OLSRegressionReport,
 )
 
 
 __all__ = [
-    "OLSLinearModel",
+    "OLSModel",
     "PoissonLinearModel",
     "NegativeBinomialLinearModel",
     "CountLinearModel",
@@ -24,5 +24,5 @@ __all__ = [
     "PoissonRegressionReport",
     "NegativeBinomialRegressionReport",
     "CountRegressionReport",
-    "LinearRegressionReport",
+    "OLSRegressionReport",
 ]

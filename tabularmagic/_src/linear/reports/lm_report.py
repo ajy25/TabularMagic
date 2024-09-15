@@ -1078,7 +1078,6 @@ class OLSRegressionReport:
         else:
             raise ValueError('The dataset must be either "train" or "test".')
 
-
     def plot_diagnostics(
         self,
         dataset: Literal["train", "test"],

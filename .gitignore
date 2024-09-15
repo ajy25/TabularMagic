@@ -1,9 +1,13 @@
-docs/_build/*
-
-local_tests
 .ruff_cache
 .pytest_cache
 
 
 demo/regression/ignored*
+
+
+tabularwizard/.env
+
+
+local_tests
+local_tests_llm
 

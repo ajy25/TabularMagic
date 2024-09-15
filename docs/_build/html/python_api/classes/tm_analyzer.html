@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyzer (tm.Analyzer) &mdash; TabularMagic 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Machine Learning Models (tm.ml)" href="tm_ml.html" />
+    <link rel="prev" title="Python API Reference" href="../api_reference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TabularMagic
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html">Python API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analyzer <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm.Analyzer)</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tm_ml.html">Machine Learning Models <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm.ml)</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-linearr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.LinearR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-robustlinearr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.RobustLinearR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-treesr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.TreesR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-svmr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.SVMR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-mlpr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.MLPR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-linearc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.LinearC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-treesc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.TreesC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-svmc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.SVMC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_ml.html#tm-ml-mlpc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.ml.MLPC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tm_fs.html">Feature Selectors <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm.fs)</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-kbestfsr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.KBestFSR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-lassofsr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.LassoFSR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-borutafsr"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.BorutaFSR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-kbestfsc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.KBestFSC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-lassofsc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.LassoFSC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_fs.html#tm-fs-borutafsc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm.fs.BorutaFSC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tm_reports.html">Reports <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm._reports)</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-mlclassificationreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.MLClassificationReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-mlregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.MLRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-linearregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.LinearRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-poissonregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.PoissonRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-negativebinomialregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.NegativeBinomialRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-binomialregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.BinomialRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-countregressionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.CountRegressionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-edareport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.EDAReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-votingselectionreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.VotingSelectionReport</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="tm_reports.html#tm-reports-statisticaltestreport"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tm._reports.StatisticalTestReport</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributors/contributors.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TabularMagic</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api_reference.html">Python API Reference</a></li>
+      <li class="breadcrumb-item active">Analyzer <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm.Analyzer)</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/python_api/classes/tm_analyzer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="analyzer-tm-analyzer">
+<h1>Analyzer <code class="xref py py-mod docutils literal notranslate"><span class="pre">(tm.Analyzer)</span></code><a class="headerlink" href="#analyzer-tm-analyzer" title="Permalink to this heading"></a></h1>
+<p>The Analyzer class handles data wrangling, exploratory data analysis,
+regression analysis, and machine learning model benchmarking.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tabularmagic.</span></span><span class="sig-name descname"><span class="pre">Analyzer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Unnamed</span> <span class="pre">Dataset'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer" title="Permalink to this definition"></a></dt>
+<dd><p>Analyzer is a class designed for conducting exploratory data analysis (EDA),
+regression analysis, and machine learning modeling on wide format tabular data.</p>
+<p>An Analyzer object can be initialized from a single DataFrame which is then
+split into train and test DataFrames, or, alternatively, from pre-split
+train and test DataFrames. The object can then be used to conduct
+a variety of analyses, including exploratory data analysis (the eda() method),
+regression analysis (lm() and glm() methods),
+and machine learning modeling (classify() and regress() methods).</p>
+<p>The Analyzer object also handles data preprocessing tasks, such as scaling,
+imputing missing values, dropping rows with missing values, one-hot encoding,
+and selecting variables. These methods can be chained together for easy data
+transformation. The Analyzer object remembers how the data was transformed,
+enabling proper fitting and transforming of cross validation splits of the
+train dataset.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Unnamed</span> <span class="pre">Dataset'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes a Analyzer object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame ~</em><em> (</em><em>sample_size</em><em>, </em><em>n_variables</em><em>)</em>) – The DataFrame to be analyzed.</p></li>
+<li><p><strong>df_test</strong> (<em>pd.DataFrame ~</em><em> (</em><em>test_sample_size</em><em>, </em><em>n_variables</em><em>)</em>) – Default: None.
+If not None, then treats df as the train DataFrame.</p></li>
+<li><p><strong>test_size</strong> (<em>float</em>) – Default: 0. Proportion of the DataFrame to withhold for
+testing. If test_size = 0, then the train DataFrame and the
+test DataFrame will both be the same as the input df.
+If df_test is provided, then test_size is ignored.</p></li>
+<li><p><strong>split_seed</strong> (<em>int</em>) – Default: 42.
+Used only for the train test split.
+If df_test is provided, then split_seed is ignored.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Default: False. If True, prints helpful update messages for certain
+Analyzer function calls.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Default: ‘Unnamed Dataset’. Name of the dataset the Analyzer is
+initialized for.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.classify">
+<span class="sig-name descname"><span class="pre">classify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tabularmagic._src.ml.predict.classification.base.BaseC</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_selectors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tabularmagic._src.feature_selection.base_feature_selection.BaseFSC</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_cv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_cv_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tm_reports.html#tabularmagic._reports.MLClassificationReport" title="tabularmagic._src.ml.predict.classification.mlclass_report.MLClassificationReport"><span class="pre">MLClassificationReport</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.classify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.classify" title="Permalink to this definition"></a></dt>
+<dd><p>Conducts a comprehensive classification ML model benchmarking exercise.
+Observations with missing data will be dropped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>list</em><em>[</em><em>BaseC</em><em>]</em>) – Models to be evaluated.</p></li>
+<li><p><strong>target</strong> (<em>str</em>) – The variable to be predicted.</p></li>
+<li><p><strong>predictors</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None.
+If None, uses all variables except target as predictors.</p></li>
+<li><p><strong>feature_selectors</strong> (<em>list</em><em>[</em><em>BaseFSR</em><em>]</em>) – The feature selectors for voting selection. Feature selectors
+can be used to select the most important predictors.
+Feature selectors can also be specified at the model level. If
+specified here, the same feature selectors will be used for all
+models.</p></li>
+<li><p><strong>max_n_features</strong> (<em>int</em>) – Default: None.
+Maximum number of predictors to utilize.
+Ignored if feature_selectors is None.
+If None, then all features with at least 50% support are selected.</p></li>
+<li><p><strong>outer_cv</strong> (<em>int</em>) – Default: None.
+If not None, reports training scores via nested k-fold CV.</p></li>
+<li><p><strong>outer_cv_seed</strong> (<em>int</em>) – Default: 42.
+The random seed for the outer cross validation loop.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="tm_reports.html#tabularmagic._reports.MLClassificationReport" title="tabularmagic._reports.MLClassificationReport">MLClassificationReport</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.drop_highly_missing_vars">
+<span class="sig-name descname"><span class="pre">drop_highly_missing_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.drop_highly_missing_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.drop_highly_missing_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Drops variables (columns) with missingness rate above a specified threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Default: None. If not None, only drops columns with more than 50% missing
+values in the specified variables. Otherwise, drops columns with more than
+50% missing values in all variables.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Default: None. If not None, excludes the specified variables from the
+list of variables to drop (which is set to all variables by default).</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – Default: 0.5. Proportion of missing values above which a column is dropped.
+For example, if threshold = 0.2, then columns with more than 20% missing
+values are dropped.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.dropna">
+<span class="sig-name descname"><span class="pre">dropna</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.dropna"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.dropna" title="Permalink to this definition"></a></dt>
+<dd><p>Drops observations (rows) with missing values on both the train
+and test DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None.
+List of columns along which to drop rows with missing values.
+If None, drops rows with missing values in all columns.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None.
+List of columns along which to exclude from dropping rows with
+missing values. If None, no variables are excluded.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.eda">
+<span class="sig-name descname"><span class="pre">eda</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'train'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'test'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'all'</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tm_reports.html#tabularmagic._reports.EDAReport" title="tabularmagic._src.exploratory.eda.EDAReport"><span class="pre">EDAReport</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.eda"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.eda" title="Permalink to this definition"></a></dt>
+<dd><p>Constructs an EDAReport object for the working train
+DataFrame, the working test DataFrame, or both DataFrames combined.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<em>Literal</em><em>[</em><em>'train'</em><em>, </em><em>'test'</em><em>, </em><em>'all'</em><em>]</em>) – The dataset to be analyzed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The EDAReport object contains a variety of exploratory data
+analysis methods, including summary statistics for numeric and
+categorical variables, t-tests, and data visualizations.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="tm_reports.html#tabularmagic._reports.EDAReport" title="tabularmagic._reports.EDAReport">EDAReport</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.force_binary">
+<span class="sig-name descname"><span class="pre">force_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_multiclass</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.force_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.force_binary" title="Permalink to this definition"></a></dt>
+<dd><p>Forces variables to be binary (0 and 1 valued numeric variables).
+Does nothing if the data contains more than two classes unless
+ignore_multiclass is True and pos_label is specified,
+in which case all classes except pos_label are labeled with zero.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Name of variables to force to binary.</p></li>
+<li><p><strong>pos_labels</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. The positive labels.
+If None, the first class for each var is the positive label.</p></li>
+<li><p><strong>ignore_multiclass</strong> (<em>bool</em>) – Default: False. If True, all classes except pos_label are labeled with
+zero. Otherwise raises ValueError.</p></li>
+<li><p><strong>rename</strong> (<em>bool</em>) – Default: False. If True, the variables are renamed to
+{pos_label}::{var}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.force_categorical">
+<span class="sig-name descname"><span class="pre">force_categorical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.force_categorical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.force_categorical" title="Permalink to this definition"></a></dt>
+<dd><p>Forces specificed variables (columns) to have categorical values.
+That is, the variables’ values are converted to strings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Name of variables to force to categorical.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.force_numeric">
+<span class="sig-name descname"><span class="pre">force_numeric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.force_numeric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.force_numeric" title="Permalink to this definition"></a></dt>
+<dd><p>Forces specificed variables to numeric (float).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Name of variables to force to numeric.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.glm">
+<span class="sig-name descname"><span class="pre">glm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'poisson'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'binomial'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'negbinomial'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'count'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tm_reports.html#tabularmagic._reports.PoissonRegressionReport" title="tabularmagic._src.linear.reports.poissonglmreg.PoissonRegressionReport"><span class="pre">tabularmagic._src.linear.reports.poissonglmreg.PoissonRegressionReport</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="tm_reports.html#tabularmagic._reports.BinomialRegressionReport" title="tabularmagic._src.linear.reports.binomialglmreg.BinomialRegressionReport"><span class="pre">tabularmagic._src.linear.reports.binomialglmreg.BinomialRegressionReport</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="tm_reports.html#tabularmagic._reports.NegativeBinomialRegressionReport" title="tabularmagic._src.linear.reports.negbinglmreg.NegativeBinomialRegressionReport"><span class="pre">tabularmagic._src.linear.reports.negbinglmreg.NegativeBinomialRegressionReport</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="tm_reports.html#tabularmagic._reports.CountRegressionReport" title="tabularmagic._src.linear.reports.countglmreg.CountRegressionReport"><span class="pre">tabularmagic._src.linear.reports.countglmreg.CountRegressionReport</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.glm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.glm" title="Permalink to this definition"></a></dt>
+<dd><p>Conducts a generalized linear regression exercise.
+If formula is provided, performs linear regression with link
+function depending on specified family via formula.
+Examples with missing data will be dropped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>family</strong> (<em>Literal</em><em>[</em><em>&quot;poisson&quot;</em><em>, </em><em>&quot;binomial&quot;</em><em>,  </em><em>&quot;negbinomial&quot;</em><em>, </em><em>&quot;count&quot;</em><em>]</em>) – The family of the GLM.</p></li>
+<li><p><strong>target</strong> (<em>str</em>) – Default: None. The variable to be predicted.</p></li>
+<li><p><strong>predictors</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. If None, all variables except target will be used as
+predictors.</p></li>
+<li><p><strong>formula</strong> (<em>str</em>) – Default: None. If not None, uses formula to specify the regression
+(overrides target and predictors).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>PoissonRegressionReport | BinomialRegressionReport |</em></p></li>
+<li><p><em>NegativeBinomialRegressionReport | CountRegressionReport</em> – The appropriate regression report object is returned
+depending on the specified family.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.impute">
+<span class="sig-name descname"><span class="pre">impute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'median'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'mean'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'5nn'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'most_frequent'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'most_frequent'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.impute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.impute" title="Permalink to this definition"></a></dt>
+<dd><p>Imputes missing values. The imputer is fit on the train DataFrame
+and transforms both train and test DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to impute missing values.
+If None, imputes missing values in all columns.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to exclude from imputing missing values.
+If None, no variables are excluded.</p></li>
+<li><p><strong>numeric_strategy</strong> (<em>Literal</em><em>[</em><em>'median'</em><em>, </em><em>'mean'</em><em>, </em><em>'5nn'</em><em>]</em>) – Default: ‘median’.
+Strategy for imputing missing values in numeric variables.
+- ‘median’: impute with median.
+- ‘mean’: impute with mean.
+- ‘5nn’: impute with 5-nearest neighbors.</p></li>
+<li><p><strong>categorical_strategy</strong> (<em>Literal</em><em>[</em><em>'most_frequent'</em><em>]</em>) – Default: ‘most_frequent’.
+Strategy for imputing missing values in categorical variables.
+- ‘most_frequent’: impute with most frequent value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.lm">
+<span class="sig-name descname"><span class="pre">lm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tm_reports.html#tabularmagic._reports.LinearRegressionReport" title="tabularmagic._src.linear.reports.linreg.LinearRegressionReport"><span class="pre">LinearRegressionReport</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.lm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.lm" title="Permalink to this definition"></a></dt>
+<dd><p>Conducts a simple OLS regression analysis exercise.
+If formula is provided, performs regression with OLS via formula.
+Examples with missing data will be dropped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> (<em>str</em>) – Default: None. The variable to be predicted.</p></li>
+<li><p><strong>predictors</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None.
+If None, all variables except target will be used as predictors.</p></li>
+<li><p><strong>formula</strong> (<em>str</em>) – Default: None. If not None, uses formula to specify the regression
+(overrides target and predictors).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="tm_reports.html#tabularmagic._reports.LinearRegressionReport" title="tabularmagic._reports.LinearRegressionReport">LinearRegressionReport</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.load_data_checkpoint">
+<span class="sig-name descname"><span class="pre">load_data_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.load_data_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.load_data_checkpoint" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the original train and test DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_name</strong> (<em>str</em>) – Default: None. The name of the checkpoint to load.
+If None, loads the original train and test DataFrames.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.onehot">
+<span class="sig-name descname"><span class="pre">onehot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropfirst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.onehot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.onehot" title="Permalink to this definition"></a></dt>
+<dd><p>One-hot encodes the specified variables (columns).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to one-hot encode.
+If None, one-hot encodes all categorical variables.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to exclude from one-hot encoding.
+If None, no variables are excluded.</p></li>
+<li><p><strong>dropfirst</strong> (<em>bool</em>) – Default: True. If True, drops the first one-hot encoded column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.regress">
+<span class="sig-name descname"><span class="pre">regress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tabularmagic._src.ml.predict.regression.base.BaseR</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_selectors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tabularmagic._src.feature_selection.base_feature_selection.BaseFSR</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_cv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_cv_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tm_reports.html#tabularmagic._reports.MLRegressionReport" title="tabularmagic._src.ml.predict.regression.mlreg_report.MLRegressionReport"><span class="pre">MLRegressionReport</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.regress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.regress" title="Permalink to this definition"></a></dt>
+<dd><p>Conducts a comprehensive regression ML model benchmarking exercise.
+Observations with missing data will be dropped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>list</em><em>[</em><em>BaseR</em><em>]</em>) – Models to be evaluated.</p></li>
+<li><p><strong>target</strong> (<em>str</em>) – The variable to be predicted.</p></li>
+<li><p><strong>predictors</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None.
+If None, uses all variables except target as predictors.</p></li>
+<li><p><strong>feature_selectors</strong> (<em>list</em><em>[</em><em>BaseFSR</em><em>]</em>) – The feature selectors for voting selection. Feature selectors
+can be used to select the most important predictors.
+Feature selectors can also be specified at the model level. If
+specified here, the same feature selectors will be used for all
+models.</p></li>
+<li><p><strong>max_n_features</strong> (<em>int</em>) – Default: None. Maximum number of predictors to utilize.
+Ignored if feature_selectors is None.
+If None, then all features with at least 50% support are selected.</p></li>
+<li><p><strong>outer_cv</strong> (<em>int</em>) – Default: None. If not None, reports training scores via nested k-fold CV.</p></li>
+<li><p><strong>outer_cv_seed</strong> (<em>int</em>) – Default: 42. The random seed for the outer cross validation loop.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="tm_reports.html#tabularmagic._reports.MLRegressionReport" title="tabularmagic._reports.MLRegressionReport">MLRegressionReport</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.save_data_checkpoint">
+<span class="sig-name descname"><span class="pre">save_data_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.save_data_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.save_data_checkpoint" title="Permalink to this definition"></a></dt>
+<dd><p>Saves the current train and test DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_name</strong> (<em>str</em>) – The name of the checkpoint.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.scale">
+<span class="sig-name descname"><span class="pre">scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'standardize'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'minmax'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'log'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'log1p'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'standardize'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.scale" title="Permalink to this definition"></a></dt>
+<dd><p>Scales the variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to scale.
+If None, scales values in all columns.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to exclude from scaling.
+If None, no variables are excluded.</p></li>
+<li><p><strong>strategy</strong> (<em>Literal</em><em>[</em><em>&quot;standardize&quot;</em><em>, </em><em>&quot;minmax&quot;</em><em>, </em><em>&quot;log&quot;</em><em>, </em><em>&quot;log1p&quot;</em><em>]</em>) – Default: ‘standardize’. The scaling strategy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tabularmagic.Analyzer.select_vars">
+<span class="sig-name descname"><span class="pre">select_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic._src.analyzer.Analyzer"><span class="pre">Analyzer</span></a></span></span><a class="reference internal" href="../../_modules/tabularmagic/_src/analyzer.html#Analyzer.select_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tabularmagic.Analyzer.select_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Selects the specified variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to include.
+If None, includes all variables.</p></li>
+<li><p><strong>exclude_vars</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Default: None. List of variables to exclude.
+If None, no variables are excluded.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns self for method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tabularmagic.Analyzer" title="tabularmagic.Analyzer">Analyzer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../api_reference.html" class="btn btn-neutral float-left" title="Python API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tm_ml.html" class="btn btn-neutral float-right" title="Machine Learning Models (tm.ml)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Andrew Yang.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

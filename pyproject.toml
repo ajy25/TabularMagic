@@ -35,9 +35,12 @@ classifiers = [
 
 
 [project.optional-dependencies]
-llm = [
+wizard = [
     "tabularwizard",
-    "langchain>=0.2.6"
+    "langchain>=0.2.6",
+    "langchain-core>=0.3.0",
+    "langchain-groq>=0.2.0",
+    "python-dotenv>=0.21.0"
 ]
 
 

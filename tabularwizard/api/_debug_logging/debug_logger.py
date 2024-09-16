@@ -10,7 +10,7 @@ debug_logger.addHandler(stdoutstream)
 
 def printl(message: str, level: int = logging.DEBUG):
     """Logs a message. Level is set to DEBUG.
-    
+
     Parameters
     ----------
     message : str
@@ -20,5 +20,3 @@ def printl(message: str, level: int = logging.DEBUG):
         The logging level, by default logging.DEBUG.
     """
     debug_logger.log(level, "TabularWizard :: " + message)
-    
-

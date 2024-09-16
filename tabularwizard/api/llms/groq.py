@@ -1,11 +1,11 @@
 from langchain_groq import ChatGroq
 from .find_key_from_dot_env import find_key
 
+
 def build_chat_groq(
-    model: str = "llama-3.1-70b-versatile",
-    temperature: float = 0.2
+    model: str = "llama-3.1-70b-versatile", temperature: float = 0.2
 ) -> ChatGroq:
-    """Builds a ChatGroq object. If no Groq API key is found in the .env file, 
+    """Builds a ChatGroq object. If no Groq API key is found in the .env file,
     raises a ValueError.
 
     Parameters
@@ -21,11 +21,4 @@ def build_chat_groq(
     ChatGroq
         A ChatGroq object.
     """
-    return ChatGroq(
-        model=model,
-        temperature=temperature,
-        api_key=find_key("groq")
-    )
-
-
-
+    return ChatGroq(model=model, temperature=temperature, api_key=find_key("groq"))

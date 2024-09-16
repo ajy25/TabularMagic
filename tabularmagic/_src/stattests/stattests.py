@@ -91,8 +91,10 @@ class StatisticalTestReport:
         """Returns the statistic."""
         return self._statistic
 
-    def _agentic_describe_json_str(self) -> str:
-        """Returns a JSON string for the agentic agent."""
+    def _to_json(self) -> str:
+        """Returns the contents of the report in the form of a a JSON-formatted
+        string.
+        """
         return json.dumps(
             {
                 "description": self._description,

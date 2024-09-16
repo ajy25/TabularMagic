@@ -1,13 +1,13 @@
 from langchain_core.tools import tool
-from langchain.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from ..tm import tabularwizard_analyzer
 
 
-from ..io.jsontools import json_cache_tracker
-from ..io.csvtools import csv_cache_tracker
+from ..io.jsonutils import save_dict_to_json, save_df_to_json
 
 
+# T-test tool.
 class _TTestInput(BaseModel):
     categorical_var: str = Field(
         description="The binary categorical variable that defines the two groups."
@@ -17,15 +17,24 @@ class _TTestInput(BaseModel):
     )
 
 
-@tool("ttest_tool", args_schema=_TTestInput, return_direct=True)
-def ttest(categorical_var, numeric_var) -> str:
+@tool("ttest_tool", args_schema=_TTestInput)
+def ttest_tool(categorical_var: str, numeric_var: str) -> str:
     """Conducts a t-test between two groups of data. Returns a JSON string
     containing the results of the t-test.
     """
-    json_output = (
+    dict_output = (
         tabularwizard_analyzer.eda("all")
         .ttest(numeric_var=numeric_var, stratify_by=categorical_var)
-        ._to_json()
+        ._to_dict()
     )
-    json_cache_tracker.save_to_json(json_output)
-    return json_output
+    return save_dict_to_json(dict_output)
+
+
+# Numerical summary stats tool.
+@tool("numerical_summary_stats_tool")
+def numerical_summary_stats_tool() -> str:
+    """Calculates summary statistics for all numeric columns in the dataset.
+    Returns a JSON string containing the summary statistics.
+    """
+    df_output = tabularwizard_analyzer.eda("all").numeric_stats()
+    return save_df_to_json(df_output)

@@ -1,5 +1,4 @@
 import numpy as np
-import json
 from ..display.print_utils import color_text, bold_text, fill_ignore_format
 from ..display.print_options import print_options
 
@@ -67,7 +66,7 @@ class StatisticalTestReport:
         self._statistic = statistic
         self._pval = pval
         self._degfree = degfree
-        self._descriptive_statistic_description = descriptive_statistic_description
+        self._descriptive_stat_description = descriptive_statistic_description
         self._statistic_description = statistic_description
         self._null_hypothesis_description = null_hypothesis_description
         self._alternative_hypothesis_description = alternative_hypothesis_description
@@ -91,25 +90,21 @@ class StatisticalTestReport:
         """Returns the statistic."""
         return self._statistic
 
-    def _to_json(self) -> str:
-        """Returns the contents of the report in the form of a a JSON-formatted
-        string.
-        """
-        return json.dumps(
-            {
-                "description": self._description,
-                "statistic": self._statistic,
-                "p_value": self._pval,
-                "descriptive_statistic": self._descriptive_statistic,
-                "degrees_of_freedom": self._degfree,
-                "statistic_description": self._statistic_description,
-                "descriptive_statistic_description": self._descriptive_statistic_description,
-                "null_hypothesis_description": self._null_hypothesis_description,
-                "alternative_hypothesis_description": self._alternative_hypothesis_description,
-                "assumptions_description": self._assumptions_description,
-                "long_description": self._long_description,
-            }
-        )
+    def _to_dict(self) -> dict:
+        """Returns the contents of the report in the form of a dictionary."""
+        return {
+            "Description of test": self._description,
+            "Statistic": self._statistic,
+            "p_value": self._pval,
+            "Descriptive statistic": self._descriptive_statistic,
+            "Degrees of freedom": self._degfree,
+            "Description of statistic": self._statistic_description,
+            "Description of descriptive statistic": self._descriptive_stat_description,
+            "Null hypothesis": self._null_hypothesis_description,
+            "Alternative hypothesis": self._alternative_hypothesis_description,
+            "Assumptions": self._assumptions_description,
+            "More information": self._long_description,
+        }
 
     def __str__(self):
         """Returns data and metadata in string form."""
@@ -173,12 +168,12 @@ class StatisticalTestReport:
             )
         if (
             self._descriptive_statistic is not None
-            and self._descriptive_statistic_description is not None
+            and self._descriptive_stat_description is not None
         ):
             supplementary_message += "\n\n"
             supplementary_message += (
                 fill_ignore_format(
-                    bold_text(f"{self._descriptive_statistic_description}:"), max_width
+                    bold_text(f"{self._descriptive_stat_description}:"), max_width
                 )
                 + "\n"
             )

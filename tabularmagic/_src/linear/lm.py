@@ -40,6 +40,8 @@ class OLSModel:
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
         n_predictors = X_train.shape[1]
+
+        # we force the constant to be included
         X_train = sm.add_constant(X_train, has_constant="add")
         self.estimator = sm.OLS(y_train, X_train).fit(cov_type="HC3")
 
@@ -138,11 +140,10 @@ class OLSModel:
         if max_steps <= 0:
             raise ValueError("max_steps cannot be negative")
 
-        X_train, y_train = self._dataemitter.emit_train_Xy()
-
         # set upper to all possible variables if nothing is specified
+        local_dataemitter = self._dataemitter.copy()
         if all_vars is None:
-            all_vars = X_train.columns.tolist()
+            all_vars = local_dataemitter.X_vars()
         if kept_vars is None:
             kept_vars = []
 
@@ -161,11 +162,12 @@ class OLSModel:
                 included_vars = kept_vars.copy()
             else:
                 included_vars = start_vars.copy()
+        else:
+            raise ValueError("direction must be 'forward', 'backward', or 'both'")
 
         # set our starting score and best models
         current_score = score_model(
-            X_train,
-            y_train,
+            local_dataemitter,
             included_vars,
             model="ols",
             metric=criteria,
@@ -173,6 +175,9 @@ class OLSModel:
         current_step = 0
 
         while current_step < max_steps:
+
+            print(current_step, current_score, included_vars)
+
             # Forward step
             if direction == "forward":
                 excluded = list(set(all_vars) - set(included_vars))
@@ -182,8 +187,7 @@ class OLSModel:
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="ols",
                         metric=criteria,
@@ -213,8 +217,7 @@ class OLSModel:
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="ols",
                         metric=criteria,
@@ -224,6 +227,7 @@ class OLSModel:
                         var_to_remove = candidate
 
                 if var_to_remove is None:
+                    print('breaking')
                     break
 
                 included_vars.remove(var_to_remove)
@@ -238,8 +242,7 @@ class OLSModel:
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="ols",
                         metric=criteria,
@@ -258,8 +261,7 @@ class OLSModel:
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="ols",
                         metric=criteria,
@@ -286,3 +288,4 @@ class OLSModel:
 
     def __str__(self):
         return self._name
+    

@@ -1,4 +1,28 @@
 from functools import wraps
+import pandas as pd
+import numpy as np
+
+
+def is_numerical(series: pd.Series | np.ndarray) -> bool:
+    """Given a pandas Series or numpy array, check if it is numerical.
+    
+    Parameters
+    ----------
+    series : pd.Series | np.ndarray
+        The series or array to check.
+
+    Returns
+    -------
+    bool
+        True if the series is numerical, False otherwise.
+    """
+    if isinstance(series, pd.Series):
+        return pd.api.types.is_numeric_dtype(series)
+    elif isinstance(series, np.ndarray):
+        return np.issubdtype(series.dtype, np.number)
+    else:
+        raise ValueError("Input must be a pandas Series or numpy array.")
+
 
 
 def check_list_uniqueness(lst: list):

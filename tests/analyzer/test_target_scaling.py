@@ -37,7 +37,7 @@ def test_ols_scaling_simple(setup_data):
 
     # quick minmax test
     rmse_unscaled = (
-        analyzer.lm(target="y").metrics().loc["rmse", "Ordinary Least Squares"]
+        analyzer.lm(target="y").metrics('test').loc["rmse", "Ordinary Least Squares"]
     )
 
     analyzer.scale(strategy="minmax")

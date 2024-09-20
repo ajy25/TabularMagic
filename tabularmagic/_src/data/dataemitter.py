@@ -106,7 +106,7 @@ class DataEmitter:
             The target variable.
 
         X_vars : list[str]
-            The predictor variables.
+            The predictor variables (before one-hot encoding, if applicable).
 
         step_tracer: PreprocessStepTracer
         """
@@ -133,6 +133,7 @@ class DataEmitter:
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
 
+        self._pre_onehot_X_vars_subset = None
         self._final_X_vars_subset = None
 
         self._forward()
@@ -231,11 +232,15 @@ class DataEmitter:
                 f"out of a total of {prev_test_len} rows.",
                 type="WARNING",
             )
+        if self._pre_onehot_X_vars_subset is not None:
+            xvars = self._pre_onehot_X_vars_subset
+        else:
+            xvars = self._Xvars
         X_train_df = self._onehot_helper(
-            working_df_train[self._Xvars], fit=True, use_second_encoder=True
+            working_df_train[xvars], fit=True, use_second_encoder=True
         )
         X_test_df = self._onehot_helper(
-            working_df_test[self._Xvars], fit=False, use_second_encoder=True
+            working_df_test[xvars], fit=False, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
@@ -284,8 +289,12 @@ class DataEmitter:
                 f"out of a total of {prev_train_len} rows.",
                 type="WARNING",
             )
+        if self._pre_onehot_X_vars_subset is not None:
+            xvars = self._pre_onehot_X_vars_subset
+        else:
+            xvars = self._Xvars
         X_train_df = self._onehot_helper(
-            working_df_train[self._Xvars], fit=True, use_second_encoder=True
+            working_df_train[xvars], fit=True, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_train_df = X_train_df[self._final_X_vars_subset]
@@ -327,16 +336,33 @@ class DataEmitter:
                 f"with missing values out of a total of {prev_test_len} rows.",
                 type="WARNING",
             )
+        if self._pre_onehot_X_vars_subset is not None:
+            xvars = self._pre_onehot_X_vars_subset
+        else:
+            xvars = self._Xvars
         X_test_df = self._onehot_helper(
-            working_df_test[self._Xvars], fit=False, use_second_encoder=True
+            working_df_test[xvars], fit=False, use_second_encoder=True
         )
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
+    
+
+    def select_predictors_pre_onehot(self, predictors: list[str] | None):
+        """Selects a subset of predictors lazily (before one-hot encoding).
+
+        Parameters
+        ----------
+        predictors : list[str] | None
+            List of predictors to select. If None, all predictors are selected.
+        """
+        self._pre_onehot_X_vars_subset = predictors
+
 
     @ensure_arg_list_uniqueness()
     def select_predictors(self, predictors: list[str] | None):
         """Selects a subset of predictors lazily (last step of the emit methods).
+        These predictor values should be the POST one-hot encoded values, if applicable.
 
         Parameters
         ----------
@@ -1024,6 +1050,36 @@ class DataEmitter:
         if var == self._yvar:
             self._yscaler = scaler
         return self
+    
+    def X_vars(self) -> list[str]:
+        """Returns the predictor variables.
+
+        Returns
+        -------
+        list[str]
+            The predictor variables.
+        """
+        return self._Xvars
+    
+    def y_var(self) -> str:
+        """Returns the target variable.
+
+        Returns
+        -------
+        str
+            The target variable.
+        """
+        return self._yvar
+    
+    def vars(self) -> list[str]:
+        """Returns all variables.
+
+        Returns
+        -------
+        list[str]
+            All variables.
+        """
+        return self._Xvars + [self._yvar]
 
     def custom_transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """Transforms the input DataFrame using the preprocessing steps

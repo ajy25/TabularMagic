@@ -1,54 +1,14 @@
 import statsmodels.api as sm
 from sklearn.metrics import f1_score
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from ..metrics.classification_scoring import ClassificationBinaryScorer
 from ..data.datahandler import DataEmitter
 import pandas as pd
 from typing import Literal
-from ..utils import ensure_arg_list_uniqueness
+from ..utils import ensure_arg_list_uniqueness, is_numerical
+from .lmutils.score import score_model
 
-
-def score_binomial_model(
-    X_train: pd.DataFrame,
-    y_train: pd.DataFrame,
-    feature_list: list[str],
-    metric: Literal["aic", "bic"],
-) -> float:
-    """Calculates the AIC or BIC score for a given model.
-
-    Parameters
-    ----------
-    X_train : pd.DataFrame
-        The training data.
-
-    y_train : pd.DataFrame
-        The training target.
-
-    feature_list : list[str]
-        The list of features to include in the model.
-
-    metric : str
-        The metric to use for scoring. Either 'aic' or 'bic'.
-
-    Returns
-    -------
-    float
-        The AIC or BIC score for the model.
-    """
-    if len(feature_list) == 0:
-        return np.inf
-
-    subset_X_train = X_train[feature_list]
-    new_model = sm.GLM(
-        y_train,
-        subset_X_train,
-        family=sm.families.Binomial(link=sm.families.links.Logit()),
-    ).fit(cov_type="HC3")
-    if metric == "aic":
-        score = new_model.aic
-    elif metric == "bic":
-        score = new_model.bic
-    return score
 
 
 class BinomialLinearModel:
@@ -84,29 +44,30 @@ class BinomialLinearModel:
 
         # Emit all data
         X_train, y_train = self._dataemitter.emit_train_Xy()
-        X_train = sm.add_constant(X_train)
-
         X_test, y_test = self._dataemitter.emit_test_Xy()
-        X_test = sm.add_constant(X_test)
 
-        y_levels = y_train.unique()
+        # we force the constant to be included
+        X_train = sm.add_constant(X_train, has_constant="add")
+        X_test = sm.add_constant(X_test, has_constant="add")
+
+
+        y_levels = y_train.unique() 
         if y_levels.size != 2:
-            raise ValueError("Dependent variable must have 2 levels")
+            raise ValueError("Target variable must have 2 levels")
 
         y_test_levels = y_test.unique()
         if y_test_levels.size > 2:
             raise ValueError(
-                "Dependent variable in test set detected to have ", "more than 3 levels"
+                "Target variable in test set detected to have more than 2 levels"
             )
 
-        # Check to see if levels are not already encoded as ones and zeros
-        if set(y_levels) != {0, 1}:
-            # Create a mapping dictionary
-            mapping = {y_levels[0]: 1, y_levels[1]: 0}
-
-            # Encode labels using the mapping dictionary
-            y_train = y_train.map(mapping)
-            y_test = y_test.map(mapping)
+        # we allow y_train to be categorical, i.e. we encode it with a label encoder
+        self._y_label_order = None
+        if not is_numerical(y_train):
+            le = LabelEncoder()
+            y_train = le.fit_transform(y_train)
+            self._y_label_order = le.classes_
+            y_test = le.transform(y_test)
 
         self.estimator = sm.GLM(
             y_train,
@@ -131,7 +92,7 @@ class BinomialLinearModel:
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train.to_numpy(),
-            pos_label=y_levels[0],
+            pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
             y_pred_score=np.hstack(
                 [
                     np.zeros(shape=(len(y_pred_train), 1)),
@@ -147,7 +108,7 @@ class BinomialLinearModel:
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
             y_true=y_test.to_numpy(),
-            pos_label=1,
+            pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
             y_pred_score=np.hstack(
                 [np.zeros(shape=(len(y_pred_test), 1)), y_pred_test.reshape(-1, 1)]
             ),
@@ -238,10 +199,11 @@ class BinomialLinearModel:
                 included_vars = start_vars.copy()
 
         # set our starting score and best models
-        current_score = score_binomial_model(
+        current_score = score_model(
             X_train,
             y_train,
             included_vars,
+            model="binomial",
             metric=criteria,
         )
         current_step = 0
@@ -255,10 +217,11 @@ class BinomialLinearModel:
                 var_to_add = None
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
-                    score = score_binomial_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="binomial",
                         metric=criteria,
                     )
                     if score < best_score:
@@ -285,10 +248,11 @@ class BinomialLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_binomial_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="binomial",
                         metric=criteria,
                     )
                     if score < best_score:
@@ -309,10 +273,11 @@ class BinomialLinearModel:
                 var_to_add = None
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
-                    score = score_binomial_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="binomial",
                         metric=criteria,
                     )
                     if score < best_forward_score:
@@ -328,10 +293,11 @@ class BinomialLinearModel:
 
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
-                    score = score_binomial_model(
+                    score = score_model(
                         X_train,
                         y_train,
                         candidate_features,
+                        model="binomial",
                         metric=criteria,
                     )
                     if score < best_backward_score:

@@ -132,8 +132,6 @@ def test_partialf_ols(setup_data):
     assert np.isclose(tm_fstat2, r_f_stat, atol=epsilon)
 
 
-# Test if log transformations are being inverse transformed
-# Check to see that plotting and metrics are inverse transformed
 
 
 # Run the test

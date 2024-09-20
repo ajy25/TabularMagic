@@ -601,7 +601,7 @@ class OLSRegressionReport:
         )
 
         new_emitter = self._dataemitter.copy()
-        new_emitter.select_predictors(selected_vars)
+        new_emitter.select_predictors_pre_onehot(selected_vars)
 
         return OLSRegressionReport(
             OLSModel(),

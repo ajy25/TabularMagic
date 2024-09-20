@@ -61,10 +61,13 @@ class Analyzer:
 
         Parameters
         ----------
-        df : pd.DataFrame ~ (sample_size, n_variables)
-            The DataFrame to be analyzed.
+        df : pd.DataFrame | None
+            The DataFrame to be analyzed. Must be in wide format, i.e. with shape 
+            (n_units, n_vars). If df_test is provided, then the df is treated as the
+            train DataFrame. Otherwise, the df is split into train and test DataFrames
+            according to the test_size parameter.
 
-        df_test : pd.DataFrame ~ (test_sample_size, n_variables)
+        df_test : pd.DataFrame | None
             Default: None.
             If not None, then treats df as the train DataFrame.
 
@@ -168,9 +171,9 @@ class Analyzer:
         predictors: list[str] | None = None,
         formula: str | None = None,
     ) -> OLSRegressionReport:
-        """Conducts a simple OLS regression analysis exercise.
+        """Performs OLS regression.
         If formula is provided, performs regression with OLS via formula.
-        Examples with missing data will be dropped.
+        Units with missing data will be dropped.
 
         Parameters
         ----------
@@ -254,7 +257,7 @@ class Analyzer:
         """Conducts a generalized linear regression exercise.
         If formula is provided, performs linear regression with link
         function depending on specified family via formula.
-        Examples with missing data will be dropped.
+        Units with missing data will be dropped.
 
         Parameters
         ----------
@@ -847,7 +850,7 @@ class Analyzer:
     # MAGIC METHODS
     # --------------------------------------------------------------------------
     def __len__(self) -> int:
-        """Returns the number of examples in working train DataFrame."""
+        """Returns the number of units (rows) in working train DataFrame."""
         return len(self._datahandler)
 
     def __str__(self) -> str:

@@ -67,7 +67,6 @@ def score_model(
         )
 
     if metric == "aic":
-        print(new_model.fit().aic)
         return new_model.fit().aic
     elif metric == "bic":
         return new_model.fit().bic

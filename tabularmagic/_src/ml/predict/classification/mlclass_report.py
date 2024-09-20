@@ -18,6 +18,7 @@ from ....display.print_utils import (
     format_two_column,
 )
 from ....display.print_options import print_options
+from ....display.plot_options import plot_options
 from ....feature_selection import BaseFSC, VotingSelectionReport
 
 
@@ -728,7 +729,7 @@ class MLClassificationReport:
 
         ax.set_title("ROC Curves")
         ax.legend(
-            fontsize=8,  # Set font size directly
+            fontsize=plot_options._axis_title_font_size,
             handlelength=1,  # Reduce length of legend handles
             handletextpad=0.5,  # Reduce space between handle and text
             borderpad=0.2,  # Reduce internal padding

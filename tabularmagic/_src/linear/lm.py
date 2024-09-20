@@ -176,8 +176,6 @@ class OLSModel:
 
         while current_step < max_steps:
 
-            print(current_step, current_score, included_vars)
-
             # Forward step
             if direction == "forward":
                 excluded = list(set(all_vars) - set(included_vars))
@@ -227,7 +225,6 @@ class OLSModel:
                         var_to_remove = candidate
 
                 if var_to_remove is None:
-                    print('breaking')
                     break
 
                 included_vars.remove(var_to_remove)

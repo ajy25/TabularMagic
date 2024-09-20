@@ -95,3 +95,34 @@ def test_forward_selection_ols(setup_data):
         if 'cat1' in feature:
             assert feature != 'cat1::A'
 
+
+
+def test_both_direction_selection_ols(setup_data):
+    df = setup_data['df_ols']
+
+    analyzer = tm.Analyzer(
+        df=df
+    )
+    lmreport = analyzer.lm(
+        target='y',
+        predictors=['x1', 'x2', 'cat1', 'cat2', 'x3'],
+    )
+    reduced_lmreport = lmreport.step('both')
+
+    selected_features = reduced_lmreport.train_report()._X_eval_df.columns.tolist()
+
+    print(selected_features)
+    
+    # Assert that only the most important features are selected
+    assert 'x1' in selected_features  # Should be included
+    assert 'x2' not in selected_features  # Should be excluded
+    assert 'x3' not in selected_features  # Should be excluded
+    
+    # All cat2 levels should be excluded
+    # All cat1 levels should be included, with the exception of 'A' (we drop first)
+    for feature in selected_features:
+        if 'cat2' in feature:
+            assert False
+        if 'cat1' in feature:
+            assert feature != 'cat1::A'
+

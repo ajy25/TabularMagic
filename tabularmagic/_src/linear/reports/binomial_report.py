@@ -7,7 +7,7 @@ from typing import Literal
 from adjustText import adjust_text
 from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ...linear.binomialglm import BinomialLinearModel
+from ..binomialglm import BinomialLinearModel
 from ...display.print_utils import print_wrapped
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 

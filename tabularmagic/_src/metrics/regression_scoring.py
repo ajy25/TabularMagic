@@ -75,7 +75,7 @@ class RegressionScorer:
             df.loc["spearmanr", self._name] = spearmanr(y_true, y_pred)[0]
             df.loc["r2", self._name] = r2_score(y_true, y_pred)
             if self._n_predictors is None:
-                df.loc["adjr2", self._name] = np.NaN
+                adjr2 = np.NaN
             else:
                 try:
                     adjr2 = 1 - (
@@ -89,6 +89,7 @@ class RegressionScorer:
                         "adjusted R squared. Setting adjusted R squared to NaN.",
                         type="WARNING",
                     )
+            df.loc["adjr2", self._name] = adjr2
             df.loc["n_obs", self._name] = len(y_true)
             df = df.rename_axis("Statistic", axis="rows")
             self._stats_df = df

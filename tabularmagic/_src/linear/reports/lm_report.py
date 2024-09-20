@@ -17,6 +17,15 @@ from ..lmutils.plot import (
     plot_residuals_vs_leverage,
     plot_qq,
 )
+from ...display.print_options import print_options
+from ...display.print_utils import (
+    print_wrapped,
+    color_text,
+    bold_text,
+    list_to_string,
+    fill_ignore_format,
+    format_two_column,
+)
 from ...stattests import StatisticalTestReport
 
 
@@ -559,8 +568,8 @@ class OLSRegressionReport:
         start_vars: list[str] | None = None,
         max_steps: int = 100,
     ) -> "OLSRegressionReport":
-        """Performs stepwise selection on the model. Returns a new
-        OLSRegressionReport object with the updated model.
+        """Performs stepwise selection. Returns a new
+        OLSRegressionReport object with the reduced model.
 
         Parameters
         ----------
@@ -572,7 +581,7 @@ class OLSRegressionReport:
 
         kept_vars : list[str]
             Default: None. The variables that should be kept in the model.
-            If None, defaults to empty list.
+            If None, defaults to an empty list.
 
         all_vars : list[str]
             Default: None. The variables that are candidates for inclusion in the model.
@@ -607,7 +616,7 @@ class OLSRegressionReport:
             OLSModel(),
             self._datahandler,  # only used for y var scaler
             self._target,  # ignored
-            self._predictors,  # ignored
+            selected_vars,  # ignored
             new_emitter,
         )
 
@@ -1160,3 +1169,89 @@ class OLSRegressionReport:
             return self._train_report._compute_outliers()
         else:
             return self._test_report._compute_outliers()
+
+
+    def __str__(self) -> str:
+        max_width = print_options._max_line_width
+        n_dec = print_options._n_decimals
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("Ordinary Least Squares Regression Report")
+
+        target_var = "'" + self._target + "'"
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        metrics_message = f"{bold_text('Metrics:')}\n"
+        metrics_message += fill_ignore_format(format_two_column(
+            bold_text('Train'),
+            bold_text('Test'),
+            total_len=max_width-2
+        ), initial_indent=2)
+        mstr = str(self._model)
+        metrics_message += '\n'
+        metrics_message += fill_ignore_format(format_two_column(
+            'R2:       ' + color_text(
+                str(np.round(self.metrics("train").at["r2", mstr], n_dec)), 'yellow'
+            ),
+            'R2:       ' + color_text(
+                str(np.round(self.metrics("test").at["r2", mstr], n_dec)), 'yellow'
+            ),
+            total_len=max_width-2
+        ), initial_indent=4)
+        metrics_message += '\n'
+        metrics_message += fill_ignore_format(format_two_column(
+            'Adj. R2:  ' + color_text(
+                str(np.round(self.metrics("train").at["adjr2", mstr], n_dec)), 'yellow'
+            ),
+            'Adj. R2:  ' + color_text(
+                str(np.round(self.metrics("test").at["adjr2", mstr], n_dec)), 'yellow'
+            ),
+            total_len=max_width-2
+        ), initial_indent=4)
+        metrics_message += '\n'
+        metrics_message += fill_ignore_format(format_two_column(
+            'RMSE:     ' + color_text(
+                str(np.round(self.metrics("train").at["rmse", mstr], n_dec)), 'yellow'
+            ),
+            'RMSE:     ' + color_text(
+                str(np.round(self.metrics("test").at["rmse", mstr], n_dec)), 'yellow'
+            ),
+            total_len=max_width-2
+        ), initial_indent=4)
+
+
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider
+            + metrics_message
+            + bottom_divider
+        )
+
+        return final_message
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))
+

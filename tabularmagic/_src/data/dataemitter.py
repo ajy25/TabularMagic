@@ -346,7 +346,6 @@ class DataEmitter:
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
-    
 
     def select_predictors_pre_onehot(self, predictors: list[str] | None):
         """Selects a subset of predictors lazily (before one-hot encoding).
@@ -357,7 +356,6 @@ class DataEmitter:
             List of predictors to select. If None, all predictors are selected.
         """
         self._pre_onehot_X_vars_subset = predictors
-
 
     @ensure_arg_list_uniqueness()
     def select_predictors(self, predictors: list[str] | None):
@@ -1050,7 +1048,7 @@ class DataEmitter:
         if var == self._yvar:
             self._yscaler = scaler
         return self
-    
+
     def X_vars(self) -> list[str]:
         """Returns the predictor variables.
 
@@ -1060,7 +1058,7 @@ class DataEmitter:
             The predictor variables.
         """
         return self._Xvars
-    
+
     def y_var(self) -> str:
         """Returns the target variable.
 
@@ -1070,7 +1068,7 @@ class DataEmitter:
             The target variable.
         """
         return self._yvar
-    
+
     def vars(self) -> list[str]:
         """Returns all variables.
 

@@ -62,7 +62,7 @@ class Analyzer:
         Parameters
         ----------
         df : pd.DataFrame | None
-            The DataFrame to be analyzed. Must be in wide format, i.e. with shape 
+            The DataFrame to be analyzed. Must be in wide format, i.e. with shape
             (n_units, n_vars). If df_test is provided, then the df is treated as the
             train DataFrame. Otherwise, the df is split into train and test DataFrames
             according to the test_size parameter.

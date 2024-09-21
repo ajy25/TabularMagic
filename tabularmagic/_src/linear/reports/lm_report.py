@@ -1157,6 +1157,26 @@ class OLSRegressionReport:
         else:
             return self._test_report.get_outlier_indices()
 
+    def coefs(
+        self,
+        format: Literal[
+            "coef(se)|pval", "coef|se|pval", "coef(ci)|pval", "coef|ci_low|ci_high|pval"
+        ] = "coef(se)|pval",
+    ) -> pd.DataFrame:
+        """Returns the coefficients of the model.
+
+        Parameters
+        ----------
+        format : Literal["coef(se)|pval", "coef|se|pval", "coef(ci)|pval",
+                        "coef|ci_low|ci_high|pval"]
+            Default: 'coef(se)|pval'.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return self._model.coefs(format)
+
     def _compute_outliers(self, dataset: Literal["train", "test"] = "test"):
         """Computes the outliers.
 
@@ -1170,6 +1190,18 @@ class OLSRegressionReport:
         else:
             return self._test_report._compute_outliers()
 
+    def _to_dict(self) -> dict:
+        """Returns the JSON serializable data stored in the report as a dictionary.
+
+        Returns
+        -------
+        dict
+        """
+        return {
+            "coefficients": self.coefs("coef|ci_low|ci_high|pval").to_dict("index"),
+            "train_metrics": self.metrics("train").to_dict("index"),
+            "test_metrics": self.metrics("test").to_dict("index"),
+        }
 
     def __str__(self) -> str:
         max_width = print_options._max_line_width
@@ -1200,43 +1232,62 @@ class OLSRegressionReport:
         )
 
         metrics_message = f"{bold_text('Metrics:')}\n"
-        metrics_message += fill_ignore_format(format_two_column(
-            bold_text('Train'),
-            bold_text('Test'),
-            total_len=max_width-2
-        ), initial_indent=2)
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                bold_text("Train"), bold_text("Test"), total_len=max_width - 2
+            ),
+            initial_indent=2,
+        )
         mstr = str(self._model)
-        metrics_message += '\n'
-        metrics_message += fill_ignore_format(format_two_column(
-            'R2:       ' + color_text(
-                str(np.round(self.metrics("train").at["r2", mstr], n_dec)), 'yellow'
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "R2:       "
+                + color_text(
+                    str(np.round(self.metrics("train").at["r2", mstr], n_dec)), "yellow"
+                ),
+                "R2:       "
+                + color_text(
+                    str(np.round(self.metrics("test").at["r2", mstr], n_dec)), "yellow"
+                ),
+                total_len=max_width - 2,
             ),
-            'R2:       ' + color_text(
-                str(np.round(self.metrics("test").at["r2", mstr], n_dec)), 'yellow'
+            initial_indent=4,
+        )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "Adj. R2:  "
+                + color_text(
+                    str(np.round(self.metrics("train").at["adjr2", mstr], n_dec)),
+                    "yellow",
+                ),
+                "Adj. R2:  "
+                + color_text(
+                    str(np.round(self.metrics("test").at["adjr2", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
             ),
-            total_len=max_width-2
-        ), initial_indent=4)
-        metrics_message += '\n'
-        metrics_message += fill_ignore_format(format_two_column(
-            'Adj. R2:  ' + color_text(
-                str(np.round(self.metrics("train").at["adjr2", mstr], n_dec)), 'yellow'
+            initial_indent=4,
+        )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "RMSE:     "
+                + color_text(
+                    str(np.round(self.metrics("train").at["rmse", mstr], n_dec)),
+                    "yellow",
+                ),
+                "RMSE:     "
+                + color_text(
+                    str(np.round(self.metrics("test").at["rmse", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
             ),
-            'Adj. R2:  ' + color_text(
-                str(np.round(self.metrics("test").at["adjr2", mstr], n_dec)), 'yellow'
-            ),
-            total_len=max_width-2
-        ), initial_indent=4)
-        metrics_message += '\n'
-        metrics_message += fill_ignore_format(format_two_column(
-            'RMSE:     ' + color_text(
-                str(np.round(self.metrics("train").at["rmse", mstr], n_dec)), 'yellow'
-            ),
-            'RMSE:     ' + color_text(
-                str(np.round(self.metrics("test").at["rmse", mstr], n_dec)), 'yellow'
-            ),
-            total_len=max_width-2
-        ), initial_indent=4)
-
+            initial_indent=4,
+        )
 
         final_message = (
             top_divider
@@ -1254,4 +1305,3 @@ class OLSRegressionReport:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
-

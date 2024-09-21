@@ -22,12 +22,6 @@ def find_key(llm_type: Literal["openai", "groq"]) -> str:
         )
         if api_key == "..." or api_key is None:
             raise ValueError("OpenAI API key not found in .env file.")
-        printl("OpenAI API key found.")
-
-    elif llm_type == "groq":
-        api_key = str(os.getenv("GROQ_API_KEY")) if os.getenv("GROQ_API_KEY") else None
-        if api_key == "..." or api_key is None:
-            raise ValueError("Groq API key not found in .env file.")
-        printl("Groq API key found.")
+        # printl("OpenAI API key found.")
 
     return api_key

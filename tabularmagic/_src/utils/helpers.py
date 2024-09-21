@@ -5,7 +5,7 @@ import numpy as np
 
 def is_numerical(series: pd.Series | np.ndarray) -> bool:
     """Given a pandas Series or numpy array, check if it is numerical.
-    
+
     Parameters
     ----------
     series : pd.Series | np.ndarray
@@ -22,7 +22,6 @@ def is_numerical(series: pd.Series | np.ndarray) -> bool:
         return np.issubdtype(series.dtype, np.number)
     else:
         raise ValueError("Input must be a pandas Series or numpy array.")
-
 
 
 def check_list_uniqueness(lst: list):

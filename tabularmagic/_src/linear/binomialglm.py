@@ -10,7 +10,6 @@ from ..utils import ensure_arg_list_uniqueness, is_numerical
 from .lmutils.score import score_model
 
 
-
 class BinomialLinearModel:
     """Statsmodels GLM wrapper for the Binomial family"""
 
@@ -50,8 +49,7 @@ class BinomialLinearModel:
         X_train = sm.add_constant(X_train, has_constant="add")
         X_test = sm.add_constant(X_test, has_constant="add")
 
-
-        y_levels = y_train.unique() 
+        y_levels = y_train.unique()
         if y_levels.size != 2:
             raise ValueError("Target variable must have 2 levels")
 

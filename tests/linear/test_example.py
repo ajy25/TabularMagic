@@ -132,8 +132,6 @@ def test_partialf_ols(setup_data):
     assert np.isclose(tm_fstat2, r_f_stat, atol=epsilon)
 
 
-
-
 # Run the test
 if __name__ == "__main__":
     pytest.main([__file__])

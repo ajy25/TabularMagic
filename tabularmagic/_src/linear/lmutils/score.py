@@ -7,7 +7,7 @@ from ...data import DataEmitter
 
 
 def score_model(
-    emitter: DataEmitter, 
+    emitter: DataEmitter,
     feature_list: list[str],
     model: Literal["ols", "binomial", "poisson", "negbinomial"],
     metric: Literal["aic", "bic"],
@@ -21,7 +21,7 @@ def score_model(
         The data emitter.
 
     feature_list : list[str]
-        The list of features to use in the model. These should be 
+        The list of features to use in the model. These should be
         PRE-one-hot encoded features.
 
     model : Literal["ols", "binomial", "poisson", "negbinomial"]
@@ -36,7 +36,7 @@ def score_model(
     """
     if len(feature_list) == 0:
         return np.inf
-    
+
     # obtain the data
     emitter.select_predictors_pre_onehot(feature_list)
     X_train, y_train = emitter.emit_train_Xy()
@@ -50,13 +50,9 @@ def score_model(
     elif model == "binomial":
         if y_label_encoder is not None:
             y_train = y_label_encoder.transform(y_train)
-        new_model = sm.GLM(
-            y_train, X_train_w_constant, family=sm.families.Binomial()
-        )
+        new_model = sm.GLM(y_train, X_train_w_constant, family=sm.families.Binomial())
     elif model == "poisson":
-        new_model = sm.GLM(
-            y_train, X_train_w_constant, family=sm.families.Poisson()
-        )
+        new_model = sm.GLM(y_train, X_train_w_constant, family=sm.families.Poisson())
     elif model == "negbinomial":
         new_model = sm.GLM(
             y_train, X_train_w_constant, family=sm.families.NegativeBinomial()

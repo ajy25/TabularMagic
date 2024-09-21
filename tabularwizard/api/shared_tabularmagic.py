@@ -2,12 +2,35 @@ import tabularmagic as tm
 import pandas as pd
 import logging
 from pathlib import Path
+from sqlalchemy import create_engine
+from llama_index.core import SQLDatabase
 
 
 logger_path = Path(__file__).parent / "io" / "_tm_logger_output" / "log.txt"
 
 
-tabularwizard_analyzer: tm.Analyzer = None
+sql_engine_user_provided_df = create_engine("sqlite:///:memory:")
+
+
+class _DataAnalysisContainer:
+    def __init__(self):
+        self.analyzer = None
+        self.sqldb = None
+
+    def set_analyzer(self, analyzer: tm.Analyzer):
+        self.analyzer = analyzer
+        self.analyzer.datahandler().df_all().to_sql(
+            name="User-provided DataFrame",
+            con=sql_engine_user_provided_df,
+            index=True,
+            if_exists="replace",
+        )
+        self.sqldb = SQLDatabase(
+            sql_engine_user_provided_df, include_tables=["User-provided DataFrame"]
+        )
+
+
+shared_container = _DataAnalysisContainer()
 
 
 def build_tabularmagic_analyzer(
@@ -43,3 +66,14 @@ def build_tabularmagic_analyzer(
     tm.options.print_options.reset_logger(logger=tm_logger)
     analyzer = tm.Analyzer(df, df_test=df_test, test_size=test_size, verbose=True)
     return analyzer
+
+
+def set_tabularmagic_analyzer(analyzer: tm.Analyzer) -> None:
+    """Sets the TabularMagic Analyzer.
+
+    Parameters
+    ----------
+    analyzer : tm.Analyzer
+        The TabularMagic Analyzer.
+    """
+    shared_container.set_analyzer(analyzer)

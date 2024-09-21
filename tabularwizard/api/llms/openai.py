@@ -1,25 +1,27 @@
-from langchain_openai import ChatOpenAI
+from llama_index.llms.openai import OpenAI
 
 from .find_key_from_dot_env import find_key
 
 
-def build_chat_openai(
-    model: str = "gpt-4o-mini", temperature: float = 0.2
-) -> ChatOpenAI:
-    """Builds a ChatOpenAI object. If no OpenAI API key is found in the .env file,
-    raises a ValueError.
+def build_chat_openai(model: str = "gpt-4o-mini", temperature: float = 0.0) -> OpenAI:
+    """Builds a OpenAI object using LlamaIndex.
+    If no OpenAI API key is found in the .env file, raises a ValueError.
 
     Parameters
     ----------
     model : str
-        The model to use.
+        The model to use, by default "gpt-4o-mini".
 
     temperature : float
-        The temperature of the model, by default 0.2.
+        The temperature of the model, by default 0.0.
 
     Returns
     -------
-    ChatOpenAI
-        A ChatOpenAI object.
+    OpenAI
+        An OpenAI object from LlamaIndex.
     """
-    return ChatOpenAI(model=model, temperature=temperature, api_key=find_key("openai"))
+    api_key = find_key("openai")
+    if not api_key:
+        raise ValueError("No OpenAI API key found in .env file")
+
+    return OpenAI(model=model, temperature=temperature, api_key=api_key)

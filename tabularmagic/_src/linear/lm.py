@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 from typing import Literal
+import pandas as pd
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
@@ -175,7 +176,6 @@ class OLSModel:
         current_step = 0
 
         while current_step < max_steps:
-
             # Forward step
             if direction == "forward":
                 excluded = list(set(all_vars) - set(included_vars))
@@ -283,6 +283,74 @@ class OLSModel:
 
         return included_vars
 
+    def coefs(
+        self,
+        format: Literal[
+            "coef(se)|pval", "coef|se|pval", "coef(ci)|pval", "coef|ci_low|ci_high|pval"
+        ] = "coef(se)|pval",
+    ) -> pd.DataFrame:
+        """Returns a DataFrame containing the coefficients, standard errors, 
+        and p-values. The standard errors and p-values are heteroskedasticity-
+        robust. Confidence intervals are reported at 95% confidence level if 
+        applicable.
+        
+        Parameters
+        ----------
+        format : Literal["coef(se)|pval", "coef|se|pval", "coef(ci)|pval",\
+                            "coef|ci_low|ci_high|pval"]
+            Default: "coef(se)|pval". The format of the output DataFrame.
+        """
+        params = self.estimator.params
+        std_err = self.estimator.bse
+        p_values = self.estimator.pvalues
+
+        ci_low = params - 1.96 * std_err
+        ci_high = params + 1.96 * std_err
+
+        output_df = pd.DataFrame(
+            {
+                "coef": params,
+                "se": std_err,
+                "pval": p_values,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
+            }
+        )
+
+        if format == "coef(se)|pval":
+            output_df["coef(se)"] = output_df.apply(
+                lambda row: f"{row['coef']} ({row['se']})", axis=1
+            )
+            output_df = output_df[["coef(se)", "pval"]]
+            output_df = output_df.rename(
+                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "P-value"}
+            )
+        elif format == "coef|se|pval":
+            output_df = output_df.rename(
+                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "P-value"}
+            )
+        elif format == "coef(ci)|pval":
+            output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
+            output_df["coef(ci)"] = output_df.apply(
+                lambda row: f"{row['coef']} ({row['ci_low']}, {row['ci_high']})", axis=1
+            )
+            output_df = output_df[["coef(ci)", "pval"]]
+            output_df = output_df.rename(
+                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "P-value"}
+            )
+        elif format == "coef|ci_low|ci_high|pval":
+            output_df = output_df.rename(
+                columns={
+                    "coef": "Coefficient",
+                    "ci_low": "CI Lower Bound",
+                    "ci_high": "CI Upper Bound",
+                    "pval": "P-value",
+                }
+            )
+        else:
+            raise ValueError("Invalid format")
+
+        return output_df
+
     def __str__(self):
         return self._name
-    

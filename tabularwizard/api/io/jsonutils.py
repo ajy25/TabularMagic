@@ -59,15 +59,18 @@ def save_df_to_json(df: pd.DataFrame, save_index: bool = True) -> str:
     df : pd.DataFrame
         The DataFrame to save.
 
-    save_index : bool, optional
-        Whether to save the index of the DataFrame.
+    save_index : bool
+        Whether to save the index of the DataFrame. Defaults to True.
 
     Returns
     -------
     str
         The JSON string containing the DataFrame.
     """
-    json_data = df.to_dict(orient="records", save_index=save_index)
+    if save_index:
+        json_data = df.to_dict(orient="index", index=True)
+    else:
+        json_data = df.to_dict(orient="records")
     return json_cache_tracker.save_to_json(json_data)
 
 

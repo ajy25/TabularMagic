@@ -47,6 +47,36 @@ class _JSONCacheTracker:
         self.oldest_to_youngest.append(self.oldest_to_youngest.pop(0))
         return json.dumps(data, indent=2)
 
+    def read_json(self, name: str) -> str:
+        """Reads a JSON file and returns its contents as a JSON-formatted string.
+        The name must be in the form of 'file_{integer}.json'.
+        For example, 'file_1.json'.
+
+        Parameters
+        ----------
+        name : str
+            The name of the JSON file to read.
+
+        Returns
+        -------
+        str
+            The JSON string containing the data.
+        """
+        try:
+            file_number = int(name.split("_")[1].split(".")[0])
+            file_path = self.num_to_filepath[file_number]
+            with open(file_path, "r") as f:
+                data = json.load(f)
+                return json.dumps(data)
+        except (IndexError, ValueError) as e:
+            raise ValueError(f"Invalid file name format: {name}") from e
+        except KeyError:
+            raise KeyError(f"File number {file_number} not found in the mapping.")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {file_path} not found.")
+        except json.JSONDecodeError:
+            raise ValueError(f"File {file_path} contains invalid JSON.")
+
 
 json_cache_tracker = _JSONCacheTracker(5)
 

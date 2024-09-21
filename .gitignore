@@ -9,6 +9,7 @@ tabularwizard/.env
 tabularwizard/api/io/_csv_cache/*
 tabularwizard/api/io/_json_cache/*
 tabularwizard/api/io/_img_cache/*
+tabularwizard/api/io/_scratch/*
 tabularwizard/api/io/_tm_logger_output/*
 
 

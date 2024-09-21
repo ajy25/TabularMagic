@@ -1,7 +1,7 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 
-from ..shared_tabularmagic import shared_container
+from ..tabularmagic_utils import shared_container
 from ..io.jsonutils import save_dict_to_json, save_df_to_json
 
 

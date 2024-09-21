@@ -1,12 +1,12 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 
-from ..shared_tabularmagic import shared_container
+from ..tabularmagic_utils import shared_container
 from ..io.jsonutils import save_dict_to_json, save_df_to_json
 
 
 # Means test tool
-class TestEqualMeansTool(BaseModel):
+class TestEqualMeansInput(BaseModel):
     categorical_var: str = Field(
         description="The categorical variable that defines the groups/levels."
     )
@@ -34,7 +34,7 @@ test_equal_means_tool = FunctionTool.from_defaults(
     "The null hypothesis is that the means are equal. "
     "Automatically determines the correct statistical test to conduct. "
     "Returns a JSON string containing the results.",
-    fn_schema=TestEqualMeansTool,
+    fn_schema=TestEqualMeansInput,
 )
 
 
@@ -50,6 +50,25 @@ numerical_summary_stats_tool = FunctionTool.from_defaults(
     name="numerical_summary_stats_tool",
     description="Calculates summary statistics for all numeric columns in the dataset. "
     "Summary statistics include: count, 5 number summary, standard deviation, "
-    "missing percentage, and the first, second, and third moments."
-    "Returns a JSON string containing the summary statistics.",
+    "missing percentage, and the first, second, and third moments. "
+    "Returns a JSON string containing the summary statistics. "
+    "Note: This tool does not return the summary statistics for categorical columns.",
+)
+
+
+# Categorical summary stats tool
+def categorical_summary_stats_function() -> str:
+    """Calculates summary statistics for all categorical columns in the dataset."""
+    df_output = shared_container.analyzer.eda("all").categorical_stats()
+    return save_df_to_json(df_output)
+
+
+categorical_summary_stats_tool = FunctionTool.from_defaults(
+    fn=categorical_summary_stats_function,
+    name="categorical_summary_stats_tool",
+    description="Calculates summary statistics for all categorical columns in the dataset. "
+    "Summary statistics include: count, unique count, least and most common values, "
+    "number missing, and the missing percentage. "
+    "Returns a JSON string containing the summary statistics. "
+    "Note: This tool does not return the summary statistics for numeric columns.",
 )

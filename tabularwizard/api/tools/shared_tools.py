@@ -2,7 +2,7 @@ from llama_index.core.tools import FunctionTool
 from llama_index.core.query_engine import NLSQLTableQueryEngine
 from pydantic import BaseModel, Field
 
-from ..shared_tabularmagic import shared_container
+from ..tabularmagic_utils import shared_container
 from ..llms.openai import build_chat_openai
 
 
@@ -10,7 +10,7 @@ from ..llms.openai import build_chat_openai
 class SQLQueryInput(BaseModel):
     query: str = Field(
         description="Natural language SQL query to extract information from "
-        "the dataset."
+        "the dataset. The query should be in plain English. "
     )
 
 

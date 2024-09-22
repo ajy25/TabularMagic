@@ -1,6 +1,6 @@
 from .lm import OLSModel
 from .poissonglm import PoissonLinearModel
-from .binomialglm import BinomialLinearModel
+from .binomialglm import BinomialGLM
 from .negbinglm import NegativeBinomialLinearModel
 from .countglm import CountLinearModel
 from .lm_rlike_util import parse_and_transform_rlike
@@ -18,7 +18,7 @@ __all__ = [
     "PoissonLinearModel",
     "NegativeBinomialLinearModel",
     "CountLinearModel",
-    "BinomialLinearModel",
+    "BinomialGLM",
     "parse_and_transform_rlike",
     "BinomialRegressionReport",
     "PoissonRegressionReport",

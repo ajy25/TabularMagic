@@ -12,7 +12,7 @@ from .linear import (
     PoissonLinearModel,
     NegativeBinomialLinearModel,
     CountLinearModel,
-    BinomialLinearModel,
+    BinomialGLM,
     BinomialRegressionReport,
     PoissonRegressionReport,
     NegativeBinomialRegressionReport,
@@ -296,7 +296,7 @@ class Analyzer:
                 )
             elif family == "binomial":
                 return BinomialRegressionReport(
-                    BinomialLinearModel(), self._datahandler, target, predictors
+                    BinomialGLM(), self._datahandler, target, predictors
                 )
             elif family == "negbinomial":
                 return NegativeBinomialRegressionReport(
@@ -347,7 +347,7 @@ class Analyzer:
                 )
             elif family == "binomial":
                 return BinomialRegressionReport(
-                    BinomialLinearModel(), self._datahandler, target, predictors
+                    BinomialGLM(), self._datahandler, target, predictors
                 )
             elif family == "negbinomial":
                 return NegativeBinomialRegressionReport(

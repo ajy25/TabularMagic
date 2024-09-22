@@ -10,12 +10,12 @@ from ..utils import ensure_arg_list_uniqueness, is_numerical
 from .lmutils.score import score_model
 
 
-class BinomialLinearModel:
+class BinomialGLM:
     """Statsmodels GLM wrapper for the Binomial family"""
 
     def __init__(self, name: str | None = None):
         """
-        Initializes a BinomialLinearModel object. Regresses y on X.
+        Initializes a BinomialGLM object. Regresses y on X.
 
         Parameters
         ----------
@@ -25,6 +25,7 @@ class BinomialLinearModel:
         """
         self.estimator = None
         self._name = name
+        self._label_encoder = None
         if self._name is None:
             self._name = "Binomial GLM"
 
@@ -62,10 +63,10 @@ class BinomialLinearModel:
         # we allow y_train to be categorical, i.e. we encode it with a label encoder
         self._y_label_order = None
         if not is_numerical(y_train):
-            le = LabelEncoder()
-            y_train = le.fit_transform(y_train)
-            self._y_label_order = le.classes_
-            y_test = le.transform(y_test)
+            self._label_encoder = LabelEncoder()
+            y_train = self._label_encoder.fit_transform(y_train)
+            self._y_label_order = self._label_encoder.classes_
+            y_test = self._label_encoder.transform(y_test)
 
         self.estimator = sm.GLM(
             y_train,
@@ -89,7 +90,7 @@ class BinomialLinearModel:
 
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
-            y_true=y_train.to_numpy(),
+            y_true=y_train,
             pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
             y_pred_score=np.hstack(
                 [
@@ -105,7 +106,7 @@ class BinomialLinearModel:
 
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
-            y_true=y_test.to_numpy(),
+            y_true=y_test,
             pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
             y_pred_score=np.hstack(
                 [np.zeros(shape=(len(y_pred_test), 1)), y_pred_test.reshape(-1, 1)]
@@ -172,11 +173,10 @@ class BinomialLinearModel:
         if max_steps <= 0:
             raise ValueError("max_steps cannot be non-positive")
 
-        X_train, y_train = self._dataemitter.emit_train_Xy()
-
         # set upper to all possible variables if nothing is specified
+        local_dataemitter = self._dataemitter.copy()
         if all_vars is None:
-            all_vars = X_train.columns.tolist()
+            all_vars = local_dataemitter.X_vars()
         if kept_vars is None:
             kept_vars = []
 
@@ -195,14 +195,16 @@ class BinomialLinearModel:
                 included_vars = kept_vars.copy()
             else:
                 included_vars = start_vars.copy()
+        else:
+            raise ValueError("direction must be 'both', 'backward', or 'forward'")
 
         # set our starting score and best models
         current_score = score_model(
-            X_train,
-            y_train,
+            local_dataemitter,
             included_vars,
             model="binomial",
             metric=criteria,
+            y_label_encoder=self._label_encoder
         )
         current_step = 0
 
@@ -216,11 +218,11 @@ class BinomialLinearModel:
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="binomial",
                         metric=criteria,
+                        y_label_encoder=self._label_encoder
                     )
                     if score < best_score:
                         best_score = score
@@ -247,11 +249,11 @@ class BinomialLinearModel:
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="binomial",
                         metric=criteria,
+                        y_label_encoder=self._label_encoder
                     )
                     if score < best_score:
                         best_score = score
@@ -272,11 +274,11 @@ class BinomialLinearModel:
                 for new_var in excluded:
                     candidate_features = included_vars + [new_var]
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="binomial",
                         metric=criteria,
+                        y_label_encoder=self._label_encoder
                     )
                     if score < best_forward_score:
                         best_forward_score = score
@@ -292,11 +294,11 @@ class BinomialLinearModel:
                     candidate_features = included_vars.copy()
                     candidate_features.remove(candidate)
                     score = score_model(
-                        X_train,
-                        y_train,
+                        local_dataemitter,
                         candidate_features,
                         model="binomial",
                         metric=criteria,
+                        y_label_encoder=self._label_encoder
                     )
                     if score < best_backward_score:
                         best_backward_score = score
@@ -317,6 +319,75 @@ class BinomialLinearModel:
             current_step += 1
 
         return included_vars
+    
+    def coefs(
+        self,
+        format: Literal[
+            "coef(se)|pval", "coef|se|pval", "coef(ci)|pval", "coef|ci_low|ci_high|pval"
+        ] = "coef(se)|pval",
+    ) -> pd.DataFrame:
+        """Returns a DataFrame containing the coefficients, standard errors, 
+        and p-values. The standard errors and p-values are heteroskedasticity-
+        robust. Confidence intervals are reported at 95% confidence level if 
+        applicable.
+        
+        Parameters
+        ----------
+        format : Literal["coef(se)|pval", "coef|se|pval", "coef(ci)|pval",\
+                            "coef|ci_low|ci_high|pval"]
+            Default: "coef(se)|pval". The format of the output DataFrame.
+        """
+        params = self.estimator.params
+        std_err = self.estimator.bse
+        p_values = self.estimator.pvalues
+
+        ci_low = params - 1.96 * std_err
+        ci_high = params + 1.96 * std_err
+
+        output_df = pd.DataFrame(
+            {
+                "coef": params,
+                "se": std_err,
+                "pval": p_values,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
+            }
+        )
+
+        if format == "coef(se)|pval":
+            output_df["coef(se)"] = output_df.apply(
+                lambda row: f"{row['coef']} ({row['se']})", axis=1
+            )
+            output_df = output_df[["coef(se)", "pval"]]
+            output_df = output_df.rename(
+                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "P-value"}
+            )
+        elif format == "coef|se|pval":
+            output_df = output_df.rename(
+                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "P-value"}
+            )
+        elif format == "coef(ci)|pval":
+            output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
+            output_df["coef(ci)"] = output_df.apply(
+                lambda row: f"{row['coef']} ({row['ci_low']}, {row['ci_high']})", axis=1
+            )
+            output_df = output_df[["coef(ci)", "pval"]]
+            output_df = output_df.rename(
+                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "P-value"}
+            )
+        elif format == "coef|ci_low|ci_high|pval":
+            output_df = output_df.rename(
+                columns={
+                    "coef": "Coefficient",
+                    "ci_low": "CI Lower Bound",
+                    "ci_high": "CI Upper Bound",
+                    "pval": "P-value",
+                }
+            )
+        else:
+            raise ValueError("Invalid format")
+
+        return output_df
 
     def __str__(self):
         return self._name

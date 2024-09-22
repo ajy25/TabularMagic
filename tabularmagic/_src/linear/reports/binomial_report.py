@@ -7,7 +7,7 @@ from typing import Literal
 from adjustText import adjust_text
 from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ..binomialglm import BinomialLinearModel
+from ..binomialglm import BinomialGLM
 from ...display.print_utils import print_wrapped
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
@@ -17,7 +17,7 @@ class SingleDatasetBinRegReport:
     plots and tables for a binomial generalized linear regression model.
     """
 
-    def __init__(self, model: BinomialLinearModel, dataset: Literal["train", "test"]):
+    def __init__(self, model: BinomialGLM, dataset: Literal["train", "test"]):
         """
         Initializes a SingleDatasetBinRegReport object.
 
@@ -712,7 +712,7 @@ class BinomialRegressionReport:
 
     def __init__(
         self,
-        model: BinomialLinearModel,
+        model: BinomialGLM,
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
@@ -766,7 +766,7 @@ class BinomialRegressionReport:
         """
         return self._test_report
 
-    def model(self) -> BinomialLinearModel:
+    def model(self) -> BinomialGLM:
         """Returns the fitted BinomialLinearModel object.
 
         Returns
@@ -844,10 +844,10 @@ class BinomialRegressionReport:
         )
 
         new_emitter = self._dataemitter.copy()
-        new_emitter.select_predictors(selected_vars)
+        new_emitter.select_predictors_pre_onehot(selected_vars)
 
         return BinomialRegressionReport(
-            BinomialLinearModel(),
+            BinomialGLM(),
             self._datahandler,
             self._target,
             self._predictors,

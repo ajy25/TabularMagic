@@ -6,7 +6,7 @@ import warnings
 from adjustText import adjust_text
 from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ..lm import OLSModel
+from ..ols import OLSModel
 from ...display.print_utils import print_wrapped
 from ..lmutils.constants import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
 from ..lmutils.plot import (

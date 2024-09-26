@@ -1,4 +1,4 @@
-from .lm import OLSModel
+from .ols import OLSModel
 from .poissonglm import PoissonLinearModel
 from .binomialglm import BinomialGLM
 from .negbinglm import NegativeBinomialLinearModel

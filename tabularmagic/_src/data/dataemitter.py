@@ -548,14 +548,17 @@ class DataEmitter:
 
         if X is not None:
             if len(numeric_vars) > 0:
-                X[numeric_vars] = self._numeric_imputer.transform(X[numeric_vars])
+                if self._numeric_imputer is not None:
+                    X[numeric_vars] = self._numeric_imputer.transform(X[numeric_vars])
             if len(categorical_vars) > 0:
-                X[categorical_vars] = self._categorical_imputer.transform(
-                    X[categorical_vars]
-                )
+                if self._numeric_imputer is not None:
+                    X[categorical_vars] = self._categorical_imputer.transform(
+                        X[categorical_vars]
+                    )
             return X
 
         # impute numeric variables
+        imputer = None
         if len(numeric_vars) > 0:
             if numeric_strategy == "5nn":
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
@@ -573,6 +576,7 @@ class DataEmitter:
         self._numeric_imputer = imputer
 
         # impute categorical variables
+        imputer = None
         if len(categorical_vars) > 0:
             imputer = SimpleImputer(
                 strategy=categorical_strategy, keep_empty_features=True

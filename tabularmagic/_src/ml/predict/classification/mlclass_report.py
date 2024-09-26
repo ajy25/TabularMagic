@@ -190,7 +190,13 @@ class SingleModelSingleDatasetMLClassReport:
         else:
             y_pred = self._model._test_scorer._y_pred
             y_true = self._model._test_scorer._y_true
-        return plot_confusion_matrix(y_pred, y_true, self._model._name, figsize, ax)
+        return plot_confusion_matrix(
+            y_pred=y_pred, 
+            y_true=y_true, 
+            model_name=self._model._name, 
+            figsize=figsize, 
+            ax=ax
+        )
 
     def plot_roc_curve(
         self,

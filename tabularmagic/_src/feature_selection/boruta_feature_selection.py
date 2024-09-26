@@ -2,12 +2,14 @@ from typing import Literal
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 from .base_feature_selection import BaseFSC, BaseFSR
 from .BorutaPy import BorutaPy
 
 from ..data.datahandler import DataEmitter
+from ..display.print_utils import print_wrapped
 
 
 class BorutaFSR(BaseFSR):
@@ -123,11 +125,19 @@ class BorutaFSC(BaseFSC):
 
         sk_estimator = None
         if estimator == "tree":
-            sk_estimator = DecisionTreeClassifier(random_state=model_random_state)
+            sk_estimator = DecisionTreeClassifier(
+                random_state=model_random_state,
+                class_weight="balanced",
+            )
         elif estimator == "rf":
-            sk_estimator = RandomForestClassifier(random_state=model_random_state)
+            sk_estimator = RandomForestClassifier(
+                random_state=model_random_state,
+                class_weight="balanced",
+            )
         elif estimator == "xgb":
-            sk_estimator = XGBClassifier(random_state=model_random_state)
+            sk_estimator = XGBClassifier(
+                random_state=model_random_state
+            )
         else:
             raise ValueError(
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
@@ -162,11 +172,19 @@ class BorutaFSC(BaseFSC):
             The ranking of the selected features.
         """
         X_train, y_train = dataemitter.emit_train_Xy()
+        y_train = LabelEncoder().fit_transform(y_train)
         self._all_features = X_train.columns.to_numpy()
 
-        self._selector.fit(X=X_train.to_numpy(), y=y_train.to_numpy())
+        self._selector.fit(X=X_train.to_numpy(), y=y_train)
         self._support = self._selector.support_
         self._all_feature_scores = self._selector.ranking_
         self._selected_features = self._all_features[self._support]
+
+        if len(self._selected_features) == 0:
+            print_wrapped(
+                "Boruta did not select any features. "
+                "Boruta will vote for all features.",
+                type="WARNING"
+            )
 
         return self._all_features, self._selected_features, self._support

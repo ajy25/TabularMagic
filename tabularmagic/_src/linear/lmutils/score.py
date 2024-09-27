@@ -9,7 +9,7 @@ from ...data import DataEmitter
 def score_model(
     emitter: DataEmitter,
     feature_list: list[str],
-    model: Literal["ols", "binomial", "poisson", "negbinomial"],
+    model: Literal["ols", "logit"],
     metric: Literal["aic", "bic"],
     y_label_encoder: LabelEncoder | None = None,
 ) -> float:
@@ -24,7 +24,7 @@ def score_model(
         The list of features to use in the model. These should be
         PRE-one-hot encoded features.
 
-    model : Literal["ols", "binomial", "poisson", "negbinomial"]
+    model : Literal["ols", "logit"]
         The model to use.
 
     metric : Literal["aic", "bic"]
@@ -47,20 +47,12 @@ def score_model(
     # fit the appropriate model, no need for heterscedasticity robust standard errors
     if model == "ols":
         new_model = sm.OLS(y_train, X_train_w_constant)
-    elif model == "binomial":
+    elif model == "logit":
         if y_label_encoder is not None:
             y_train = y_label_encoder.transform(y_train)
-        new_model = sm.GLM(y_train, X_train_w_constant, family=sm.families.Binomial())
-    elif model == "poisson":
-        new_model = sm.GLM(y_train, X_train_w_constant, family=sm.families.Poisson())
-    elif model == "negbinomial":
-        new_model = sm.GLM(
-            y_train, X_train_w_constant, family=sm.families.NegativeBinomial()
-        )
+        new_model = sm.Logit(y_train, X_train_w_constant)
     else:
-        raise ValueError(
-            "Model must be one of 'ols', 'binomial', 'poisson', 'negbinomial'"
-        )
+        raise ValueError("Model must be one of 'ols', 'logit'.")
 
     if metric == "aic":
         return new_model.fit().aic

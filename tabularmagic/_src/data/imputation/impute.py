@@ -47,5 +47,3 @@ def impute(
     _BaseImputer
         The imputer for categorical variables.
     """
-    
-

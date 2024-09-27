@@ -1,29 +1,46 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 from typing import Literal
+import warnings
 from adjustText import adjust_text
-from ...data.datahandler import DataHandler, DataEmitter
+from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
-from ..binomialglm import BinomialGLM
+from ..ols import OLSLinearModel
 from ...display.print_utils import print_wrapped
-from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
+from ..lmutils.constants import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
+from ..lmutils.plot import (
+    plot_residuals_vs_var,
+    plot_residuals_vs_fitted,
+    plot_residuals_hist,
+    plot_scale_location,
+    plot_residuals_vs_leverage,
+    plot_qq,
+)
+from ...display.print_options import print_options
+from ...display.print_utils import (
+    print_wrapped,
+    color_text,
+    bold_text,
+    list_to_string,
+    fill_ignore_format,
+    format_two_column,
+)
+from ...stattests import StatisticalTestReport
 
 
-class SingleDatasetBinRegReport:
+class SingleDatasetLinRegReport:
     """Class for generating regression-relevant diagnostic
-    plots and tables for a binomial generalized linear regression model.
+    plots and tables for a single linear regression model.
     """
 
-    def __init__(self, model: BinomialGLM, dataset: Literal["train", "test"]):
+    def __init__(self, model: OLSLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a SingleDatasetBinRegReport object.
+        Initializes a SingleDatasetLinRegReport object.
 
         Parameters
         ----------
-        model : BinomialLinearModel
+        model : OLSLinearModel.
             The model must already be trained.
 
         dataset : Literal['train', 'test']
@@ -42,7 +59,6 @@ class SingleDatasetBinRegReport:
         else:
             raise ValueError('specification must be either "train" or "test".')
 
-        self._y_pred_score = self.scorer._y_pred_score
         self._y_pred = self.scorer._y_pred
         self._y_true = self.scorer._y_true
 
@@ -79,7 +95,7 @@ class SingleDatasetBinRegReport:
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         fig = None
         if ax is None:
@@ -137,65 +153,23 @@ class SingleDatasetBinRegReport:
             Default: (5.0, 5.0). Determines the size of the returned figure.
 
         ax : plt.Axes
-            Default = None.
+            Default: None.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                self._y_pred[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
-            )
-            ax.scatter(
-                self._y_pred[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=2,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                self._y_pred[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=6,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-        else:
-            ax.scatter(self._y_pred, residuals, s=2, color="black")
-
-        ax.set_xlabel("Fitted")
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title("Standardized Residuals vs Fitted")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title("Residuals vs Fitted")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
+        return plot_residuals_vs_fitted(
+            y_pred=self._y_pred,
+            residuals=self._residuals,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            standardized=standardized,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
+        )
 
     def plot_residuals_vs_var(
         self,
@@ -228,61 +202,18 @@ class SingleDatasetBinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-
-        x_vals = self._X_eval_df[predictor].to_numpy()
-
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                x_vals[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
-            )
-            ax.scatter(
-                x_vals[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=2,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                x_vals[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=6,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-        else:
-            ax.scatter(x_vals, residuals, s=2, color="black")
-
-        ax.set_xlabel(predictor)
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title(f"Standardized Residuals vs {predictor}")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title(f"Residuals vs {predictor}")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
+        return plot_residuals_vs_var(
+            predictor=predictor,
+            X_eval_df=self._X_eval_df,
+            residuals=self._residuals,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            standardized=standardized,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
+        )
 
     def plot_residuals_hist(
         self,
@@ -311,44 +242,13 @@ class SingleDatasetBinRegReport:
         -------
         plt.Figure
         """
-        if density:
-            stat = "density"
-        else:
-            stat = "count"
-
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
-        sns.histplot(
-            residuals,
-            bins="auto",
-            color="black",
-            edgecolor="none",
-            stat=stat,
+        return plot_residuals_hist(
+            residuals=self._residuals,
+            standardized=standardized,
+            density=density,
+            figsize=figsize,
             ax=ax,
-            kde=True,
-            alpha=0.2,
         )
-        if standardized:
-            ax.set_title("Distribution of Standardized Residuals")
-            ax.set_xlabel("Standardized Residuals")
-        else:
-            ax.set_title("Distribution of Residuals")
-            ax.set_xlabel("Residuals")
-        if density:
-            ax.set_ylabel("Density")
-        else:
-            ax.set_ylabel("Frequency")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_scale_location(
         self,
@@ -374,53 +274,16 @@ class SingleDatasetBinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        residuals = np.sqrt(np.abs(self._stdresiduals))
-
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                self._y_pred[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
-            )
-            ax.scatter(
-                self._y_pred[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=2,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                self._y_pred[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=6,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(self._y_pred, residuals, s=2, color="black")
-
-        ax.set_xlabel("Fitted")
-        ax.set_ylabel("sqrt(Standardized Residuals)")
-        ax.set_title("Scale-Location")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
+        return plot_scale_location(
+            y_pred=self._y_pred,
+            std_residuals=self._residuals / np.std(self._residuals),
+            show_outliers=show_outliers,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
+        )
 
     def plot_residuals_vs_leverage(
         self,
@@ -450,64 +313,21 @@ class SingleDatasetBinRegReport:
         plt.Figure
         """
         if not self._is_train:
-            print_wrapped(train_only_message, type="WARNING")
+            print_wrapped(TRAIN_ONLY_MESSAGE, type="WARNING")
             return None
-
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
         leverage = self.model.estimator._results.get_influence().hat_matrix_diag
-        residuals = self._residuals
-        if standardized:
-            residuals = self._stdresiduals
 
-        ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
-        if show_outliers and self._n_outliers > 0:
-            ax.scatter(
-                leverage[~self._outliers_residual_mask],
-                residuals[~self._outliers_residual_mask],
-                s=2,
-                color="black",
-            )
-            ax.scatter(
-                leverage[self._outliers_residual_mask],
-                residuals[self._outliers_residual_mask],
-                s=2,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for i, label in enumerate(self._outliers_df_idx):
-                    annotations.append(
-                        ax.annotate(
-                            label,
-                            (
-                                leverage[self._outliers_residual_mask][i],
-                                residuals[self._outliers_residual_mask][i],
-                            ),
-                            color="red",
-                            fontsize=6,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(leverage, residuals, s=2, color="black")
-
-        ax.set_xlabel("Leverage")
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title("Standardized Residuals vs Leverage")
-        else:
-            ax.set_ylabel("Residuals")
-            ax.set_title("Residuals vs Leverage")
-        ax.ticklabel_format(style="sci", axis="both", scilimits=(-3, 3))
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
+        return plot_residuals_vs_leverage(
+            leverage=leverage,
+            residuals=self._residuals,
+            standardized=standardized,
+            show_outliers=show_outliers,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
+        )
 
     def plot_qq(
         self,
@@ -536,82 +356,17 @@ class SingleDatasetBinRegReport:
         -------
         plt.Figure
         """
-        fig = None
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=figsize)
-
-        if standardized:
-            residuals = self._stdresiduals
-        else:
-            residuals = self._residuals
-
-        tup1, tup2 = stats.probplot(residuals, dist="norm")
-        theoretical_quantitles, ordered_vals = tup1
-        slope, intercept, _ = tup2
-
-        ax.set_title("Q-Q Plot")
-        ax.set_xlabel("Theoretical Quantiles")
-
-        if standardized:
-            ax.set_ylabel("Standardized Residuals")
-        else:
-            ax.set_ylabel("Residuals")
-
-        min_val = np.min(theoretical_quantitles)
-        max_val = np.max(theoretical_quantitles)
-        ax.plot(
-            [min_val, max_val],
-            [min_val * slope + intercept, max_val * slope + intercept],
-            color="gray",
-            linestyle="--",
-            linewidth=1,
+        return plot_qq(
+            df_idx=self._X_eval_df.index,
+            residuals=self._residuals,
+            standardized=standardized,
+            outliers_idx=self._outliers_df_idx,
+            outliers_mask=self._outliers_residual_mask,
+            show_outliers=show_outliers,
+            include_text=self._include_text,
+            figsize=figsize,
+            ax=ax,
         )
-
-        if show_outliers and self._n_outliers > 0:
-            residuals_sorted_idx = reverse_argsort(np.argsort(residuals))
-
-            residuals_df = pd.DataFrame(residuals, columns=["residuals"])
-            residuals_df["label"] = self._X_eval_df.index
-            residuals_df["is_outlier"] = self._outliers_residual_mask
-            residuals_df["theoretical_quantile"] = theoretical_quantitles[
-                residuals_sorted_idx
-            ]
-            residuals_df["ordered_value"] = ordered_vals[residuals_sorted_idx]
-            residuals_df_outliers = residuals_df[residuals_df["is_outlier"]]
-            residuals_df_not_outliers = residuals_df[~residuals_df["is_outlier"]]
-
-            ax.scatter(
-                residuals_df_not_outliers["theoretical_quantile"],
-                residuals_df_not_outliers["ordered_value"],
-                s=2,
-                color="black",
-            )
-            ax.scatter(
-                residuals_df_outliers["theoretical_quantile"],
-                residuals_df_outliers["ordered_value"],
-                s=2,
-                color="red",
-            )
-            if self._include_text and self._n_outliers <= MAX_N_OUTLIERS_TEXT:
-                annotations = []
-                for _, row in residuals_df_outliers.iterrows():
-                    annotations.append(
-                        ax.annotate(
-                            row["label"],
-                            (row["theoretical_quantile"], row["ordered_value"]),
-                            color="red",
-                            fontsize=6,
-                        )
-                    )
-                adjust_text(annotations, ax=ax)
-
-        else:
-            ax.scatter(theoretical_quantitles, ordered_vals, s=2, color="black")
-
-        if fig is not None:
-            fig.tight_layout()
-            plt.close()
-        return fig
 
     def plot_diagnostics(
         self, show_outliers: bool = False, figsize: tuple[float, float] = (7.0, 7.0)
@@ -644,12 +399,12 @@ class SingleDatasetBinRegReport:
 
         fig.subplots_adjust(hspace=0.3, wspace=0.3)
 
-        decrease_font_sizes_axs(axs, 5, 5, 0)
+        decrease_font_sizes_axs(axs, 2, 2, 0)
 
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetBinRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetLinRegReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -684,7 +439,7 @@ class SingleDatasetBinRegReport:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
-        Parameters
+        Returns
         ----------
         pd.DataFrame
         """
@@ -704,39 +459,48 @@ class SingleDatasetBinRegReport:
             self._include_text = True
 
 
-class BinomialRegressionReport:
-    """BinomialRegressionReport.
+class OLSRegressionReport:
+    """OLSRegressionReport.
     Fits the model based on provided DataHandler.
-    Wraps train and test SingleDatasetBinRegReport objects.
+    Contains methods for generating regression-relevant diagnostic
+    plots and tables for a single linear regression model.
     """
 
     def __init__(
         self,
-        model: BinomialGLM,
+        model: OLSLinearModel,
         datahandler: DataHandler,
         target: str,
         predictors: list[str],
         dataemitter: DataEmitter | None = None,
     ):
-        """BinomialRegressionReport.
+        """OLSRegressionReport.
         Fits the model based on provided DataHandler.
-        Wraps train and test SingleDatasetBinRegReport objects.
+        Contains methods for generating regression-relevant diagnostic
+        plots and tables for a single linear regression model.
 
         Parameters
         ----------
-        model : BinomialLinearModel
+        model : OLSModel
 
         datahandler : DataHandler
             The DataHandler object that contains the data.
 
         target : str
-            The name of the dependent variable.
+            The name of the target variable.
 
         predictors : list[str]
-            The names of the independent variables.
+            The names of the predictor variables.
+
+        dataemitter : DataEmitter
+            Default: None. The DataEmitter object that emits the data.
+            Optionally you can initialize the report with a DataEmitter object
+            instead of a DataHandler object. If not None, will ignore the
+            values of target and predictors.
         """
         self._model = model
         self._datahandler = datahandler
+
         if dataemitter is not None:
             self._dataemitter = dataemitter
         else:
@@ -745,44 +509,44 @@ class BinomialRegressionReport:
         self._model.fit()
         self._target = target
         self._predictors = predictors
-        self._train_report = SingleDatasetBinRegReport(model, "train")
-        self._test_report = SingleDatasetBinRegReport(model, "test")
+        self._train_report = SingleDatasetLinRegReport(model, "train")
+        self._test_report = SingleDatasetLinRegReport(model, "test")
 
-    def train_report(self) -> SingleDatasetBinRegReport:
-        """Returns a SingleDatasetBinRegReport object for the train dataset
+    def train_report(self) -> SingleDatasetLinRegReport:
+        """Returns an SingleDatasetLinRegReport object for the train dataset
 
         Returns
         -------
-        SingleDatasetBinRegReport
+        SingleDatasetLinRegReport
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetBinRegReport:
-        """Returns a SingleDatasetBinRegReport object for the test dataset
+    def test_report(self) -> SingleDatasetLinRegReport:
+        """Returns an SingleDatasetLinRegReport object for the test dataset
 
         Returns
         -------
-        SingleDatasetBinRegReport
+        SingleDatasetLinRegReport
         """
         return self._test_report
 
-    def model(self) -> BinomialGLM:
-        """Returns the fitted BinomialLinearModel object.
+    def model(self) -> OLSLinearModel:
+        """Returns the fitted OLSLinearModel object.
 
         Returns
         -------
-        BinomialLinearModel
+        OLSLinearModel
         """
         return self._model
 
-    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to compute the metrics for.
 
         Returns
         -------
@@ -790,8 +554,10 @@ class BinomialRegressionReport:
         """
         if dataset == "train":
             return self._train_report.metrics()
-        else:
+        elif dataset == "test":
             return self._test_report.metrics()
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def step(
         self,
@@ -801,9 +567,9 @@ class BinomialRegressionReport:
         all_vars: list[str] | None = None,
         start_vars: list[str] | None = None,
         max_steps: int = 100,
-    ) -> "BinomialRegressionReport":
-        """Performs stepwise selection on the model. Returns a new
-        BinomialRegressionReport object with the updated model.
+    ) -> "OLSRegressionReport":
+        """Performs stepwise selection. Returns a new
+        OLSRegressionReport object with the reduced model.
 
         Parameters
         ----------
@@ -815,7 +581,7 @@ class BinomialRegressionReport:
 
         kept_vars : list[str]
             Default: None. The variables that should be kept in the model.
-            If None, defaults to empty list.
+            If None, defaults to an empty list.
 
         all_vars : list[str]
             Default: None. The variables that are candidates for inclusion in the model.
@@ -832,7 +598,7 @@ class BinomialRegressionReport:
 
         Returns
         -------
-        BinomialRegressionReport
+        OLSRegressionReport
         """
         selected_vars = self._model.step(
             direction=direction,
@@ -846,13 +612,150 @@ class BinomialRegressionReport:
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors_pre_onehot(selected_vars)
 
-        return BinomialRegressionReport(
-            BinomialGLM(),
-            self._datahandler,
-            self._target,
-            self._predictors,
+        return OLSRegressionReport(
+            OLSLinearModel(),
+            self._datahandler,  # only used for y var scaler
+            self._target,  # ignored
+            selected_vars,  # ignored
             new_emitter,
         )
+
+    def test_lr(
+        self, alternative_report: "OLSRegressionReport"
+    ) -> StatisticalTestReport:
+        """Performs a likelihood ratio test to compare an alternative
+        OLSLinearModel. Returns an object of class StatisticalTestReport
+        describing the results.
+
+        Parameters
+        ----------
+        alternative_report : OLSRegressionReport
+            The report of an alternative OLSLinearModel. The alternative
+            model must be a nested version of the current model or vice-versa.
+
+        Returns
+        -------
+        StatisticalTestReport
+        """
+        # Determine which report is the reduced model
+
+        # Get the models from each report
+        original_model = self._train_report.model.estimator
+        alternative_model = alternative_report.train_report().model.estimator
+
+        # Get the number of predictors for each model
+        num_predictors_orig = len(self._train_report._X_eval_df.columns)
+        num_predictors_alternative = len(
+            alternative_report.train_report()._X_eval_df.columns
+        )
+
+        if num_predictors_orig > num_predictors_alternative:
+            full_model = original_model
+            reduced_model = alternative_model
+        elif num_predictors_orig < num_predictors_alternative:
+            full_model = alternative_model
+            reduced_model = original_model
+        else:
+            # Raise an error if the number of predictors are the same
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Raise ValueError if one set of predictors is not a subset of the other
+        orig_var_set = set(self._train_report._X_eval_df.columns)
+        alt_var_set = set(alternative_report.train_report()._X_eval_df.columns)
+
+        if not (orig_var_set < alt_var_set or orig_var_set > alt_var_set):
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Extract the results of the test and temporarily suppress warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            lr_stat, p_value, dr_diff = full_model.compare_lr_test(reduced_model)
+
+        # Initialize and return an object of class StatisticalTestReport
+        lr_result = StatisticalTestReport(
+            description="Likelihood Ratio Test",
+            statistic=lr_stat,
+            pval=p_value,
+            degfree=dr_diff,
+            statistic_description="Chi-square",
+            null_hypothesis_description="The full model does not fit the "
+            "data significantly better than the reduced model",
+            alternative_hypothesis_description="The full model fits the "
+            "data signficantly better than the reduced model",
+            assumptions_description="The data must be homoscedastic and "
+            "uncorrelated",
+        )
+
+        return lr_result
+
+    def test_partialf(
+        self, alternative_report: "OLSRegressionReport"
+    ) -> StatisticalTestReport:
+        """Performs a partial F-test to compare an alternative OLSLinearModel.
+        Returns an object of class StatisticalTestReport describing the results.
+
+        Parameters
+        ----------
+        alternative_report : OLSRegressionReport
+            The report of an alternative OLSLinearModel. The alternative
+            model must be a nested version of the current model or vice-versa.
+
+        Returns
+        -------
+        StatisticalTestReport
+        """
+        # Determine which report is the reduced model
+
+        # Get the models from each report
+        original_model = self._train_report.model.estimator
+        alternative_model = alternative_report.train_report().model.estimator
+
+        # Get the number of predictors for each model
+        num_predictors_orig = len(self._train_report._X_eval_df.columns)
+        num_predictors_alternative = len(
+            alternative_report.train_report()._X_eval_df.columns
+        )
+
+        if num_predictors_orig > num_predictors_alternative:
+            full_model = original_model
+            reduced_model = alternative_model
+        elif num_predictors_orig < num_predictors_alternative:
+            full_model = alternative_model
+            reduced_model = original_model
+        else:
+            # Raise an error if the number of predictors are the same
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Raise ValueError if one set of predictors is not a subset of the other
+        orig_var_set = set(self._train_report._X_eval_df.columns)
+        alt_var_set = set(alternative_report.train_report()._X_eval_df.columns)
+
+        if not (orig_var_set < alt_var_set or orig_var_set > alt_var_set):
+            raise ValueError("One model must be a reduced version of the other")
+
+        # Extract the results of the test and suppress warnings temporarily
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            f_value, p_value, dr_diff = full_model.compare_f_test(reduced_model)
+
+        # Initialize and return an object of class StatisticalTestReport
+        partial_f_result = StatisticalTestReport(
+            description="Partial F-Test",
+            statistic=f_value,
+            pval=p_value,
+            degfree=dr_diff,
+            statistic_description="F-statistic",
+            null_hypothesis_description="The coefficients of the additional "
+            "predictors are all zero",
+            alternative_hypothesis_description="At least one of the "
+            "coefficients of the additional predictors is not zero",
+            assumptions_description="The data must be homoscedastic and "
+            "have no autocorrelation",
+        )
+
+        return partial_f_result
 
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for
@@ -865,23 +768,19 @@ class BinomialRegressionReport:
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
 
-    # Move methods in SingleDatasetBinRegReport up to LinearRegressionReport
-    # to allow useres to call methods from mutliple locations
-
     def plot_obs_vs_pred(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a scatter plot of the true and predicted y
-        values.
+        """Plots a scatter plot of the true and predicted y values.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: True.
@@ -909,18 +808,18 @@ class BinomialRegressionReport:
 
     def plot_residuals_vs_fitted(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a residuals vs fitted (y_pred) plot.
+        """Plots the residuals versus the fitted values.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, plots the standardized residuals as
@@ -934,11 +833,11 @@ class BinomialRegressionReport:
             Default: (5.0, 5.0). Determines the size of the returned figure.
 
         ax : plt.Axes
-            Default = None.
+            Default: None.
 
         Returns
         -------
-        - Figure
+        plt.Figure
         """
         if dataset == "train":
             return self._train_report.plot_residuals_vs_fitted(
@@ -947,18 +846,20 @@ class BinomialRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_fitted(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_vs_var(
         self,
         predictor: str,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -972,7 +873,7 @@ class BinomialRegressionReport:
             The predictor variable whose values should be plotted on the x-axis.
 
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, standardizes the residuals.
@@ -998,7 +899,7 @@ class BinomialRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_var(
                 predictor=predictor,
                 standardized=standardized,
@@ -1006,10 +907,12 @@ class BinomialRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_hist(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = False,
         density: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
@@ -1020,7 +923,7 @@ class BinomialRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: False. If True, standardizes the residuals.
@@ -1042,14 +945,16 @@ class BinomialRegressionReport:
             return self._train_report.plot_residuals_hist(
                 standardized=standardized, density=density, figsize=figsize, ax=ax
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_hist(
                 standardized=standardized, density=density, figsize=figsize, ax=ax
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_scale_location(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
@@ -1060,7 +965,7 @@ class BinomialRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: True. If True, plots the outliers in red.
@@ -1079,20 +984,22 @@ class BinomialRegressionReport:
             return self._train_report.plot_scale_location(
                 show_outliers=show_outliers, figsize=figsize, ax=ax
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_scale_location(
                 show_outliers=show_outliers, figsize=figsize, ax=ax
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_residuals_vs_leverage(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = True,
         show_outliers: bool = True,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a figure that is a plot of the residuals versus leverage.
+        """Plots the residuals versus leverage.
 
         Parameters
         ----------
@@ -1122,28 +1029,30 @@ class BinomialRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_residuals_vs_leverage(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_qq(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         standardized: bool = True,
         show_outliers: bool = False,
         figsize: tuple[float, float] = (5.0, 5.0),
         ax: plt.Axes | None = None,
     ) -> plt.Figure:
-        """Returns a quantile-quantile plot.
+        """Plots a quantile-quantile plot of the residuals.
 
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         standardized : bool
             Default: True. If True, standardizes the residuals.
@@ -1168,17 +1077,19 @@ class BinomialRegressionReport:
                 figsize=figsize,
                 ax=ax,
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_qq(
                 standardized=standardized,
                 show_outliers=show_outliers,
                 figsize=figsize,
                 ax=ax,
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
     def plot_diagnostics(
         self,
-        dataset: Literal["train", "test"] = "test",
+        dataset: Literal["train", "test"],
         show_outliers: bool = False,
         figsize: tuple[float, float] = (7.0, 7.0),
     ) -> plt.Figure:
@@ -1187,7 +1098,7 @@ class BinomialRegressionReport:
         Parameters
         ----------
         dataset : Literal['train', 'test']
-            Default: 'test'.
+            The dataset to generate the plot for.
 
         show_outliers : bool
             Default: False. If True, plots the residual outliers in red.
@@ -1203,14 +1114,14 @@ class BinomialRegressionReport:
             return self._train_report.plot_diagnostics(
                 show_outliers=show_outliers, figsize=figsize
             )
-        else:
+        elif dataset == "test":
             return self._test_report.plot_diagnostics(
                 show_outliers=show_outliers, figsize=figsize
             )
+        else:
+            raise ValueError('The dataset must be either "train" or "test".')
 
-    def set_outlier_threshold(
-        self, threshold: float, dataset: Literal["train", "test"] = "test"
-    ) -> "SingleDatasetBinRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "OLSRegressionReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -1219,17 +1130,14 @@ class BinomialRegressionReport:
         threshold : float
             Default: 2. Must be a nonnegative value.
 
-        dataset : Literal['train', 'test']
-            Default: 'test'.
-
         Returns
         -------
-        self
+        OLSRegressionReport
+            Returns self for method chaining.
         """
-        if dataset == "train":
-            self._train_report.set_outlier_threshold(threshold=threshold)
-        else:
-            self._test_report.set_outlier_threshold(threshold=threshold)
+        self._train_report.set_outlier_threshold(threshold=threshold)
+        self._test_report.set_outlier_threshold(threshold=threshold)
+        return self
 
     def get_outlier_indices(self, dataset: Literal["train", "test"] = "test") -> list:
         """Returns the indices corresponding to DataFrame examples associated
@@ -1249,6 +1157,26 @@ class BinomialRegressionReport:
         else:
             return self._test_report.get_outlier_indices()
 
+    def coefs(
+        self,
+        format: Literal[
+            "coef(se)|pval", "coef|se|pval", "coef(ci)|pval", "coef|ci_low|ci_high|pval"
+        ] = "coef(se)|pval",
+    ) -> pd.DataFrame:
+        """Returns the coefficients of the model.
+
+        Parameters
+        ----------
+        format : Literal["coef(se)|pval", "coef|se|pval", "coef(ci)|pval",
+                        "coef|ci_low|ci_high|pval"]
+            Default: 'coef(se)|pval'.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return self._model.coefs(format)
+
     def _compute_outliers(self, dataset: Literal["train", "test"] = "test"):
         """Computes the outliers.
 
@@ -1261,3 +1189,119 @@ class BinomialRegressionReport:
             return self._train_report._compute_outliers()
         else:
             return self._test_report._compute_outliers()
+
+    def _to_dict(self) -> dict:
+        """Returns the JSON serializable data stored in the report as a dictionary.
+
+        Returns
+        -------
+        dict
+        """
+        return {
+            "coefficients": self.coefs("coef|ci_low|ci_high|pval").to_dict("index"),
+            "train_metrics": self.metrics("train").to_dict("index"),
+            "test_metrics": self.metrics("test").to_dict("index"),
+        }
+
+    def __str__(self) -> str:
+        max_width = print_options._max_line_width
+        n_dec = print_options._n_decimals
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("Ordinary Least Squares Regression Report")
+
+        target_var = "'" + self._target + "'"
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        metrics_message = f"{bold_text('Metrics:')}\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                bold_text("Train"), bold_text("Test"), total_len=max_width - 2
+            ),
+            initial_indent=2,
+        )
+        mstr = str(self._model)
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "R2:       "
+                + color_text(
+                    str(np.round(self.metrics("train").at["r2", mstr], n_dec)), "yellow"
+                ),
+                "R2:       "
+                + color_text(
+                    str(np.round(self.metrics("test").at["r2", mstr], n_dec)), "yellow"
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "Adj. R2:  "
+                + color_text(
+                    str(np.round(self.metrics("train").at["adjr2", mstr], n_dec)),
+                    "yellow",
+                ),
+                "Adj. R2:  "
+                + color_text(
+                    str(np.round(self.metrics("test").at["adjr2", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "RMSE:     "
+                + color_text(
+                    str(np.round(self.metrics("train").at["rmse", mstr], n_dec)),
+                    "yellow",
+                ),
+                "RMSE:     "
+                + color_text(
+                    str(np.round(self.metrics("test").at["rmse", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider
+            + metrics_message
+            + bottom_divider
+        )
+
+        return final_message
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))

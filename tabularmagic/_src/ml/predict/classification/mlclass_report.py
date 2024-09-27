@@ -191,17 +191,17 @@ class SingleModelSingleDatasetMLClassReport:
             y_pred = self._model._test_scorer._y_pred
             y_true = self._model._test_scorer._y_true
         return plot_confusion_matrix(
-            y_pred=y_pred, 
-            y_true=y_true, 
-            model_name=self._model._name, 
-            figsize=figsize, 
-            ax=ax
+            y_pred=y_pred,
+            y_true=y_true,
+            model_name=self._model._name,
+            figsize=figsize,
+            ax=ax,
         )
 
     def plot_roc_curve(
         self,
         label_curve: bool = False,
-        color: str | Any = "black",
+        color: str | Any = None,
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
     ) -> plt.Figure | None:
@@ -216,7 +216,8 @@ class SingleModelSingleDatasetMLClassReport:
             on the same axes.
 
         color : str | Any
-            Default: "black". The color of the ROC curve.
+            Default: None. The color of the ROC curve. The color of the ROC curve.
+            If None, the plot options line color is used.
 
         figsize: tuple[float, float]
             Default: (5, 5). The size of the figure.

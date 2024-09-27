@@ -16,7 +16,7 @@ class OLSRegressionTool(BaseModel):
 
 def ols_regression_function(formula: str) -> str:
     """Performs an OLS regression analysis using the specified formula."""
-    lm_report = shared_container.analyzer.lm(formula=formula)
+    lm_report = shared_container.analyzer.ols(formula=formula)
     return save_dict_to_json(lm_report._to_dict())
 
 

@@ -1,13 +1,8 @@
-from .poissonglmreg import PoissonRegressionReport
-from .binomial_report import BinomialRegressionReport
-from .lm_report import OLSRegressionReport
-from .negbinglmreg import NegativeBinomialRegressionReport
-from .countglmreg import CountRegressionReport
+from .logit_report import LogitRegressionReport
+from .ols_report import OLSRegressionReport
+
 
 __all__ = [
-    "PoissonRegressionReport",
-    "BinomialRegressionReport",
-    "NegativeBinomialRegressionReport",
+    "LogitRegressionReport",
     "OLSRegressionReport",
-    "CountRegressionReport",
 ]

@@ -7,12 +7,12 @@ from ..utils import ensure_arg_list_uniqueness
 from .lmutils.score import score_model
 
 
-class OLSModel:
+class OLSLinearModel:
     """Statsmodels OLS wrapper."""
 
     def __init__(self, name: str | None = None):
         """
-        Initializes a OLSModel object. Regresses y on X.
+        Initializes a OLSLinearModel object. Regresses y on X.
 
         Parameters
         ----------
@@ -23,7 +23,7 @@ class OLSModel:
         self.estimator = None
         self._name = name
         if self._name is None:
-            self._name = "Ordinary Least Squares"
+            self._name = "OLS Linear Model"
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.

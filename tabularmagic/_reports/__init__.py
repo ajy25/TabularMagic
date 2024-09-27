@@ -1,5 +1,5 @@
 from .._src.linear.reports import (
-    BinomialRegressionReport,
+    LogitRegressionReport,
     PoissonRegressionReport,
     NegativeBinomialRegressionReport,
     OLSRegressionReport,
@@ -18,7 +18,7 @@ from .._src.stattests import StatisticalTestReport
 
 __all__ = [
     "PoissonRegressionReport",
-    "BinomialRegressionReport",
+    "LogitRegressionReport",
     "NegativeBinomialRegressionReport",
     "OLSRegressionReport",
     "CountRegressionReport",

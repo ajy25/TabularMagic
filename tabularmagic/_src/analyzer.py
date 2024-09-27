@@ -8,16 +8,10 @@ from .ml.predict import (
     MLClassificationReport,
 )
 from .linear import (
-    OLSModel,
-    PoissonLinearModel,
-    NegativeBinomialLinearModel,
-    CountLinearModel,
-    BinomialGLM,
-    BinomialRegressionReport,
-    PoissonRegressionReport,
-    NegativeBinomialRegressionReport,
+    OLSLinearModel,
+    LogitLinearModel,
+    LogitRegressionReport,
     OLSRegressionReport,
-    CountRegressionReport,
     parse_and_transform_rlike,
 )
 from .exploratory import (
@@ -165,7 +159,7 @@ class Analyzer:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
     @ensure_arg_list_uniqueness()
-    def lm(
+    def ols(
         self,
         target: str | None = None,
         predictors: list[str] | None = None,
@@ -201,7 +195,7 @@ class Analyzer:
                 if target in predictors:
                     predictors.remove(target)
             return OLSRegressionReport(
-                OLSModel(), self._datahandler, target, predictors
+                OLSLinearModel(), self._datahandler, target, predictors
             )
 
         else:
@@ -239,48 +233,40 @@ class Analyzer:
             elif self._datahandler.scaler(target) is not None:
                 datahandler.add_scaler(self._datahandler.scaler(target), target)
 
-            return OLSRegressionReport(OLSModel(), datahandler, target, predictors)
+            return OLSRegressionReport(
+                OLSLinearModel(), datahandler, target, predictors
+            )
 
     @ensure_arg_list_uniqueness()
-    def glm(
+    def logit(
         self,
-        family: Literal["poisson", "binomial", "negbinomial", "count"],
         target: str | None = None,
         predictors: list[str] | None = None,
         formula: str | None = None,
-    ) -> (
-        PoissonRegressionReport
-        | BinomialRegressionReport
-        | NegativeBinomialRegressionReport
-        | CountRegressionReport
-    ):
-        """Conducts a generalized linear regression exercise.
-        If formula is provided, performs linear regression with link
-        function depending on specified family via formula.
+    ) -> LogitRegressionReport:
+        """Performs logistic regression.
+        if formula is provided, performs logistic regression via formula.
         Units with missing data will be dropped.
 
         Parameters
         ----------
-        family : Literal["poisson", "binomial",  "negbinomial", "count"]
-            The family of the GLM.
-
-        target : str
+        target : str | None
             Default: None. The variable to be predicted.
 
-        predictors : list[str]
-            Default: None. If None, all variables except target will be used as
-            predictors.
+        predictors : list[str] | None
+            Default: None.
+            If None, all variables except target will be used as predictors.
 
-        formula : str
+        formula : str | None
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 
         Returns
         -------
-        PoissonRegressionReport | BinomialRegressionReport |
-        NegativeBinomialRegressionReport | CountRegressionReport
-            The appropriate regression report object is returned
-            depending on the specified family.
+        BinomialRegressionReport
+            The BinomialRegressionReport object contains a variety of logistic
+            regression methods, including summary statistics, model coefficients,
+            odds ratios, and data visualizations.
         """
         if formula is None and target is None:
             raise ValueError("target must be specified if formula is None.")
@@ -290,24 +276,9 @@ class Analyzer:
                 predictors = self._datahandler.vars()
                 if target in predictors:
                     predictors.remove(target)
-            if family == "poisson":
-                return PoissonRegressionReport(
-                    PoissonLinearModel(), self._datahandler, target, predictors
-                )
-            elif family == "binomial":
-                return BinomialRegressionReport(
-                    BinomialGLM(), self._datahandler, target, predictors
-                )
-            elif family == "negbinomial":
-                return NegativeBinomialRegressionReport(
-                    NegativeBinomialLinearModel(), self._datahandler, target, predictors
-                )
-            elif family == "count":
-                return CountRegressionReport(
-                    CountLinearModel(), self._datahandler, target, predictors
-                )
-            else:
-                raise ValueError("invalid input for family")
+            return LogitRegressionReport(
+                LogitLinearModel(), self._datahandler, target, predictors
+            )
 
         else:
             try:
@@ -318,7 +289,7 @@ class Analyzer:
                     formula, self._datahandler.df_test()
                 )
             except Exception as e:
-                raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
+                raise ValueError(f"Invalid formula: {formula}. Error: {e}.")
 
             # ensure missing values are dropped
             y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
@@ -341,24 +312,130 @@ class Analyzer:
             )
             datahandler.add_scaler(y_scaler, target)
 
-            if family == "poisson":
-                return PoissonRegressionReport(
-                    PoissonLinearModel(), self._datahandler, target, predictors
-                )
-            elif family == "binomial":
-                return BinomialRegressionReport(
-                    BinomialGLM(), self._datahandler, target, predictors
-                )
-            elif family == "negbinomial":
-                return NegativeBinomialRegressionReport(
-                    NegativeBinomialLinearModel(), self._datahandler, target, predictors
-                )
-            elif family == "count":
-                return CountRegressionReport(
-                    CountLinearModel(), self._datahandler, target, predictors
-                )
-            else:
-                raise ValueError("invalid input for family")
+            return LogitRegressionReport(
+                LogitLinearModel(), datahandler, target, predictors
+            )
+
+    # def
+
+    # @ensure_arg_list_uniqueness()
+    # def glm(
+    #     self,
+    #     family: Literal["poisson", "binomial", "negbinomial", "count"],
+    #     target: str | None = None,
+    #     predictors: list[str] | None = None,
+    #     formula: str | None = None,
+    # ) -> (
+    #     PoissonRegressionReport
+    #     | BinomialRegressionReport
+    #     | NegativeBinomialRegressionReport
+    #     | CountRegressionReport
+    # ):
+    #     """Conducts a generalized linear regression exercise.
+    #     If formula is provided, performs linear regression with link
+    #     function depending on specified family via formula.
+    #     Units with missing data will be dropped.
+
+    #     Parameters
+    #     ----------
+    #     family : Literal["poisson", "binomial",  "negbinomial", "count"]
+    #         The family of the GLM.
+
+    #     target : str
+    #         Default: None. The variable to be predicted.
+
+    #     predictors : list[str]
+    #         Default: None. If None, all variables except target will be used as
+    #         predictors.
+
+    #     formula : str
+    #         Default: None. If not None, uses formula to specify the regression
+    #         (overrides target and predictors).
+
+    #     Returns
+    #     -------
+    #     PoissonRegressionReport | BinomialRegressionReport |
+    #     NegativeBinomialRegressionReport | CountRegressionReport
+    #         The appropriate regression report object is returned
+    #         depending on the specified family.
+    #     """
+    #     if formula is None and target is None:
+    #         raise ValueError("target must be specified if formula is None.")
+
+    #     elif formula is None:
+    #         if predictors is None:
+    #             predictors = self._datahandler.vars()
+    #             if target in predictors:
+    #                 predictors.remove(target)
+    #         if family == "poisson":
+    #             return PoissonRegressionReport(
+    #                 PoissonLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "binomial":
+    #             return BinomialRegressionReport(
+    #                 BinomialGLM(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "negbinomial":
+    #             return NegativeBinomialRegressionReport(
+    #                 NegativeBinomialLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "count":
+    #             return CountRegressionReport(
+    #                 CountLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         else:
+    #             raise ValueError("invalid input for family")
+
+    #     else:
+    #         try:
+    #             y_series_train, y_scaler, X_df_train = parse_and_transform_rlike(
+    #                 formula, self._datahandler.df_train()
+    #             )
+    #             y_series_test, _, X_df_test = parse_and_transform_rlike(
+    #                 formula, self._datahandler.df_test()
+    #             )
+    #         except Exception as e:
+    #             raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
+
+    #         # ensure missing values are dropped
+    #         y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
+    #         y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
+    #         y_X_df_combined_train = y_X_df_combined_train.dropna()
+    #         y_X_df_combined_test = y_X_df_combined_test.dropna()
+    #         (
+    #             y_X_df_combined_train,
+    #             y_X_df_combined_test,
+    #         ) = self._datahandler._force_train_test_var_agreement(
+    #             y_X_df_combined_train, y_X_df_combined_test
+    #         )
+
+    #         predictors = y_X_df_combined_train.columns.to_list()
+    #         target = y_series_train.name
+    #         predictors.remove(target)
+
+    #         datahandler = DataHandler(
+    #             y_X_df_combined_train, y_X_df_combined_test, verbose=False
+    #         )
+    #         datahandler.add_scaler(y_scaler, target)
+
+    #         if family == "poisson":
+    #             return PoissonRegressionReport(
+    #                 PoissonLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "binomial":
+    #             return BinomialRegressionReport(
+    #                 BinomialGLM(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "negbinomial":
+    #             return NegativeBinomialRegressionReport(
+    #                 NegativeBinomialLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         elif family == "count":
+    #             return CountRegressionReport(
+    #                 CountLinearModel(), self._datahandler, target, predictors
+    #             )
+    #         else:
+    #             raise ValueError("invalid input for family")
 
     # --------------------------------------------------------------------------
     # MACHINE LEARNING

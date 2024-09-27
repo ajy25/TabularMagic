@@ -101,6 +101,7 @@ def plot_roc_curve(
     y_true: np.ndarray,
     model_name: str | None = None,
     label_curve: bool = False,
+    color: str | Any = None,
     figsize: tuple[float, float] = (5, 5),
     ax: plt.Axes | None = None,
 ) -> plt.Figure:
@@ -121,6 +122,10 @@ def plot_roc_curve(
     label_curve : bool
         Default: False. Whether to label the ROC curve with model name and AUC.
 
+    color : str | Any
+        Default: None. The color of the ROC curve. If None,
+        the plot options line color is used.
+
     figsize : tuple[float, float]
         Default: (5, 5). The size of the figure. Only used if ax is None.
 
@@ -139,6 +144,9 @@ def plot_roc_curve(
     fpr, tpr, _ = roc_curve(y_true, y_score)
     roc_auc = auc(fpr, tpr)
 
+    if color is None:
+        color = plot_options._line_color
+
     ax.plot(
         [0, 1],
         [0, 1],
@@ -151,15 +159,13 @@ def plot_roc_curve(
             ax.plot(
                 fpr,
                 tpr,
-                color=plot_options._line_color,
+                color=color,
                 label=f"{model_name} | AUC = {roc_auc:.3f}",
             )
         else:
-            ax.plot(
-                fpr, tpr, color=plot_options._line_color, label=f"AUC = {roc_auc:.3f}"
-            )
+            ax.plot(fpr, tpr, color=color, label=f"AUC = {roc_auc:.3f}")
     else:
-        ax.plot(fpr, tpr, color=plot_options._line_color)
+        ax.plot(fpr, tpr, color=color)
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel("False Positive Rate")

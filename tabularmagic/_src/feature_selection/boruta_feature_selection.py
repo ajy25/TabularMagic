@@ -135,9 +135,7 @@ class BorutaFSC(BaseFSC):
                 class_weight="balanced",
             )
         elif estimator == "xgb":
-            sk_estimator = XGBClassifier(
-                random_state=model_random_state
-            )
+            sk_estimator = XGBClassifier(random_state=model_random_state)
         else:
             raise ValueError(
                 f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
@@ -184,7 +182,7 @@ class BorutaFSC(BaseFSC):
             print_wrapped(
                 "Boruta did not select any features. "
                 "Boruta will vote for all features.",
-                type="WARNING"
+                type="WARNING",
             )
 
         return self._all_features, self._selected_features, self._support

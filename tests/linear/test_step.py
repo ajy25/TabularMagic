@@ -37,8 +37,6 @@ def setup_data():
     df_ols = X
     df_ols["y"] = y
 
-
-
     np.random.seed(42)
     X = pd.DataFrame(
         {
@@ -57,14 +55,14 @@ def setup_data():
         3 * X["x1"]
         - 5 * (X["cat1"] == "A")
         + 10 * (X["cat1"] == "B")
-        + np.random.randn(100)* 3 - 3
+        + np.random.randn(100) * 3
+        - 3
     )
     y = (logit > logit.median()).astype(int)
 
     df_logistic = X
     df_logistic["y"] = y
     df_logistic["y"] = df_logistic["y"].astype(str)
-
 
     return {
         "df_ols": df_ols,
@@ -76,7 +74,7 @@ def test_backward_selection_ols(setup_data):
     df = setup_data["df_ols"]
 
     analyzer = tm.Analyzer(df=df)
-    lmreport = analyzer.lm(
+    lmreport = analyzer.ols(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
@@ -104,7 +102,7 @@ def test_forward_selection_ols(setup_data):
     df = setup_data["df_ols"]
 
     analyzer = tm.Analyzer(df=df)
-    lmreport = analyzer.lm(
+    lmreport = analyzer.ols(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
@@ -130,7 +128,7 @@ def test_both_direction_selection_ols(setup_data):
     df = setup_data["df_ols"]
 
     analyzer = tm.Analyzer(df=df)
-    lmreport = analyzer.lm(
+    lmreport = analyzer.ols(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
@@ -156,14 +154,15 @@ def test_backward_selection_logistic(setup_data):
     df = setup_data["df_logistic"]
 
     analyzer = tm.Analyzer(df=df)
-    logistic_report = analyzer.glm(
-        family="binomial",
+    logistic_report = analyzer.logit(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
     reduced_logistic_report = logistic_report.step("backward")
 
-    selected_features = reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    selected_features = (
+        reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    )
 
     print(logistic_report.metrics())
     print(reduced_logistic_report.metrics())
@@ -182,19 +181,19 @@ def test_backward_selection_logistic(setup_data):
             assert feature != "cat1::A"
 
 
-
 def test_both_direction_selection_logistic(setup_data):
     df = setup_data["df_logistic"]
 
     analyzer = tm.Analyzer(df=df)
-    logistic_report = analyzer.glm(
-        family="binomial",
+    logistic_report = analyzer.logit(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
     reduced_logistic_report = logistic_report.step("both")
 
-    selected_features = reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    selected_features = (
+        reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    )
 
     print(logistic_report.metrics())
     print(reduced_logistic_report.metrics())
@@ -217,14 +216,15 @@ def test_forward_selection_logistic(setup_data):
     df = setup_data["df_logistic"]
 
     analyzer = tm.Analyzer(df=df)
-    logistic_report = analyzer.glm(
-        family="binomial",
+    logistic_report = analyzer.logit(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
     reduced_logistic_report = logistic_report.step("forward")
 
-    selected_features = reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    selected_features = (
+        reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
+    )
 
     print(logistic_report.metrics())
     print(reduced_logistic_report.metrics())
@@ -241,4 +241,3 @@ def test_forward_selection_logistic(setup_data):
             assert False
         if "cat1" in feature:
             assert feature != "cat1::A"
-

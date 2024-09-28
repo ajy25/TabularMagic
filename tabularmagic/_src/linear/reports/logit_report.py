@@ -8,7 +8,7 @@ from adjustText import adjust_text
 from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..logit import LogitLinearModel
-from ...display.print_utils import print_wrapped
+from ...display.print_utils import print_wrapped, suppress_print_output
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
@@ -31,16 +31,17 @@ class SingleDatasetLogitReport:
         """
         self.model = model
 
-        if dataset == "test":
-            self.scorer = model.test_scorer
-            self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
-            self._is_train = False
-        elif dataset == "train":
-            self.scorer = model.train_scorer
-            self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
-            self._is_train = True
-        else:
-            raise ValueError('specification must be either "train" or "test".')
+        with suppress_print_output():
+            if dataset == "test":
+                self.scorer = model.test_scorer
+                self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
+                self._is_train = False
+            elif dataset == "train":
+                self.scorer = model.train_scorer
+                self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
+                self._is_train = True
+            else:
+                raise ValueError('specification must be either "train" or "test".')
 
         self._y_pred_score = self.scorer._y_pred_score
         self._y_pred = self.scorer._y_pred
@@ -704,8 +705,8 @@ class SingleDatasetLogitReport:
             self._include_text = True
 
 
-class LogitRegressionReport:
-    """LogitRegressionReport.
+class LogitReport:
+    """LogitReport.
     Fits the model based on provided DataHandler.
     Wraps train and test SingleDatasetLogitReport objects.
     """
@@ -718,7 +719,7 @@ class LogitRegressionReport:
         predictors: list[str],
         dataemitter: DataEmitter | None = None,
     ):
-        """LogitRegressionReport.
+        """LogitReport.
         Fits the model based on provided DataHandler.
         Wraps train and test SingleDatasetLogitReport objects.
 
@@ -790,8 +791,10 @@ class LogitRegressionReport:
         """
         if dataset == "train":
             return self._train_report.metrics()
-        else:
+        elif dataset == "test":
             return self._test_report.metrics()
+        else:
+            raise ValueError('specification must be either "train" or "test".')
 
     def step(
         self,
@@ -801,9 +804,9 @@ class LogitRegressionReport:
         all_vars: list[str] | None = None,
         start_vars: list[str] | None = None,
         max_steps: int = 100,
-    ) -> "LogitRegressionReport":
+    ) -> "LogitReport":
         """Performs stepwise selection on the model. Returns a new
-        BinomialRegressionReport object with the updated model.
+        LogitReport object with the updated model.
 
         Parameters
         ----------
@@ -832,7 +835,7 @@ class LogitRegressionReport:
 
         Returns
         -------
-        BinomialRegressionReport
+        LogitReport
         """
         selected_vars = self._model.step(
             direction=direction,
@@ -846,7 +849,7 @@ class LogitRegressionReport:
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors_pre_onehot(selected_vars)
 
-        return LogitRegressionReport(
+        return LogitReport(
             LogitLinearModel(),
             self._datahandler,
             self._target,
@@ -864,9 +867,6 @@ class LogitRegressionReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-
-    # Move methods in SingleDatasetLogitReport up to LinearRegressionReport
-    # to allow useres to call methods from mutliple locations
 
     def plot_obs_vs_pred(
         self,

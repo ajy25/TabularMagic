@@ -56,6 +56,8 @@ def print_wrapped(
     level : Literal['INFO', 'DEBUG'].
         Default: 'INFO'.
     """
+    if print_options._muted:
+        return
     base_message = text
     if type == "WARNING":
         base_message = color_text("WARN: ", "red") + base_message
@@ -253,14 +255,16 @@ def quote_and_color(
 
 
 @contextmanager
-def suppress_stdout():
+def suppress_print_output():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
+        print_options.mute()
         try:
             yield
         finally:
             sys.stdout = old_stdout
+            print_options.unmute()
 
 
 def format_two_column(

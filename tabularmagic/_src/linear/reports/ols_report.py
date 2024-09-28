@@ -7,7 +7,7 @@ from adjustText import adjust_text
 from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..ols import OLSLinearModel
-from ...display.print_utils import print_wrapped
+from ...display.print_utils import print_wrapped, suppress_print_output
 from ..lmutils.constants import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
 from ..lmutils.plot import (
     plot_residuals_vs_var,
@@ -29,7 +29,7 @@ from ...display.print_utils import (
 from ...stattests import StatisticalTestReport
 
 
-class SingleDatasetLinRegReport:
+class SingleDatasetOLSReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
     """
@@ -48,16 +48,17 @@ class SingleDatasetLinRegReport:
         """
         self.model = model
 
-        if dataset == "test":
-            self.scorer = model.test_scorer
-            self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
-            self._is_train = False
-        elif dataset == "train":
-            self.scorer = model.train_scorer
-            self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
-            self._is_train = True
-        else:
-            raise ValueError('specification must be either "train" or "test".')
+        with suppress_print_output():
+            if dataset == "test":
+                self.scorer = model.test_scorer
+                self._X_eval_df = self.model._dataemitter.emit_test_Xy()[0]
+                self._is_train = False
+            elif dataset == "train":
+                self.scorer = model.train_scorer
+                self._X_eval_df = self.model._dataemitter.emit_train_Xy()[0]
+                self._is_train = True
+            else:
+                raise ValueError('specification must be either "train" or "test".')
 
         self._y_pred = self.scorer._y_pred
         self._y_true = self.scorer._y_true
@@ -404,7 +405,7 @@ class SingleDatasetLinRegReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetLinRegReport":
+    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetOLSReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -459,8 +460,8 @@ class SingleDatasetLinRegReport:
             self._include_text = True
 
 
-class OLSRegressionReport:
-    """OLSRegressionReport.
+class OLSReport:
+    """OLSReport.
     Fits the model based on provided DataHandler.
     Contains methods for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
@@ -474,7 +475,7 @@ class OLSRegressionReport:
         predictors: list[str],
         dataemitter: DataEmitter | None = None,
     ):
-        """OLSRegressionReport.
+        """OLSReport.
         Fits the model based on provided DataHandler.
         Contains methods for generating regression-relevant diagnostic
         plots and tables for a single linear regression model.
@@ -509,10 +510,10 @@ class OLSRegressionReport:
         self._model.fit()
         self._target = target
         self._predictors = predictors
-        self._train_report = SingleDatasetLinRegReport(model, "train")
-        self._test_report = SingleDatasetLinRegReport(model, "test")
+        self._train_report = SingleDatasetOLSReport(model, "train")
+        self._test_report = SingleDatasetOLSReport(model, "test")
 
-    def train_report(self) -> SingleDatasetLinRegReport:
+    def train_report(self) -> SingleDatasetOLSReport:
         """Returns an SingleDatasetLinRegReport object for the train dataset
 
         Returns
@@ -521,7 +522,7 @@ class OLSRegressionReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetLinRegReport:
+    def test_report(self) -> SingleDatasetOLSReport:
         """Returns an SingleDatasetLinRegReport object for the test dataset
 
         Returns
@@ -567,9 +568,9 @@ class OLSRegressionReport:
         all_vars: list[str] | None = None,
         start_vars: list[str] | None = None,
         max_steps: int = 100,
-    ) -> "OLSRegressionReport":
+    ) -> "OLSReport":
         """Performs stepwise selection. Returns a new
-        OLSRegressionReport object with the reduced model.
+        OLSReport object with the reduced model.
 
         Parameters
         ----------
@@ -598,7 +599,7 @@ class OLSRegressionReport:
 
         Returns
         -------
-        OLSRegressionReport
+        OLSReport
         """
         selected_vars = self._model.step(
             direction=direction,
@@ -612,7 +613,7 @@ class OLSRegressionReport:
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors_pre_onehot(selected_vars)
 
-        return OLSRegressionReport(
+        return OLSReport(
             OLSLinearModel(),
             self._datahandler,  # only used for y var scaler
             self._target,  # ignored
@@ -621,7 +622,7 @@ class OLSRegressionReport:
         )
 
     def test_lr(
-        self, alternative_report: "OLSRegressionReport"
+        self, alternative_report: "OLSReport"
     ) -> StatisticalTestReport:
         """Performs a likelihood ratio test to compare an alternative
         OLSLinearModel. Returns an object of class StatisticalTestReport
@@ -629,7 +630,7 @@ class OLSRegressionReport:
 
         Parameters
         ----------
-        alternative_report : OLSRegressionReport
+        alternative_report : OLSReport
             The report of an alternative OLSLinearModel. The alternative
             model must be a nested version of the current model or vice-versa.
 
@@ -690,14 +691,14 @@ class OLSRegressionReport:
         return lr_result
 
     def test_partialf(
-        self, alternative_report: "OLSRegressionReport"
+        self, alternative_report: "OLSReport"
     ) -> StatisticalTestReport:
         """Performs a partial F-test to compare an alternative OLSLinearModel.
         Returns an object of class StatisticalTestReport describing the results.
 
         Parameters
         ----------
-        alternative_report : OLSRegressionReport
+        alternative_report : OLSReport
             The report of an alternative OLSLinearModel. The alternative
             model must be a nested version of the current model or vice-versa.
 
@@ -1121,7 +1122,7 @@ class OLSRegressionReport:
         else:
             raise ValueError('The dataset must be either "train" or "test".')
 
-    def set_outlier_threshold(self, threshold: float) -> "OLSRegressionReport":
+    def set_outlier_threshold(self, threshold: float) -> "OLSReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -1132,7 +1133,7 @@ class OLSRegressionReport:
 
         Returns
         -------
-        OLSRegressionReport
+        OLSReport
             Returns self for method chaining.
         """
         self._train_report.set_outlier_threshold(threshold=threshold)

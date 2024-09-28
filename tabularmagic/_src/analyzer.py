@@ -9,9 +9,11 @@ from .ml.predict import (
 )
 from .linear import (
     OLSLinearModel,
+    OLSReport,
     LogitLinearModel,
-    LogitRegressionReport,
-    OLSRegressionReport,
+    LogitReport,
+    MNLogitLinearModel,
+    MNLogitReport,
     parse_and_transform_rlike,
 )
 from .exploratory import (
@@ -30,8 +32,9 @@ class Analyzer:
     An Analyzer object can be initialized from a single DataFrame which is then
     split into train and test DataFrames, or, alternatively, from pre-split
     train and test DataFrames. The object can then be used to conduct
-    a variety of analyses, including exploratory data analysis (the eda() method),
-    regression analysis (lm() and glm() methods),
+    a variety of analyses, 
+    including exploratory data analysis (the eda() method),
+    regression analysis (ols() and logit() methods),
     and machine learning modeling (classify() and regress() methods).
 
     The Analyzer object also handles data preprocessing tasks, such as scaling,
@@ -164,7 +167,9 @@ class Analyzer:
         target: str | None = None,
         predictors: list[str] | None = None,
         formula: str | None = None,
-    ) -> OLSRegressionReport:
+        alpha: float = 0.0,
+        l1_weight: float = 0.0,
+    ) -> OLSReport:
         """Performs OLS regression.
         If formula is provided, performs regression with OLS via formula.
         Units with missing data will be dropped.
@@ -182,9 +187,17 @@ class Analyzer:
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 
+        alpha : float
+            Default: 0. Regularization strength. Must be a positive float.
+
+        l1_weight : float
+            Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
+
         Returns
         -------
-        LinearRegressionReport
+        OLSReport
+            The OLSReport object contains a variety of OLS regression methods,
+            including summary statistics, model coefficients, and data visualizations.
         """
         if formula is None and target is None:
             raise ValueError("target must be specified if formula is None.")
@@ -193,8 +206,13 @@ class Analyzer:
             if predictors is None:
                 predictors = self._datahandler.vars()
                 if target in predictors:
+                    print_wrapped(
+                        f"Removing target variable {quote_and_color(target, 'yellow')} "
+                        + "from predictors.",
+                        type="WARNING",
+                    )
                     predictors.remove(target)
-            return OLSRegressionReport(
+            return OLSReport(
                 OLSLinearModel(), self._datahandler, target, predictors
             )
 
@@ -233,7 +251,7 @@ class Analyzer:
             elif self._datahandler.scaler(target) is not None:
                 datahandler.add_scaler(self._datahandler.scaler(target), target)
 
-            return OLSRegressionReport(
+            return OLSReport(
                 OLSLinearModel(), datahandler, target, predictors
             )
 
@@ -243,7 +261,9 @@ class Analyzer:
         target: str | None = None,
         predictors: list[str] | None = None,
         formula: str | None = None,
-    ) -> LogitRegressionReport:
+        alpha: float = 0.0,
+        l1_weight: float = 0.0,
+    ) -> LogitReport | MNLogitReport:
         """Performs logistic regression.
         if formula is provided, performs logistic regression via formula.
         Units with missing data will be dropped.
@@ -261,12 +281,16 @@ class Analyzer:
             Default: None. If not None, uses formula to specify the regression
             (overrides target and predictors).
 
+        alpha : float
+            Default: 0. Regularization strength. Must be a positive float.
+
+        l1_weight : float
+            Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
+
         Returns
         -------
-        BinomialRegressionReport
-            The BinomialRegressionReport object contains a variety of logistic
-            regression methods, including summary statistics, model coefficients,
-            odds ratios, and data visualizations.
+        LogitReport | MNLogitReport
+            The appropriate regression report object is returned.
         """
         if formula is None and target is None:
             raise ValueError("target must be specified if formula is None.")
@@ -275,10 +299,28 @@ class Analyzer:
             if predictors is None:
                 predictors = self._datahandler.vars()
                 if target in predictors:
+                    print_wrapped(
+                        f"Removing target variable {quote_and_color(target, 'yellow')} "
+                        + "from predictors.",
+                        type="WARNING",
+                    )
                     predictors.remove(target)
-            return LogitRegressionReport(
-                LogitLinearModel(), self._datahandler, target, predictors
-            )
+            # decide between binary and multinomial logit
+            df_all = self._datahandler.df_all()
+            if len(df_all[target].unique()) == 2:
+                return LogitReport(
+                    LogitLinearModel(alpha=alpha, l1_weight=l1_weight), 
+                    self._datahandler, 
+                    target, 
+                    predictors
+                )
+            else:
+                return MNLogitReport(
+                    MNLogitLinearModel(alpha=alpha, l1_weight=l1_weight), 
+                    self._datahandler, 
+                    target, 
+                    predictors
+                )
 
         else:
             try:
@@ -312,130 +354,16 @@ class Analyzer:
             )
             datahandler.add_scaler(y_scaler, target)
 
-            return LogitRegressionReport(
-                LogitLinearModel(), datahandler, target, predictors
-            )
-
-    # def
-
-    # @ensure_arg_list_uniqueness()
-    # def glm(
-    #     self,
-    #     family: Literal["poisson", "binomial", "negbinomial", "count"],
-    #     target: str | None = None,
-    #     predictors: list[str] | None = None,
-    #     formula: str | None = None,
-    # ) -> (
-    #     PoissonRegressionReport
-    #     | BinomialRegressionReport
-    #     | NegativeBinomialRegressionReport
-    #     | CountRegressionReport
-    # ):
-    #     """Conducts a generalized linear regression exercise.
-    #     If formula is provided, performs linear regression with link
-    #     function depending on specified family via formula.
-    #     Units with missing data will be dropped.
-
-    #     Parameters
-    #     ----------
-    #     family : Literal["poisson", "binomial",  "negbinomial", "count"]
-    #         The family of the GLM.
-
-    #     target : str
-    #         Default: None. The variable to be predicted.
-
-    #     predictors : list[str]
-    #         Default: None. If None, all variables except target will be used as
-    #         predictors.
-
-    #     formula : str
-    #         Default: None. If not None, uses formula to specify the regression
-    #         (overrides target and predictors).
-
-    #     Returns
-    #     -------
-    #     PoissonRegressionReport | BinomialRegressionReport |
-    #     NegativeBinomialRegressionReport | CountRegressionReport
-    #         The appropriate regression report object is returned
-    #         depending on the specified family.
-    #     """
-    #     if formula is None and target is None:
-    #         raise ValueError("target must be specified if formula is None.")
-
-    #     elif formula is None:
-    #         if predictors is None:
-    #             predictors = self._datahandler.vars()
-    #             if target in predictors:
-    #                 predictors.remove(target)
-    #         if family == "poisson":
-    #             return PoissonRegressionReport(
-    #                 PoissonLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "binomial":
-    #             return BinomialRegressionReport(
-    #                 BinomialGLM(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "negbinomial":
-    #             return NegativeBinomialRegressionReport(
-    #                 NegativeBinomialLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "count":
-    #             return CountRegressionReport(
-    #                 CountLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         else:
-    #             raise ValueError("invalid input for family")
-
-    #     else:
-    #         try:
-    #             y_series_train, y_scaler, X_df_train = parse_and_transform_rlike(
-    #                 formula, self._datahandler.df_train()
-    #             )
-    #             y_series_test, _, X_df_test = parse_and_transform_rlike(
-    #                 formula, self._datahandler.df_test()
-    #             )
-    #         except Exception as e:
-    #             raise ValueError(f"Invalid formula: {formula}. " f"Error: {e}.")
-
-    #         # ensure missing values are dropped
-    #         y_X_df_combined_train = pd.DataFrame(y_series_train).join(X_df_train)
-    #         y_X_df_combined_test = pd.DataFrame(y_series_test).join(X_df_test)
-    #         y_X_df_combined_train = y_X_df_combined_train.dropna()
-    #         y_X_df_combined_test = y_X_df_combined_test.dropna()
-    #         (
-    #             y_X_df_combined_train,
-    #             y_X_df_combined_test,
-    #         ) = self._datahandler._force_train_test_var_agreement(
-    #             y_X_df_combined_train, y_X_df_combined_test
-    #         )
-
-    #         predictors = y_X_df_combined_train.columns.to_list()
-    #         target = y_series_train.name
-    #         predictors.remove(target)
-
-    #         datahandler = DataHandler(
-    #             y_X_df_combined_train, y_X_df_combined_test, verbose=False
-    #         )
-    #         datahandler.add_scaler(y_scaler, target)
-
-    #         if family == "poisson":
-    #             return PoissonRegressionReport(
-    #                 PoissonLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "binomial":
-    #             return BinomialRegressionReport(
-    #                 BinomialGLM(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "negbinomial":
-    #             return NegativeBinomialRegressionReport(
-    #                 NegativeBinomialLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         elif family == "count":
-    #             return CountRegressionReport(
-    #                 CountLinearModel(), self._datahandler, target, predictors
-    #             )
-    #         else:
-    #             raise ValueError("invalid input for family")
+            # decide between binary and multinomial logit
+            df_all = datahandler.df_all()
+            if len(df_all[target].unique()) == 2:
+                return LogitReport(
+                    LogitLinearModel(), datahandler, target, predictors
+                )
+            else:
+                return MNLogitReport(
+                    MNLogitLinearModel(), datahandler, target, predictors
+                )
 
     # --------------------------------------------------------------------------
     # MACHINE LEARNING

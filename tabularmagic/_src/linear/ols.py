@@ -4,26 +4,43 @@ import pandas as pd
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
+from ..display.print_utils import suppress_print_output
 from .lmutils.score import score_model
 
 
 class OLSLinearModel:
     """Statsmodels OLS wrapper."""
 
-    def __init__(self, name: str | None = None):
+    def __init__(
+        self,
+        alpha: float = 0.0,
+        l1_weight: float = 0.0,
+        name: str = "OLS Linear Model",
+    ):
         """
-        Initializes a OLSLinearModel object. Regresses y on X.
+        Initializes a OLSLinearModel object.
 
         Parameters
         ----------
+        alpha : float
+            Default: 0. Regularization strength. Must be a positive float.
+
+        l1_weight : float
+            Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
+
         name : str
-            Default: None. Determines how the model shows up in the reports.
-            If None, the name is set to be the class name.
+            Default: 'Logit Linear Model'. The name of the model.
         """
+        if alpha < 0:
+            raise ValueError("alpha must be non-negative")
+        if l1_weight < 0 or l1_weight > 1:
+            raise ValueError("l1_weight must be between 0 and 1")
+        
+        self.alpha = alpha
+        self.l1_weight = l1_weight
+
         self.estimator = None
         self._name = name
-        if self._name is None:
-            self._name = "OLS Linear Model"
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
@@ -44,7 +61,13 @@ class OLSLinearModel:
 
         # we force the constant to be included
         X_train = sm.add_constant(X_train, has_constant="add")
-        self.estimator = sm.OLS(y_train, X_train).fit(cov_type="HC3")
+
+        if self.alpha == 0:
+            self.estimator = sm.OLS(y_train, X_train).fit(cov_type="HC3")
+        else:
+            self.estimator = sm.OLS(y_train, X_train).fit_regularized(
+                alpha=self.alpha, L1_wt=self.l1_weight
+            )
 
         y_pred_train = self.estimator.predict(X_train).to_numpy()
         if y_scaler is not None:
@@ -165,121 +188,135 @@ class OLSLinearModel:
                 included_vars = start_vars.copy()
         else:
             raise ValueError("direction must be 'forward', 'backward', or 'both'")
+        
 
-        # set our starting score and best models
-        current_score = score_model(
-            local_dataemitter,
-            included_vars,
-            model="ols",
-            metric=criteria,
-        )
-        current_step = 0
+        with suppress_print_output():
 
-        while current_step < max_steps:
-            # Forward step
-            if direction == "forward":
-                excluded = list(set(all_vars) - set(included_vars))
+            # set our starting score and best models
+            current_score = score_model(
+                local_dataemitter,
+                included_vars,
+                model="ols",
+                alpha=self.alpha,
+                l1_weight=self.l1_weight,
+                metric=criteria,
+            )
+            current_step = 0
 
-                best_score = current_score
-                var_to_add = None
-                for new_var in excluded:
-                    candidate_features = included_vars + [new_var]
-                    score = score_model(
-                        local_dataemitter,
-                        candidate_features,
-                        model="ols",
-                        metric=criteria,
-                    )
-                    if score < best_score:
-                        best_score = score
-                        var_to_add = new_var
+        
+            while current_step < max_steps:
+                # Forward step
+                if direction == "forward":
+                    excluded = list(set(all_vars) - set(included_vars))
 
-                # If we didn't find a variable to add (score is not better), break
-                if var_to_add is None:
-                    break
+                    best_score = current_score
+                    var_to_add = None
+                    for new_var in excluded:
+                        candidate_features = included_vars + [new_var]
+                        score = score_model(
+                            local_dataemitter,
+                            candidate_features,
+                            model="ols",
+                            alpha=self.alpha,
+                            l1_weight=self.l1_weight,
+                            metric=criteria,
+                        )
+                        if score < best_score:
+                            best_score = score
+                            var_to_add = new_var
 
-                included_vars.append(var_to_add)
-
-            # Backward step
-            elif direction == "backward":
-                if len(included_vars) <= len(kept_vars):
-                    break
-
-                best_score = current_score
-                var_to_remove = None
-
-                for candidate in included_vars:
-                    if candidate in kept_vars:
-                        continue
-
-                    candidate_features = included_vars.copy()
-                    candidate_features.remove(candidate)
-                    score = score_model(
-                        local_dataemitter,
-                        candidate_features,
-                        model="ols",
-                        metric=criteria,
-                    )
-                    if score < best_score:
-                        best_score = score
-                        var_to_remove = candidate
-
-                if var_to_remove is None:
-                    break
-
-                included_vars.remove(var_to_remove)
-
-            elif direction == "both":
-                excluded = list(set(all_vars) - set(included_vars))
-
-                best_score = current_score
-
-                best_forward_score = current_score
-                var_to_add = None
-                for new_var in excluded:
-                    candidate_features = included_vars + [new_var]
-                    score = score_model(
-                        local_dataemitter,
-                        candidate_features,
-                        model="ols",
-                        metric=criteria,
-                    )
-                    if score < best_forward_score:
-                        best_forward_score = score
-                        var_to_add = new_var
-
-                best_backward_score = current_score
-                var_to_remove = None
-
-                for candidate in included_vars:
-                    if candidate in kept_vars:
-                        continue
-
-                    candidate_features = included_vars.copy()
-                    candidate_features.remove(candidate)
-                    score = score_model(
-                        local_dataemitter,
-                        candidate_features,
-                        model="ols",
-                        metric=criteria,
-                    )
-                    if score < best_backward_score:
-                        best_backward_score = score
-                        var_to_remove = candidate
-
-                if best_forward_score < best_backward_score:
+                    # If we didn't find a variable to add (score is not better), break
                     if var_to_add is None:
                         break
+
                     included_vars.append(var_to_add)
-                    best_score = best_forward_score
-                else:
+
+                # Backward step
+                elif direction == "backward":
+                    if len(included_vars) <= len(kept_vars):
+                        break
+
+                    best_score = current_score
+                    var_to_remove = None
+
+                    for candidate in included_vars:
+                        if candidate in kept_vars:
+                            continue
+
+                        candidate_features = included_vars.copy()
+                        candidate_features.remove(candidate)
+                        score = score_model(
+                            local_dataemitter,
+                            candidate_features,
+                            model="ols",
+                            alpha=self.alpha,
+                            l1_weight=self.l1_weight,
+                            metric=criteria,
+                        )
+                        if score < best_score:
+                            best_score = score
+                            var_to_remove = candidate
+
                     if var_to_remove is None:
                         break
-                    included_vars.remove(var_to_remove)
-                    best_score = best_backward_score
 
-            current_score = best_score
-            current_step += 1
+                    included_vars.remove(var_to_remove)
+
+                elif direction == "both":
+                    excluded = list(set(all_vars) - set(included_vars))
+
+                    best_score = current_score
+
+                    best_forward_score = current_score
+                    var_to_add = None
+                    for new_var in excluded:
+                        candidate_features = included_vars + [new_var]
+                        score = score_model(
+                            local_dataemitter,
+                            candidate_features,
+                            model="ols",
+                            alpha=self.alpha,
+                            l1_weight=self.l1_weight,
+                            metric=criteria,
+                        )
+                        if score < best_forward_score:
+                            best_forward_score = score
+                            var_to_add = new_var
+
+                    best_backward_score = current_score
+                    var_to_remove = None
+
+                    for candidate in included_vars:
+                        if candidate in kept_vars:
+                            continue
+
+                        candidate_features = included_vars.copy()
+                        candidate_features.remove(candidate)
+                        score = score_model(
+                            local_dataemitter,
+                            candidate_features,
+                            model="ols",
+                            alpha=self.alpha,
+                            l1_weight=self.l1_weight,
+                            metric=criteria,
+                        )
+                        if score < best_backward_score:
+                            best_backward_score = score
+                            var_to_remove = candidate
+
+                    if best_forward_score < best_backward_score:
+                        if var_to_add is None:
+                            break
+                        included_vars.append(var_to_add)
+                        best_score = best_forward_score
+                    else:
+                        if var_to_remove is None:
+                            break
+                        included_vars.remove(var_to_remove)
+                        best_score = best_backward_score
+
+                current_score = best_score
+                current_step += 1
 
         return included_vars
 

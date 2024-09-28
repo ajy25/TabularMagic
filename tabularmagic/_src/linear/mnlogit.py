@@ -1,27 +1,26 @@
 import statsmodels.api as sm
-from sklearn.metrics import f1_score
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+from ..metrics.classification_scoring import ClassificationMulticlassScorer
+from ..data.datahandler import DataEmitter
 import pandas as pd
 from typing import Literal
-from ..metrics.classification_scoring import ClassificationBinaryScorer
-from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness, is_numerical
 from ..display.print_utils import suppress_print_output
 from .lmutils.score import score_model
 
 
-class LogitLinearModel:
-    """Statsmodels Logit wrapper."""
+class MNLogitLinearModel:
+    """Statsmodels MNLogit wrapper."""
 
     def __init__(
         self, 
         alpha: float = 0.0,
         l1_weight: float = 0.0,
-        name: str = "Logit Linear Model",
+        name: str = "MNLogit Linear Model"
     ):
         """
-        Initializes a LogitLinearModel object.
+        Initializes a MNLogitLinearModel object.
 
         Parameters
         ----------
@@ -32,7 +31,7 @@ class LogitLinearModel:
             Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
 
         name : str
-            Default: 'Logit Linear Model'. The name of the model.
+            Default: 'MNLogit Linear Model'. The name of the model.
         """
         if alpha < 0:
             raise ValueError("alpha must be non-negative")
@@ -68,16 +67,6 @@ class LogitLinearModel:
         X_train = sm.add_constant(X_train, has_constant="add")
         X_test = sm.add_constant(X_test, has_constant="add")
 
-        y_levels = y_train.unique()
-        if y_levels.size != 2:
-            raise ValueError("Target variable must have 2 levels")
-
-        y_test_levels = y_test.unique()
-        if y_test_levels.size > 2:
-            raise ValueError(
-                "Target variable in test set detected to have more than 2 levels"
-            )
-
         # we allow y_train to be categorical, i.e. we encode it with a label encoder
         self._y_label_order = None
         if not is_numerical(y_train):
@@ -88,58 +77,32 @@ class LogitLinearModel:
 
         with suppress_print_output():
             if self.alpha == 0:
-                self.estimator = sm.Logit(y_train, X_train).fit(cov_type="HC3")
+                self.estimator = sm.MNLogit(y_train, X_train).fit(cov_type="HC3")
             else:
-                self.estimator = sm.Logit(
-                    y_train, X_train
-                ).fit_regularized(alpha=self.alpha, L1_wt=self.l1_weight)
+                self.estimator = sm.MNLogit(y_train, X_train).fit_regularized(
+                    method='l1', alpha=self.alpha, L1_wt=self.l1_weight
+                )
 
-        y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
+        y_score_train: np.ndarray = self.estimator.predict(X_train).to_numpy()
+        y_pred_train = np.argmax(y_score_train, axis=1)
 
-        # Find the best threshold based on f1 score
-        best_score = None
-        best_threshold = None
-        for temp_threshold in np.linspace(0.0, 1.0, num=21):
-            y_pred_train_binary = (y_pred_train > temp_threshold).astype(int)
-            curr_score = f1_score(y_train, y_pred_train_binary)
-            if best_score is None or curr_score > best_score:
-                best_score = curr_score
-                best_threshold = temp_threshold
-
-        y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
-
-
-        y_pred_train_reshaped = y_pred_train.reshape(-1, 1)
-
-        self.train_scorer = ClassificationBinaryScorer(
-            y_pred=y_pred_train_binary,
-            y_true=y_train,
-            pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
-            y_pred_score=np.hstack(
-                [
-                    1 - y_pred_train_reshaped,
-                    y_pred_train_reshaped,
-                ]
-            ),
+        self.train_scorer = ClassificationMulticlassScorer(
+            y_pred=self._label_encoder.inverse_transform(y_pred_train),
+            y_true=self._label_encoder.inverse_transform(y_train),
+            y_pred_score=y_score_train,
+            y_pred_class_order=self._y_label_order,
             name=self._name,
         )
 
-        y_pred_test = self.estimator.predict(X_test).to_numpy()
-        y_pred_test_binary = (y_pred_test >= best_threshold).astype(int)
+        y_score_test = self.estimator.predict(X_test).to_numpy()
+        y_pred_test = np.argmax(y_score_test, axis=1)
 
 
-        y_pred_test_reshaped = y_pred_test.reshape(-1, 1)
-
-        self.test_scorer = ClassificationBinaryScorer(
-            y_pred=y_pred_test_binary,
-            y_true=y_test,
-            pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
-            y_pred_score=np.hstack(
-                [
-                    1 - y_pred_test_reshaped, 
-                    y_pred_test_reshaped
-                ]
-            ),
+        self.test_scorer = ClassificationMulticlassScorer(
+            y_pred=self._label_encoder.inverse_transform(y_pred_test),
+            y_true=self._label_encoder.inverse_transform(y_test),
+            y_pred_score=y_score_test,
+            y_pred_class_order=self._y_label_order,
             name=self._name,
         )
 
@@ -187,7 +150,8 @@ class LogitLinearModel:
             If None, defaults to all variables in the training data.
 
         start_vars : list[str]
-            Default: None. The variables to start the bidirectional stepwise selection with.
+            Default: None. 
+            The variables to start the bidirectional stepwise selection with.
             Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
 
@@ -226,7 +190,6 @@ class LogitLinearModel:
                 included_vars = start_vars.copy()
         else:
             raise ValueError("direction must be 'both', 'backward', or 'forward'")
-        
 
         with suppress_print_output():
 
@@ -234,7 +197,7 @@ class LogitLinearModel:
             current_score = score_model(
                 local_dataemitter,
                 included_vars,
-                model="logit",
+                model="mnlogit",
                 alpha=self.alpha,
                 l1_weight=self.l1_weight,
                 metric=criteria,
@@ -254,7 +217,7 @@ class LogitLinearModel:
                         score = score_model(
                             local_dataemitter,
                             candidate_features,
-                            model="logit",
+                            model="mnlogit",
                             alpha=self.alpha,
                             l1_weight=self.l1_weight,
                             metric=criteria,
@@ -287,7 +250,7 @@ class LogitLinearModel:
                         score = score_model(
                             local_dataemitter,
                             candidate_features,
-                            model="logit",
+                            model="mnlogit",
                             alpha=self.alpha,
                             l1_weight=self.l1_weight,
                             metric=criteria,
@@ -314,7 +277,7 @@ class LogitLinearModel:
                         score = score_model(
                             local_dataemitter,
                             candidate_features,
-                            model="logit",
+                            model="mnlogit",
                             alpha=self.alpha,
                             l1_weight=self.l1_weight,
                             metric=criteria,
@@ -336,7 +299,7 @@ class LogitLinearModel:
                         score = score_model(
                             local_dataemitter,
                             candidate_features,
-                            model="logit",
+                            model="mnlogit",
                             alpha=self.alpha,
                             l1_weight=self.l1_weight,
                             metric=criteria,

@@ -97,6 +97,8 @@ def test_coefficients(setup_data):
     assert np.isclose(tm_b2, sm_b2)
 
 
+
+
 # Test case for partialf in OLS
 def test_partialf_ols(setup_data):
     df_mtcars = setup_data["df_mtcars"]

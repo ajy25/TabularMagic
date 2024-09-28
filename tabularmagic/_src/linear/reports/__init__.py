@@ -1,8 +1,10 @@
-from .logit_report import LogitRegressionReport
-from .ols_report import OLSRegressionReport
+from .logit_report import LogitReport
+from .mnlogit_report import MNLogitReport
+from .ols_report import OLSReport
 
 
 __all__ = [
-    "LogitRegressionReport",
-    "OLSRegressionReport",
+    "LogitReport",
+    "MNLogitReport",
+    "OLSReport",
 ]

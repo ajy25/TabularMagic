@@ -1,9 +1,11 @@
 from .ols import OLSLinearModel
 from .logit import LogitLinearModel
+from .mnlogit import MNLogitLinearModel
 from .lm_rlike_util import parse_and_transform_rlike
 from .reports import (
-    LogitRegressionReport,
-    OLSRegressionReport,
+    LogitReport,
+    OLSReport,
+    MNLogitReport,
 )
 
 
@@ -11,6 +13,7 @@ __all__ = [
     "OLSLinearModel",
     "LogitLinearModel",
     "parse_and_transform_rlike",
-    "LogitRegressionReport",
-    "OLSRegressionReport",
+    "LogitReport",
+    "OLSReport",
+    "MNLogitLinearModel",
 ]

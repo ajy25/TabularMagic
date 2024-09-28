@@ -64,7 +64,7 @@ def score_model(
         new_model = sm.MNLogit(y_train, X_train_w_constant)
     else:
         raise ValueError("Model must be one of 'ols', 'logit', or 'mnlogit'.")
-    
+
     if alpha == 0:
         output = new_model.fit()
     else:

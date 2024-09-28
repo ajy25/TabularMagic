@@ -15,7 +15,7 @@ class LogitLinearModel:
     """Statsmodels Logit wrapper."""
 
     def __init__(
-        self, 
+        self,
         alpha: float = 0.0,
         l1_weight: float = 0.0,
         name: str = "Logit Linear Model",
@@ -38,14 +38,13 @@ class LogitLinearModel:
             raise ValueError("alpha must be non-negative")
         if l1_weight < 0 or l1_weight > 1:
             raise ValueError("l1_weight must be between 0 and 1")
-        
+
         self.alpha = alpha
         self.l1_weight = l1_weight
 
         self.estimator = None
         self._name = name
         self._label_encoder = None
-
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
@@ -90,9 +89,9 @@ class LogitLinearModel:
             if self.alpha == 0:
                 self.estimator = sm.Logit(y_train, X_train).fit(cov_type="HC3")
             else:
-                self.estimator = sm.Logit(
-                    y_train, X_train
-                ).fit_regularized(alpha=self.alpha, L1_wt=self.l1_weight)
+                self.estimator = sm.Logit(y_train, X_train).fit_regularized(
+                    alpha=self.alpha, L1_wt=self.l1_weight
+                )
 
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
 
@@ -107,7 +106,6 @@ class LogitLinearModel:
                 best_threshold = temp_threshold
 
         y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
-
 
         y_pred_train_reshaped = y_pred_train.reshape(-1, 1)
 
@@ -127,19 +125,13 @@ class LogitLinearModel:
         y_pred_test = self.estimator.predict(X_test).to_numpy()
         y_pred_test_binary = (y_pred_test >= best_threshold).astype(int)
 
-
         y_pred_test_reshaped = y_pred_test.reshape(-1, 1)
 
         self.test_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_test_binary,
             y_true=y_test,
             pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
-            y_pred_score=np.hstack(
-                [
-                    1 - y_pred_test_reshaped, 
-                    y_pred_test_reshaped
-                ]
-            ),
+            y_pred_score=np.hstack([1 - y_pred_test_reshaped, y_pred_test_reshaped]),
             name=self._name,
         )
 
@@ -226,10 +218,8 @@ class LogitLinearModel:
                 included_vars = start_vars.copy()
         else:
             raise ValueError("direction must be 'both', 'backward', or 'forward'")
-        
 
         with suppress_print_output():
-
             # set our starting score and best models
             current_score = score_model(
                 local_dataemitter,

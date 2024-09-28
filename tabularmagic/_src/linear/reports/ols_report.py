@@ -621,9 +621,7 @@ class OLSReport:
             new_emitter,
         )
 
-    def test_lr(
-        self, alternative_report: "OLSReport"
-    ) -> StatisticalTestReport:
+    def test_lr(self, alternative_report: "OLSReport") -> StatisticalTestReport:
         """Performs a likelihood ratio test to compare an alternative
         OLSLinearModel. Returns an object of class StatisticalTestReport
         describing the results.
@@ -690,9 +688,7 @@ class OLSReport:
 
         return lr_result
 
-    def test_partialf(
-        self, alternative_report: "OLSReport"
-    ) -> StatisticalTestReport:
+    def test_partialf(self, alternative_report: "OLSReport") -> StatisticalTestReport:
         """Performs a partial F-test to compare an alternative OLSLinearModel.
         Returns an object of class StatisticalTestReport describing the results.
 

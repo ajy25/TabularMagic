@@ -22,20 +22,21 @@ def read_json_function(name) -> str:
 
 # write to scratch tool
 class WriteScratchInput(BaseModel):
-    scratch: str = Field(description="The scratch to write to a scratchpad.")
+    scratch: str = Field(description="The information to write to a scratchpad.")
 
 
 def write_scratch_function(scratch: str) -> str:
     """Writes a scratch to a scratchpad."""
     scratch_tracker.write_scratch(scratch)
-    return "1"
+    return scratch
 
 
 write_scratch_tool = FunctionTool.from_defaults(
     fn=write_scratch_function,
     name="write_scratch_tool",
-    description="Writes information to a scratchpad. The scratch can later be queried "
-    "by the 'query_scratch_tool'. This tool returns '1' after writing the scratch.",
+    description="Writes information to a scratchpad. "
+    "The information can later be queried by the 'query_scratch_tool'. "
+    "Returns the scratch exactly as provided.",
     fn_schema=WriteScratchInput,
 )
 

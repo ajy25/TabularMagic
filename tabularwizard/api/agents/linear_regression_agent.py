@@ -1,6 +1,6 @@
 from .utils import build_function_calling_agent_openai
 from ..tools.linear_regression_tools import ols_regression_tool
-from ..tools.shared_tools import sql_query_tool
+from ..tools.shared_tools import pandas_query_tool
 from llama_index.agent.openai import OpenAIAgent
 
 
@@ -33,5 +33,5 @@ def build_linear_regression_agent(
     OpenAIAgent
         OpenAI agent
     """
-    tools = [ols_regression_tool, sql_query_tool]
+    tools = [ols_regression_tool, pandas_query_tool]
     return build_function_calling_agent_openai(tools=tools, system_prompt=system_prompt)

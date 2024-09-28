@@ -49,7 +49,6 @@ class SingleDatasetMNLogitReport:
 
         self._include_text = False
 
-
     def metrics(self) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
@@ -59,8 +58,6 @@ class SingleDatasetMNLogitReport:
         pd.DataFrame
         """
         return self.scorer.stats_df()
-
-
 
 
 class MNLogitReport:
@@ -168,7 +165,6 @@ class MNLogitReport:
             new_emitter,
         )
 
-
     def statsmodels_summary(self):
         """Returns the summary of the statsmodels RegressionResultsWrapper for
         OLS.
@@ -179,7 +175,6 @@ class MNLogitReport:
             raise RuntimeError(
                 "Error occured in statsmodels_summary call. " f"Error: {e}"
             )
-        
 
     def model(self) -> MNLogitLinearModel:
         """Returns the fitted MNLogitLinearModel object.
@@ -189,7 +184,6 @@ class MNLogitReport:
         MNLogitLinearModel
         """
         return self._model
-        
 
     def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
@@ -210,5 +204,3 @@ class MNLogitReport:
             return self._test_report.metrics()
         else:
             raise ValueError('specification must be either "train" or "test".')
-        
-

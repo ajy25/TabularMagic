@@ -2,14 +2,12 @@ import tabularmagic as tm
 import pandas as pd
 import logging
 from pathlib import Path
-from sqlalchemy import create_engine
-from llama_index.core import SQLDatabase
+
+from llama_index.experimental.query_engine import PandasQueryEngine
+from .llms.openai import build_chat_openai
 
 
 logger_path = Path(__file__).parent / "io" / "_tm_logger_output" / "log.txt"
-
-
-sql_engine_user_provided_df = create_engine("sqlite:///:memory:")
 
 
 class _DataAnalysisContainer:
@@ -19,15 +17,8 @@ class _DataAnalysisContainer:
 
     def set_analyzer(self, analyzer: tm.Analyzer):
         self.analyzer = analyzer
-        self.analyzer.datahandler().df_all().to_sql(
-            name="User-provided DataFrame",
-            con=sql_engine_user_provided_df,
-            index=True,
-            if_exists="replace",
-        )
-        self.sqldb = SQLDatabase(
-            sql_engine_user_provided_df, include_tables=["User-provided DataFrame"]
-        )
+        self.df = self.analyzer.datahandler().df_all()
+        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_chat_openai())
 
 
 shared_container = _DataAnalysisContainer()

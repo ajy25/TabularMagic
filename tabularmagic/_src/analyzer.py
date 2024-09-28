@@ -32,7 +32,7 @@ class Analyzer:
     An Analyzer object can be initialized from a single DataFrame which is then
     split into train and test DataFrames, or, alternatively, from pre-split
     train and test DataFrames. The object can then be used to conduct
-    a variety of analyses, 
+    a variety of analyses,
     including exploratory data analysis (the eda() method),
     regression analysis (ols() and logit() methods),
     and machine learning modeling (classify() and regress() methods).
@@ -212,9 +212,7 @@ class Analyzer:
                         type="WARNING",
                     )
                     predictors.remove(target)
-            return OLSReport(
-                OLSLinearModel(), self._datahandler, target, predictors
-            )
+            return OLSReport(OLSLinearModel(), self._datahandler, target, predictors)
 
         else:
             try:
@@ -251,9 +249,7 @@ class Analyzer:
             elif self._datahandler.scaler(target) is not None:
                 datahandler.add_scaler(self._datahandler.scaler(target), target)
 
-            return OLSReport(
-                OLSLinearModel(), datahandler, target, predictors
-            )
+            return OLSReport(OLSLinearModel(), datahandler, target, predictors)
 
     @ensure_arg_list_uniqueness()
     def logit(
@@ -309,17 +305,17 @@ class Analyzer:
             df_all = self._datahandler.df_all()
             if len(df_all[target].unique()) == 2:
                 return LogitReport(
-                    LogitLinearModel(alpha=alpha, l1_weight=l1_weight), 
-                    self._datahandler, 
-                    target, 
-                    predictors
+                    LogitLinearModel(alpha=alpha, l1_weight=l1_weight),
+                    self._datahandler,
+                    target,
+                    predictors,
                 )
             else:
                 return MNLogitReport(
-                    MNLogitLinearModel(alpha=alpha, l1_weight=l1_weight), 
-                    self._datahandler, 
-                    target, 
-                    predictors
+                    MNLogitLinearModel(alpha=alpha, l1_weight=l1_weight),
+                    self._datahandler,
+                    target,
+                    predictors,
                 )
 
         else:
@@ -357,9 +353,7 @@ class Analyzer:
             # decide between binary and multinomial logit
             df_all = datahandler.df_all()
             if len(df_all[target].unique()) == 2:
-                return LogitReport(
-                    LogitLinearModel(), datahandler, target, predictors
-                )
+                return LogitReport(LogitLinearModel(), datahandler, target, predictors)
             else:
                 return MNLogitReport(
                     MNLogitLinearModel(), datahandler, target, predictors

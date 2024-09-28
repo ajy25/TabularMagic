@@ -82,11 +82,8 @@ def test_output_errorless(setup_data):
 
     lmreport.coefs()
     lmreport.statsmodels_summary()
-    lmreport.metrics('train')
-    lmreport.metrics('test')
-    lmreport.plot_diagnostics('train')
-    lmreport.plot_diagnostics('test')
-    lmreport.plot_residuals_vs_var('x1', 'train')
-
-
-
+    lmreport.metrics("train")
+    lmreport.metrics("test")
+    lmreport.plot_diagnostics("train")
+    lmreport.plot_diagnostics("test")
+    lmreport.plot_residuals_vs_var("x1", "train")

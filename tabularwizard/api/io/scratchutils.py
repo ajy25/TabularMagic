@@ -13,6 +13,7 @@ class _ScratchTracker:
     def __init__(self):
         """Initializes the scratch tracker."""
         self._filepath = path_to_scratch / "scratch.txt"
+        self.clear_scratch()
 
     def write_scratch(self, scratch: str) -> str:
         """Writes a scratch to the scratchpad and updates the scratch tracker.
@@ -29,7 +30,7 @@ class _ScratchTracker:
             The scratch.
         """
         with open(self._filepath, "a") as f:  # Open in append mode
-            f.write(scratch)
+            f.write("\n\n" + scratch)
         return scratch
 
     def read_scratch(self) -> str:

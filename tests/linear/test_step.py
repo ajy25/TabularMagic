@@ -103,9 +103,7 @@ def test_backward_selection_ols_w_regularization(setup_data):
 
     analyzer = tm.Analyzer(df=df)
     lmreport = analyzer.ols(
-        target="y",
-        predictors=["x1", "x2", "cat1", "cat2", "x3"],
-        alpha=0.1
+        target="y", predictors=["x1", "x2", "cat1", "cat2", "x3"], alpha=0.1
     )
     reduced_lmreport = lmreport.step("backward")
 

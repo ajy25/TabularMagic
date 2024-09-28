@@ -14,10 +14,10 @@ class MNLogitLinearModel:
     """Statsmodels MNLogit wrapper."""
 
     def __init__(
-        self, 
+        self,
         alpha: float = 0.0,
         l1_weight: float = 0.0,
-        name: str = "MNLogit Linear Model"
+        name: str = "MNLogit Linear Model",
     ):
         """
         Initializes a MNLogitLinearModel object.
@@ -37,14 +37,13 @@ class MNLogitLinearModel:
             raise ValueError("alpha must be non-negative")
         if l1_weight < 0 or l1_weight > 1:
             raise ValueError("l1_weight must be between 0 and 1")
-        
+
         self.alpha = alpha
         self.l1_weight = l1_weight
 
         self.estimator = None
         self._name = name
         self._label_encoder = None
-
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
@@ -80,7 +79,7 @@ class MNLogitLinearModel:
                 self.estimator = sm.MNLogit(y_train, X_train).fit(cov_type="HC3")
             else:
                 self.estimator = sm.MNLogit(y_train, X_train).fit_regularized(
-                    method='l1', alpha=self.alpha, L1_wt=self.l1_weight
+                    method="l1", alpha=self.alpha, L1_wt=self.l1_weight
                 )
 
         y_score_train: np.ndarray = self.estimator.predict(X_train).to_numpy()
@@ -96,7 +95,6 @@ class MNLogitLinearModel:
 
         y_score_test = self.estimator.predict(X_test).to_numpy()
         y_pred_test = np.argmax(y_score_test, axis=1)
-
 
         self.test_scorer = ClassificationMulticlassScorer(
             y_pred=self._label_encoder.inverse_transform(y_pred_test),
@@ -150,7 +148,7 @@ class MNLogitLinearModel:
             If None, defaults to all variables in the training data.
 
         start_vars : list[str]
-            Default: None. 
+            Default: None.
             The variables to start the bidirectional stepwise selection with.
             Ignored if direction is not 'both'. If direction is 'both' and
             start_vars is None, then the starting variables are the kept_vars.
@@ -192,7 +190,6 @@ class MNLogitLinearModel:
             raise ValueError("direction must be 'both', 'backward', or 'forward'")
 
         with suppress_print_output():
-
             # set our starting score and best models
             current_score = score_model(
                 local_dataemitter,

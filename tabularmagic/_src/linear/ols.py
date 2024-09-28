@@ -35,7 +35,7 @@ class OLSLinearModel:
             raise ValueError("alpha must be non-negative")
         if l1_weight < 0 or l1_weight > 1:
             raise ValueError("l1_weight must be between 0 and 1")
-        
+
         self.alpha = alpha
         self.l1_weight = l1_weight
 
@@ -188,10 +188,8 @@ class OLSLinearModel:
                 included_vars = start_vars.copy()
         else:
             raise ValueError("direction must be 'forward', 'backward', or 'both'")
-        
 
         with suppress_print_output():
-
             # set our starting score and best models
             current_score = score_model(
                 local_dataemitter,
@@ -203,7 +201,6 @@ class OLSLinearModel:
             )
             current_step = 0
 
-        
             while current_step < max_steps:
                 # Forward step
                 if direction == "forward":

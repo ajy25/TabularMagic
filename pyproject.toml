@@ -37,9 +37,7 @@ classifiers = [
 [project.optional-dependencies]
 wizard = [
     "tabularwizard",
-    "langchain>=0.2.6",
-    "langchain-core>=0.3.0",
-    "langchain-groq>=0.2.0",
+    "llama-index>=0.11.10",
     "pydantic>=2.8.2",
     "python-dotenv>=0.21.0"
 ]

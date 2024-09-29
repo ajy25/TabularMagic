@@ -8,7 +8,10 @@
 
 
 
-TabularMagic is a Python package for rapid exploratory statistical analysis and low-code machine learning modeling on wide format tabular data. TabularMagic can help you quickly explore datasets, easily conduct regression analyses, and effortlessly compute performance metrics for your favorite machine learning models.
+TabularMagic is a Python package for low/no-code data science on wide format tables.
+TabularMagic can help you quickly explore datasets, 
+easily conduct statistical and regression analyses, 
+and effortlessly compute performance metrics for your favorite machine learning models.
 
 
 ## Installation and dependencies
@@ -27,10 +30,13 @@ To uninstall TabularMagic:
 pip uninstall tabularmagic
 ```
 
-TabularMagic is built with the standard Python data science stack. That is, TabularMagic is really just a fancy wrapper for scikit-learn and statsmodels. For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. TabularMagic requires Python version 3.10 or later.
+TabularMagic is built with the standard Python data science stack.
+That is, TabularMagic is really just a fancy wrapper for scikit-learn, scipy.stats, and statsmodels. 
+For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. 
+TabularMagic requires Python version 3.10 or later.
 
 
-## Quick start
+## Quick start (low-code)
 
 You'll probably use TabularMagic for ML model benchmarking. Here's how to do it.
 
@@ -39,15 +45,16 @@ import tabularmagic as tm
 import pandas as pd
 import joblib
 
+# load table (we'll assume 'y' is the numeric variable to predict)
 df = ...
 
 # initialize an Analyzer object
 analyzer = tm.Analyzer(df, test_size=0.2)
 
 # preprocess data
-analyzer.drop_highly_missing_vars().dropna(['y']).impute().scale()
+analyzer.dropna(['y']).impute().scale()
 
-# conduct a regression model benchmarking exercise
+# train regressors (hyperparameter tuning is preset and automatic)
 reg_report = analyzer.regress(
     models=[
         tm.ml.LinearR('l2'),
@@ -56,25 +63,34 @@ reg_report = analyzer.regress(
     ],
     target='y',
     feature_selectors=[
-        tm.fs.BorutaFSR()
+        tm.fs.BorutaFSR()   # select features
     ]
 )
+
+# compare model performance
 print(reg_report.metrics('test'))
 
 # predict on new data
 new_df = ...
 y_pred = reg_report.model('LinearR(l2)').predict(new_df)
 
-# save model
+# save model as sklearn pipeline
 joblib.dump(reg_report.model('LinearR(l2)'), 'l2_pipeline.joblib')
 ```
 
 Check out the `./demo` directory for detailed examples and discussion of other functionality.
 
 
+
+
+## Quick start (no-code)
+
+Coming soon!
+
+
 ## Notes
 
-TabularMagic is under active development. We intend to release a test version to Test PyPI soon.
+TabularMagic is under active development.
 
 ### Motivation: low-code data science and ML modeling for research purposes
 

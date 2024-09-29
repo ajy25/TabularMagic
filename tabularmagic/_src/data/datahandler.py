@@ -611,7 +611,7 @@ class DataHandler:
             prev_vars = include_vars
 
         if exclude_vars is not None:
-            prev_vars = list(set(prev_vars) - set(exclude_vars))
+            prev_vars = sorted(list(set(prev_vars) - set(exclude_vars)))
 
         missingness = self._working_df_train[prev_vars].isna().mean()
         vars_to_drop = missingness[missingness >= threshold].index.to_list()

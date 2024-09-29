@@ -94,6 +94,11 @@ class Analyzer:
 
         if df_test is not None:
             df_test.columns = df_test.columns.astype(str)
+
+            # ensure column names are sorted
+            df = df.reindex(sorted(df.columns), axis=1)
+            df_test = df_test.reindex(sorted(df_test.columns), axis=1)
+
             self._datahandler = DataHandler(
                 df_train=df, df_test=df_test, verbose=self._verbose, name=name
             )
@@ -114,6 +119,9 @@ class Analyzer:
                     )
                 temp_train_df = df
                 temp_test_df = df
+            # ensure column names are sorted
+            temp_train_df = temp_train_df.reindex(sorted(temp_train_df.columns), axis=1)
+            temp_test_df = temp_test_df.reindex(sorted(temp_test_df.columns), axis=1)
             self._datahandler = DataHandler(
                 df_train=temp_train_df,
                 df_test=temp_test_df,
@@ -212,7 +220,12 @@ class Analyzer:
                         type="WARNING",
                     )
                     predictors.remove(target)
-            return OLSReport(OLSLinearModel(), self._datahandler, target, predictors)
+            return OLSReport(
+                OLSLinearModel(alpha=alpha, l1_weight=l1_weight),
+                self._datahandler,
+                target,
+                predictors,
+            )
 
         else:
             try:
@@ -249,7 +262,12 @@ class Analyzer:
             elif self._datahandler.scaler(target) is not None:
                 datahandler.add_scaler(self._datahandler.scaler(target), target)
 
-            return OLSReport(OLSLinearModel(), datahandler, target, predictors)
+            return OLSReport(
+                OLSLinearModel(alpha=alpha, l1_weight=l1_weight),
+                datahandler,
+                target,
+                predictors,
+            )
 
     @ensure_arg_list_uniqueness()
     def logit(
@@ -751,9 +769,9 @@ class Analyzer:
             Returns self for method chaining.
         """
         if include_vars is None:
-            include_vars = self._datahandler.vars()
+            include_vars = sorted(self._datahandler.vars())
         if exclude_vars is not None:
-            include_vars = list(set(include_vars) - set(exclude_vars))
+            include_vars = sorted(list(set(include_vars) - set(exclude_vars)))
         self._datahandler.select_vars(vars=include_vars)
         return self
 

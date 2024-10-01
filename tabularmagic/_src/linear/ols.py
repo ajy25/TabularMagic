@@ -1,10 +1,12 @@
 import statsmodels.api as sm
 from typing import Literal
 import pandas as pd
+import numpy as np
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
 from ..display.print_utils import suppress_print_output
+from ..display.print_options import print_options
 from .lmutils.score import score_model
 
 
@@ -338,16 +340,16 @@ class OLSLinearModel:
         std_err = self.estimator.bse
         p_values = self.estimator.pvalues
 
-        ci_low = params - 1.96 * std_err
-        ci_high = params + 1.96 * std_err
+        ci_low = params - 1.959963984540054 * std_err
+        ci_high = params + 1.959963984540054 * std_err
 
         output_df = pd.DataFrame(
             {
-                "coef": params,
-                "se": std_err,
-                "pval": p_values,
-                "ci_low": ci_low,
-                "ci_high": ci_high,
+                "coef": np.round(params, print_options._n_decimals),
+                "se": np.round(std_err, print_options._n_decimals),
+                "pval": np.round(p_values, print_options._n_decimals),
+                "ci_low": np.round(ci_low, print_options._n_decimals),
+                "ci_high": np.round(ci_high, print_options._n_decimals),
             }
         )
 

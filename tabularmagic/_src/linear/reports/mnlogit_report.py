@@ -12,14 +12,14 @@ from ...display.print_utils import print_wrapped, suppress_print_output
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
-class SingleDatasetMNLogitReport:
+class _SingleDatasetMNLogitReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a MNLogit model.
     """
 
     def __init__(self, model: MNLogitLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a SingleDatasetMNLogitReport object.
+        Initializes a _SingleDatasetMNLogitReport object.
 
         Parameters
         ----------
@@ -101,8 +101,8 @@ class MNLogitReport:
         self._model.fit()
         self._target = target
         self._predictors = predictors
-        self._train_report = SingleDatasetMNLogitReport(model, "train")
-        self._test_report = SingleDatasetMNLogitReport(model, "test")
+        self._train_report = _SingleDatasetMNLogitReport(model, "train")
+        self._test_report = _SingleDatasetMNLogitReport(model, "test")
 
     def step(
         self,

@@ -19,6 +19,7 @@ from .linear import (
 from .exploratory import (
     EDAReport,
 )
+from .causal import CausalReport, CausalModel
 from .display.print_utils import print_wrapped, quote_and_color
 from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
@@ -142,7 +143,7 @@ class Analyzer:
             )
 
     # --------------------------------------------------------------------------
-    # EDA + FEATURE SELECTION + REGRESSION ANALYSIS
+    # EDA + FEATURE SELECTION + CAUSAL EFFECT ESTIMATION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
     def eda(self, dataset: Literal["train", "test", "all"]) -> EDAReport:
         """Constructs an EDAReport object for the working train
@@ -168,6 +169,21 @@ class Analyzer:
             return EDAReport(self._datahandler.df_all())
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
+
+    @ensure_arg_list_uniqueness()
+    def causal_model(
+        self,
+        treatment: str,
+        outcome: str,
+        confounders: list[str],
+    ) -> CausalModel:
+        """Returns a CausalModel object for estimating causal effects."""
+        return CausalModel(
+            self._datahandler.df_all(),
+            treatment,
+            outcome,
+            confounders,
+        )
 
     @ensure_arg_list_uniqueness()
     def ols(

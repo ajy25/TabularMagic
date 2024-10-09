@@ -1,15 +1,16 @@
 import statsmodels.api as sm
 import pandas as pd
+from ...display.print_utils import suppress_print_output
 
 
-class _SimpleLogit:
+class _CausalLogit:
     """Extremely simple Logit wrapper for statsmodels to aid in causal inference.
 
     Used for propensity score estimation.
     """
 
     def __init__(self, data: pd.DataFrame, target: str, predictors: list[str]):
-        """Initializes a _SimpleLogit object.
+        """Initializes a _CausalLogit object.
 
         Parameters
         ----------
@@ -23,10 +24,11 @@ class _SimpleLogit:
             The names of the predictor variables. That is, the X variables.
             A constant term is automatically added to the predictors.
         """
-
-        self._sm_results = sm.Logit(
-            endog=data[target], exog=sm.add_constant(data[predictors])
-        ).fit(cov_type="HC3")
+        self._predictors = predictors
+        with suppress_print_output():
+            self._sm_results = sm.Logit(
+                endog=data[target], exog=sm.add_constant(data[predictors])
+            ).fit(cov_type="HC3")
 
     def get_coef(self, variable: str) -> float:
         """Returns the coefficient for the given variable.
@@ -89,11 +91,10 @@ class _SimpleLogit:
         pd.Series
             The predicted probabilities.
         """
+        return self._sm_results.predict(sm.add_constant(data[self._predictors]))
 
-        return self._sm_results.predict(sm.add_constant(data))
 
-
-class _SimpleOLS:
+class _CausalOLS:
     """Extremely simple OLS wrapper for statsmodels to aid in causal inference."""
 
     def __init__(
@@ -103,7 +104,7 @@ class _SimpleOLS:
         predictors: list[str],
         weights: pd.Series | None = None,
     ):
-        """Initializes a _SimpleOLS object.
+        """Initializes a _CausalOLS object.
 
         Parameters
         ----------
@@ -121,25 +122,24 @@ class _SimpleOLS:
             The weights to use for the regression. If None, no weights are used.
             It must be the case that the weights have the same index as the data.
         """
+        with suppress_print_output():
+            if weights is not None:
+                if not weights.index.equals(data.index):
+                    raise ValueError(
+                        "The weights index must be the same as the data index."
+                    )
 
-        if weights is not None:
-            if not weights.index.equals(data.index):
-                raise ValueError(
-                    "The weights index must be the same as the data index."
-                )
+                self._sm_results = sm.WLS(
+                    endog=data[target],
+                    exog=sm.add_constant(data[predictors]),
+                    weights=weights,
+                ).fit(cov_type="HC3")
 
-            self._sm_results = sm.WLS(
-                endog=data[target],
-                exog=sm.add_constant(data[predictors]),
-                weights=weights,
-            ).fit(cov_type="HC3")
-
-        else:
-            self._sm_results = sm.OLS(
-                endog=data[target],
-                exog=sm.add_constant(data[predictors]),
-                weights=weights,
-            ).fit(cov_type="HC3")
+            else:
+                self._sm_results = sm.OLS(
+                    endog=data[target],
+                    exog=sm.add_constant(data[predictors]),
+                ).fit(cov_type="HC3")
 
     def get_coef(self, variable: str) -> float:
         """Returns the coefficient for the given variable.

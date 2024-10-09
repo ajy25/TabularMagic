@@ -12,14 +12,14 @@ from ...display.print_utils import print_wrapped, suppress_print_output
 from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
 
 
-class SingleDatasetLogitReport:
+class _SingleDatasetLogitReport:
     """Class for generating regression-relevant diagnostic
-    plots and tables for a binomial generalized linear regression model.
+    plots and tables for a logistic regression model.
     """
 
     def __init__(self, model: LogitLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a SingleDatasetLogitReport object.
+        Initializes a _SingleDatasetLogitReport object.
 
         Parameters
         ----------
@@ -650,7 +650,7 @@ class SingleDatasetLogitReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetLogitReport":
+    def set_outlier_threshold(self, threshold: float) -> "_SingleDatasetLogitReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -746,10 +746,10 @@ class LogitReport:
         self._model.fit()
         self._target = target
         self._predictors = predictors
-        self._train_report = SingleDatasetLogitReport(model, "train")
-        self._test_report = SingleDatasetLogitReport(model, "test")
+        self._train_report = _SingleDatasetLogitReport(model, "train")
+        self._test_report = _SingleDatasetLogitReport(model, "test")
 
-    def train_report(self) -> SingleDatasetLogitReport:
+    def train_report(self) -> _SingleDatasetLogitReport:
         """Returns a SingleDatasetLogitReport object for the train dataset
 
         Returns
@@ -758,7 +758,7 @@ class LogitReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetLogitReport:
+    def test_report(self) -> _SingleDatasetLogitReport:
         """Returns a SingleDatasetLogitReport object for the test dataset
 
         Returns
@@ -1210,7 +1210,7 @@ class LogitReport:
 
     def set_outlier_threshold(
         self, threshold: float, dataset: Literal["train", "test"] = "test"
-    ) -> "SingleDatasetLogitReport":
+    ) -> "_SingleDatasetLogitReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 

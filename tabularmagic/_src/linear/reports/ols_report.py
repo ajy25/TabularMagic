@@ -29,14 +29,14 @@ from ...display.print_utils import (
 from ...stattests import StatisticalTestReport
 
 
-class SingleDatasetOLSReport:
+class _SingleDatasetOLSReport:
     """Class for generating regression-relevant diagnostic
     plots and tables for a single linear regression model.
     """
 
     def __init__(self, model: OLSLinearModel, dataset: Literal["train", "test"]):
         """
-        Initializes a SingleDatasetLinRegReport object.
+        Initializes a _SingleDatasetOLSReport object.
 
         Parameters
         ----------
@@ -405,7 +405,7 @@ class SingleDatasetOLSReport:
         plt.close()
         return fig
 
-    def set_outlier_threshold(self, threshold: float) -> "SingleDatasetOLSReport":
+    def set_outlier_threshold(self, threshold: float) -> "_SingleDatasetOLSReport":
         """Standardized residuals threshold for outlier identification.
         Recomputes the outliers.
 
@@ -510,10 +510,10 @@ class OLSReport:
         self._model.fit()
         self._target = target
         self._predictors = predictors
-        self._train_report = SingleDatasetOLSReport(model, "train")
-        self._test_report = SingleDatasetOLSReport(model, "test")
+        self._train_report = _SingleDatasetOLSReport(model, "train")
+        self._test_report = _SingleDatasetOLSReport(model, "test")
 
-    def train_report(self) -> SingleDatasetOLSReport:
+    def train_report(self) -> _SingleDatasetOLSReport:
         """Returns an SingleDatasetLinRegReport object for the train dataset
 
         Returns
@@ -522,7 +522,7 @@ class OLSReport:
         """
         return self._train_report
 
-    def test_report(self) -> SingleDatasetOLSReport:
+    def test_report(self) -> _SingleDatasetOLSReport:
         """Returns an SingleDatasetLinRegReport object for the test dataset
 
         Returns

@@ -1,9 +1,6 @@
 from .._src.linear.reports import (
     LogitReport,
-    PoissonRegressionReport,
-    NegativeBinomialRegressionReport,
     OLSReport,
-    CountRegressionReport,
 )
 
 from .._src.ml.predict.regression import MLRegressionReport
@@ -16,15 +13,16 @@ from .._src.feature_selection import VotingSelectionReport
 from .._src.stattests import StatisticalTestReport
 
 
+from .._src.causal import CausalReport
+
+
 __all__ = [
-    "PoissonRegressionReport",
     "LogitReport",
-    "NegativeBinomialRegressionReport",
     "OLSReport",
-    "CountRegressionReport",
     "MLRegressionReport",
     "MLClassificationReport",
     "EDAReport",
     "VotingSelectionReport",
     "StatisticalTestReport",
+    "CausalReport",
 ]

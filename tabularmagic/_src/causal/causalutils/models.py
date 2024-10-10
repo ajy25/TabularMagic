@@ -10,7 +10,8 @@ class _CausalLogit:
     """
 
     def __init__(self, data: pd.DataFrame, target: str, predictors: list[str]):
-        """Initializes a _CausalLogit object.
+        """Initializes a _CausalLogit object. Performs logistic regression.
+        Constant term is automatically added to the predictors.
 
         Parameters
         ----------
@@ -27,7 +28,8 @@ class _CausalLogit:
         self._predictors = predictors
         with suppress_print_output():
             self._sm_results = sm.Logit(
-                endog=data[target], exog=sm.add_constant(data[predictors])
+                endog=data[target],
+                exog=sm.add_constant(data[predictors], has_constant="add"),
             ).fit(cov_type="HC3")
 
     def get_coef(self, variable: str) -> float:
@@ -91,7 +93,10 @@ class _CausalLogit:
         pd.Series
             The predicted probabilities.
         """
-        return self._sm_results.predict(sm.add_constant(data[self._predictors]))
+        prob_of_one = self._sm_results.predict(
+            sm.add_constant(data[self._predictors], has_constant="add")
+        )
+        return prob_of_one
 
 
 class _CausalOLS:
@@ -105,6 +110,7 @@ class _CausalOLS:
         weights: pd.Series | None = None,
     ):
         """Initializes a _CausalOLS object.
+        Constant term is automatically added to the predictors.
 
         Parameters
         ----------
@@ -131,14 +137,14 @@ class _CausalOLS:
 
                 self._sm_results = sm.WLS(
                     endog=data[target],
-                    exog=sm.add_constant(data[predictors]),
-                    weights=weights,
+                    exog=sm.add_constant(data[predictors], has_constant="add"),
+                    weights=weights.to_numpy(),
                 ).fit(cov_type="HC3")
 
             else:
                 self._sm_results = sm.OLS(
                     endog=data[target],
-                    exog=sm.add_constant(data[predictors]),
+                    exog=sm.add_constant(data[predictors], has_constant="add"),
                 ).fit(cov_type="HC3")
 
     def get_coef(self, variable: str) -> float:

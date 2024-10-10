@@ -1,7 +1,5 @@
 import pandas as pd
-
 from .report import CausalReport
-
 from .causalutils.methods import estimate_ate
 
 

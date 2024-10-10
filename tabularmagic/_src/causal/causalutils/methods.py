@@ -39,11 +39,13 @@ def compute_weights_from_propensity_scores(
     output = pd.Series(0.0, index=propensity_scores.index)
 
     # Boolean masks for treated and control groups
-    idx_for_treatment = (treatment == 1).index
-    idx_for_control = (treatment == 0).index
+    idx_for_treatment = treatment == 1
+    idx_for_control = treatment == 0
 
     if estimand == "ate":
         # compute weights for the ATE
+
+        # similar to ifelse(output$treatment == 1, 1 / predictions, 1 / (1 - predictions))
         output.loc[idx_for_treatment] = 1 / propensity_scores.loc[idx_for_treatment]
         output.loc[idx_for_control] = 1 / (1 - propensity_scores.loc[idx_for_control])
 
@@ -58,8 +60,6 @@ def compute_weights_from_propensity_scores(
     else:
         raise ValueError(f"Estimand {estimand} is not supported.")
 
-    print(output)
-
     return output
 
 
@@ -71,7 +71,7 @@ def estimate_ate(
     method: Literal[
         "naive", "outcome_regression", "weighted_regression", "ipw_estimator"
     ],
-) -> tuple[float, float]:
+) -> tuple[float, float, str]:
     """Estimates the average treatment effect (ATE) using the given method.
 
     Parameters
@@ -132,8 +132,14 @@ def estimate_ate(
 
     Returns
     -------
-    tuple[float, float]
-        The estimated ATE and its standard error.
+    float
+        The estimated ATE.
+
+    float
+        The standard error of the estimated ATE.
+
+    str
+        Details of the method used to estimate the ATE.
     """
     if type(confounders) != list:
         raise ValueError("Confounders must be a list of strings.")
@@ -152,6 +158,8 @@ def estimate_ate(
     elif outcome not in data.columns:
         raise ValueError(f"Outcome {outcome} not found in data.")
 
+    method_description = ""
+
     if method == "naive":
         # Estimates the ATE by computing the difference in means between the
         # treatment and control groups. Does not account for confounding.
@@ -160,7 +168,11 @@ def estimate_ate(
             data.groupby(treatment)[outcome].var().sum()
             / data.groupby(treatment)[outcome].count().sum()
         )
-        return ate, se
+
+        method_description = """
+        Computes the difference in means between the treatment and control groups
+        from the data. Does not account for confounding.
+        """
 
     elif method == "outcome_regression":
         # Fits an OLS model with the treatment variable and confounders.
@@ -170,7 +182,12 @@ def estimate_ate(
         )
         ate = model.get_coef(treatment)
         se = model.get_se(treatment)
-        return ate, se
+
+        method_description = """
+        Fits a linear regression model (OLS) to estimate the ATE. 
+        The model includes the treatment variable and confounders as predictors, 
+        and the coefficient of the treatment variable is interpreted as the ATE.
+        """
 
     elif method == "weighted_regression":
         # Fits a logistic regression model to estimate the propensity score.
@@ -194,7 +211,13 @@ def estimate_ate(
         )
         ate = model.get_coef(treatment)
         se = model.get_se(treatment)
-        return ate, se
+
+        method_description = """
+        Fits a weighted linear regression model to estimate the ATE.
+        The model includes the treatment variable and confounders as predictors,
+        and the coefficient of the treatment variable is interpreted as the ATE.
+        The observations are weighted by the inverse probability weights (IPW).
+        """
 
     elif method == "ipw_estimator":
         # Fits a logistic regression model to estimate the propensity score.
@@ -224,5 +247,12 @@ def estimate_ate(
             / len(outcome)
         )
 
+        method_description = """
+        Estimates the ATE using the inverse propensity weighting (IPW) estimator.
+        Propensity scores are estimated using a logistic regression model.
+        """
+
     else:
         raise ValueError(f"Method {method} is not supported.")
+
+    return ate, se, method_description

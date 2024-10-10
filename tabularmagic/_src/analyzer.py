@@ -116,7 +116,7 @@ class Analyzer:
                     print_wrapped(
                         "No test DataFrame provided. The test DataFrame "
                         + "will be treated as a train DataFrame copy.",
-                        type="WARNING",
+                        type="NOTE",
                     )
                 temp_train_df = df
                 temp_test_df = df

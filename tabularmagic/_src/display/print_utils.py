@@ -22,6 +22,9 @@ def color_text(
     -------
     str
     """
+    # force text to be a string
+    text = str(text)
+
     if color == "none":
         return text
     elif color == "red":
@@ -43,7 +46,7 @@ def bold_text(text):
 
 def print_wrapped(
     text: str,
-    type: Literal["WARNING", "UPDATE", "PROGRESS", None] = None,
+    type: Literal["WARNING", "UPDATE", "PROGRESS", "NOTE", None] = None,
     level: Literal["INFO", "DEBUG"] = "INFO",
 ):
     """Logs text.
@@ -62,9 +65,11 @@ def print_wrapped(
     if type == "WARNING":
         base_message = color_text("WARN: ", "red") + base_message
     elif type == "UPDATE":
-        base_message = color_text("INFO: ", "green") + base_message
+        base_message = color_text("UPDT: ", "green") + base_message
     elif type == "PROGRESS":
         base_message = color_text("PROG: ", "yellow") + base_message
+    elif type == "NOTE":
+        base_message = color_text("NOTE: ", "yellow") + base_message
 
     if level == "DEBUG":
         print_options._log_debug(

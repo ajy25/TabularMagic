@@ -1,3 +1,4 @@
+import numpy as np
 from ..display.print_options import print_options
 from ..display.print_utils import (
     color_text,
@@ -76,19 +77,24 @@ class CausalReport:
 
         title_message = bold_text("Causal Effect Estimation Report")
 
-        estimate_message = f"{bold_text('Estimate:')}\n"
+        estimand = (
+            "Avg Tmt Effect" if self._estimand == "ate" else "Avg Tmt Effect on Treated"
+        )
+        estimate_message = ""
         estimate_message += format_two_column(
-            f"{bold_text(self._estimand.capitalize() + ':')} {self._estimate}",
-            f"{bold_text('SE:')} {self._estimate_se}",
+            f"{bold_text('Estimated ' + estimand + ':')} "
+            f"{color_text(f'{self._estimate:.{n_dec}f}', 'yellow')}",
+            f"{bold_text('Std Err:')} "
+            f"{color_text(f'{self._estimate_se:.{n_dec}f}', 'yellow')}",
             max_width,
         )
 
-        treatment_message = bold_text("Treatment Variable: ") + color_text(
-            "'" + self._treatment_var + "'", "purple"
+        treatment_message = bold_text("Treatment variable:\n") + color_text(
+            "  '" + self._treatment_var + "'", "purple"
         )
 
-        outcome_message = bold_text("Outcome Variable: ") + color_text(
-            "'" + self._outcome_var + "'", "purple"
+        outcome_message = bold_text("Outcome variable:\n") + color_text(
+            "  '" + self._outcome_var + "'", "purple"
         )
 
         confounders_message = bold_text("Confounders:\n") + fill_ignore_format(
@@ -110,4 +116,7 @@ class CausalReport:
         )
 
     def _repr_pretty_(self, p, cycle):
-        p.text(str(self))
+        if cycle:
+            p.text(self.__class__.__name__ + "(...)")
+        else:
+            p.text(str(self))

@@ -58,6 +58,8 @@ def compute_weights_from_propensity_scores(
     else:
         raise ValueError(f"Estimand {estimand} is not supported.")
 
+    print(output)
+
     return output
 
 

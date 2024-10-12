@@ -17,6 +17,7 @@ class CausalReport:
         estimate: float,
         se: float,
         n_units: int,
+        n_units_treated: int,
         outcome_var: str,
         treatment_var: str,
         confounders: list[str],
@@ -36,6 +37,9 @@ class CausalReport:
 
         n_units : int
             The number of units in the data.
+
+        n_units_treated : int
+            The number of treated units in the data.
 
         outcome_var : str
             The name of the outcome variable.
@@ -59,6 +63,7 @@ class CausalReport:
         self._estimate = estimate
         self._estimate_se = se
         self._n_units = n_units
+        self._n_units_treated = n_units_treated
         self._outcome_var = outcome_var
         self._treatment_var = treatment_var
         self._confounders = confounders
@@ -82,7 +87,7 @@ class CausalReport:
         )
         estimate_message = ""
         estimate_message += format_two_column(
-            f"{bold_text('Estimated ' + estimand + ':')} "
+            f"{bold_text('Est ' + estimand + ':')} "
             f"{color_text(f'{self._estimate:.{n_dec}f}', 'yellow')}",
             f"{bold_text('Std Err:')} "
             f"{color_text(f'{self._estimate_se:.{n_dec}f}', 'yellow')}",
@@ -101,6 +106,10 @@ class CausalReport:
             list_to_string(self._confounders), initial_indent=2, subsequent_indent=2
         )
 
+        method_message = bold_text("Method:\n") + fill_ignore_format(
+            color_text(self._method, "blue"), initial_indent=2, subsequent_indent=2
+        )
+
         return (
             top_divider
             + title_message
@@ -112,6 +121,8 @@ class CausalReport:
             + outcome_message
             + divider_invisible
             + confounders_message
+            + divider
+            + method_message
             + bottom_divider
         )
 

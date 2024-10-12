@@ -171,7 +171,7 @@ class Analyzer:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
     @ensure_arg_list_uniqueness()
-    def causal_model(
+    def causal(
         self,
         treatment: str,
         outcome: str,
@@ -179,7 +179,7 @@ class Analyzer:
     ) -> CausalModel:
         """Returns a CausalModel object for estimating causal effects."""
         return CausalModel(
-            self._datahandler.df_all(),
+            self._datahandler,
             treatment,
             outcome,
             confounders,

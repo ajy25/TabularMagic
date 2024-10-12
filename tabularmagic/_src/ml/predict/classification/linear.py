@@ -95,7 +95,7 @@ class LinearC(BaseC):
 
         if type == "no_penalty":
             self._best_estimator = LogisticRegression(
-                penalty=None, random_state=model_random_state
+                penalty=None, random_state=model_random_state, max_iter=1000
             )
             if (hyperparam_search_method is None) or (hyperparam_search_space is None):
                 hyperparam_search_method = "grid"

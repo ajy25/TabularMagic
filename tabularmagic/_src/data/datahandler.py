@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import Literal
+from copy import deepcopy
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.utils._testing import ignore_warnings
@@ -316,6 +317,40 @@ class DataHandler:
         return DataEmitter(
             self._orig_df_train,
             self._orig_df_test,
+            y_var,
+            X_vars,
+            self._preprocess_step_tracer,
+        )
+
+    def full_dataset_emitter(self, y_var: str, X_vars: list[str]) -> DataEmitter:
+        """Returns a DataEmitter object for the original train DataFrame and
+        the original test DataFrame.
+
+        The concatenated DataFrame (full DataFrame) is re-preprocessed as if
+        it were the original train DataFrame. Note that the "test" DataFrame is the
+        same as the "train" DataFrame for the outputted DataEmitter in this case.
+
+        Parameters
+        ----------
+        y_var : str
+            Name of the target variable.
+
+        X_vars : list[str]
+            Names of the predictor variables.
+
+        Returns
+        -------
+        DataEmitter
+        """
+        if y_var not in self._orig_df_train.columns:
+            raise ValueError(f"Invalid target variable name: {y_var}.")
+        for var in X_vars:
+            if var not in self._orig_df_train.columns:
+                raise ValueError(f"Invalid variable name: {var}.")
+        concatinated_df = pd.concat([self._orig_df_train, self._orig_df_test])
+        return DataEmitter(
+            concatinated_df,
+            concatinated_df,
             y_var,
             X_vars,
             self._preprocess_step_tracer,
@@ -1548,3 +1583,7 @@ class DataHandler:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
+
+    def copy(self) -> "DataHandler":
+        """Returns a copy of the DataHandler object."""
+        return deepcopy(self)

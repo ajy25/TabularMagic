@@ -2,26 +2,34 @@ import tabularmagic as tm
 import pandas as pd
 import logging
 from pathlib import Path
-
 from llama_index.experimental.query_engine import PandasQueryEngine
-from .llms.openai import build_chat_openai
+from .llms.openai import build_openai
 
 
-logger_path = Path(__file__).parent / "io" / "_tm_logger_output" / "log.txt"
+logger_path = Path(__file__).parent / "_debug" / "_log.txt"
+# clear the log file
+with open(logger_path, "w") as f:
+    f.write("")
 
 
-class _DataAnalysisContainer:
+class _DataContainer:
     def __init__(self):
         self.analyzer = None
-        self.sqldb = None
 
     def set_analyzer(self, analyzer: tm.Analyzer):
+        """Sets the Analyzer for the DataContainer."""
         self.analyzer = analyzer
         self.df = self.analyzer.datahandler().df_all()
-        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_chat_openai())
+        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
+
+    def update_df(self):
+        """Update the DataFrame based on the Analyzer's state."""
+        self.df = self.analyzer.datahandler().df_all()
+        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
 
 
-shared_container = _DataAnalysisContainer()
+GLOBAL_DATA_CONTAINER = _DataContainer()
+"""Container for storing the Analyzer and DataFrame."""
 
 
 def build_tabularmagic_analyzer(
@@ -67,4 +75,4 @@ def set_tabularmagic_analyzer(analyzer: tm.Analyzer) -> None:
     analyzer : tm.Analyzer
         The TabularMagic Analyzer.
     """
-    shared_container.set_analyzer(analyzer)
+    GLOBAL_DATA_CONTAINER.set_analyzer(analyzer)

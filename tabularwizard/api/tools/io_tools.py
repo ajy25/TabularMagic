@@ -1,64 +1,42 @@
 from llama_index.core.tools import FunctionTool
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from pydantic import BaseModel, Field
-
-from ..io.jsonutils import json_cache_tracker
-from ..io.scratchutils import scratch_tracker
+from ..io.io import GLOBAL_IO
 
 
-# read json tool
-class ReadJsonInput(BaseModel):
-    name: str = Field(
-        description="The name of the JSON file to read. "
-        "The name must be in the form of 'file_\{integer\}.json'. "
-        "For example, 'file_1.json'."
-    )
+# save text tool
+class _SaveTextInput(BaseModel):
+    text: str = Field(description="The text to write to STORAGE.")
 
 
-def read_json_function(name) -> str:
-    """Reads a JSON file and returns its contents."""
-    return json_cache_tracker.read_json(name)
+def _save_text_function(text: str) -> str:
+    """Writes a text to STORAGE. Then, returns the text."""
+    GLOBAL_IO.add_str(text)
+    return text
 
 
-# write to scratch tool
-class WriteScratchInput(BaseModel):
-    scratch: str = Field(description="The information to write to a scratchpad.")
-
-
-def write_scratch_function(scratch: str) -> str:
-    """Writes a scratch to a scratchpad."""
-    scratch_tracker.write_scratch(scratch)
-    return scratch
-
-
-write_scratch_tool = FunctionTool.from_defaults(
-    fn=write_scratch_function,
-    name="write_scratch_tool",
-    description="Writes information to a scratchpad. "
-    "The information can later be queried by the 'query_scratch_tool'. "
-    "Returns the scratch exactly as provided.",
-    fn_schema=WriteScratchInput,
+save_text_tool = FunctionTool.from_defaults(
+    fn=_save_text_function,
+    name="save_text_tool",
+    description="Writes text to STORAGE. Then, returns the text back to you. "
+    "This tool is useful for storing text data for later reference.",
+    fn_schema=_SaveTextInput,
 )
 
 
-# query scratch tool
-class QueryScratchInput(BaseModel):
-    query: str = Field(description="Natural language query to search the scratchpad.")
+# retrieve text tool
+class _RetrieveTextOutput(BaseModel):
+    query: str = Field(description="Query to search for information in STORAGE.")
 
 
-def query_scratch_function(query: str) -> str:
-    """Queries the scratchpad."""
-    documents = SimpleDirectoryReader(
-        input_files=[scratch_tracker._filepath]
-    ).load_data()
-    index = VectorStoreIndex.from_documents(documents)
-    query_engine = index.as_query_engine()
-    return str(query_engine.query(query).response)
+def _retrieve_text_function(query: str) -> str:
+    """Retrieves text from STORAGE based on a query."""
+    return GLOBAL_IO.as_retriever().retrieve(query)
 
 
-query_scratch_tool = FunctionTool.from_defaults(
-    fn=query_scratch_function,
-    name="query_scratch_tool",
-    description="Queries the scratchpad using a natural language query.",
-    fn_schema=QueryScratchInput,
+retrieve_text_tool = FunctionTool.from_defaults(
+    fn=_retrieve_text_function,
+    name="retrieve_text_tool",
+    description="Retrieves text from STORAGE based on a query. "
+    "This tool is useful for retrieving information that you have stored.",
+    fn_schema=_RetrieveTextOutput,
 )

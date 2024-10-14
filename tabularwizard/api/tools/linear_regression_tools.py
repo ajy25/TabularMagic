@@ -1,7 +1,7 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 
-from ..tabularmagic_utils import shared_container
+from ..tabularmagic_utils import GLOBAL_DATA_CONTAINER
 from ..io.jsonutils import save_dict_to_json, save_df_to_json
 
 
@@ -16,7 +16,7 @@ class OLSRegressionTool(BaseModel):
 
 def ols_regression_function(formula: str) -> str:
     """Performs an OLS regression analysis using the specified formula."""
-    lm_report = shared_container.analyzer.ols(formula=formula)
+    lm_report = GLOBAL_DATA_CONTAINER.analyzer.ols(formula=formula)
     return save_dict_to_json(lm_report._to_dict())
 
 

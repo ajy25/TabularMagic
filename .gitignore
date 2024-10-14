@@ -6,11 +6,8 @@ demo/regression/ignored*
 
 
 tabularwizard/.env
-tabularwizard/api/io/_csv_cache/*
-tabularwizard/api/io/_json_cache/*
-tabularwizard/api/io/_img_cache/*
-tabularwizard/api/io/_scratch/*
-tabularwizard/api/io/_tm_logger_output/*
+tabularwizard/api/io/_img_store/*
+tabularwizard/api/io/_qdrant_store/*
 
 
 local_tests

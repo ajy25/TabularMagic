@@ -1,5 +1,7 @@
 import pandas as pd
 from .tabularmagic_utils import build_tabularmagic_analyzer, set_tabularmagic_analyzer
+from .tabularmagic_utils import GLOBAL_DATA_CONTAINER
+from .io.io import GLOBAL_IO
 
 
 class TabularWizard:
@@ -24,10 +26,11 @@ class TabularWizard:
         test_size : float
             The size of the test set. Defaults to 0.2.
         """
-        self.analyzer = build_tabularmagic_analyzer(
-            df, df_test=df_test, test_size=test_size
+        set_tabularmagic_analyzer(
+            build_tabularmagic_analyzer(df, df_test=df_test, test_size=test_size)
         )
-        set_tabularmagic_analyzer(self.analyzer)
+        self.data_container = GLOBAL_DATA_CONTAINER
+        self.io = GLOBAL_IO
 
     def chat(message: str) -> str:
         """Interacts with the LLM to provide data analysis insights.

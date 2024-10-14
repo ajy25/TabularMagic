@@ -1389,12 +1389,12 @@ class EDAReport:
         str
         """
         output = {}
-        output[
-            "categorical variable summary statistics"
-        ] = self._categorical_summary_statistics.to_dict()
-        output[
-            "numeric variable summary statistics"
-        ] = self._numeric_summary_statistics.to_dict()
+        output["categorical variable summary statistics"] = (
+            self._categorical_summary_statistics.to_dict()
+        )
+        output["numeric variable summary statistics"] = (
+            self._numeric_summary_statistics.to_dict()
+        )
         output["number of numeric variables"] = len(self._numeric_vars)
         output["number of categorical variables"] = len(self._categorical_vars)
         output["number of examples/rows"] = len(self._df)

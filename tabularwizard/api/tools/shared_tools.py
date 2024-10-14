@@ -2,8 +2,8 @@ from llama_index.core.tools import FunctionTool
 from llama_index.experimental.query_engine import PandasQueryEngine
 from pydantic import BaseModel, Field
 
-from ..tabularmagic_utils import shared_container
-from ..llms.openai import build_chat_openai
+from ..tabularmagic_utils import GLOBAL_DATA_CONTAINER
+from ..llms.openai import build_openai
 
 
 # pandas query tool
@@ -18,7 +18,7 @@ def pandas_query_function(query: str) -> str:
     """Executes a natural language query on the user-provided DataFrame.
     The output is also in natural language.
     """
-    response = shared_container.pd_query_engine.query(query)
+    response = GLOBAL_DATA_CONTAINER.pd_query_engine.query(query)
     return str(response)
 
 

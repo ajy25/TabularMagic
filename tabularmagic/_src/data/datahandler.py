@@ -52,9 +52,9 @@ class DataHandler:
         verbose : bool
             Default: True. If True, prints updates and warnings.
         """
-        self._checkpoint_name_to_df: dict[
-            str, tuple[pd.DataFrame, pd.DataFrame]
-        ] = dict()
+        self._checkpoint_name_to_df: dict[str, tuple[pd.DataFrame, pd.DataFrame]] = (
+            dict()
+        )
         self._verbose = verbose
 
         # verify and set the original DataFrames

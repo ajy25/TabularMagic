@@ -8,9 +8,9 @@ class _PlotOptions:
     def __init__(self):
         """Initializes the a _PlotOptions object with default settings."""
 
-        self._style: Literal[
-            "whitegrid", "darkgrid", "white", "dark", "ticks"
-        ] = "whitegrid"
+        self._style: Literal["whitegrid", "darkgrid", "white", "dark", "ticks"] = (
+            "whitegrid"
+        )
         """Style to use for plots. (Seaborn)"""
 
         self._context: Literal["paper", "notebook", "talk", "poster"] = "paper"

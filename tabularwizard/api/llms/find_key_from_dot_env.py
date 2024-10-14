@@ -27,4 +27,4 @@ def find_key(llm_type: Literal["openai"]) -> str:
     return api_key
 
 
-os.environ["OPENAI_API_KEY"] = find_key("openai")
+

@@ -1,13 +1,13 @@
-.ruff_cache
 .pytest_cache
 
 
 demo/regression/ignored*
 
 
-tabularwizard/.env
-tabularwizard/api/io/_img_store/*
-tabularwizard/api/io/_qdrant_store/*
+tabularmagic/wizard/_src/io/_img_store/*
+tabularmagic/wizard/_src/io/_vector_store/*
+
+.env
 
 
 local_tests

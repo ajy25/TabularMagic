@@ -36,7 +36,6 @@ classifiers = [
 
 [project.optional-dependencies]
 wizard = [
-    "tabularwizard",
     "llama-index>=0.11.10",
     "pydantic>=2.8.2",
     "python-dotenv>=0.21.0"

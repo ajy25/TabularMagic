@@ -11,6 +11,10 @@ from . import ml
 from . import options
 from . import fs
 
+# try:
+#     from . import wizard
+# except ImportError:
+#     pass
 
 __all__ = ["Analyzer", "ml", "options", "fs"]
 

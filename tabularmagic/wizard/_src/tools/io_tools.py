@@ -7,10 +7,14 @@ from ..io.global_io import GLOBAL_IO
 # save text tool
 class _WriteTextInput(BaseModel):
     text: str = Field(description="The text to write to STORAGE.")
+
+
 def _write_text_function(text: str) -> str:
     """Writes a text to STORAGE. Then, returns the text."""
     GLOBAL_IO.add_str(text)
     return text
+
+
 write_text_tool = FunctionTool.from_defaults(
     fn=_write_text_function,
     name="write_text_tool",
@@ -27,10 +31,14 @@ class _RetrieveTextOutput(BaseModel):
         "For example, if STORAGE contains summary statistics, an appropriate query "
         "could be 'What is the mean of the variable \"mpg\"?'."
     )
+
+
 def _retrieve_text_function(query: str) -> str:
     """Retrieves text from STORAGE based on a query."""
-    retrieved_node: BaseNode = GLOBAL_IO.get_retriever().retrieve(query)[0]
+    retrieved_node: BaseNode = GLOBAL_IO.retriever.retrieve(query)[0]
     return retrieved_node.get_content()
+
+
 retrieve_text_tool = FunctionTool.from_defaults(
     fn=_retrieve_text_function,
     name="retrieve_text_tool",
@@ -48,9 +56,13 @@ class _QueryIndexInput(BaseModel):
         "For example, if STORAGE contains summary statistics, an appropriate query "
         "could be 'What is the mean of the variable \"mpg\"?'. "
     )
+
+
 def _query_index_function(query: str) -> str:
-    """Queries the index for information based on a query. """
+    """Queries the index for information based on a query."""
     return str(GLOBAL_IO.query_engine.query(query))
+
+
 query_index_tool = FunctionTool.from_defaults(
     fn=_query_index_function,
     name="query_index_tool",
@@ -59,5 +71,3 @@ query_index_tool = FunctionTool.from_defaults(
     "from STORAGE, but rather returns a natural language response to the query.",
     fn_schema=_QueryIndexInput,
 )
-
-

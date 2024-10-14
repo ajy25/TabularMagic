@@ -1,22 +1,26 @@
-import tabularmagic as tm
+from ... import Analyzer
+from ...options import print_options
+
 import pandas as pd
-import logging
-from pathlib import Path
 from llama_index.experimental.query_engine import PandasQueryEngine
+
+import logging
+
+
 from .llms.openai import build_openai
+from ._debug.logger import logger_path
 
 
-logger_path = Path(__file__).parent / "_debug" / "_log.txt"
-# clear the log file
-with open(logger_path, "w") as f:
-    f.write("")
+GLOBAL_DATA_CONTAINER = None
+build_tabularmagic_analyzer = None
+set_tabularmagic_analyzer = None
 
 
 class _DataContainer:
     def __init__(self):
         self.analyzer = None
 
-    def set_analyzer(self, analyzer: tm.Analyzer):
+    def set_analyzer(self, analyzer: Analyzer):
         """Sets the Analyzer for the DataContainer."""
         self.analyzer = analyzer
         self.df = self.analyzer.datahandler().df_all()
@@ -34,7 +38,7 @@ GLOBAL_DATA_CONTAINER = _DataContainer()
 
 def build_tabularmagic_analyzer(
     df: pd.DataFrame, df_test: pd.DataFrame | None = None, test_size: float = 0.2
-) -> tm.Analyzer:
+) -> Analyzer:
     """Builds a TabularMagic Analyzer for a DataFrame.
 
     Parameters
@@ -62,12 +66,12 @@ def build_tabularmagic_analyzer(
     filehandler.setFormatter(formatter)
     tm_logger.addHandler(filehandler)
 
-    tm.options.print_options.reset_logger(logger=tm_logger)
-    analyzer = tm.Analyzer(df, df_test=df_test, test_size=test_size, verbose=True)
+    print_options.reset_logger(logger=tm_logger)
+    analyzer = Analyzer(df, df_test=df_test, test_size=test_size, verbose=True)
     return analyzer
 
 
-def set_tabularmagic_analyzer(analyzer: tm.Analyzer) -> None:
+def set_tabularmagic_analyzer(analyzer: Analyzer) -> None:
     """Sets the TabularMagic Analyzer.
 
     Parameters

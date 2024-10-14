@@ -1,8 +1,5 @@
 from .utils import build_function_calling_agent_openai
-from ..tools.eda_tools import (
-    test_equal_means_tool,
-    plot_distribution_tool
-)
+from ..tools.eda_tools import test_equal_means_tool, plot_distribution_tool
 from ..tools.shared_tools import pandas_query_tool
 from ..tools.io_tools import write_text_tool, retrieve_text_tool, query_index_tool
 from llama_index.agent.openai import OpenAIAgent
@@ -49,9 +46,6 @@ def build_eda_agent(system_prompt: str = DEFAULT_EDA_SYSTEM_PROMPT) -> OpenAIAge
         pandas_query_tool,
         write_text_tool,
         retrieve_text_tool,
-        query_index_tool
+        query_index_tool,
     ]
-    return build_function_calling_agent_openai(
-        tools=tools, 
-        system_prompt=system_prompt
-    )
+    return build_function_calling_agent_openai(tools=tools, system_prompt=system_prompt)

@@ -7,10 +7,12 @@ from .._src import (
     print_debug,
 )
 
-from .._src.agents.eda_agent import build_eda_agent
+from ..._src.display.print_utils import suppress_all_output, suppress_logging
+
+from .._src.agents.orchestrator_agent import OrchestratorAgent
 
 
-class TabularWizard:
+class Wizard:
     """Class for interacting with the LLMs for data analysis on tabular data."""
 
     def __init__(
@@ -19,7 +21,7 @@ class TabularWizard:
         df_test: pd.DataFrame | None = None,
         test_size: float = 0.2,
     ):
-        """Initializes the TabularWizard object.
+        """Initializes the Wizard object.
 
         Parameters
         ----------
@@ -37,7 +39,7 @@ class TabularWizard:
         )
 
         print_debug(
-            "TabularWizard initialized with Analyzer built from the provided DataFrame."
+            "Wizard initialized with Analyzer built from the provided DataFrame."
         )
 
         self.data_container = GLOBAL_DATA_CONTAINER
@@ -51,9 +53,9 @@ class TabularWizard:
 
         print_debug("Global IO initialized.")
 
-        self._eda_agent = build_eda_agent()
+        self._orchestrator_agent = OrchestratorAgent()
 
-    def chat(message: str) -> str:
+    def chat(self, message: str) -> str:
         """Interacts with the LLM to provide data analysis insights.
 
         Parameters
@@ -66,4 +68,5 @@ class TabularWizard:
         str
             The response from the LLM.
         """
-        raise NotImplementedError("This method is not implemented yet.")
+        with suppress_all_output(), suppress_logging():
+            return self._orchestrator_agent.chat(message)

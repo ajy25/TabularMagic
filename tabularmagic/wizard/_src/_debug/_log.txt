@@ -1,7 +1,7 @@
-2024-10-14 16:17:24 - tabularwizard - DEBUG - Qdrant client initialized.
-2024-10-14 16:17:24 - tabularwizard - DEBUG - WizardIO initialized.
-2024-10-14 16:17:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
+2024-10-15 07:00:10 - tabularwizard - DEBUG - Qdrant client initialized.
+2024-10-15 07:00:10 - tabularwizard - DEBUG - WizardIO initialized.
+2024-10-15 07:00:10 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
       DataFrames: [93m(1168, 81)[0m, [93m(292, 81)[0m. 
-2024-10-14 16:17:24 - tabularwizard - DEBUG - TabularWizard initialized with Analyzer built from the provided DataFrame.
-2024-10-14 16:17:24 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-10-14 16:17:24 - tabularwizard - DEBUG - Global IO initialized.
+2024-10-15 07:00:10 - tabularwizard - DEBUG - Wizard initialized with Analyzer built from the provided DataFrame.
+2024-10-15 07:00:10 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-10-15 07:00:10 - tabularwizard - DEBUG - Global IO initialized.

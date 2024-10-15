@@ -10,15 +10,15 @@ class _WriteTextInput(BaseModel):
 
 
 def _write_text_function(text: str) -> str:
-    """Writes a text to STORAGE. Then, returns the text."""
+    """Writes a text to STORAGE."""
     GLOBAL_IO.add_str(text)
-    return text
+    return "Text has been written to STORAGE."
 
 
 write_text_tool = FunctionTool.from_defaults(
     fn=_write_text_function,
     name="write_text_tool",
-    description="Writes text to STORAGE. Then, returns the text back to you. "
+    description="Writes text to STORAGE. "
     "This tool is useful for storing text data for later reference.",
     fn_schema=_WriteTextInput,
 )

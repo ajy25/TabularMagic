@@ -16,7 +16,60 @@ build_tabularmagic_analyzer = None
 set_tabularmagic_analyzer = None
 
 
-class _DataContainer:
+class VariableInfo:
+
+    def __init__(
+        self,
+        vars: list[str],
+    ):
+        """Initializes the VariableInfo object.
+
+        Parameters
+        ----------
+        vars : list[str]
+            The variables to provide information on.
+        """
+        self.vars_to_description = {var: None for var in vars}
+
+    def set_description(
+        self,
+        var: str,
+        description: str,
+    ) -> None:
+        """Sets the description for a variable.
+
+        Parameters
+        ----------
+        var : str
+            The variable to set the description for.
+
+        description : str
+            The description of the variable.
+        """
+        self.vars_to_description[var] = description
+
+    def get_description(
+        self,
+        var: str,
+    ) -> str:
+        """Gets the description for a variable.
+
+        Parameters
+        ----------
+        var : str
+            The variable to get the description for.
+
+        Returns
+        -------
+        str
+            The description of the variable.
+        """
+        output = self.vars_to_description[var]
+        if output is None:
+            return ""
+
+
+class DataContainer:
     def __init__(self):
         self.analyzer = None
 
@@ -24,15 +77,17 @@ class _DataContainer:
         """Sets the Analyzer for the DataContainer."""
         self.analyzer = analyzer
         self.df = self.analyzer.datahandler().df_all()
+        self.variable_info = VariableInfo(vars=self.df.columns.to_list())
         self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
 
     def update_df(self):
         """Update the DataFrame based on the Analyzer's state."""
         self.df = self.analyzer.datahandler().df_all()
+        self.variable_info = VariableInfo(vars=self.df.columns.to_list())
         self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
 
 
-GLOBAL_DATA_CONTAINER = _DataContainer()
+GLOBAL_DATA_CONTAINER = DataContainer()
 """Container for storing the Analyzer and DataFrame."""
 
 

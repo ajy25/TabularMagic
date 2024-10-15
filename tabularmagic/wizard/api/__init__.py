@@ -1,0 +1,1 @@
+from .tabularwizard import Wizard

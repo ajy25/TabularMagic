@@ -28,22 +28,28 @@ class WizardIO:
         print_debug("WizardIO initialized.")
         self.reset()
 
-    def add_str(self, text: str):
+    def add_str(self, text: str) -> str:
         """Store text in the vector index.
 
         Parameters
         ----------
         text : str
             Text to add to the vector index.
+
+        Returns
+        -------
+        str
+            The input text, verbatim.
         """
         self._index.insert_nodes(nodes=[TextNode(text=text)])
+        return text
 
     def add_figure(
         self,
         fig: plt.Figure,
         text_description: str,
         augment_text_description: bool = True,
-    ):
+    ) -> str:
         """Store a figure as an image in the vector index.
 
         Parameters
@@ -52,6 +58,15 @@ class WizardIO:
             Figure to add to the vector index.
 
         text_description : str
+            Description of the figure.
+
+        augment_text_description : bool
+            Whether to augment the text description with a vision model,
+            by default True
+
+        Returns
+        -------
+        str
             Description of the figure.
         """
         img_path = img_store_path / f"{self._img_counter}.png"
@@ -62,9 +77,11 @@ class WizardIO:
         if augment_text_description:
             text_description += "\n" + describe_image(img_path, text_description)
 
-        text_description = "Image Path: " + str(img_path) + "\n\n" + text_description
+        storage_description = "Image Path: " + str(img_path) + "\n\n" + text_description
 
-        self._index.insert_nodes(nodes=[TextNode(text=text_description)])
+        self._index.insert_nodes(nodes=[TextNode(text=storage_description)])
+
+        return text_description
 
     def reset(self):
 

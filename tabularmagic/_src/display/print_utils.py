@@ -1,6 +1,7 @@
 from typing import Literal
 import sys
 import os
+import logging
 from contextlib import contextmanager
 from .print_options import print_options
 
@@ -260,6 +261,21 @@ def quote_and_color(
 
 
 @contextmanager
+def suppress_all_output():
+    """Suppress all output, including stdout and stderr."""
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = devnull
+        sys.stderr = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+
+@contextmanager
 def suppress_print_output():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
@@ -270,6 +286,26 @@ def suppress_print_output():
         finally:
             sys.stdout = old_stdout
             print_options.unmute()
+
+
+@contextmanager
+def suppress_logging(level=logging.FATAL):
+    """Temporarily suppress logging output for specified loggers."""
+    loggers = ["httpx", "root"]  # List of logger names to suppress
+    previous_levels = {}
+
+    # Suppress logging for each logger in the list
+    for logger_name in loggers:
+        logger = logging.getLogger(logger_name)
+        previous_levels[logger_name] = logger.getEffectiveLevel()
+        logger.setLevel(level)
+
+    try:
+        yield
+    finally:
+        # Restore the previous logging levels
+        for logger_name, previous_level in previous_levels.items():
+            logging.getLogger(logger_name).setLevel(previous_level)
 
 
 def format_two_column(

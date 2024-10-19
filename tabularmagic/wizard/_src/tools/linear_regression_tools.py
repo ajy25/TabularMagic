@@ -6,7 +6,7 @@ from .tooling_context import ToolingContext
 
 
 # OLS tool
-class _OLSTool(BaseModel):
+class _OLSToolInput(BaseModel):
     formula: str = Field(
         description="Formula for the least squares regression. "
         "For example, y ~ x1 + x2. "
@@ -34,5 +34,5 @@ def build_ols_tool(context: ToolingContext) -> FunctionTool:
         "Detailed text describing the diagnostic plots will be saved to STORAGE, "
         "as well as returned. "
         "The output string will be added to STORAGE.",
-        fn_schema=_OLSTool,
+        fn_schema=_OLSToolInput,
     )

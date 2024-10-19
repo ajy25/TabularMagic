@@ -652,3 +652,9 @@ class MLRegressionReport:
 
     def _repr_pretty_(self, p, cycle):
         p.text(str(self))
+
+    def _to_dict(self) -> dict:
+        return {
+            "train_metrics": self.metrics("train").to_dict("index"),
+            "test_metrics": self.metrics("test").to_dict("index"),
+        }

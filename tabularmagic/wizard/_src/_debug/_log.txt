@@ -1,6 +1,29 @@
-2024-10-19 14:14:54 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
+2024-10-19 15:47:37 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
       DataFrames: [93m(1168, 81)[0m, [93m(292, 81)[0m. 
-2024-10-19 14:14:54 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-10-19 14:14:54 - tabularwizard - DEBUG - Qdrant client initialized.
-2024-10-19 14:14:54 - tabularwizard - DEBUG - WizardIO initialized.
-2024-10-19 14:14:55 - tabularwizard - DEBUG - IO initialized.
+2024-10-19 15:47:37 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-10-19 15:47:37 - tabularwizard - DEBUG - Qdrant client initialized.
+2024-10-19 15:47:37 - tabularwizard - DEBUG - WizardIO initialized.
+2024-10-19 15:47:37 - tabularwizard - DEBUG - IO initialized.
+2024-10-19 15:48:23 - tabularwizard - DEBUG - [<tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x30b9965d0>, <tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x17784e870>, <tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x30b9fc320>, <tabularmagic._src.ml.predict.regression.trees.TreesR object at 0x30b996990>, <tabularmagic._src.ml.predict.regression.trees.TreesR object at 0x1778e4aa0>, <tabularmagic._src.ml.predict.regression.svm.SVMR object at 0x30bc58fe0>, <tabularmagic._src.ml.predict.regression.mlp.MLPR object at 0x30bc58e90>]
+2024-10-19 15:48:23 - tabularwizard - DEBUG - ['OverallQual', 'GarageArea']
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'OLS'[0m. 
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'OLS'[0m. Search method: GridSearchCV (1 fits per fold, 5 total fits).  
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'OLS'[0m. 
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'Ridge'[0m. 
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'Ridge'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'Ridge'[0m. 
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'Lasso'[0m. 
+2024-10-19 15:48:23 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'Lasso'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:48:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'Lasso'[0m. 
+2024-10-19 15:48:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'RF'[0m. 
+2024-10-19 15:48:24 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'RF'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:49:04 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'RF'[0m. 
+2024-10-19 15:49:04 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'XGBoost'[0m. 
+2024-10-19 15:49:04 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'XGBoost'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:49:38 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'XGBoost'[0m. 
+2024-10-19 15:49:38 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'SVM'[0m. 
+2024-10-19 15:49:38 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'SVM'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:49:40 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'SVM'[0m. 
+2024-10-19 15:49:40 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'MLP'[0m. 
+2024-10-19 15:49:40 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'MLP'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-19 15:53:49 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'MLP'[0m. 

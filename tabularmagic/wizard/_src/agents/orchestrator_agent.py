@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from .eda_agent import build_eda_agent
 from .linear_regression_agent import build_linear_regression_agent
+from .ml_agent import build_ml_agent
 from .utils import build_function_calling_agent_openai
 
 
@@ -29,6 +30,10 @@ Here are the agents you can interact with:
 2. Linear Regression Agent: An expert data analyst specializing in linear regression.
     Call this agent if you need:
         - To perform a linear regression analysis.
+
+3. Machine Learning Agent: An expert data analyst specializing in machine learning and model comparison.
+    Call this agent if you need:
+        - To perform machine learning tasks.
 
 To interact with an agent, simply call the tool corresponding to the correct agent. Pass along the query you received verbatim to the agent, as plain text. 
 
@@ -65,6 +70,7 @@ class OrchestratorAgent:
 
         self._eda_agent = build_eda_agent(context)
         self._linear_regression_agent = build_linear_regression_agent(context)
+        self._ml_agent = build_ml_agent(context)
 
         class _EdaAgentTool(BaseModel):
             query: str = Field(
@@ -112,9 +118,32 @@ class OrchestratorAgent:
             fn_schema=_LinearRegressionAgentTool,
         )
 
+        class _MLAgentTool(BaseModel):
+            query: str = Field(
+                description="Natural language query to ask the ML agent."
+            )
+
+        def ml_agent_fn(query: str) -> str:
+            """Use this function to interact with the ML agent.
+
+            Takes in a natural language query and returns the natural language response from the ML agent.
+            """
+            return self._ml_agent.chat(query)
+
+        ml_agent_tool = FunctionTool.from_defaults(
+            name="ml_agent_tool",
+            fn=ml_agent_fn,
+            description="Call this tool to ask the ML agent a question. "
+            "The ML agent can perform machine learning tasks. "
+            "Pass along the query you received verbatim to the agent, as plain text. "
+            "Do not ask the agent anything not related to machine learning.",
+            fn_schema=_MLAgentTool,
+        )
+
         tools = [
             eda_agent_tool,
             linear_regression_agent_tool,
+            ml_agent_tool,
             build_pandas_query_tool(context),
         ]
 

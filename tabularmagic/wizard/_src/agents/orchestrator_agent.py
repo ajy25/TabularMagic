@@ -1,5 +1,7 @@
 from llama_index.core.tools import FunctionTool
 
+from pydantic import BaseModel, Field
+
 from .eda_agent import build_eda_agent
 from .linear_regression_agent import build_linear_regression_agent
 from .utils import build_function_calling_agent_openai
@@ -23,8 +25,8 @@ Here are the agents you can interact with:
 1. EDA Agent: An expert data analyst specializing in exploratory data analysis (EDA) and statistical data analysis.
     Call this agent if you need:
         - Summary statistics of the dataset.
-        - Information about the distribution of the data.
-        - To test differences in means between groups.
+        - Information about the distribution of specific variables.
+        - To test for differences in means between groups.
 
 2. Linear Regression Agent: An expert data analyst specializing in linear regression.
     Call this agent if you need:
@@ -45,7 +47,7 @@ The user will ask you questions about the dataset, and you should use your exper
 Your responses should be as concise yet informative as possible.
 Feel free to guess what the user might be asking for in order to use a tool. 
 Avoid answering without either using a tool or checking the STORAGE.
-Never answer with code. 
+NEVER answer with novel code—only use the tools provided to you.
 """
 
 
@@ -66,29 +68,54 @@ class OrchestratorAgent:
         self._eda_agent = build_eda_agent()
         self._linear_regression_agent = build_linear_regression_agent()
 
+
+        class _EdaAgentTool(BaseModel):
+            query: str = Field(
+                description="Natural language query to ask the EDA agent."
+            )
         def eda_agent_fn(query: str) -> str:
             """Use this function to interact with the EDA agent.
 
             Takes in a natural language query and returns the natural language response from the EDA agent.
             """
             return self._eda_agent.chat(query)
+        eda_agent_tool = FunctionTool.from_defaults(
+            name="eda_agent_tool",
+            fn=eda_agent_fn,
+            description="Call this tool to ask the EDA agent a question. "
+            "The EDA agent can provide summary statistics of the dataset, "
+            "information about the distribution of specific variables, "
+            "and test for differences in means between groups. "
+            "Pass along the query you received verbatim to the agent, as plain text. "
+            "Do not ask the agent anything not related to exploratory data analysis.",
+            fn_schema=_EdaAgentTool,
+        )
 
+        class _LinearRegressionAgentTool(BaseModel):
+            query: str = Field(
+                description="Natural language query to ask the Linear Regression agent."
+            )
         def linear_regression_agent_fn(query: str) -> str:
             """Use this function to interact with the Linear Regression agent.
 
             Takes in a natural language query and returns the natural language response from the EDA agent.
             """
             return self._linear_regression_agent.chat(query)
+        linear_regression_agent_tool = FunctionTool.from_defaults(
+            name="linear_regression_agent_tool",
+            fn=linear_regression_agent_fn,
+            description="Call this tool to ask the Linear Regression agent a question. "
+            "The Linear Regression agent can perform a linear regression analysis. "
+            "Pass along the query you received verbatim to the agent, as plain text. "
+            "Do not ask the agent anything not related to linear regression.",
+            fn_schema=_LinearRegressionAgentTool,
+        )
 
-        fns = [
-            eda_agent_fn,
-            linear_regression_agent_fn,
-        ]
-
-        tools = [FunctionTool.from_defaults(fn=fn) for fn in fns] + [
+        
+        tools = [
+            eda_agent_tool, 
+            linear_regression_agent_tool,
             pandas_query_tool
-            # get_variable_description_tool,
-            # set_variable_description_tool,
         ]
 
         self.agent = build_function_calling_agent_openai(

@@ -10,13 +10,15 @@ from ..io.global_io import GLOBAL_IO
 # OLS tool
 class _OLSTool(BaseModel):
     formula: str = Field(
-        description="Formula for the regression. " "For example, 'y ~ x1 + x2'."
+        description="Formula for the least squares regression. " 
+        "For example, y ~ x1 + x2. "
+        "The formula should be in the form of a string. "
     )
 
 
 def _ols_function(formula: str) -> str:
     """Performs ordinary least squares regression."""
-    ols_report = GLOBAL_DATA_CONTAINER.analyzer.ols(formula=formula)
+    ols_report = GLOBAL_DATA_CONTAINER.analyzer.ols(formula=formula.strip())
     output_str = GLOBAL_IO.add_str(dumps(ols_report._to_dict()))
     output_str += "\n" + GLOBAL_IO.add_figure(
         ols_report.plot_diagnostics("train"), text_description="Diagnostic plots."

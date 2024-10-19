@@ -20,7 +20,7 @@ You can use these tools to analyze the dataset and provide insights to the user.
 {STORAGE_SYSTEM_PROMPT}
 
 The user will ask you questions about the dataset, and you should use your expertise and your suite of tools to provide accurate and insightful answers to their queries. 
-Your responses should be as concise yet informative as possible.
+Your response should contain as much detail as possible.
 If you cannot answer the question with your tools, let the user know.
 """
 

@@ -117,6 +117,3 @@ class WizardIO:
     @property
     def query_engine(self):
         return self._query_engn
-
-
-GLOBAL_IO = WizardIO()

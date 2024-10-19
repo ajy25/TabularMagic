@@ -54,5 +54,4 @@ if __name__ == "__main__":
     project_dir = pathlib.Path(__file__).resolve().parent.parent
     remove_pycache(project_dir)
     remove_dsstore(project_dir)
-    remove_ruff(project_dir)
     remove_pytest(project_dir)

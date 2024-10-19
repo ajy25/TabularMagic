@@ -1,7 +1,8 @@
 from llama_index.core.tools import FunctionTool
 from llama_index.core.schema import BaseNode
 from pydantic import BaseModel, Field
-from ..io.global_io import GLOBAL_IO
+from functools import partial
+from .tooling_context import ToolingContext
 
 
 # save text tool
@@ -9,19 +10,19 @@ class _WriteTextInput(BaseModel):
     text: str = Field(description="The text to write to STORAGE.")
 
 
-def _write_text_function(text: str) -> str:
-    """Writes a text to STORAGE."""
-    GLOBAL_IO.add_str(text)
+def _write_text_function(text: str, context: ToolingContext) -> str:
+    context.io.add_str(text)
     return "Text has been written to STORAGE."
 
 
-write_text_tool = FunctionTool.from_defaults(
-    fn=_write_text_function,
-    name="write_text_tool",
-    description="Writes text to STORAGE. "
-    "This tool is useful for storing text data for later reference.",
-    fn_schema=_WriteTextInput,
-)
+def build_write_text_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_write_text_function, context=context),
+        name="write_text_tool",
+        description="Writes text to STORAGE. "
+        "This tool is useful for storing text data for later reference.",
+        fn_schema=_WriteTextInput,
+    )
 
 
 # retrieve text tool
@@ -33,41 +34,17 @@ class _RetrieveTextOutput(BaseModel):
     )
 
 
-def _retrieve_text_function(query: str) -> str:
-    """Retrieves text from STORAGE based on a query."""
-    retrieved_node: BaseNode = GLOBAL_IO.retriever.retrieve(query)[0]
+def _retrieve_text_function(query: str, context: ToolingContext) -> str:
+    retrieved_node: BaseNode = context.io.retriever.retrieve(query)[0]
     return retrieved_node.get_content()
 
 
-retrieve_text_tool = FunctionTool.from_defaults(
-    fn=_retrieve_text_function,
-    name="retrieve_text_tool",
-    description="Retrieves text from STORAGE based on a natural language query. "
-    "This tool is useful for retrieving information that you have stored, "
-    "either manually using 'write_text_tool' or automatically via other tool calls.",
-    fn_schema=_RetrieveTextOutput,
-)
-
-
-# query index tool
-class _QueryIndexInput(BaseModel):
-    query: str = Field(
-        description="Natural language query to query the STORAGE. "
-        "For example, if STORAGE contains summary statistics, an appropriate query "
-        "could be 'What is the mean of the variable \"mpg\"?'. "
+def build_retrieve_text_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_retrieve_text_function, context=context),
+        name="retrieve_text_tool",
+        description="Retrieves text from STORAGE based on a natural language query. "
+        "This tool is useful for retrieving information that you have stored, "
+        "either manually using 'write_text_tool' or automatically via other tool calls.",
+        fn_schema=_RetrieveTextOutput,
     )
-
-
-def _query_index_function(query: str) -> str:
-    """Queries the index for information based on a query."""
-    return str(GLOBAL_IO.query_engine.query(query))
-
-
-query_index_tool = FunctionTool.from_defaults(
-    fn=_query_index_function,
-    name="query_index_tool",
-    description="Queries the STORAGE based on a natural language query. "
-    "Unlike 'retrieve_text_tool', this tool does not return verbatim information "
-    "from STORAGE, but rather returns a natural language response to the query.",
-    fn_schema=_QueryIndexInput,
-)

@@ -1,19 +1,14 @@
 from .datacontainer import (
-    GLOBAL_DATA_CONTAINER,
+    DataContainer,
     build_tabularmagic_analyzer,
-    set_tabularmagic_analyzer,
 )
-from .io.global_io import GLOBAL_IO
+from .io.wizard_io import WizardIO
 from ._debug.logger import print_debug
 
 
-from . import agents
-
 __all__ = [
-    "GLOBAL_DATA_CONTAINER",
-    "GLOBAL_IO",
+    "DataContainer",
     "build_tabularmagic_analyzer",
-    "set_tabularmagic_analyzer",
+    "WizardIO",
     "print_debug",
-    "agents",
 ]

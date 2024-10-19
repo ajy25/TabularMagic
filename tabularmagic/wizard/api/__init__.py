@@ -1,1 +1,1 @@
-from .tabularwizard import Wizard
+from .wizard import Wizard

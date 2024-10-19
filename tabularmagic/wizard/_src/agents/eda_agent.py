@@ -2,14 +2,15 @@ from llama_index.agent.openai import OpenAIAgent
 
 from .utils import build_function_calling_agent_openai
 from ..tools.eda_tools import (
-    test_equal_means_tool,
-    plot_distribution_tool,
-    numeric_summary_statistics_tool,
-    categorical_summary_statistics_tool,
+    build_test_equal_means_tool,
+    build_plot_distribution_tool,
+    build_numeric_summary_statistics_tool,
+    build_categorical_summary_statistics_tool,
 )
-from ..tools.io_tools import write_text_tool, retrieve_text_tool, query_index_tool
-from ..tools.data_tools import pandas_query_tool, get_variable_description_tool
+from ..tools.io_tools import build_write_text_tool, build_retrieve_text_tool
+from ..tools.data_tools import build_pandas_query_tool
 from .system_prompts.storage_system_prompt import STORAGE_SYSTEM_PROMPT
+from ..tools.tooling_context import ToolingContext
 
 
 EDA_SYSTEM_PROMPT = f"""
@@ -28,11 +29,16 @@ If you cannot answer the question with your tools, let the user know.
 # If a variable description is not available, you can ask the user to provide a description of the variable.
 
 
-def build_eda_agent(system_prompt: str = EDA_SYSTEM_PROMPT) -> OpenAIAgent:
+def build_eda_agent(
+    context: ToolingContext, system_prompt: str = EDA_SYSTEM_PROMPT
+) -> OpenAIAgent:
     """Builds an EDA agent.
 
     Parameters
     ----------
+    context : ToolingContext
+        Tooling context
+
     system_prompt : str
         System prompt. Default EDA system prompt is used if not provided.
 
@@ -42,14 +48,12 @@ def build_eda_agent(system_prompt: str = EDA_SYSTEM_PROMPT) -> OpenAIAgent:
         OpenAI agent
     """
     tools = [
-        test_equal_means_tool,
-        plot_distribution_tool,
-        numeric_summary_statistics_tool,
-        categorical_summary_statistics_tool,
-        write_text_tool,
-        retrieve_text_tool,
-        query_index_tool,
-        pandas_query_tool,
-        # get_variable_description_tool
+        build_test_equal_means_tool(context),
+        build_plot_distribution_tool(context),
+        build_numeric_summary_statistics_tool(context),
+        build_categorical_summary_statistics_tool(context),
+        build_write_text_tool(context),
+        build_retrieve_text_tool(context),
+        build_pandas_query_tool(context),
     ]
     return build_function_calling_agent_openai(tools=tools, system_prompt=system_prompt)

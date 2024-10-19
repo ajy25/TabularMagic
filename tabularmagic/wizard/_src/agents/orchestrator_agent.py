@@ -7,11 +7,9 @@ from .linear_regression_agent import build_linear_regression_agent
 from .utils import build_function_calling_agent_openai
 
 
-from ..tools.data_tools import (
-    pandas_query_tool,
-    get_variable_description_tool,
-    set_variable_description_tool,
-)
+from ..tools.data_tools import build_pandas_query_tool
+
+from ..tools.tooling_context import ToolingContext
 
 
 ORCHESTRATOR_SYSTEM_PROMPT = f"""
@@ -38,7 +36,6 @@ In addition to the agents, you have tools which allow you to access the STORAGE.
 Your agents also have access to these storage tools, so they can store and retrieve information as needed.
 Your agents will inform you when they have written something to STORAGE.
 You can use the 'retrieve_text_tool' to retrieve textual information from STORAGE via natural language queries. Relevant information will be returned to you verbatim.
-The 'query_index_tool' can be used to query the index for information via similar natural language queries, but unlike "retrieve_text_tool", it returns a natural language response to the query rather than verbatim information.
 The STORAGE can help you summarize your analysis and prevent you from repeating the same analysis multiple times.
 The user should never know about STORAGE, so you should not mention it in your responses. 
 You should not mention 'save', 'store', 'retrieve', 'query', or any other related terms in your responses.
@@ -63,22 +60,24 @@ NEVER answer with novel code—only use the tools provided to you.
 class OrchestratorAgent:
     """Class for orchestrating the interactions between the user and the LLMs."""
 
-    def __init__(self):
+    def __init__(self, context: ToolingContext):
         """Initializes the OrchestratorAgent object."""
-        self._eda_agent = build_eda_agent()
-        self._linear_regression_agent = build_linear_regression_agent()
 
+        self._eda_agent = build_eda_agent(context)
+        self._linear_regression_agent = build_linear_regression_agent(context)
 
         class _EdaAgentTool(BaseModel):
             query: str = Field(
                 description="Natural language query to ask the EDA agent."
             )
+
         def eda_agent_fn(query: str) -> str:
             """Use this function to interact with the EDA agent.
 
             Takes in a natural language query and returns the natural language response from the EDA agent.
             """
             return self._eda_agent.chat(query)
+
         eda_agent_tool = FunctionTool.from_defaults(
             name="eda_agent_tool",
             fn=eda_agent_fn,
@@ -95,12 +94,14 @@ class OrchestratorAgent:
             query: str = Field(
                 description="Natural language query to ask the Linear Regression agent."
             )
+
         def linear_regression_agent_fn(query: str) -> str:
             """Use this function to interact with the Linear Regression agent.
 
             Takes in a natural language query and returns the natural language response from the EDA agent.
             """
             return self._linear_regression_agent.chat(query)
+
         linear_regression_agent_tool = FunctionTool.from_defaults(
             name="linear_regression_agent_tool",
             fn=linear_regression_agent_fn,
@@ -111,11 +112,10 @@ class OrchestratorAgent:
             fn_schema=_LinearRegressionAgentTool,
         )
 
-        
         tools = [
-            eda_agent_tool, 
+            eda_agent_tool,
             linear_regression_agent_tool,
-            pandas_query_tool
+            build_pandas_query_tool(context),
         ]
 
         self.agent = build_function_calling_agent_openai(

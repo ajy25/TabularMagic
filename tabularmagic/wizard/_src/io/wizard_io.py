@@ -104,9 +104,7 @@ class WizardIO:
             documents=[], storage_context=storage_context
         )
 
-        self._retriever = self._index.as_retriever(
-            similarity_top_k=1, image_similarity_top_k=1
-        )
+        self._retriever = self._index.as_retriever(similarity_top_k=1)
 
         self._query_engn = self._index.as_query_engine(llm=build_openai())
 

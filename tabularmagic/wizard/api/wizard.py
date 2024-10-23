@@ -63,5 +63,5 @@ class Wizard:
         str
             The response from the LLM.
         """
-        # with suppress_all_output(), suppress_logging():
-        return self._orchestrator_agent.chat(message)
+        with suppress_all_output(), suppress_logging():
+            return self._orchestrator_agent.chat(message)

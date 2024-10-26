@@ -110,10 +110,10 @@ def _ml_regression_function(
     print_debug(models_list)
     predictors_list = parse_predictor_list_from_str(predictors)
     print_debug(predictors_list)
-    report = context.data_container.analyzer.regress(
+    report = context._data_container.analyzer.regress(
         models=models_list, target=target, predictors=predictors_list
     )
-    output_str = context.io.add_str(dumps(report._to_dict()))
+    output_str = context._vectorstore_manager.add_str(dumps(report._to_dict()))
     return output_str
 
 

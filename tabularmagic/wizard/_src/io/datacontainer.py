@@ -1,10 +1,11 @@
 import pandas as pd
 from llama_index.experimental.query_engine import PandasQueryEngine
 import logging
-from .llms.openai.openai import build_openai
-from ._debug.logger import logger_path
-from ... import Analyzer
-from ...options import print_options
+
+from ..options import options
+from .._debug.logger import logger_path
+from .... import Analyzer
+from ....options import print_options
 
 
 def build_tabularmagic_analyzer(
@@ -28,7 +29,7 @@ def build_tabularmagic_analyzer(
     tm.Analyzer
         The TabularMagic Analyzer.
     """
-    tm_logger = logging.Logger(name="tmwizard_magic_logger", level=logging.INFO)
+    tm_logger = logging.Logger(name="TabularMagic Logger", level=logging.INFO)
     filehandler = logging.FileHandler(logger_path)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -103,10 +104,14 @@ class DataContainer:
         self.analyzer = analyzer
         self.df = self.analyzer.datahandler().df_all()
         self.variable_info = VariableInfo(vars=self.df.columns.to_list())
-        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
+        self.pd_query_engine = PandasQueryEngine(
+            df=self.df, llm=options.llm_build_function()
+        )
 
     def update_df(self):
         """Update the DataFrame based on the Analyzer's state."""
         self.df = self.analyzer.datahandler().df_all()
         self.variable_info = VariableInfo(vars=self.df.columns.to_list())
-        self.pd_query_engine = PandasQueryEngine(df=self.df, llm=build_openai())
+        self.pd_query_engine = PandasQueryEngine(
+            df=self.df, llm=options.llm_build_function()
+        )

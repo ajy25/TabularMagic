@@ -11,7 +11,7 @@ class _WriteTextInput(BaseModel):
 
 
 def _write_text_function(text: str, context: ToolingContext) -> str:
-    context.io.add_str(text)
+    context._vectorstore_manager.add_str(text)
     return "Text has been written to STORAGE."
 
 
@@ -35,7 +35,7 @@ class _RetrieveTextOutput(BaseModel):
 
 
 def _retrieve_text_function(query: str, context: ToolingContext) -> str:
-    retrieved_node: BaseNode = context.io.retriever.retrieve(query)[0]
+    retrieved_node: BaseNode = context._vectorstore_manager.retriever.retrieve(query)[0]
     return retrieved_node.get_content()
 
 

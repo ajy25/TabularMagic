@@ -1,14 +1,14 @@
-from .datacontainer import (
+from .io.datacontainer import (
     DataContainer,
     build_tabularmagic_analyzer,
 )
-from .io.wizard_io import WizardIO
+from .io.vector_store import VectorStoreManager
 from ._debug.logger import print_debug
 
 
 __all__ = [
     "DataContainer",
     "build_tabularmagic_analyzer",
-    "WizardIO",
+    "VectorStoreManager",
     "print_debug",
 ]

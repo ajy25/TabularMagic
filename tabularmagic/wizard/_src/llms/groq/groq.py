@@ -1,7 +1,7 @@
 from llama_index.llms.groq import Groq
 
 
-from ..find_key_from_dot_env import find_key
+from ..api_key_utils import find_key
 
 
 def build_groq(

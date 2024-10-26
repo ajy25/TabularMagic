@@ -6,11 +6,7 @@ from llama_index.core.schema import TextNode
 import matplotlib.pyplot as plt
 import pathlib
 
-
-from ..llms.openai.openai import build_openai, build_openai_multimodal
-from ..llms.groq.groq import (
-    build_groq,
-)
+from ..options import options
 from ..llms.utils import describe_image
 from .._debug.logger import print_debug
 
@@ -24,14 +20,14 @@ vector_store_path = io_path / "_vector_store"
 vector_store_path.mkdir(exist_ok=True)
 
 
-class WizardIO:
+class VectorStoreManager:
 
     def __init__(self, multimodal: bool = False):
 
-        self._llm = build_openai()
+        self._llm = options.llm_build_function()
 
-        if multimodal:
-            self._multimodal_llm = build_openai_multimodal()
+        if options.multimodal and multimodal:
+            self._multimodal_llm = options.multimodal_llm_build_function()
         else:
             self._multimodal_llm = None
 
@@ -89,6 +85,11 @@ class WizardIO:
                 image_path=img_path,
                 text_description=text_description,
             )
+        else:
+            text_description += "\n"
+            text_description += "A specific description is unavailable. "
+            "Let the user know that they can enable multimodal mode to "
+            "get a more detailed description."
 
         storage_description = "Image Path: " + str(img_path) + "\n\n" + text_description
 

@@ -13,7 +13,7 @@ class PandasQueryInput(BaseModel):
 
 
 def pandas_query_function(query: str, context: ToolingContext) -> str:
-    response = context.data_container.pd_query_engine.query(query)
+    response = context._data_container.pd_query_engine.query(query)
     return str(response)
 
 
@@ -33,7 +33,7 @@ class _GetVariableDescriptionInput(BaseModel):
 
 
 def _get_variable_description_function(var: str, context: ToolingContext) -> str:
-    return context.data_container.variable_info.get_description(var)
+    return context._data_container.variable_info.get_description(var)
 
 
 def build_get_variable_description_tool(context: ToolingContext) -> FunctionTool:
@@ -56,7 +56,7 @@ class _SetVariableDescriptionInput(BaseModel):
 def _set_variable_description_function(
     var: str, description: str, context: ToolingContext
 ) -> str:
-    context.data_container.variable_info.set_description(var, description)
+    context._data_container.variable_info.set_description(var, description)
     return f"Description of variable {var} has been set to: {description}."
 
 

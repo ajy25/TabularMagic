@@ -16,9 +16,9 @@ class _OLSToolInput(BaseModel):
 
 def _ols_function(formula: str, context: ToolingContext) -> str:
     """Performs ordinary least squares regression."""
-    ols_report = context.data_container.analyzer.ols(formula=formula.strip())
-    output_str = context.io.add_str(dumps(ols_report._to_dict()))
-    output_str += "\n" + context.io.add_figure(
+    ols_report = context._data_container.analyzer.ols(formula=formula.strip())
+    output_str = context._vectorstore_manager.add_str(dumps(ols_report._to_dict()))
+    output_str += "\n" + context._vectorstore_manager.add_figure(
         ols_report.plot_diagnostics("train"), text_description="Diagnostic plots."
     )
     return output_str

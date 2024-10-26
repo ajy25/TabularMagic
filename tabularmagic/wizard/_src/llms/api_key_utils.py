@@ -4,6 +4,33 @@ import os
 from typing import Literal
 
 
+def key_exists(llm_type: Literal["openai", "groq"]) -> bool:
+    """Reads the .env file and returns whether the API key for the specified LLM type exists.
+
+    Parameters
+    ----------
+    llm_type : Literal["openai"]
+        The type of LLM for which to find the API key.
+    """
+    load_dotenv(
+        dotenv_path=pathlib.Path(__file__).parent.parent.parent.parent.parent / ".env"
+    )
+
+    if llm_type == "openai":
+        api_key = (
+            str(os.getenv("OPENAI_API_KEY")) if os.getenv("OPENAI_API_KEY") else None
+        )
+        if api_key == "..." or api_key is None:
+            return False
+    elif llm_type == "groq":
+        api_key = str(os.getenv("GROQ_API_KEY")) if os.getenv("GROQ_API_KEY") else None
+        if api_key == "..." or api_key is None:
+            return False
+    else:
+        raise ValueError("Invalid LLM type specified.")
+    return True
+
+
 def find_key(llm_type: Literal["openai", "groq"]) -> str:
     """Reads the .env file and returns the API key for the specified LLM type.
     If the API key is not found, raises a ValueError.

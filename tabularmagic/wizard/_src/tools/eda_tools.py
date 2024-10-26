@@ -19,11 +19,11 @@ def _test_equal_means_function(
     categorical_var: str, numeric_var: str, context: ToolingContext
 ) -> str:
     dict_output = (
-        context.data_container.analyzer.eda("all")
+        context._data_container.analyzer.eda("all")
         .test_equal_means(numeric_var=numeric_var, stratify_by=categorical_var)
         ._to_dict()
     )
-    return context.io.add_str(dumps(dict_output))
+    return context._vectorstore_manager.add_str(dumps(dict_output))
 
 
 def build_test_equal_means_tool(context: ToolingContext) -> FunctionTool:
@@ -46,8 +46,10 @@ class _PlotDistributionInput(BaseModel):
 
 
 def _plot_distribution_function(var: str, context: ToolingContext) -> str:
-    fig = context.data_container.analyzer.eda("all").plot_distribution(var)
-    return context.io.add_figure(fig, f"Distribution plot of variable: {var}.")
+    fig = context._data_container.analyzer.eda("all").plot_distribution(var)
+    return context._vectorstore_manager.add_figure(
+        fig, f"Distribution plot of variable: {var}."
+    )
 
 
 def build_plot_distribution_tool(context: ToolingContext) -> FunctionTool:
@@ -64,8 +66,8 @@ def build_plot_distribution_tool(context: ToolingContext) -> FunctionTool:
 
 # Numeric summary statistics tool
 def _numeric_summary_statistics_function(context: ToolingContext) -> str:
-    dict_output = context.data_container.analyzer.eda("all").numeric_stats().to_dict()
-    return context.io.add_str(dumps(dict_output))
+    dict_output = context._data_container.analyzer.eda("all").numeric_stats().to_dict()
+    return context._vectorstore_manager.add_str(dumps(dict_output))
 
 
 def build_numeric_summary_statistics_tool(context: ToolingContext) -> FunctionTool:
@@ -85,9 +87,9 @@ def build_numeric_summary_statistics_tool(context: ToolingContext) -> FunctionTo
 def _categorical_summary_statistics_function(context: ToolingContext) -> str:
     """Generates categorical summary statistics for the dataset."""
     dict_output = (
-        context.data_container.analyzer.eda("all").categorical_stats().to_dict()
+        context._data_container.analyzer.eda("all").categorical_stats().to_dict()
     )
-    return context.io.add_str(dumps(dict_output))
+    return context._vectorstore_manager.add_str(dumps(dict_output))
 
 
 def build_categorical_summary_statistics_tool(context: ToolingContext) -> FunctionTool:

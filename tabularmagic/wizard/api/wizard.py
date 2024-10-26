@@ -1,13 +1,13 @@
 import pandas as pd
 from .._src import (
     build_tabularmagic_analyzer,
-    WizardIO,
+    VectorStoreManager,
     DataContainer,
     print_debug,
 )
 from ..._src.display.print_utils import suppress_all_output, suppress_logging
-from .._src.agents.orchestrator_agent import OrchestratorAgent
-from .._src.llms.openai.openai import build_openai
+from .._src.agents.orchestrator import Orchestrator
+from .._src.options import options
 from .._src.tools.tooling_context import ToolingContext
 
 
@@ -42,15 +42,15 @@ class Wizard:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self.io = WizardIO()
+        self.vectorstore_manager = VectorStoreManager()
         self.context = ToolingContext(
             data_container=self.data_container,
-            wizard_io=self.io,
+            vectorstore_manager=self.vectorstore_manager,
         )
         print_debug("IO initialized.")
 
-        self._orchestrator_agent = OrchestratorAgent(
-            llm=build_openai(), context=self.context
+        self._orchestrator_agent = Orchestrator(
+            llm=options.llm_build_function(), context=self.context, react=False
         )
 
     def chat(self, message: str) -> str:

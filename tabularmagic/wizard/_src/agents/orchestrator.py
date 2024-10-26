@@ -34,7 +34,7 @@ Here are the agents you can interact with:
 
 3. Machine Learning Agent: An expert data analyst specializing in machine learning and model comparison.
     Call this agent if you need:
-        - To perform machine learning tasks.
+        - To perform machine learning regression or classification.
 
 To interact with an agent, simply call the tool corresponding to the correct agent. Pass along the query you received verbatim to the agent, as plain text. 
 
@@ -63,17 +63,17 @@ NEVER answer with novel code—only use the tools provided to you.
 # If one of your agents asks for a variable description, you should ask the user for the description, then use the 'set_variable_description_tool' to set the description of the variable for future reference.
 
 
-class OrchestratorAgent:
+class Orchestrator:
     """Class for orchestrating the interactions between the user and the LLMs."""
 
-    def __init__(self, llm: FunctionCallingLLM, context: ToolingContext):
-        """Initializes the OrchestratorAgent object."""
+    def __init__(self, llm: FunctionCallingLLM, context: ToolingContext, react: bool):
+        """Initializes the Orchestrator object."""
 
-        self._eda_agent = build_eda_agent(llm=llm, context=context)
+        self._eda_agent = build_eda_agent(llm=llm, context=context, react=react)
         self._linear_regression_agent = build_linear_regression_agent(
-            llm=llm, context=context
+            llm=llm, context=context, react=react
         )
-        self._ml_agent = build_ml_agent(llm=llm, context=context)
+        self._ml_agent = build_ml_agent(llm=llm, context=context, react=react)
 
         class _EdaAgentTool(BaseModel):
             query: str = Field(
@@ -151,7 +151,7 @@ class OrchestratorAgent:
         ]
 
         self.agent = build_function_calling_agent(
-            llm=llm, tools=tools, system_prompt=ORCHESTRATOR_SYSTEM_PROMPT
+            llm=llm, tools=tools, system_prompt=ORCHESTRATOR_SYSTEM_PROMPT, react=react
         )
 
     def chat(self, message: str) -> str:

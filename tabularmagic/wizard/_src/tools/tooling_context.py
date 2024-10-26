@@ -1,4 +1,4 @@
-from ..._src import DataContainer, WizardIO
+from ..._src import DataContainer, VectorStoreManager
 
 
 class ToolingContext:
@@ -6,7 +6,7 @@ class ToolingContext:
     def __init__(
         self,
         data_container: DataContainer,
-        wizard_io: WizardIO,
+        vectorstore_manager: VectorStoreManager,
     ):
         """Initializes the ToolingContext object.
 
@@ -15,24 +15,16 @@ class ToolingContext:
         data_container : DataContainer
             The DataContainer object to use for storing data.
 
-        wizard_io : WizardIO
-            The WizardIO object to use for storing data.
+        vectorstore_manager : VectorStoreManager
+            The VectorStoreManager object to use for storing data.
         """
-        self.data_container = data_container  # Use the property setter
-        self.io = wizard_io  # Use the property setter
+        self._data_container = data_container  # Use the property setter
+        self._vectorstore_manager = vectorstore_manager  # Use the property setter
 
     @property
     def data_container(self) -> DataContainer:
         return self._data_container
 
-    @data_container.setter
-    def data_container(self, data_container: DataContainer):
-        self._data_container = data_container
-
     @property
-    def io(self) -> WizardIO:
-        return self._io
-
-    @io.setter
-    def io(self, io: WizardIO):
-        self._io = io
+    def vectorstore_manager(self) -> VectorStoreManager:
+        return self._vectorstore_manager

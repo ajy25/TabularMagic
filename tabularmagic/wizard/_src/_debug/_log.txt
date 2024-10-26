@@ -1,29 +1,9 @@
-2024-10-20 17:41:55 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
+2024-10-26 01:07:31 - tmwizard_magic_logger - INFO - [92mUPDT: [0mAnalyzer initialized for dataset [93m'Unnamed Dataset'[0m. Shapes of train, test 
       DataFrames: [93m(1168, 81)[0m, [93m(292, 81)[0m. 
-2024-10-20 17:41:55 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-10-20 17:41:55 - tabularwizard - DEBUG - Qdrant client initialized.
-2024-10-20 17:41:55 - tabularwizard - DEBUG - WizardIO initialized.
-2024-10-20 17:41:56 - tabularwizard - DEBUG - IO initialized.
-2024-10-20 17:44:24 - tabularwizard - DEBUG - [<tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x3013df170>, <tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x3013dc800>, <tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x3062f8950>, <tabularmagic._src.ml.predict.regression.trees.TreesR object at 0x30139c5c0>, <tabularmagic._src.ml.predict.regression.trees.TreesR object at 0x3016d7080>, <tabularmagic._src.ml.predict.regression.svm.SVMR object at 0x305a04560>, <tabularmagic._src.ml.predict.regression.mlp.MLPR object at 0x305a048f0>]
-2024-10-20 17:44:24 - tabularwizard - DEBUG - ['OverallQual', 'GarageArea']
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'OLS'[0m. 
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'OLS'[0m. Search method: GridSearchCV (1 fits per fold, 5 total fits).  
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'OLS'[0m. 
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'Ridge'[0m. 
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'Ridge'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'Ridge'[0m. 
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'Lasso'[0m. 
-2024-10-20 17:44:24 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'Lasso'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:44:25 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'Lasso'[0m. 
-2024-10-20 17:44:25 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'RF'[0m. 
-2024-10-20 17:44:25 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'RF'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:45:28 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'RF'[0m. 
-2024-10-20 17:45:28 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'XGBoost'[0m. 
-2024-10-20 17:45:28 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'XGBoost'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:45:49 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'XGBoost'[0m. 
-2024-10-20 17:45:49 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'SVM'[0m. 
-2024-10-20 17:45:49 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'SVM'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:45:51 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'SVM'[0m. 
-2024-10-20 17:45:51 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'MLP'[0m. 
-2024-10-20 17:45:51 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'MLP'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
-2024-10-20 17:53:17 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'MLP'[0m. 
+2024-10-26 01:07:31 - tabularwizard - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-10-26 01:07:31 - tabularwizard - DEBUG - IO initialized.
+2024-10-26 01:09:11 - tabularwizard - DEBUG - [<tabularmagic._src.ml.predict.regression.linear.LinearR object at 0x30ad735f0>]
+2024-10-26 01:09:11 - tabularwizard - DEBUG - ['OverallQual', 'GarageArea']
+2024-10-26 01:09:11 - tmwizard_magic_logger - INFO - [92mUPDT: [0mEvaluating model [94m'Ridge'[0m. 
+2024-10-26 01:09:11 - tmwizard_magic_logger - INFO - [93mPROG: [0mFitting [94m'Ridge'[0m. Search method: OptunaSearchCV (100 trials, 500 total fits).  
+2024-10-26 01:09:12 - tmwizard_magic_logger - INFO - [92mUPDT: [0mSuccessfully evaluated model [94m'Ridge'[0m. 

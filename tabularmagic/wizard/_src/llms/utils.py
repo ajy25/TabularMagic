@@ -1,18 +1,18 @@
 from pathlib import Path
-from llama_index.multi_modal_llms.openai import OpenAIMultiModal
 from llama_index.core.schema import ImageDocument
-
-from .openai import build_openai_multimodal
-
-
-general_purpose_vision_model: OpenAIMultiModal = build_openai_multimodal()
+from llama_index.core.multi_modal_llms import MultiModalLLM
 
 
-def describe_image(image_path: Path, text_description: str) -> str:
+def describe_image(
+    multimodal_model: MultiModalLLM, image_path: Path, text_description: str
+) -> str:
     """Describes an image using the multimodal model.
 
     Parameters
     ----------
+    multimodal_model : MultiModalLLM
+        The multimodal model to use for image description.
+
     image_path : Path
         Path to the image.
 
@@ -30,7 +30,7 @@ def describe_image(image_path: Path, text_description: str) -> str:
     "Here is some additional information: "
     f"{text_description}"
 
-    str_description = general_purpose_vision_model.complete(
+    str_description = multimodal_model.complete(
         prompt=prompt, image_documents=[image_document]
     ).text
     return str_description

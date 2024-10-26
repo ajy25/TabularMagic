@@ -1,6 +1,7 @@
-from llama_index.agent.openai import OpenAIAgent
+from llama_index.core.agent import FunctionCallingAgent, ReActAgent
+from llama_index.core.llms.function_calling import FunctionCallingLLM
 
-from .utils import build_function_calling_agent_openai
+from .utils import build_function_calling_agent
 from ..tools.io_tools import build_write_text_tool, build_retrieve_text_tool
 from ..tools.data_tools import build_pandas_query_tool
 from ..tools.linear_regression_tools import build_ols_tool
@@ -27,23 +28,32 @@ If you cannot answer the question with your tools, let the user know.
 
 
 def build_linear_regression_agent(
+    llm: FunctionCallingLLM,
     context: ToolingContext,
     system_prompt: str = DEFAULT_LINEAR_REGRESSION_SYSTEM_PROMPT,
-) -> OpenAIAgent:
+    react: bool = False,
+) -> FunctionCallingAgent | ReActAgent:
     """Builds a linear regression agent.
 
     Parameters
     ----------
+    llm : FunctionCallingLLM
+        Function calling LLM
+
     context : ToolingContext
         Tooling context
 
     system_prompt : str
         System prompt. Default linear regression system prompt is used if not provided.
 
+    react : bool
+        If True, a ReActAgent is returned. Otherwise, a FunctionCallingAgent is returned.
+        If True, the system prompt is not considered.
+
     Returns
     -------
-    OpenAIAgent
-        OpenAI agent
+    FunctionCallingAgent | ReActAgent
+        Either a FunctionCallingAgent or a ReActAgent
     """
     tools = [
         build_write_text_tool(context),
@@ -51,4 +61,6 @@ def build_linear_regression_agent(
         build_ols_tool(context),
         build_pandas_query_tool(context),
     ]
-    return build_function_calling_agent_openai(tools=tools, system_prompt=system_prompt)
+    return build_function_calling_agent(
+        llm=llm, tools=tools, system_prompt=system_prompt, react=react
+    )

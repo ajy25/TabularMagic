@@ -1,6 +1,7 @@
-from llama_index.agent.openai import OpenAIAgent
+from llama_index.core.agent import FunctionCallingAgent, ReActAgent
+from llama_index.core.llms.function_calling import FunctionCallingLLM
 
-from .utils import build_function_calling_agent_openai
+from .utils import build_function_calling_agent
 from ..tools.eda_tools import (
     build_test_equal_means_tool,
     build_plot_distribution_tool,
@@ -30,22 +31,32 @@ If you cannot answer the question with your tools, let the user know.
 
 
 def build_eda_agent(
-    context: ToolingContext, system_prompt: str = EDA_SYSTEM_PROMPT
-) -> OpenAIAgent:
+    llm: FunctionCallingLLM,
+    context: ToolingContext,
+    system_prompt: str = EDA_SYSTEM_PROMPT,
+    react: bool = False,
+) -> FunctionCallingAgent | ReActAgent:
     """Builds an EDA agent.
 
     Parameters
     ----------
+    llm : FunctionCallingLLM
+        Function calling LLM
+
     context : ToolingContext
         Tooling context
 
     system_prompt : str
-        System prompt. Default EDA system prompt is used if not provided.
+        System prompt. Default linear regression system prompt is used if not provided.
+
+    react : bool
+        If True, a ReActAgent is returned. Otherwise, a FunctionCallingAgent is returned.
+        If True, the system prompt is not considered.
 
     Returns
     -------
-    OpenAIAgent
-        OpenAI agent
+    FunctionCallingAgent | ReActAgent
+        Either a FunctionCallingAgent or a ReActAgent
     """
     tools = [
         build_test_equal_means_tool(context),
@@ -56,4 +67,9 @@ def build_eda_agent(
         build_retrieve_text_tool(context),
         build_pandas_query_tool(context),
     ]
-    return build_function_calling_agent_openai(tools=tools, system_prompt=system_prompt)
+    return build_function_calling_agent(
+        llm=llm,
+        tools=tools,
+        system_prompt=system_prompt,
+        react=react,
+    )

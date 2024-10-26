@@ -7,8 +7,11 @@ import matplotlib.pyplot as plt
 import pathlib
 
 
-from ..llms.openai import build_openai
-from ..llms.vision import describe_image
+from ..llms.openai.openai import build_openai, build_openai_multimodal
+from ..llms.groq.groq import (
+    build_groq,
+)
+from ..llms.utils import describe_image
 from .._debug.logger import print_debug
 
 
@@ -23,9 +26,15 @@ vector_store_path.mkdir(exist_ok=True)
 
 class WizardIO:
 
-    def __init__(self):
-        print_debug("Qdrant client initialized.")
-        print_debug("WizardIO initialized.")
+    def __init__(self, multimodal: bool = False):
+
+        self._llm = build_openai()
+
+        if multimodal:
+            self._multimodal_llm = build_openai_multimodal()
+        else:
+            self._multimodal_llm = None
+
         self.reset()
 
     def add_str(self, text: str) -> str:
@@ -74,8 +83,12 @@ class WizardIO:
         fig.savefig(img_path)
         self._img_counter += 1
 
-        if augment_text_description:
-            text_description += "\n" + describe_image(img_path, text_description)
+        if augment_text_description and self._multimodal_llm is not None:
+            text_description += "\n" + describe_image(
+                multimodal_model=self._multimodal_llm,
+                image_path=img_path,
+                text_description=text_description,
+            )
 
         storage_description = "Image Path: " + str(img_path) + "\n\n" + text_description
 
@@ -106,7 +119,7 @@ class WizardIO:
 
         self._retriever = self._index.as_retriever(similarity_top_k=1)
 
-        self._query_engn = self._index.as_query_engine(llm=build_openai())
+        self._query_engn = self._index.as_query_engine(llm=self._llm)
 
     @property
     def retriever(self):

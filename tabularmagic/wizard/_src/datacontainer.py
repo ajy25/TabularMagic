@@ -1,7 +1,7 @@
 import pandas as pd
 from llama_index.experimental.query_engine import PandasQueryEngine
 import logging
-from .llms.openai import build_openai
+from .llms.openai.openai import build_openai
 from ._debug.logger import logger_path
 from ... import Analyzer
 from ...options import print_options

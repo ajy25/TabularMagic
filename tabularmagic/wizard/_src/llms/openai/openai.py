@@ -2,7 +2,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal
 
 
-from .find_key_from_dot_env import find_key
+from ..find_key_from_dot_env import find_key
 
 
 def build_openai(model: str = "gpt-4o-mini", temperature: float = 0.0) -> OpenAI:

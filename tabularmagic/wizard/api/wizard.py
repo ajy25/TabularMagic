@@ -7,6 +7,7 @@ from .._src import (
 )
 from ..._src.display.print_utils import suppress_all_output, suppress_logging
 from .._src.agents.orchestrator_agent import OrchestratorAgent
+from .._src.llms.openai.openai import build_openai
 from .._src.tools.tooling_context import ToolingContext
 
 
@@ -48,7 +49,9 @@ class Wizard:
         )
         print_debug("IO initialized.")
 
-        self._orchestrator_agent = OrchestratorAgent(self.context)
+        self._orchestrator_agent = OrchestratorAgent(
+            llm=build_openai(), context=self.context
+        )
 
     def chat(self, message: str) -> str:
         """Interacts with the LLM to provide data analysis insights.
@@ -63,5 +66,5 @@ class Wizard:
         str
             The response from the LLM.
         """
-        with suppress_all_output(), suppress_logging():
-            return self._orchestrator_agent.chat(message)
+        # with suppress_all_output(), suppress_logging():
+        return self._orchestrator_agent.chat(message)

@@ -1,11 +1,12 @@
 from llama_index.core.tools import FunctionTool
+from llama_index.core.llms.function_calling import FunctionCallingLLM
 
 from pydantic import BaseModel, Field
 
 from .eda_agent import build_eda_agent
 from .linear_regression_agent import build_linear_regression_agent
 from .ml_agent import build_ml_agent
-from .utils import build_function_calling_agent_openai
+from .utils import build_function_calling_agent
 
 
 from ..tools.data_tools import build_pandas_query_tool
@@ -65,12 +66,14 @@ NEVER answer with novel code—only use the tools provided to you.
 class OrchestratorAgent:
     """Class for orchestrating the interactions between the user and the LLMs."""
 
-    def __init__(self, context: ToolingContext):
+    def __init__(self, llm: FunctionCallingLLM, context: ToolingContext):
         """Initializes the OrchestratorAgent object."""
 
-        self._eda_agent = build_eda_agent(context)
-        self._linear_regression_agent = build_linear_regression_agent(context)
-        self._ml_agent = build_ml_agent(context)
+        self._eda_agent = build_eda_agent(llm=llm, context=context)
+        self._linear_regression_agent = build_linear_regression_agent(
+            llm=llm, context=context
+        )
+        self._ml_agent = build_ml_agent(llm=llm, context=context)
 
         class _EdaAgentTool(BaseModel):
             query: str = Field(
@@ -147,8 +150,8 @@ class OrchestratorAgent:
             build_pandas_query_tool(context),
         ]
 
-        self.agent = build_function_calling_agent_openai(
-            tools=tools, system_prompt=ORCHESTRATOR_SYSTEM_PROMPT
+        self.agent = build_function_calling_agent(
+            llm=llm, tools=tools, system_prompt=ORCHESTRATOR_SYSTEM_PROMPT
         )
 
     def chat(self, message: str) -> str:

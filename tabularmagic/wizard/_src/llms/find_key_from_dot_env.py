@@ -4,7 +4,7 @@ import os
 from typing import Literal
 
 
-def find_key(llm_type: Literal["openai"]) -> str:
+def find_key(llm_type: Literal["openai", "groq"]) -> str:
     """Reads the .env file and returns the API key for the specified LLM type.
     If the API key is not found, raises a ValueError.
 
@@ -23,6 +23,10 @@ def find_key(llm_type: Literal["openai"]) -> str:
         )
         if api_key == "..." or api_key is None:
             raise ValueError("OpenAI API key not found in .env file.")
+    elif llm_type == "groq":
+        api_key = str(os.getenv("GROQ_API_KEY")) if os.getenv("GROQ_API_KEY") else None
+        if api_key == "..." or api_key is None:
+            raise ValueError("GROQ API key not found in .env file.")
     else:
         raise ValueError("Invalid LLM type specified.")
 

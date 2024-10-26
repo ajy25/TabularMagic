@@ -10,7 +10,9 @@ from sklearn.decomposition import PCA
 from textwrap import fill
 from ..stattests import StatisticalTestReport
 from ..display.print_utils import print_wrapped, quote_and_color
+from ..display.print_options import print_options
 from ..display.plot_options import plot_options
+from ..utils import ensure_arg_list_uniqueness
 
 
 class CategoricalEDA:
@@ -40,10 +42,14 @@ class CategoricalEDA:
             "missing_rate": n_missing / len(self._var_series),
             "n": len(self._var_series),
         }
-        self.summary_statistics = pd.DataFrame(
-            list(self._summary_statistics_dict.items()),
-            columns=["Statistic", self.variable_name],
-        ).set_index("Statistic")
+        self.summary_statistics = (
+            pd.DataFrame(
+                list(self._summary_statistics_dict.items()),
+                columns=["Statistic", self.variable_name],
+            )
+            .set_index("Statistic")
+            .round(print_options._n_decimals)
+        )
 
     def plot_distribution(
         self,
@@ -165,10 +171,14 @@ class NumericEDA:
             "missing_rate": n_missing / len(self._var_series),
             "n": len(self._var_series),
         }
-        self.summary_statistics = pd.DataFrame(
-            list(self._summary_statistics_dict.items()),
-            columns=["Statistic", self.variable_name],
-        ).set_index("Statistic")
+        self.summary_statistics = (
+            pd.DataFrame(
+                list(self._summary_statistics_dict.items()),
+                columns=["Statistic", self.variable_name],
+            )
+            .set_index("Statistic")
+            .round(print_options._n_decimals)
+        )
 
     def plot_distribution(
         self,
@@ -300,12 +310,204 @@ class EDAReport:
             self._categorical_summary_statistics = pd.concat(
                 [eda.summary_statistics for eda in self._categorical_eda_dict.values()],
                 axis=1,
+            ).T
+            self._categorical_summary_statistics["n"] = (
+                self._categorical_summary_statistics["n"].astype(int)
             )
+            self._categorical_summary_statistics["n_missing"] = (
+                self._categorical_summary_statistics["n_missing"].astype(int)
+            )
+
         if len(self._numeric_vars) > 0:
             self._numeric_summary_statistics = pd.concat(
                 [eda.summary_statistics for eda in self._numeric_eda_dict.values()],
                 axis=1,
+            ).T
+            self._numeric_summary_statistics["n"] = self._numeric_summary_statistics[
+                "n"
+            ].astype(int)
+            self._numeric_summary_statistics["n_missing"] = (
+                self._numeric_summary_statistics["n_missing"].astype(int)
             )
+
+    # --------------------------------------------------------------------------
+    # TABLE GENERATION
+    # --------------------------------------------------------------------------
+    @ensure_arg_list_uniqueness()
+    def correlation_table(
+        self,
+        numeric_vars: list[str],
+        target: str,
+        bonferroni_correction: bool = False,
+        dropna: bool = True,
+    ) -> pd.DataFrame:
+        """Generates a table of the Pearson correlation coefficients between the
+        numeric variables and a target variable.
+
+        Parameters
+        ----------
+        numeric_vars : list[str]
+            List of numeric variables.
+
+        target : str
+            The numeric variable to correlate the `numeric_vars` with.
+
+        bonferroni_correction : bool
+            Default: False. If True, applies the Bonferroni correction to
+            the p-values (i.e. multiplies them by the number of tests).
+
+        dropna : bool
+            Default: True. If True, drops rows with NaN values when computing
+            correlations. If False, raises an error if NaN values are present.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with index as the numeric variables.
+            Columns include the Pearson correlation coefficient, p-value, and
+            number of units considered (if dropna was True).
+        """
+        for var in numeric_vars:
+            if var not in self._numeric_vars:
+                raise ValueError(
+                    f"Invalid input: {var}. " "Must be a known numeric variable."
+                )
+        if target not in self._numeric_vars:
+            raise ValueError(
+                f"Invalid input: {target}. " "Must be a known numeric variable."
+            )
+
+        if bonferroni_correction:
+            p_val_name = f"p-value (Bonferroni corrected, n_tests={len(numeric_vars)})"
+        else:
+            p_val_name = "p-value"
+
+        corr_table = pd.DataFrame(
+            columns=[f"Pearson corr. with {target}", p_val_name, "n"]
+        )
+        for var in numeric_vars:
+            var_data = self._df[var]
+            target_data = self._df[target]
+
+            if dropna:
+                # remove rows where either variable is NaN
+                mask = ~(var_data.isna() | target_data.isna())
+                var_data = var_data[mask]
+                target_data = target_data[mask]
+                if len(var_data) == 0:
+                    corr_table.loc[var] = [np.nan, np.nan, 0]
+                    continue
+            else:
+                if var_data.isna().any() or target_data.isna().any():
+                    raise ValueError(
+                        f"NaN values found in {var} or {target} and dropna=False"
+                    )
+            corr, p = stats.pearsonr(var_data, target_data)
+            if bonferroni_correction:
+                p *= len(numeric_vars)
+            corr_table.loc[var] = [corr, p, len(var_data)]
+
+        if not dropna:
+            corr_table = corr_table.drop("n", axis=1)
+        else:
+            corr_table["n"] = corr_table["n"].astype(int)
+
+        return corr_table.round(print_options._n_decimals)
+
+    def numeric_summary_table_stratified(
+        self, stratify_by: str, numeric_vars: list[str] | None = None
+    ) -> pd.DataFrame:
+        """Generates a summary table of numeric variables stratified by
+        a categorical variable.
+
+        Parameters
+        ----------
+        stratify_by : str
+            Categorical or numeric variable name to stratify by.
+        numeric_vars : list[str] | None, default=None
+            List of numeric variables to analyze.
+            If None, all numeric variables are considered.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with numeric variables as columns and stratification levels as rows.
+            For each combination, includes formatted mean ± std, sample size, and p-value
+            from either t-test (2 groups) or ANOVA (>2 groups).
+        """
+        # Input validation
+        if stratify_by not in self._df.columns:
+            raise ValueError(
+                f"Invalid input: {stratify_by}. "
+                "Must be a known variable in the dataset."
+            )
+
+        if numeric_vars is None:
+            numeric_vars = self._numeric_vars
+        else:
+            invalid_vars = [
+                var for var in numeric_vars if var not in self._numeric_vars
+            ]
+            if invalid_vars:
+                raise ValueError(
+                    f"Invalid numeric variables: {', '.join(invalid_vars)}. "
+                    "All variables must be known numeric variables."
+                )
+
+        # Initialize results storage
+        results = []
+
+        # Process each group level
+        groups = self._df[stratify_by].unique()
+        n_groups = len(groups)
+
+        for var in numeric_vars:
+            groupby = self._df.groupby(stratify_by)[var]
+            group_data = [groupby.get_group(group) for group in groups]
+
+            # Calculate statistics
+            means = groupby.mean()
+            stds = groupby.std()
+            counts = groupby.count()
+
+            # Calculate p-value
+            if n_groups == 2:
+                # Use t-test for 2 groups
+                p_value = stats.ttest_ind(
+                    group_data[0].dropna(), group_data[1].dropna()
+                )[1]
+            elif n_groups > 2:
+                # Use ANOVA for >2 groups
+                # Drop NaN values before performing ANOVA
+                clean_groups = [group.dropna() for group in group_data]
+                p_value = stats.f_oneway(*clean_groups)[1]
+            else:
+                p_value = np.nan
+
+            # Format results
+            for group in groups:
+                results.append(
+                    {
+                        "Variable": var,
+                        "Group": group,
+                        "Summary": f"{means[group]:.2f} ± {stds[group]:.2f}",
+                        "n": counts[group],
+                        "p-value": f"{p_value:.3f}" if pd.notnull(p_value) else "N/A",
+                    }
+                )
+
+        # Create and format output DataFrame
+        summary_table = pd.DataFrame(results)
+        summary_table = summary_table.pivot(
+            index="Group", columns="Variable", values=["Summary", "n", "p-value"]
+        )
+
+        # Flatten column names and sort them
+        summary_table.columns = [
+            f"{var} ({stat})" for stat, var in summary_table.columns
+        ]
+
+        return summary_table
 
     # --------------------------------------------------------------------------
     # PLOTTING
@@ -1380,25 +1582,6 @@ class EDAReport:
             raise ValueError(
                 f"Invalid input: {var}. " + "Must be a known variable in the input df."
             )
-
-    def _agentic_describe_json_str(self) -> str:
-        """Returns a jsonified string representation of the dataset.
-
-        Returns
-        -------
-        str
-        """
-        output = {}
-        output["categorical variable summary statistics"] = (
-            self._categorical_summary_statistics.to_dict()
-        )
-        output["numeric variable summary statistics"] = (
-            self._numeric_summary_statistics.to_dict()
-        )
-        output["number of numeric variables"] = len(self._numeric_vars)
-        output["number of categorical variables"] = len(self._categorical_vars)
-        output["number of examples/rows"] = len(self._df)
-        return json.dumps(output)
 
     def __getitem__(self, index: str) -> CategoricalEDA | NumericEDA:
         """Indexes into EDAReport.

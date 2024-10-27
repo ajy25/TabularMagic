@@ -3,7 +3,7 @@ from llama_index.experimental.query_engine import PandasQueryEngine
 import logging
 
 from ..options import options
-from .._debug.logger import logger_path
+from .._debug.logger import debug_log_path
 from .... import Analyzer
 from ....options import print_options
 
@@ -29,16 +29,14 @@ def build_tabularmagic_analyzer(
     tm.Analyzer
         The TabularMagic Analyzer.
     """
-    tm_logger = logging.Logger(name="TabularMagic Logger", level=logging.INFO)
-    filehandler = logging.FileHandler(logger_path)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    filehandler.setFormatter(formatter)
-    tm_logger.addHandler(filehandler)
+    print_options.reset_logger(logging.Logger("Blank"))
+    debug_logger = logging.Logger("Analyzer Debug Log")
+    filehandler = logging.FileHandler(debug_log_path)
+    style = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    filehandler.setFormatter(style)
+    debug_logger.addHandler(filehandler)
+    print_options.reset_secondary_logger(logger=debug_logger)
 
-    print_options.reset_logger(logger=tm_logger)
     analyzer = Analyzer(df, df_test=df_test, test_size=test_size, verbose=True)
     return analyzer
 

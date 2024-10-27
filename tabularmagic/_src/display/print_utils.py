@@ -46,6 +46,28 @@ def bold_text(text):
     return "\033[1m" + text + "\033[0m"
 
 
+def strip_ansi(text: str) -> str:
+    """Strips ANSI codes from text.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    str
+    """
+    return (
+        text.replace("\033[91m", "")
+        .replace("\033[92m", "")
+        .replace("\033[93m", "")
+        .replace("\033[94m", "")
+        .replace("\033[95m", "")
+        .replace("\033[1m", "")
+        .replace("\033[0m", "")
+    )
+
+
 def print_wrapped(
     text: str,
     type: Literal["WARNING", "UPDATE", "PROGRESS", "NOTE", None] = None,
@@ -63,6 +85,12 @@ def print_wrapped(
     """
     if print_options._muted:
         return
+
+    if level == "DEBUG":
+        print_options._log_debug(strip_ansi(text), secondary=True)
+    elif level == "INFO":
+        print_options._log_info(strip_ansi(text), secondary=True)
+
     base_message = text
     if type == "WARNING":
         base_message = color_text("WARN: ", "red") + base_message

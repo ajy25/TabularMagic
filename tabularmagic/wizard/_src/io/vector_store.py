@@ -20,6 +20,10 @@ vector_store_path = io_path / "_vector_store"
 vector_store_path.mkdir(exist_ok=True)
 
 
+log_path = io_path / "_log"
+log_path.mkdir(exist_ok=True)
+
+
 class VectorStoreManager:
 
     def __init__(self, multimodal: bool = False):

@@ -68,6 +68,8 @@ class Orchestrator:
 
     def __init__(self, llm: FunctionCallingLLM, context: ToolingContext, react: bool):
         """Initializes the Orchestrator object."""
+        if not isinstance(llm, FunctionCallingLLM):
+            raise ValueError("The provided LLM must be a FunctionCallingLLM.")
 
         self._eda_agent = build_eda_agent(llm=llm, context=context, react=react)
         self._linear_regression_agent = build_linear_regression_agent(

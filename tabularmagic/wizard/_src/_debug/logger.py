@@ -2,10 +2,10 @@ import logging
 from pathlib import Path
 
 debug_path = Path(__file__).resolve().parent
-logger_path = debug_path / "_log.log"
+debug_log_path = debug_path / "_debug_log.log"
 
-WIZARD_LOGGER = logging.Logger("TabularWizard Debug Logger", level=logging.DEBUG)
-handler = logging.FileHandler(filename=logger_path)
+WIZARD_LOGGER = logging.Logger("Wizard Debug Log", level=logging.DEBUG)
+handler = logging.FileHandler(filename=debug_log_path)
 formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
@@ -18,5 +18,5 @@ def print_debug(message: str):
     WIZARD_LOGGER.debug(message)
 
 
-with open(logger_path, "w") as f:
+with open(debug_log_path, "w") as f:
     f.write("")

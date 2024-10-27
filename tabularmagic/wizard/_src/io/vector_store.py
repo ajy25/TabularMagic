@@ -26,7 +26,7 @@ log_path.mkdir(exist_ok=True)
 
 class VectorStoreManager:
 
-    def __init__(self, multimodal: bool = False):
+    def __init__(self, multimodal: bool = True):
 
         self._llm = options.llm_build_function()
 
@@ -95,9 +95,20 @@ class VectorStoreManager:
             "Let the user know that they can enable multimodal mode to "
             "get a more detailed description."
 
-        storage_description = "Image Path: " + str(img_path) + "\n\n" + text_description
+        text_description = (
+            f"Path to image: {img_path}\n\n" + f"Description: {text_description}"
+        )
 
-        self._index.insert_nodes(nodes=[TextNode(text=storage_description)])
+        self._index.insert_nodes(
+            nodes=[
+                TextNode(
+                    text=text_description,
+                    metadata={
+                        "path": str(img_path),
+                    },
+                )
+            ]
+        )
 
         return text_description
 

@@ -1,11 +1,22 @@
 import pandas as pd
 from llama_index.experimental.query_engine import PandasQueryEngine
+from llama_index.core.indices import VectorStoreIndex
+from llama_index.core.schema import TextNode
 import logging
+from pathlib import Path
 
 from ..options import options
 from .._debug.logger import debug_log_path
 from .... import Analyzer
 from ....options import print_options
+
+
+io_log_path = Path(__file__).resolve().parent / "_log" / "_log.log"
+if io_log_path.exists():
+    io_log_path.unlink()
+    io_log_path.touch()
+else:
+    io_log_path.touch()
 
 
 def build_tabularmagic_analyzer(
@@ -30,12 +41,19 @@ def build_tabularmagic_analyzer(
         The TabularMagic Analyzer.
     """
     print_options.reset_logger(logging.Logger("Blank"))
-    debug_logger = logging.Logger("Analyzer Debug Log")
-    filehandler = logging.FileHandler(debug_log_path)
-    style = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    filehandler.setFormatter(style)
-    debug_logger.addHandler(filehandler)
+    debug_logger = logging.Logger("Analyzer Log")
+    debug_filehandler = logging.FileHandler(debug_log_path)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    debug_filehandler.setFormatter(formatter)
+    debug_logger.addHandler(debug_filehandler)
     print_options.reset_secondary_logger(logger=debug_logger)
+
+    io_filehandler = logging.FileHandler(io_log_path)
+    io_filehandler.setFormatter(formatter)
+    debug_logger.addHandler(io_filehandler)
 
     analyzer = Analyzer(df, df_test=df_test, test_size=test_size, verbose=True)
     return analyzer
@@ -53,7 +71,8 @@ class VariableInfo:
         vars : list[str]
             The variables to provide information on.
         """
-        self.vars_to_description = {var: None for var in vars}
+        self._in_memory_vector_index = VectorStoreIndex.from_documents([])
+        self._vars_to_description = {var: None for var in vars}
 
     def set_description(
         self,
@@ -70,7 +89,18 @@ class VariableInfo:
         description : str
             The description of the variable.
         """
-        self.vars_to_description[var] = description
+        self._vars_to_description[var] = description
+        self._in_memory_vector_index.insert_nodes(
+            nodes=[
+                TextNode(
+                    text=f"{var}: {description}",
+                    metadata={
+                        "variable": var,
+                        "description": description,
+                    },
+                )
+            ]
+        )
 
     def get_description(
         self,
@@ -88,7 +118,7 @@ class VariableInfo:
         str
             The description of the variable.
         """
-        output = self.vars_to_description[var]
+        output = self._vars_to_description[var]
         if output is None:
             return ""
 

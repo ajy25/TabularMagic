@@ -26,9 +26,11 @@ def describe_image(
     """
     image_document = ImageDocument(image_path=str(image_path))
 
-    prompt = "Describe the figure in detail. Be specific. "
-    "Here is some additional information: "
-    f"{text_description}"
+    prompt = "Describe the statistical figure in detail. Be specific. "
+    "Focus on only what you can infer from the figure, "
+    "rather than color, size, or other non-data related aspects. "
+    "Here is some additional information about the figure: "
+    f"'{text_description}'"
 
     str_description = multimodal_model.complete(
         prompt=prompt, image_documents=[image_document]

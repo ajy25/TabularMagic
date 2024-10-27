@@ -42,7 +42,7 @@ class Wizard:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self.vectorstore_manager = VectorStoreManager()
+        self.vectorstore_manager = VectorStoreManager(multimodal=True)
         self.context = ToolingContext(
             data_container=self.data_container,
             vectorstore_manager=self.vectorstore_manager,
@@ -66,5 +66,5 @@ class Wizard:
         str
             The response from the LLM.
         """
-        # with suppress_logging():
-        return self._orchestrator_agent.chat(message)
+        with suppress_logging():
+            return self._orchestrator_agent.chat(message)

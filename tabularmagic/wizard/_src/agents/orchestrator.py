@@ -10,33 +10,35 @@ from .utils import build_function_calling_agent
 
 
 from ..tools.data_tools import build_pandas_query_tool
+from ..tools.io_tools import build_retrieve_text_tool
 
 from ..tools.tooling_context import ToolingContext
 
 
 ORCHESTRATOR_SYSTEM_PROMPT = f"""
-You are an orchestrator agent that can interact with several data analysis agents to answer user queries.
+You are an data scientist orchestrator that can interact with several agents to answer user queries.
 A dataset has already been loaded into the system. Your agents and your tools will help you analyze this dataset.
 
 Each agent has access to a suite of tools that allow them to perform various types of analyses on an already provided tabular dataset.
 They can give you insights based on their tools.
 Here are the agents you can interact with:
 
-1. EDA Agent: An expert data analyst specializing in exploratory data analysis (EDA) and statistical data analysis.
+1. EDA Agent: An agent specializing in exploratory data analysis (EDA) and statistical data analysis.
     Call this agent if you need:
         - Summary statistics of the dataset.
         - Information about the distribution of specific variables.
         - To test for differences in means between groups.
 
-2. Linear Regression Agent: An expert data analyst specializing in linear regression.
+2. Linear Regression Agent: An agent specializing in linear regression.
     Call this agent if you need:
         - To perform a linear regression analysis.
 
-3. Machine Learning Agent: An expert data analyst specializing in machine learning and model comparison.
+3. Machine Learning Agent: An agent specializing in machine learning and model comparison.
     Call this agent if you need:
         - To perform machine learning regression or classification.
 
-To interact with an agent, simply call the tool corresponding to the correct agent. Pass along the query you received verbatim to the agent, as plain text. 
+To interact with an agent, simply call the tool corresponding to the agent, and pass along the query you received.
+
 
 In addition to the agents, you have tools which allow you to access the STORAGE.
 Your agents also have access to these storage tools, so they can store and retrieve information as needed.
@@ -46,21 +48,28 @@ The STORAGE can help you summarize your analysis and prevent you from repeating 
 The user should never know about STORAGE, so you should not mention it in your responses. 
 You should not mention 'save', 'store', 'retrieve', 'query', or any other related terms in your responses.
 
+
+You also have access to two tools that can help you get or set information about the variables (columns) in the dataset:
+
+1. The 'get_variable_description_tool' tool allows you to get the description of a variable.
+
+2. The 'set_variable_description_tool' tool allows you to set the description of a variable.
+
+Feel free to make reasonable guesses about the variable descriptions if you do not have the information.
+But if you are not sure about a variable ('get_variable_description_tool' returns empty string), 
+simply ask the user for the description of the variable.
+It is your responsibility to use the 'set_variable_description_tool' to set the description of a variable if the user provides it.
+You should communicate to your agents with the correct variable names.
+For example, if the user asks for 'miles per gallon' but the variable name is 'mpg', you should use 'mpg' when communicating with your agents.
+
+
 The user will ask you questions about the dataset, and you should use your expertise and your suite of tools to provide accurate and insightful answers to their queries.
-Your responses should be as concise yet informative as possible.
-Feel free to guess what the user might be asking for in order to use a tool. 
-Avoid answering without either using a tool or checking the STORAGE.
-NEVER answer with novel code—only use the tools provided to you.
+Feel free to guess what the user might be asking for. If you are unsure, ask clarifying questions. 
+Avoid answering without either using a tool or checking the STORAGE. Only use the tools provided to you to answer the user's queries.
+
+
+Your responses should be as concise yet informative. Respond in Markdown format with tables whenever possible.
 """
-
-
-# You also have access to two tools that can help you get or set information about the dataset:
-
-# 1. The 'get_variable_description_tool' tool allows you to get the description of a variable.
-# 2. The 'set_variable_description_tool' tool allows you to set the description of a variable.
-
-# It is your responsibility to use the 'set_variable_description_tool' to set the description of a variable if the user provides it.
-# If one of your agents asks for a variable description, you should ask the user for the description, then use the 'set_variable_description_tool' to set the description of the variable for future reference.
 
 
 class Orchestrator:
@@ -83,10 +92,6 @@ class Orchestrator:
             )
 
         def eda_agent_fn(query: str) -> str:
-            """Use this function to interact with the EDA agent.
-
-            Takes in a natural language query and returns the natural language response from the EDA agent.
-            """
             return self._eda_agent.chat(query)
 
         eda_agent_tool = FunctionTool.from_defaults(
@@ -107,10 +112,6 @@ class Orchestrator:
             )
 
         def linear_regression_agent_fn(query: str) -> str:
-            """Use this function to interact with the Linear Regression agent.
-
-            Takes in a natural language query and returns the natural language response from the EDA agent.
-            """
             return self._linear_regression_agent.chat(query)
 
         linear_regression_agent_tool = FunctionTool.from_defaults(
@@ -129,10 +130,6 @@ class Orchestrator:
             )
 
         def ml_agent_fn(query: str) -> str:
-            """Use this function to interact with the ML agent.
-
-            Takes in a natural language query and returns the natural language response from the ML agent.
-            """
             return self._ml_agent.chat(query)
 
         ml_agent_tool = FunctionTool.from_defaults(
@@ -150,6 +147,7 @@ class Orchestrator:
             linear_regression_agent_tool,
             ml_agent_tool,
             build_pandas_query_tool(context),
+            build_retrieve_text_tool(context),
         ]
 
         self.agent = build_function_calling_agent(

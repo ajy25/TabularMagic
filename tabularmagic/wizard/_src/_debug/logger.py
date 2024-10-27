@@ -7,7 +7,7 @@ debug_log_path = debug_path / "_debug_log.log"
 WIZARD_LOGGER = logging.Logger("Wizard Debug Log", level=logging.DEBUG)
 handler = logging.FileHandler(filename=debug_log_path)
 formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "%(asctime)s - %(name)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 handler.setFormatter(formatter)

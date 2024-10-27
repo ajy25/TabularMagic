@@ -1,9 +1,4 @@
-2024-10-27 02:57:31 - Wizard Debug Log - DEBUG - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x168814a40> and multimodal LLM build function: <function build_openai_multimodal at 0x168814b80>
-2024-10-27 02:57:31,689 - Analyzer Debug Log - INFO - Analyzer initialized for dataset 'Unnamed Dataset'. Shapes of train, test DataFrames: (1168, 81), (292, 81).
-2024-10-27 02:57:31 - Wizard Debug Log - DEBUG - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-10-27 02:57:31 - Wizard Debug Log - DEBUG - IO initialized.
-2024-10-27 02:58:27 - Wizard Debug Log - DEBUG - [<tabularmagic._src.ml.predict.regression.trees.TreesR object at 0x17f152330>]
-2024-10-27 02:58:27 - Wizard Debug Log - DEBUG - ['OverallQual', 'GarageArea']
-2024-10-27 02:58:27,725 - Analyzer Debug Log - INFO - Evaluating model 'RF'.
-2024-10-27 02:58:27,726 - Analyzer Debug Log - INFO - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-10-27 02:59:03,103 - Analyzer Debug Log - INFO - Successfully evaluated model 'RF'.
+2024-10-27 15:37:25 - Wizard Debug Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x16e2fc9a0> and multimodal LLM build function: <function build_openai_multimodal at 0x16e2fcae0>
+2024-10-27 15:37:25 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'. Shapes of train, test DataFrames: (1168, 81), (292, 81).
+2024-10-27 15:37:25 - Wizard Debug Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-10-27 15:37:25 - Wizard Debug Log - IO initialized.

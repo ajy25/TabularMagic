@@ -3,6 +3,7 @@ import sys
 import os
 import logging
 from contextlib import contextmanager
+import pandas as pd
 from .print_options import print_options
 
 
@@ -340,3 +341,14 @@ def format_two_column(
     left_buffer = half_length - len_ignore_format(left_text)
 
     return left_text + " " * left_buffer + right_text
+
+
+def format_value(value: float, n_decimals: int = 4) -> str:
+    """Format float values with consistent decimal places."""
+    if pd.isna(value):
+        return "NA"
+    if value == 0:
+        return "0." + "0" * n_decimals
+    if value == 1:
+        return "1." + "0" * n_decimals
+    return f"{value:.{n_decimals}f}"

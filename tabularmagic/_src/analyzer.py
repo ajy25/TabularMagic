@@ -7,6 +7,7 @@ from .ml.predict import (
     BaseC,
     MLClassificationReport,
 )
+from .feature_selection import BaseFSR, BaseFSC, VotingSelectionReport
 from .linear import (
     OLSLinearModel,
     OLSReport,
@@ -19,9 +20,8 @@ from .linear import (
 from .exploratory import (
     EDAReport,
 )
-from .causal import CausalReport, CausalModel
+from .causal import CausalModel
 from .display.print_utils import print_wrapped, quote_and_color
-from .feature_selection import BaseFSR, BaseFSC
 from .data.datahandler import DataHandler
 from .utils import ensure_arg_list_uniqueness
 
@@ -145,14 +145,14 @@ class Analyzer:
     # --------------------------------------------------------------------------
     # EDA + FEATURE SELECTION + CAUSAL EFFECT ESTIMATION + REGRESSION ANALYSIS
     # --------------------------------------------------------------------------
-    def eda(self, dataset: Literal["train", "test", "all"]) -> EDAReport:
+    def eda(self, dataset: Literal["train", "test", "all"] = "all") -> EDAReport:
         """Constructs an EDAReport object for the working train
         DataFrame, the working test DataFrame, or both DataFrames combined.
 
         Parameters
         ----------
         dataset : Literal['train', 'test', 'all']
-            The dataset to be analyzed.
+            The dataset to be analyzed. By default, analyzes all data.
 
         Returns
         -------
@@ -176,13 +176,104 @@ class Analyzer:
         treatment: str,
         outcome: str,
         confounders: list[str],
+        dataset: Literal["train", "test", "all"] = "all",
     ) -> CausalModel:
-        """Returns a CausalModel object for estimating causal effects."""
+        """Returns a CausalModel object for estimating causal effects.
+
+        Parameters
+        ----------
+        treatment : str
+            The treatment variable.
+
+        outcome : str
+            The outcome variable.
+
+        confounders : list[str]
+            The confounding variables.
+
+        dataset : Literal['train', 'test', 'all']
+            The dataset to be analyzed. By default, analyzes all data.
+
+        Returns
+        -------
+        CausalModel
+            The CausalModel object contains methods for estimating causal effects.
+        """
         return CausalModel(
-            self._datahandler,
-            treatment,
-            outcome,
-            confounders,
+            datahandler=self._datahandler,
+            treatment=treatment,
+            outcome=outcome,
+            confounders=confounders,
+            dataset=dataset,
+        )
+
+    @ensure_arg_list_uniqueness()
+    def select_features(
+        self,
+        target: str,
+        predictors: list[str] | None = None,
+        feature_selectors: list[BaseFSR] | list[BaseFSC] | None = None,
+        max_n_features: int | None = None,
+    ) -> VotingSelectionReport:
+        """Selects the most important features using a variety of feature selection
+        methods. The feature selection methods can be used to select the most
+        important predictors for regression or classification.
+
+        Parameters
+        ----------
+        target : str
+            The target variable.
+
+        predictors : list[str] | None
+            Default: None. The predictors to select from.
+            If None, uses all variables except the target as predictors.
+
+        feature_selectors : list[BaseFSR] | list[BaseFSC] | None
+            Default: None. The feature selection methods to use.
+            If None, uses all feature selection methods.
+
+        max_n_features : int | None
+            Default: None. Maximum number of features to select.
+            If None, then all features with at least 50% support are selected.
+
+        Returns
+        -------
+        VotingSelectionReport
+            Report object containing the results of the feature selection methods.
+        """
+        if target in self._datahandler.categorical_vars():
+            for fs in feature_selectors:
+                if not isinstance(fs, BaseFSC):
+                    raise ValueError(
+                        "Feature selection methods for classification "
+                        + "should be instances of BaseFSC."
+                    )
+        elif target in self._datahandler.numeric_vars():
+            for fs in feature_selectors:
+                if not isinstance(fs, BaseFSR):
+                    raise ValueError(
+                        "Feature selection methods for regression "
+                        + "should be instances of BaseFSR."
+                    )
+        else:
+            raise ValueError(f"Target variable {target} not found in data.")
+
+        if predictors is None:
+            predictors = self._datahandler.vars()
+            if target in predictors:
+                predictors.remove(target)
+
+        for predictor in predictors:
+            if predictor not in self._datahandler.vars():
+                raise ValueError(f"Predictor {predictor} not found in data.")
+
+        return VotingSelectionReport(
+            selectors=feature_selectors,
+            dataemitter=self._datahandler.train_test_emitter(
+                y_var=target,
+                X_vars=predictors,
+            ),
+            max_n_features=max_n_features,
         )
 
     @ensure_arg_list_uniqueness()

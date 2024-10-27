@@ -20,7 +20,7 @@ class _PrintOptions:
         self._logger = make_default_logger()
         self._muted = False
 
-        self._n_decimals = 4
+        self._n_decimals = 3
         self._max_line_width = 88  # consistent with Python Black
 
     def _log_info(self, msg: str):

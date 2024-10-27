@@ -9,7 +9,7 @@ from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
 from ..stattests import StatisticalTestReport
-from ..display.print_utils import print_wrapped, quote_and_color
+from ..display.print_utils import print_wrapped, format_value
 from ..display.print_options import print_options
 from ..display.plot_options import plot_options
 from ..utils import ensure_arg_list_uniqueness
@@ -42,14 +42,10 @@ class CategoricalEDA:
             "missing_rate": n_missing / len(self._var_series),
             "n": len(self._var_series),
         }
-        self.summary_statistics = (
-            pd.DataFrame(
-                list(self._summary_statistics_dict.items()),
-                columns=["Statistic", self.variable_name],
-            )
-            .set_index("Statistic")
-            .round(print_options._n_decimals)
-        )
+        self.summary_statistics = pd.DataFrame(
+            list(self._summary_statistics_dict.items()),
+            columns=["Statistic", self.variable_name],
+        ).set_index("Statistic")
 
     def plot_distribution(
         self,
@@ -171,14 +167,10 @@ class NumericEDA:
             "missing_rate": n_missing / len(self._var_series),
             "n": len(self._var_series),
         }
-        self.summary_statistics = (
-            pd.DataFrame(
-                list(self._summary_statistics_dict.items()),
-                columns=["Statistic", self.variable_name],
-            )
-            .set_index("Statistic")
-            .round(print_options._n_decimals)
-        )
+        self.summary_statistics = pd.DataFrame(
+            list(self._summary_statistics_dict.items()),
+            columns=["Statistic", self.variable_name],
+        ).set_index("Statistic")
 
     def plot_distribution(
         self,
@@ -334,7 +326,7 @@ class EDAReport:
     # TABLE GENERATION
     # --------------------------------------------------------------------------
     @ensure_arg_list_uniqueness()
-    def correlation_table(
+    def tabulate_correlation_comparison(
         self,
         numeric_vars: list[str],
         target: str,
@@ -348,17 +340,14 @@ class EDAReport:
         ----------
         numeric_vars : list[str]
             List of numeric variables.
-
         target : str
             The numeric variable to correlate the `numeric_vars` with.
-
-        bonferroni_correction : bool
-            Default: False. If True, applies the Bonferroni correction to
-            the p-values (i.e. multiplies them by the number of tests).
-
-        dropna : bool
-            Default: True. If True, drops rows with NaN values when computing
-            correlations. If False, raises an error if NaN values are present.
+        bonferroni_correction : bool, default=False
+            If True, applies the Bonferroni correction to the p-values
+            (multiplies them by the number of tests).
+        dropna : bool, default=True
+            If True, drops rows with NaN values when computing correlations.
+            If False, raises an error if NaN values are present.
 
         Returns
         -------
@@ -367,33 +356,40 @@ class EDAReport:
             Columns include the Pearson correlation coefficient, p-value, and
             number of units considered (if dropna was True).
         """
-        for var in numeric_vars:
-            if var not in self._numeric_vars:
-                raise ValueError(
-                    f"Invalid input: {var}. " "Must be a known numeric variable."
-                )
+        # Input validation
+        invalid_vars = set(numeric_vars) - set(self._numeric_vars)
+        if invalid_vars:
+            raise ValueError(
+                f"Invalid input(s): {', '.join(invalid_vars)}. "
+                "Must be known numeric variables."
+            )
         if target not in self._numeric_vars:
             raise ValueError(
-                f"Invalid input: {target}. " "Must be a known numeric variable."
+                f"Invalid input: {target}. Must be a known numeric variable."
             )
 
+        # Define column names
         if bonferroni_correction:
             p_val_name = f"p-value (Bonferroni corrected, n_tests={len(numeric_vars)})"
         else:
             p_val_name = "p-value"
 
+        # Initialize results DataFrame
         corr_table = pd.DataFrame(
             columns=[f"Pearson corr. with {target}", p_val_name, "n"]
         )
+
+        # Compute correlations
         for var in numeric_vars:
             var_data = self._df[var]
             target_data = self._df[target]
 
             if dropna:
-                # remove rows where either variable is NaN
+                # Remove rows where either variable is NaN
                 mask = ~(var_data.isna() | target_data.isna())
                 var_data = var_data[mask]
                 target_data = target_data[mask]
+
                 if len(var_data) == 0:
                     corr_table.loc[var] = [np.nan, np.nan, 0]
                     continue
@@ -402,117 +398,132 @@ class EDAReport:
                     raise ValueError(
                         f"NaN values found in {var} or {target} and dropna=False"
                     )
+
+            # Calculate correlation and p-value
             corr, p = stats.pearsonr(var_data, target_data)
             if bonferroni_correction:
                 p *= len(numeric_vars)
+
             corr_table.loc[var] = [corr, p, len(var_data)]
 
+        # Format the numeric columns
+        n_decimals = getattr(print_options, "_n_decimals", 4)
+
+        # Format correlation and p-value columns
+        corr_table[f"Pearson corr. with {target}"] = corr_table[
+            f"Pearson corr. with {target}"
+        ].apply(lambda x: format_value(x, n_decimals))
+        corr_table[p_val_name] = corr_table[p_val_name].apply(
+            lambda x: format_value(x, n_decimals)
+        )
+
+        # Handle the 'n' column
         if not dropna:
             corr_table = corr_table.drop("n", axis=1)
         else:
             corr_table["n"] = corr_table["n"].astype(int)
 
-        return corr_table.round(print_options._n_decimals)
+        return corr_table
 
-    def numeric_summary_table_stratified(
-        self, stratify_by: str, numeric_vars: list[str] | None = None
+    @ensure_arg_list_uniqueness()
+    def tabulate_correlation_matrix(
+        self,
+        numeric_vars: list[str],
+        p_values: bool = False,
     ) -> pd.DataFrame:
-        """Generates a summary table of numeric variables stratified by
-        a categorical variable.
+        """Generates a table of the Pearson correlation coefficients
+        between numeric variables.
+
+        The function computes correlations efficiently by leveraging numpy operations
+        and avoiding redundant calculations. For symmetric pairs (i,j) and (j,i),
+        it only computes one and mirrors the result.
 
         Parameters
         ----------
-        stratify_by : str
-            Categorical or numeric variable name to stratify by.
-        numeric_vars : list[str] | None, default=None
-            List of numeric variables to analyze.
-            If None, all numeric variables are considered.
+        numeric_vars : list[str]
+            List of numeric variables to compute correlations for.
+
+        p_values : bool, default=False
+            If True, includes p-values in the output in format: "corr (p-val)"
 
         Returns
         -------
         pd.DataFrame
-            DataFrame with numeric variables as columns and stratification levels as rows.
-            For each combination, includes formatted mean ± std, sample size, and p-value
-            from either t-test (2 groups) or ANOVA (>2 groups).
+            DataFrame with index and columns as the numeric variables.
+            Values are either correlation coefficients or "correlation (p-value)" if
+            p_values=True.
+
+        Raises
+        ------
+        ValueError
+            If any variable in numeric_vars is not a known numeric variable.
         """
-        # Input validation
-        if stratify_by not in self._df.columns:
+
+        def format_corr_pval(corr: float, pval: float, n_decimals: int = 4) -> str:
+            """Format correlation and p-value pair with consistent decimal places."""
+            corr_str = format_value(corr, n_decimals)
+            pval_str = format_value(pval, n_decimals)
+            return f"{corr_str} ({pval_str})"
+
+        # Validate input variables
+        invalid_vars = set(numeric_vars) - set(self._numeric_vars)
+        if invalid_vars:
             raise ValueError(
-                f"Invalid input: {stratify_by}. "
-                "Must be a known variable in the dataset."
+                f"Invalid input(s): {', '.join(invalid_vars)}. "
+                "Must be known numeric variables."
             )
 
-        if numeric_vars is None:
-            numeric_vars = self._numeric_vars
+        # Extract data as numpy array for faster computation
+        data = self._df[numeric_vars].values
+        n_vars = len(numeric_vars)
+        n_decimals = getattr(print_options, "_n_decimals", 4)
+
+        # Initialize matrices for correlations and p-values
+        corr_matrix = np.ones((n_vars, n_vars))
+        p_matrix = np.ones((n_vars, n_vars)) if p_values else None
+
+        # Compute correlations and p-values for upper triangle
+        for i in range(n_vars):
+            for j in range(i + 1, n_vars):
+                corr, p = stats.pearsonr(data[:, i], data[:, j])
+                corr_matrix[i, j] = corr_matrix[j, i] = corr
+                if p_values:
+                    p_matrix[i, j] = p_matrix[j, i] = p
+
+        # Convert to DataFrame and format values
+        if not p_values:
+            # Format correlation values only
+            formatted_matrix = np.vectorize(lambda x: format_value(x, n_decimals))(
+                corr_matrix
+            )
+            result = pd.DataFrame(
+                formatted_matrix, index=numeric_vars, columns=numeric_vars
+            )
         else:
-            invalid_vars = [
-                var for var in numeric_vars if var not in self._numeric_vars
-            ]
-            if invalid_vars:
-                raise ValueError(
-                    f"Invalid numeric variables: {', '.join(invalid_vars)}. "
-                    "All variables must be known numeric variables."
-                )
+            # Format correlations with p-values
+            formatted_matrix = np.empty((n_vars, n_vars), dtype=object)
+            for i in range(n_vars):
+                for j in range(n_vars):
+                    if i == j:
+                        formatted_matrix[i, j] = (
+                            format_value(1.0, n_decimals)
+                            + f" ({format_value(1.0, n_decimals)})"
+                        )
+                    else:
+                        formatted_matrix[i, j] = format_corr_pval(
+                            corr_matrix[i, j], p_matrix[i, j], n_decimals
+                        )
 
-        # Initialize results storage
-        results = []
+            result = pd.DataFrame(
+                formatted_matrix, index=numeric_vars, columns=numeric_vars
+            )
 
-        # Process each group level
-        groups = self._df[stratify_by].unique()
-        n_groups = len(groups)
-
-        for var in numeric_vars:
-            groupby = self._df.groupby(stratify_by)[var]
-            group_data = [groupby.get_group(group) for group in groups]
-
-            # Calculate statistics
-            means = groupby.mean()
-            stds = groupby.std()
-            counts = groupby.count()
-
-            # Calculate p-value
-            if n_groups == 2:
-                # Use t-test for 2 groups
-                p_value = stats.ttest_ind(
-                    group_data[0].dropna(), group_data[1].dropna()
-                )[1]
-            elif n_groups > 2:
-                # Use ANOVA for >2 groups
-                # Drop NaN values before performing ANOVA
-                clean_groups = [group.dropna() for group in group_data]
-                p_value = stats.f_oneway(*clean_groups)[1]
-            else:
-                p_value = np.nan
-
-            # Format results
-            for group in groups:
-                results.append(
-                    {
-                        "Variable": var,
-                        "Group": group,
-                        "Summary": f"{means[group]:.2f} ± {stds[group]:.2f}",
-                        "n": counts[group],
-                        "p-value": f"{p_value:.3f}" if pd.notnull(p_value) else "N/A",
-                    }
-                )
-
-        # Create and format output DataFrame
-        summary_table = pd.DataFrame(results)
-        summary_table = summary_table.pivot(
-            index="Group", columns="Variable", values=["Summary", "n", "p-value"]
-        )
-
-        # Flatten column names and sort them
-        summary_table.columns = [
-            f"{var} ({stat})" for stat, var in summary_table.columns
-        ]
-
-        return summary_table
+        return result
 
     # --------------------------------------------------------------------------
     # PLOTTING
     # --------------------------------------------------------------------------
-
+    @ensure_arg_list_uniqueness()
     def plot_numeric_pairs(
         self,
         numeric_vars: list[str] | None = None,
@@ -574,8 +585,8 @@ class EDAReport:
                 lambda x, y, **kwargs: plt.text(
                     0.5,
                     0.5,
-                    f"ρ = {round(stats.pearsonr(x, y)[0], 3)}\n"
-                    + f"p = {round(stats.pearsonr(x, y)[1], 5)}",
+                    f"ρ = {round(stats.pearsonr(x, y)[0], print_options._n_decimals)}\n"
+                    + f"p = {round(stats.pearsonr(x, y)[1], print_options._n_decimals)}",
                     ha="center",
                     va="center",
                     transform=plt.gca().transAxes,
@@ -641,6 +652,7 @@ class EDAReport:
         plt.close(fig)
         return fig
 
+    @ensure_arg_list_uniqueness()
     def plot_distribution_stratified(
         self,
         numeric_var: str,
@@ -863,6 +875,7 @@ class EDAReport:
             plt.close()
         return fig
 
+    @ensure_arg_list_uniqueness()
     def plot_distribution(
         self,
         var: str,
@@ -893,6 +906,7 @@ class EDAReport:
         """
         return self[var].plot_distribution(density=density, figsize=figsize, ax=ax)
 
+    @ensure_arg_list_uniqueness()
     def plot_pca(
         self,
         numeric_vars: list[str],
@@ -1101,9 +1115,11 @@ class EDAReport:
             plt.close()
         return fig
 
+    @ensure_arg_list_uniqueness()
     def plot_correlation_heatmap(
         self,
         numeric_vars: list[str] | None = None,
+        p_values: bool = False,
         cmap: str | plt.Colormap = "coolwarm",
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
@@ -1113,66 +1129,133 @@ class EDAReport:
         Parameters
         ----------
         numeric_vars : list[str] | None
-            Default: None. A list of numeric variables.
+            List of numeric variables to include in the heatmap.
             If None, all numeric variables are considered.
 
+        p_values : bool
+            If True, displays correlation coefficients with their
+            corresponding p-values in parentheses.
+
         cmap : str | plt.Colormap
-            Default: "coolwarm". The colormap to use.
+            The colormap to use for the heatmap visualization.
 
         figsize : tuple[float, float]
-            Default: (5, 5). The size of the figure. Only used if ax is None.
+            The size of the figure (width, height) in inches.
+            Only used if ax is None.
 
         ax : plt.Axes | None
-            Default: None. If not None, the plot is drawn on the input Axes.
+            If provided, the plot is drawn on this Axes instance.
 
         Returns
         -------
         plt.Figure
+            The figure containing the correlation heatmap.
         """
+
+        def format_corr_pval(corr: float, pval: float, n_decimals: int = 4) -> str:
+            """Format correlation and p-value pair."""
+            corr_str = format_value(corr, n_decimals)
+            pval_str = format_value(pval, n_decimals)
+            return f"{corr_str}\n(p={pval_str})"
+
         if numeric_vars is None:
             numeric_vars = self._numeric_vars
-
         else:
-            for var in numeric_vars:
-                if var not in self._numeric_vars:
-                    raise ValueError(
-                        f"Invalid input: {var}. " "Must be a known numeric variable."
-                    )
+            invalid_vars = set(numeric_vars) - set(self._numeric_vars)
+            if invalid_vars:
+                raise ValueError(
+                    f"Invalid input(s): {', '.join(invalid_vars)}. "
+                    "Must be known numeric variables."
+                )
 
         fig = None
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
-        corr = self._df[numeric_vars].corr()
-        sns.heatmap(
-            corr,
-            annot=True,
-            annot_kws={"size": plot_options._axis_title_font_size},
-            fmt=".3f",
-            cmap=cmap,
-            ax=ax,
-            cbar=False,
-        )
-        ax.set_title("Correlation Heatmap")
+        n_decimals = getattr(print_options, "_n_decimals", 4)
 
-        ax.title.set_fontsize(plot_options._title_font_size)
-        ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.yaxis.label.set_fontsize(plot_options._axis_title_font_size)
-        ax.tick_params(
-            axis="both",
-            which="major",
-            labelrotation=45,
-            labelsize=plot_options._axis_major_ticklabel_font_size,
+        if not p_values:
+            corr = self._df[numeric_vars].corr()
+
+            # format the correlation values
+            corr_formatted = corr.map(lambda x: format_value(x, n_decimals))
+            sns.heatmap(
+                corr,
+                annot=corr_formatted,
+                annot_kws={
+                    "size": plot_options._axis_title_font_size,
+                    "ha": "center",
+                    "va": "center",
+                },
+                cmap=cmap,
+                ax=ax,
+                fmt="",
+                cbar=True,
+                vmin=-1,  # Force scale from -1 to 1
+                vmax=1,
+                center=0,  # Center colormap at 0
+            )
+        else:
+            # initialize matrices for correlations and p-values
+            n_vars = len(numeric_vars)
+            corr_matrix = np.ones((n_vars, n_vars))
+            p_matrix = np.ones((n_vars, n_vars))
+            annot_matrix = np.empty((n_vars, n_vars), dtype=object)
+
+            # compute correlations and p-values for all pairs
+            for i in range(n_vars):
+                for j in range(n_vars):
+                    if i == j:
+                        # handle diagonal
+                        corr_matrix[i, j] = 1.0
+                        p_matrix[i, j] = 1.0
+                        annot_matrix[i, j] = (
+                            format_value(1.0, n_decimals) + "\n(p=1.0000)"
+                        )
+                    else:
+                        corr, p = stats.pearsonr(
+                            self._df[numeric_vars[i]], self._df[numeric_vars[j]]
+                        )
+                        corr_matrix[i, j] = corr
+                        p_matrix[i, j] = p
+                        annot_matrix[i, j] = format_corr_pval(corr, p, n_decimals)
+            sns.heatmap(
+                corr_matrix,
+                annot=annot_matrix,
+                annot_kws={
+                    "size": plot_options._axis_title_font_size,
+                    "ha": "center",
+                    "va": "center",
+                },
+                fmt="",
+                cmap=cmap,
+                ax=ax,
+                cbar=True,
+                vmin=-1,
+                vmax=1,
+                center=0,
+            )
+
+        # customize appearance
+        title = "Correlation Heatmap"
+        ax.set_title(title, fontsize=plot_options._title_font_size)
+
+        ax.set_xticklabels(
+            numeric_vars,
+            rotation=45,
+            ha="right",
+            fontsize=plot_options._axis_major_ticklabel_font_size,
         )
-        ax.tick_params(
-            axis="both",
-            which="minor",
-            labelsize=plot_options._axis_minor_ticklabel_font_size,
+        ax.set_yticklabels(
+            numeric_vars,
+            rotation=0,
+            fontsize=plot_options._axis_major_ticklabel_font_size,
         )
 
         if fig is not None:
             fig.tight_layout()
             plt.close()
+
         return fig
 
     # --------------------------------------------------------------------------
@@ -1518,7 +1601,7 @@ class EDAReport:
             )
 
     # --------------------------------------------------------------------------
-    # GETTERS
+    # GETTERS (as methods, not properties)
     # --------------------------------------------------------------------------
     def numeric_vars(self) -> list[str]:
         """Returns a list of the names of all numeric variables.
@@ -1548,7 +1631,7 @@ class EDAReport:
         -------
         pd.DataFrame | None
         """
-        return self._categorical_summary_statistics
+        return self._categorical_summary_statistics.round(print_options._n_decimals)
 
     def numeric_stats(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing summary statistics for all
@@ -1560,7 +1643,7 @@ class EDAReport:
         -------
         pd.DataFrame | None
         """
-        return self._numeric_summary_statistics
+        return self._numeric_summary_statistics.round(print_options._n_decimals)
 
     def specific(self, var: str) -> CategoricalEDA | NumericEDA:
         """Returns the CategoricalEDA or NumericEDA object associated with

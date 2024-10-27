@@ -323,8 +323,8 @@ class DataHandler:
         )
 
     def full_dataset_emitter(self, y_var: str, X_vars: list[str]) -> DataEmitter:
-        """Returns a DataEmitter object for the original train DataFrame and
-        the original test DataFrame.
+        """Returns a DataEmitter object for the working train DataFrame and
+        the working test DataFrame.
 
         The concatenated DataFrame (full DataFrame) is re-preprocessed as if
         it were the original train DataFrame. Note that the "test" DataFrame is the
@@ -342,10 +342,10 @@ class DataHandler:
         -------
         DataEmitter
         """
-        if y_var not in self._orig_df_train.columns:
+        if y_var not in self._working_df_train.columns:
             raise ValueError(f"Invalid target variable name: {y_var}.")
         for var in X_vars:
-            if var not in self._orig_df_train.columns:
+            if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")
         concatinated_df = pd.concat([self._orig_df_train, self._orig_df_test])
         return DataEmitter(

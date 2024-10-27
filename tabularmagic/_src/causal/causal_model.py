@@ -20,6 +20,7 @@ class CausalModel:
         treatment: str,
         outcome: str,
         confounders: list[str],
+        dataset: Literal["train", "test", "all"] = "all",
     ):
         """Initializes a CausalModel object.
 
@@ -38,13 +39,50 @@ class CausalModel:
 
         confounders : list[str]
             The names of the confounding variables.
+
+        dataset : Literal["train", "test", "all"]
+            The dataset to use for causal inference. "train" for training data,
+            "test" for test data, and "all" for both training and test data,
+            by default "all".
         """
-        self._datahandler = datahandler.copy().dropna(
+        temp_datahandler = datahandler.copy().dropna(
             include_vars=[treatment, outcome] + confounders
         )
         self._treatment = treatment
         self._outcome = outcome
         self._confounders = confounders
+        if dataset == "train":
+            self._emitter = temp_datahandler.train_test_emitter(
+                y_var=outcome,
+                X_vars=confounders + [treatment],
+            )
+            self._propensity_emitter = temp_datahandler.train_test_emitter(
+                y_var=treatment,
+                X_vars=confounders,
+            )
+            self._X_df, self._y_df = self._emitter.emit_train_Xy()
+        elif dataset == "test":
+            self._emitter = temp_datahandler.train_test_emitter(
+                y_var=outcome,
+                X_vars=confounders + [treatment],
+            )
+            self._propensity_emitter = temp_datahandler.train_test_emitter(
+                y_var=treatment,
+                X_vars=confounders,
+            )
+            self._X_df, self._y_df = self._emitter.emit_test_Xy()
+        elif dataset == "all":
+            self._emitter = temp_datahandler.full_dataset_emitter(
+                y_var=outcome,
+                X_vars=confounders + [treatment],
+            )
+            self._propensity_emitter = temp_datahandler.full_dataset_emitter(
+                y_var=treatment,
+                X_vars=confounders,
+            )
+            self._X_df, self._y_df = self._emitter.emit_train_Xy()
+        else:
+            raise ValueError("Invalid dataset.")
 
     def estimate_ate(
         self,
@@ -58,13 +96,12 @@ class CausalModel:
         Parameters
         ----------
         method : Literal["outcome_regression", "ipw_weighted_regression"]
-            The method for estimating the ATE. "outcome_regression" for outcome
-            regression and "ipw_weighted_regression" for IPW-weighted regression.
+            The method for estimating the ATE.
 
         propensity_score_estimator : BaseC, optional
             The estimator/model for computing/predicting the propensity scores,
             by default LinearC(type="no_penalty") (logistic regression).
-            Hyperparameters will be selected as specified in the model.
+            Hyperparameters will be selected as specified in the BaseC model.
         """
         if method == "outcome_regression":
             return self._outcome_regression(estimand="ate")
@@ -93,12 +130,7 @@ class CausalModel:
             "treatment variable and confounders as predictors."
         )
 
-        full_emitter = self._datahandler.full_dataset_emitter(
-            y_var=self._outcome,
-            X_vars=self._confounders + [self._treatment],
-        )
-
-        df_X, df_y = full_emitter.emit_train_Xy()
+        df_X, df_y = self._X_df, self._y_df
 
         if estimand == "att":
             df_X = df_X[df_X[self._treatment] == 1]
@@ -149,19 +181,12 @@ class CausalModel:
             f"The logistic regression model is `{str(propensity_score_estimator)}.`"
         )
 
-        full_emitter = self._datahandler.full_dataset_emitter(
-            y_var=self._outcome,
-            X_vars=self._confounders + [self._treatment],
-        )
+        emitter = self._emitter
 
-        df_X, df_y = full_emitter.emit_train_Xy()
+        df_X, df_y = emitter.emit_train_Xy()
         treatment_series = df_X[self._treatment]
 
-        propensity_emitter = self._datahandler.full_dataset_emitter(
-            y_var=self._treatment,
-            X_vars=self._confounders,
-        )
-
+        propensity_emitter = self._propensity_emitter
         propensity_score_estimator.specify_data(dataemitter=propensity_emitter)
         propensity_score_estimator.fit()
 
@@ -192,47 +217,3 @@ class CausalModel:
             method="Inverse Probability Weighting (IPW)-Weighted Regression",
             method_description=method_description,
         )
-
-    def _ipw_estimator(
-        self,
-        estimand: Literal["ate", "att"],
-        propensity_score_estimator: BaseC = LinearC(
-            type="no_penalty",
-        ),
-    ) -> CausalReport:
-        """Estimates the average treatment effect (ATE) using the IPW estimator."""
-
-        full_emitter = self._datahandler.full_dataset_emitter(
-            y_var=self._outcome,
-            X_vars=self._confounders + [self._treatment],
-        )
-
-        df_X, df_y = full_emitter.emit_train_Xy()
-
-        treatment_series = df_X[self._treatment]
-        outcome_series = df_y
-
-        propensity_emitter = self._datahandler.full_dataset_emitter(
-            y_var=self._treatment,
-            X_vars=self._confounders,
-        )
-
-        propensity_score_estimator.specify_data(dataemitter=propensity_emitter)
-        propensity_score_estimator.fit()
-
-        propensity_scores_series = pd.Series(
-            propensity_score_estimator._train_scorer._y_pred_score, index=df_X.index
-        )
-
-        trmt_np = treatment_series.to_numpy()
-        outcome_np = outcome_series.to_numpy()
-        propensity_scores_np = propensity_scores_series.to_numpy()
-
-        if estimand == "ate":
-            effect = (
-                np.sum(trmt_np * outcome_np / propensity_scores_np)
-                / np.sum(trmt_np / propensity_scores_np)
-            ) - (
-                np.sum((1 - trmt_np) * outcome_np / (1 - propensity_scores_np))
-                / np.sum((1 - trmt_np) / (1 - propensity_scores_np))
-            )

@@ -282,7 +282,7 @@ class MLRegressionReport:
         for model in self._models:
             if not isinstance(model, BaseR):
                 raise ValueError(
-                    f"Model {quote_and_color(model._name)} is not an instance "
+                    f"Model {quote_and_color(str(model))} is not an instance "
                     "of BaseR. All models must be instances of BaseR."
                 )
 

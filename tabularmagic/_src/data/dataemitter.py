@@ -88,7 +88,7 @@ class DataEmitter:
         self,
         df_train: pd.DataFrame,
         df_test: pd.DataFrame,
-        y_var: str,
+        y_var: str | None,
         X_vars: list[str],
         step_tracer: PreprocessStepTracer,
     ):
@@ -104,8 +104,9 @@ class DataEmitter:
             df_test is the train DataFrame before preprocessing but
             after variable manipulation. DataEmitter copies this DataFrame.
 
-        y_var : str
+        y_var : str | None
             The target variable.
+            Can be None if the DataEmitter is used for unsupervised learning.
 
         X_vars : list[str]
             The predictor variables (before one-hot encoding, if applicable).
@@ -215,6 +216,8 @@ class DataEmitter:
         pd.Series
             y_test_series: The test Series of the target variable.
         """
+        if self._yvar is None:
+            raise ValueError("No y variable specified in DataEmitter initialization.")
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
@@ -282,6 +285,8 @@ class DataEmitter:
         pd.Series
             y_train_series: The training Series of the target variable.
         """
+        if self._yvar is None:
+            raise ValueError("No y variable specified in DataEmitter initialization.")
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
@@ -330,6 +335,8 @@ class DataEmitter:
         pd.Series
             y_test_series: The test Series of the target variable.
         """
+        if self._yvar is None:
+            raise ValueError("No y variable specified in DataEmitter initialization.")
         all_vars = self._Xvars + [self._yvar]
         prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
@@ -350,6 +357,59 @@ class DataEmitter:
         if self._final_X_vars_subset is not None:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
+
+    def emit_train_X(self) -> pd.DataFrame:
+        """Returns X_train_df."""
+        if self._yvar is None:
+            all_vars = self._Xvars
+        else:
+            all_vars = self._Xvars + [self._yvar]
+        prev_train_len = len(self._working_df_train)
+        working_df_train = self._working_df_train[all_vars].dropna()
+        new_train_len = len(working_df_train)
+        if prev_train_len != new_train_len:
+            print_wrapped(
+                f"Train data: dropped {prev_train_len - new_train_len} rows "
+                "with missing values "
+                f"out of a total of {prev_train_len} rows.",
+                type="WARNING",
+            )
+        if self._pre_onehot_X_vars_subset is not None:
+            xvars = self._pre_onehot_X_vars_subset
+        else:
+            xvars = self._Xvars
+        X_train_df = self._onehot_helper(
+            working_df_train[xvars], fit=True, use_second_encoder=True
+        )
+        if self._final_X_vars_subset is not None:
+            X_train_df = X_train_df[self._final_X_vars_subset]
+        return X_train_df
+
+    def emit_test_X(self) -> pd.DataFrame:
+        """Returns X_test_df."""
+        if self._yvar is None:
+            all_vars = self._Xvars
+        else:
+            all_vars = self._Xvars + [self._yvar]
+        prev_test_len = len(self._working_df_test)
+        working_df_test = self._working_df_test[all_vars].dropna()
+        new_test_len = len(working_df_test)
+        if prev_test_len != new_test_len:
+            print_wrapped(
+                f"Test data: dropped {prev_test_len - new_test_len} rows "
+                f"with missing values out of a total of {prev_test_len} rows.",
+                type="WARNING",
+            )
+        if self._pre_onehot_X_vars_subset is not None:
+            xvars = self._pre_onehot_X_vars_subset
+        else:
+            xvars = self._Xvars
+        X_test_df = self._onehot_helper(
+            working_df_test[xvars], fit=False, use_second_encoder=True
+        )
+        if self._final_X_vars_subset is not None:
+            X_test_df = X_test_df[self._final_X_vars_subset]
+        return X_test_df
 
     def select_predictors_pre_onehot(self, predictors: list[str] | None):
         """Selects a subset of predictors lazily (before one-hot encoding).
@@ -1107,8 +1167,9 @@ class DataEmitter:
         DataEmitter
             Returns self for method chaining.
         """
-        if var == self._yvar:
-            self._yscaler = scaler
+        if self._yvar is not None:
+            if var == self._yvar:
+                self._yscaler = scaler
         return self
 
     def X_vars(self) -> list[str]:
@@ -1139,6 +1200,8 @@ class DataEmitter:
         list[str]
             All variables.
         """
+        if self._yvar is None:
+            return self._Xvars
         return self._Xvars + [self._yvar]
 
     def custom_transform(self, X: pd.DataFrame) -> pd.DataFrame:

@@ -121,10 +121,9 @@ class DataHandler:
             if self._verbose:
                 shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
-                    "Working DataFrames reset to original DataFrames. "
-                    + "Shapes of train, test DataFrames: "
-                    + f'{color_text(shapes_dict["train"], "yellow")}, '
-                    + f'{color_text(shapes_dict["test"], "yellow")}.',
+                    "Datasets reset to original state. "
+                    + "Train, test shapes: "
+                    + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type="UPDATE",
                 )
         else:
@@ -139,9 +138,9 @@ class DataHandler:
             if self._verbose:
                 shapes_dict = self._shapes_str_formatted()
                 print_wrapped(
-                    "Working DataFrames reset to checkpoint "
+                    "Datasets reset to state at checkpoint "
                     + f'{quote_and_color(checkpoint, "yellow")}. '
-                    + "Shapes of train, test DataFrames: "
+                    + "Train, test shapes: "
                     + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
                     type="UPDATE",
                 )
@@ -170,8 +169,7 @@ class DataHandler:
         """
         if self._verbose:
             print_wrapped(
-                "Saved working DataFrames checkpoint "
-                + f'{quote_and_color(checkpoint, "yellow")}.',
+                "Saved data checkpoint " + f'{quote_and_color(checkpoint, "yellow")}.',
                 type="UPDATE",
             )
         self._checkpoint_name_to_df[checkpoint] = (
@@ -296,14 +294,15 @@ class DataHandler:
         """
         return self._numeric_var_to_scaler[var]
 
-    def train_test_emitter(self, y_var: str, X_vars: list[str]) -> DataEmitter:
+    def train_test_emitter(self, y_var: str | None, X_vars: list[str]) -> DataEmitter:
         """Returns a DataEmitter object for the working train DataFrame and
         the working test DataFrame.
 
         Parameters
         ----------
-        y_var : str
+        y_var : str | None
             Name of the target variable.
+
         X_vars : list[str]
             Names of the predictor variables.
 
@@ -324,7 +323,7 @@ class DataHandler:
             self._preprocess_step_tracer,
         )
 
-    def full_dataset_emitter(self, y_var: str, X_vars: list[str]) -> DataEmitter:
+    def full_dataset_emitter(self, y_var: str | None, X_vars: list[str]) -> DataEmitter:
         """Returns a DataEmitter object for the working train DataFrame and
         the working test DataFrame.
 
@@ -334,7 +333,7 @@ class DataHandler:
 
         Parameters
         ----------
-        y_var : str
+        y_var : str | None
             Name of the target variable.
 
         X_vars : list[str]

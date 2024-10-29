@@ -7,6 +7,7 @@ from .ml.predict import (
     BaseC,
     MLClassificationReport,
 )
+from .ml.cluster import BaseCluster, GMMCluster, ClusterReport
 from .feature_selection import BaseFSR, BaseFSC, VotingSelectionReport
 from .linear import (
     OLSLinearModel,
@@ -114,8 +115,8 @@ class Analyzer:
             else:
                 if self._verbose:
                     print_wrapped(
-                        "No test DataFrame provided. The test DataFrame "
-                        + "will be treated as a train DataFrame copy.",
+                        "No test dataset provided. The test dataset "
+                        + "will be treated as a train dataset copy.",
                         type="NOTE",
                     )
                 temp_train_df = df
@@ -136,7 +137,7 @@ class Analyzer:
             print_wrapped(
                 "Analyzer initialized for dataset "
                 f"{quote_and_color(self._name, 'yellow')}. "
-                + "Shapes of train, test DataFrames: "
+                + "Train, test shapes: "
                 + f'{shapes_dict["train"]}, '
                 + f'{shapes_dict["test"]}.',
                 type="UPDATE",
@@ -621,6 +622,15 @@ class Analyzer:
             verbose=self._verbose,
         )
 
+    def cluster(
+        self,
+        models: list[BaseCluster],
+        features: list[str] | None = None,
+        n_clusters: int | None = None,
+        dataset: Literal["train", "all"] = "all",
+    ) -> ClusterReport:
+        raise NotImplementedError("The cluster method is not yet implemented.")
+
     # --------------------------------------------------------------------------
     # DATAHANDLER METHODS
     # --------------------------------------------------------------------------
@@ -686,6 +696,7 @@ class Analyzer:
             a new feature that is the sum of the columns x1 and x2 in the DataFrame.
             All variables used must be numeric.
             Handles the following operations:
+
             - Addition (+)
             - Subtraction (-)
             - Multiplication (*)
@@ -695,6 +706,9 @@ class Analyzer:
             - Logarithm (log)
             - Exponential (exp)
             - Square root (sqrt)
+
+            If the i-th unit is missing a value in any of the variables used in the
+            formula, then the i-th unit of the new feature will be missing.
 
         Returns
         -------

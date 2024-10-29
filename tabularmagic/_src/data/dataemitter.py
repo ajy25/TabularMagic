@@ -15,6 +15,8 @@ from .preprocessing import (
 )
 
 from ..utils import ensure_arg_list_uniqueness
+from .utils.formula import parse_formula
+from .utils.var_naming import rename_var
 from ..display.print_utils import (
     print_wrapped,
 )
@@ -163,6 +165,8 @@ class DataEmitter:
                 self._drop_vars(**step["kwargs"])
             elif step["step"] == "add_scaler":
                 self._add_scaler(**step["kwargs"])
+            elif step["step"] == "engineer_feature":
+                self._engineer_feature(**step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 
@@ -368,6 +372,60 @@ class DataEmitter:
             List of predictors to select. If None, all predictors are selected.
         """
         self._final_X_vars_subset = predictors
+
+    def _engineer_feature(
+        self,
+        feature_name: str,
+        formula: str,
+        X: pd.DataFrame | None = None,
+    ) -> pd.DataFrame | None:
+        """Engineers a new feature based on a formula.
+
+        Parameters
+        ----------
+        feature_name : str
+            Name of the new feature.
+
+        formula : str
+            Formula for the new feature. For example, "x1 + x2" would create
+            a new feature that is the sum of the columns x1 and x2 in the DataFrame.
+            Handles the following operations:
+            - Addition (+)
+            - Subtraction (-)
+            - Multiplication (*)
+            - Division (/)
+            - Parentheses ()
+            - Exponentiation (**)
+            - Logarithm (log)
+            - Exponential (exp)
+
+        X : pd.DataFrame | None
+            Default: None. If not None, engineers the new feature in X.
+            Otherwise, engineers the new feature in the working DataFrames.
+
+        Returns
+        -------
+        pd.DataFrame | None
+            If X is None, returns None. Otherwise, returns the transformed DataFrame.
+        """
+        feature_name = rename_var(feature_name)
+
+        if X is not None:
+            X[feature_name] = parse_formula(formula, X)
+            return X
+
+        self._working_df_train[feature_name] = parse_formula(
+            formula, self._working_df_train
+        )
+        self._working_df_test[feature_name] = parse_formula(
+            formula, self._working_df_test
+        )
+        (
+            self._categorical_vars,
+            self._numeric_vars,
+            self._categorical_to_categories,
+        ) = self._compute_categorical_numeric_vars(self._working_df_train)
+        return None
 
     def _onehot(
         self,

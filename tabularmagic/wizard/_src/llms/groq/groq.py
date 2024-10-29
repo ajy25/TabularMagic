@@ -5,7 +5,7 @@ from ..api_key_utils import find_key
 
 
 def build_groq(
-    model: str = "llama3-groq-70b-8192-tool-use-preview", temperature: float = 0.0
+    model: str = "llama-3.1-70b-versatile", temperature: float = 0.0
 ) -> Groq:
     """Builds a OpenAI object using LlamaIndex.
     If no OpenAI API key is found in the .env file, raises a ValueError.
@@ -13,7 +13,7 @@ def build_groq(
     Parameters
     ----------
     model : str
-        The model to use, by default "llama3-groq-70b-8192-tool-use-preview".
+        The model to use, by default "llama-3.1-70b-versatile".
         Must support function calling.
 
     temperature : float

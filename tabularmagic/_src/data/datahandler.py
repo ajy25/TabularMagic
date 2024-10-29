@@ -23,6 +23,8 @@ from .preprocessing import (
 )
 from ..display.print_options import print_options
 from .dataemitter import DataEmitter, PreprocessStepTracer
+from .utils.formula import parse_formula, color_and_quote_formula_vars
+from .utils.var_naming import rename_vars, rename_var
 
 
 class DataHandler:
@@ -487,8 +489,84 @@ class DataHandler:
         return len(self.df_all()[var].unique()) == 2
 
     # --------------------------------------------------------------------------
-    # PREPROCESSING
+    # PREPROCESSING and FEATURE ENGINEERING
     # --------------------------------------------------------------------------
+
+    def engineer_feature(
+        self,
+        feature_name: str,
+        formula: str,
+    ) -> "DataHandler":
+        """Engineers a new feature based on a formula.
+
+        Parameters
+        ----------
+        feature_name : str
+            Name of the new feature.
+
+        formula : str
+            Formula for the new feature. For example, "x1 + x2" would create
+            a new feature that is the sum of the columns x1 and x2 in the DataFrame.
+            Handles the following operations:
+            - Addition (+)
+            - Subtraction (-)
+            - Multiplication (*)
+            - Division (/)
+            - Parentheses ()
+            - Exponentiation (**)
+            - Logarithm (log)
+            - Exponential (exp)
+            - Square root (sqrt)
+
+        Returns
+        -------
+        DataHandler
+            Returns self for method chaining.
+        """
+        feature_name = rename_var(feature_name)
+
+        if feature_name in self._working_df_train.columns:
+            print_wrapped(
+                f"Feature {quote_and_color(feature_name, 'purple')} already exists. "
+                "Overwriting.",
+                type="WARNING",
+                level="INFO"
+            )
+
+        self._working_df_train[feature_name] = parse_formula(
+            formula, self._working_df_train
+        )
+        self._working_df_test[feature_name] = parse_formula(
+            formula, self._working_df_test
+        )
+
+
+
+        if self._verbose:
+            print_wrapped(
+                f"Engineered feature "
+                + quote_and_color(feature_name, "purple")
+                + color_text(" = ", "yellow")
+                + color_and_quote_formula_vars(formula)
+                + ".",
+                type="UPDATE",
+            )
+
+        (
+            self._categorical_vars,
+            self._numeric_vars,
+            self._categorical_to_categories,
+        ) = self._compute_categorical_numeric_vars(self._working_df_train)
+
+        self._preprocess_step_tracer.add_step(
+            "engineer_feature",
+            {
+                "feature_name": feature_name,
+                "formula": formula,
+            },
+        )
+
+        return self
 
     def dropna(
         self,
@@ -1338,47 +1416,13 @@ class DataHandler:
         pd.DataFrame
             The test DataFrame with renamed variable names.
         """
-        new_columns = df_train.columns.to_list()
-
-        problematic_chars = [
-            " ",
-            ".",
-            ",",
-            "[",
-            "]",
-            "{",
-            "}",
-            "+",
-            "-",
-            "*",
-            "/",
-            "\\",
-            "|",
-            "&",
-            "%",
-            "$",
-            "#",
-            "\n",
-            "\t",
-        ]
-
-        orig_renamed_vars = []
-        renamed_vars = []
-
-        for i, var in enumerate(new_columns):
-            orig_var = var
-            for char in problematic_chars:
-                if char in var:
-                    var = var.replace(char, "_")
-
-            if var != orig_var:
-                renamed_vars.append(var)
-                orig_renamed_vars.append(orig_var)
-            new_columns[i] = var
-
+        curr_vars = df_train.columns.to_list()
+        curr_to_new = rename_vars(curr_vars)
+        new_columns = [curr_to_new[var] for var in curr_vars]
+        orig_renamed_vars = [var for var in curr_vars if var != curr_to_new[var]]
+        renamed_vars = [curr_to_new[var] for var in orig_renamed_vars]
         df_train.columns = new_columns
         df_test.columns = new_columns
-
         if self._verbose:
             if len(renamed_vars) > 0:
                 print_wrapped(
@@ -1386,7 +1430,6 @@ class DataHandler:
                     + f"to {list_to_string(renamed_vars)}.",
                     type="UPDATE",
                 )
-
         return df_train, df_test
 
     def _shapes_str_formatted(self) -> dict:

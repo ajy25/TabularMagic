@@ -672,6 +672,42 @@ class Analyzer:
         """
         self._datahandler.remove_data_checkpoint(checkpoint_name)
         return self
+    
+    def engineer_feature(
+        self,
+        feature_name: str,
+        formula: str
+    ) -> "Analyzer":
+        """Engineers a new feature based on a formula.
+
+        Parameters
+        ----------
+        feature_name : str
+            The name of the new numeric variable engineered. 
+
+        formula : str
+            Formula for the new feature. For example, "x1 + x2" would create
+            a new feature that is the sum of the columns x1 and x2 in the DataFrame.
+            All variables used must be numeric.
+            Handles the following operations:
+            - Addition (+)
+            - Subtraction (-)
+            - Multiplication (*)
+            - Division (/)
+            - Parentheses ()
+            - Exponentiation (**)
+            - Logarithm (log)
+            - Exponential (exp)
+            - Square root (sqrt)
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.engineer_feature(feature_name, formula)
+        return self
+    
 
     @ensure_arg_list_uniqueness()
     def scale(

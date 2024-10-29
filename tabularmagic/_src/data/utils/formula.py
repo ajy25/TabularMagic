@@ -41,7 +41,7 @@ def parse_formula(formula: str, df: pd.DataFrame) -> pd.Series:
         """
         safe_mapping = {}
         for col in df.columns:
-            safe_name = f"col_{re.sub(r'\W+', '_', str(col))}"
+            safe_name = "col_{}".format(re.sub(r"\W+", "_", str(col)))
             safe_mapping[str(col)] = safe_name
         return safe_mapping
 

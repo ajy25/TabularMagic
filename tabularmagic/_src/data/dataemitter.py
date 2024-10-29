@@ -1170,6 +1170,8 @@ class DataEmitter:
                 X = self._scale(X=X, **step["kwargs"])
             elif step["step"] == "drop_highly_missing_vars":
                 X = self._drop_highly_missing_vars(X=X, **step["kwargs"])
+            elif step["step"] == "dropna":
+                X = self._dropna(X=X, **step["kwargs"])
             elif step["step"] == "force_numeric":
                 X = self._force_numeric(X=X, **step["kwargs"])
             elif step["step"] == "force_binary":
@@ -1182,6 +1184,8 @@ class DataEmitter:
                 X = self._drop_vars(X=X, **step["kwargs"])
             elif step["step"] == "add_scaler":
                 X = self._add_scaler(X=X, **step["kwargs"])
+            elif step["step"] == "engineer_feature":
+                X = self._engineer_feature(X=X, **step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 

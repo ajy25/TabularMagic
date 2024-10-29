@@ -31,6 +31,9 @@ def setup_data():
             "LotArea",
             "OverallQual",
             "SalePrice",
+            "TotalBsmtSF",
+            "1stFlrSF",
+            "2ndFlrSF",
         ]
     ]
 
@@ -167,6 +170,45 @@ def test_pipeline_generation_regression(setup_data):
         output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
 
+    # STEP 5
+    # test the pipeline with feature engineering
+    analyzer.load_data_checkpoint()
+    analyzer.engineer_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+
+    report = analyzer.regress(
+        models=[
+            tm.ml.LinearR(
+                type="l2",
+                n_trials=1,
+            ),
+        ],
+        target="SalePrice",
+        predictors=[
+            "MSZoning",
+            "ExterQual_binary",
+            "LotArea",
+            "TotalSF",
+        ],
+    )
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
+
+    output = pipeline.predict(
+        test_data[
+            [
+                "MSZoning",
+                "ExterQual_binary",
+                "LotArea",
+                "TotalBsmtSF",
+                "1stFlrSF",
+                "2ndFlrSF",
+            ]
+        ]
+    )
+
+    assert np.allclose(
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
+    )
+
 
 def test_pipeline_generation_classification(setup_data):
     """Tests pipeline generation for prediction with classification ml models"""
@@ -282,6 +324,46 @@ def test_pipeline_generation_classification(setup_data):
 
     output = pipeline.predict_proba(
         test_data[["MSZoning", "LotArea", "OverallQual", "YearBuilt"]]
+    )[:, 1]
+
+    assert np.allclose(
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
+    )
+
+    # STEP 5
+    # test the pipeline with feature engineering
+    analyzer.load_data_checkpoint()
+    analyzer.engineer_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+
+    report = analyzer.classify(
+        models=[
+            tm.ml.LinearC(
+                type="l2",
+                n_trials=1,
+            ),
+        ],
+        target="ExterQual_binary",
+        predictors=[
+            "MSZoning",
+            "LotArea",
+            "OverallQual",
+            "TotalSF",
+        ],
+    )
+
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
+
+    output = pipeline.predict_proba(
+        test_data[
+            [
+                "MSZoning",
+                "LotArea",
+                "OverallQual",
+                "TotalBsmtSF",
+                "1stFlrSF",
+                "2ndFlrSF",
+            ]
+        ]
     )[:, 1]
 
     assert np.allclose(

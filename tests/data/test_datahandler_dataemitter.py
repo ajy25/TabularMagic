@@ -421,6 +421,50 @@ def test_impute(setup_data):
     assert df_house_train["MasVnrArea"].isnull().any()
 
 
+def test_impute_agreement(setup_data):
+    """Tests that imputation methods agree with the DataEmitter."""
+    df_house_train = setup_data["df_house_train"]
+    df_house_test = setup_data["df_house_test"]
+
+    dh = DataHandler(df_house_train, df_house_test, verbose=False)
+
+    dh.impute(numeric_strategy="mean", categorical_strategy="most_frequent")
+
+    dh_emitter = dh.train_test_emitter(
+        "SalePrice", ["LotFrontage", "LotArea", "OverallQual", "OverallCond"]
+    )
+
+    assert all(
+        not dh_emitter._working_df_train[col].isnull().any()
+        for col in dh_emitter._working_df_train.columns
+    )
+    assert all(
+        not dh_emitter._working_df_test[col].isnull().any()
+        for col in dh_emitter._working_df_test.columns
+    )
+
+    assert dh_emitter._working_df_train.equals(dh._working_df_train)
+
+    dh.load_data_checkpoint()
+
+    dh.impute(numeric_strategy="5nn", categorical_strategy="most_frequent")
+
+    dh_emitter = dh.train_test_emitter(
+        "SalePrice", ["LotFrontage", "LotArea", "OverallQual", "OverallCond"]
+    )
+
+    assert all(
+        not dh_emitter._working_df_train[col].isnull().any()
+        for col in dh_emitter._working_df_train.columns
+    )
+    assert all(
+        not dh_emitter._working_df_test[col].isnull().any()
+        for col in dh_emitter._working_df_test.columns
+    )
+
+    assert dh_emitter._working_df_train.equals(dh._working_df_train)
+
+
 def test_kfold_basic_init(setup_data):
     """Test kfold cross validation basic functionality."""
     df_iris_train = setup_data["df_iris_train"]
@@ -543,3 +587,50 @@ def test_datahandler_dropna_drop_highly_missing(setup_data):
     train_X, _, _, _ = de.emit_train_test_Xy()
 
     assert len(de._working_df_train) == len(train_X)
+
+
+def test_datahandler_engineer_feature(setup_data):
+    """Test DataEmitter with basic pipeline generation capabilities"""
+    train_data = setup_data["df_house_train"]
+    test_data = setup_data["df_house_test"]
+    dh = DataHandler(train_data, test_data, verbose=False)
+
+    dh.engineer_feature(
+        "TotalSF",
+        "TotalBsmtSF + 1stFlrSF + 2ndFlrSF",
+    )
+
+    train_df = dh.df_train()
+    assert "TotalSF" in train_df.columns
+    assert train_df["TotalSF"].equals(
+        train_df["TotalBsmtSF"] + train_df["1stFlrSF"] + train_df["2ndFlrSF"]
+    )
+
+    test_df = dh.df_test()
+    assert "TotalSF" in test_df.columns
+    assert test_df["TotalSF"].equals(
+        test_df["TotalBsmtSF"] + test_df["1stFlrSF"] + test_df["2ndFlrSF"]
+    )
+
+    de = dh.train_test_emitter("SalePrice", ["TotalSF", "LotArea", "OverallQual"])
+
+    assert "TotalSF" in de._working_df_train.columns
+    assert "TotalSF" in de._working_df_test.columns
+
+    train_X, _, test_X, _ = de.emit_train_test_Xy()
+
+    assert train_X["TotalSF"].equals(train_df["TotalSF"])
+    assert test_X["TotalSF"].equals(test_df["TotalSF"])
+
+    assert len(de._working_df_train) == len(train_X)
+
+    dh.load_data_checkpoint()
+    assert "TotalSF" not in dh.df_train().columns
+
+    de = dh.train_test_emitter("SalePrice", ["LotArea", "OverallQual"])
+    assert "TotalSF" not in de._working_df_train.columns
+
+    train_X, _, test_X, _ = de.emit_train_test_Xy()
+
+    assert len(dh._working_df_train) == len(train_X)
+    assert len(dh._working_df_test) == len(test_X)

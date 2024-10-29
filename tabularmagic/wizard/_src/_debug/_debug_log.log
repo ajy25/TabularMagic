@@ -1,1 +1,1 @@
-2024-10-29 03:06:49 - Wizard Debug Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x301fbc9a0> and multimodal LLM build function: <function build_openai_multimodal at 0x301fbcae0>
+2024-10-29 09:47:10 - Wizard Debug Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x17ebc49a0> and multimodal LLM build function: <function build_openai_multimodal at 0x17ebc4ae0>

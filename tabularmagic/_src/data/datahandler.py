@@ -530,7 +530,7 @@ class DataHandler:
                 f"Feature {quote_and_color(feature_name, 'purple')} already exists. "
                 "Overwriting.",
                 type="WARNING",
-                level="INFO"
+                level="INFO",
             )
 
         self._working_df_train[feature_name] = parse_formula(
@@ -539,8 +539,6 @@ class DataHandler:
         self._working_df_test[feature_name] = parse_formula(
             formula, self._working_df_test
         )
-
-
 
         if self._verbose:
             print_wrapped(

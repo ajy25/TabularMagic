@@ -36,7 +36,7 @@ def parse_formula(formula: str, df: pd.DataFrame) -> pd.Series:
     """
 
     def create_safe_column_mapping(df: pd.DataFrame) -> dict[str, str]:
-        """Create a mapping between original column names 
+        """Create a mapping between original column names
         and Python-safe variable names.
         """
         safe_mapping = {}
@@ -76,10 +76,8 @@ def parse_formula(formula: str, df: pd.DataFrame) -> pd.Series:
             namespace[safe_col] = df[original_col]
         return namespace
 
-
     if not validate_formula(formula):
         raise ValueError(f"Invalid formula: {formula}")
-
 
     col_mapping = create_safe_column_mapping(df)
 
@@ -100,29 +98,31 @@ def parse_formula(formula: str, df: pd.DataFrame) -> pd.Series:
             f"(transformed to '{safe_formula}'): {str(e)}"
         )
 
+
 def color_and_quote_formula_vars(formula: str) -> str:
-    """Color and quote the variables in a formula string. Uses the 
+    """Color and quote the variables in a formula string. Uses the
     `quote_and_color` function to quote and color the variables.
-    
+
     The function identifies variables in mathematical formulas and wraps them
     appropriately while preserving operators and functions.
-    
+
     Parameters
     ----------
     formula : str
         The formula string to process, e.g. "x1 + log(y2) * 3"
-    
+
     Returns
     -------
     str
         The formula with variables quoted and colored
     """
+
     def find_variables(formula: str) -> list[tuple[str, int, int]]:
         """Find all variables in the formula and their positions."""
         # Matches valid variable names but excludes function names and numbers
-        var_pattern = r'(?<![a-zA-Z_])[a-zA-Z_]\w*|(?<![a-zA-Z_])\d+[a-zA-Z_]\w*'
+        var_pattern = r"(?<![a-zA-Z_])[a-zA-Z_]\w*|(?<![a-zA-Z_])\d+[a-zA-Z_]\w*"
         # Known function names to exclude
-        functions = {'log', 'exp', 'sqrt'}
+        functions = {"log", "exp", "sqrt"}
         matches = []
         for match in re.finditer(var_pattern, formula):
             var = match.group()
@@ -130,23 +130,19 @@ def color_and_quote_formula_vars(formula: str) -> str:
             if var not in functions:
                 matches.append((var, match.start(), match.end()))
         return sorted(matches, key=lambda x: -x[1])  # Sort by position descending
-    
+
     # Find all variables
     variables = find_variables(formula)
-    
+
     # Process the formula from right to left to preserve positions
     result = formula
     for var, start, end in variables:
         # Add quotes and color around the variable
-        result = (
-            result[:start]
-            + quote_and_color(var, "purple") 
-            + result[end:]
-        )
+        result = result[:start] + quote_and_color(var, "purple") + result[end:]
 
     parts = result.split("\033[95m")  # Split by purple color code
     colored_parts = []
-    
+
     for i, part in enumerate(parts):
         if i == 0:
             # First part (before any purple text)
@@ -160,8 +156,5 @@ def color_and_quote_formula_vars(formula: str) -> str:
                 colored_parts.append("\033[95m" + purple_and_rest[0] + "\033[0m")
                 if purple_and_rest[1]:
                     colored_parts.append(color_text(purple_and_rest[1], "yellow"))
-    
-    return "".join(colored_parts)
 
-    
-    
+    return "".join(colored_parts)

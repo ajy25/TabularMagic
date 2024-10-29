@@ -672,18 +672,14 @@ class Analyzer:
         """
         self._datahandler.remove_data_checkpoint(checkpoint_name)
         return self
-    
-    def engineer_feature(
-        self,
-        feature_name: str,
-        formula: str
-    ) -> "Analyzer":
+
+    def engineer_feature(self, feature_name: str, formula: str) -> "Analyzer":
         """Engineers a new feature based on a formula.
 
         Parameters
         ----------
         feature_name : str
-            The name of the new numeric variable engineered. 
+            The name of the new numeric variable engineered.
 
         formula : str
             Formula for the new feature. For example, "x1 + x2" would create
@@ -707,7 +703,6 @@ class Analyzer:
         """
         self._datahandler.engineer_feature(feature_name, formula)
         return self
-    
 
     @ensure_arg_list_uniqueness()
     def scale(

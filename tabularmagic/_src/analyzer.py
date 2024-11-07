@@ -7,7 +7,7 @@ from .ml.predict import (
     BaseC,
     MLClassificationReport,
 )
-from .ml.cluster import BaseCluster, GMMCluster, ClusterReport
+from .ml.cluster import BaseClust, ClusterReport
 from .feature_selection import BaseFSR, BaseFSC, VotingSelectionReport
 from .linear import (
     OLSLinearModel,
@@ -624,12 +624,33 @@ class Analyzer:
 
     def cluster(
         self,
-        models: list[BaseCluster],
+        models: list[BaseClust],
         features: list[str] | None = None,
-        n_clusters: int | None = None,
         dataset: Literal["train", "all"] = "all",
     ) -> ClusterReport:
-        raise NotImplementedError("The cluster method is not yet implemented.")
+        """Conducts a clustering exercise.
+
+        Parameters
+        ----------
+        models : list[BaseClust]
+            Models to be evaluated.
+
+        features : list[str] | None
+            Default: None. The features to cluster on.
+            If None, uses all the variables.
+
+        dataset : Literal['train', 'all']
+            Dataset to fit models on. If "train", only fits models on training data.
+            Then, cluster predictions can be made on test data.
+            If "all", fits models on all data.
+            By default, fits models on all data.
+        """
+        return ClusterReport(
+            models=models,
+            datahandler=self._datahandler,
+            features=features,
+            dataset=dataset,
+        )
 
     # --------------------------------------------------------------------------
     # DATAHANDLER METHODS

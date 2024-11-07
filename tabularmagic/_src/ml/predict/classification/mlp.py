@@ -54,7 +54,7 @@ class MLPC(BaseC):
             Default: 42. Random seed for the model.
 
         name : str
-            Default: None. Determines how the model shows up in the reports.
+            Default: None. Determines how the model shows up in the report.
             If None, the name is set to be the class name.
 
         **kwargs : dict

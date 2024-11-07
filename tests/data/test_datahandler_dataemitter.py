@@ -634,3 +634,32 @@ def test_datahandler_engineer_feature(setup_data):
 
     assert len(dh._working_df_train) == len(train_X)
     assert len(dh._working_df_test) == len(test_X)
+
+
+def test_datahandler_engineer_feature_transform(setup_data):
+
+    train_data = setup_data["df_house_train"]
+    test_data = setup_data["df_house_test"]
+    dh = DataHandler(train_data, test_data, verbose=False)
+
+    dh.engineer_feature(
+        "TotalSF",
+        "sqrt(TotalBsmtSF * log(1stFlrSF + 2ndFlrSF))",
+    )
+
+    extra_col = np.sqrt(
+        train_data["TotalBsmtSF"]
+        * np.log(train_data["1stFlrSF"] + train_data["2ndFlrSF"])
+    )
+
+    assert dh.df_train()["TotalSF"].equals(extra_col)
+
+    de = dh.train_test_emitter("SalePrice", ["TotalSF", "LotArea", "OverallQual"])
+
+    assert "TotalSF" in de._working_df_train.columns
+
+    train_X, _, test_X, _ = de.emit_train_test_Xy()
+
+    assert train_X["TotalSF"].equals(extra_col)
+
+    assert len(de._working_df_train) == len(train_X)

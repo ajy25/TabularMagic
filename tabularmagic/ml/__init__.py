@@ -16,6 +16,8 @@ from .._src.ml.predict.classification import (
     BaseC,
 )
 
+from .._src.ml.cluster import BaseClust, GMMClust
+
 
 __all__ = [
     "LinearR",
@@ -31,4 +33,6 @@ __all__ = [
     "SVMC",
     "BaseR",
     "BaseC",
+    "BaseClust",
+    "GMMClust",
 ]

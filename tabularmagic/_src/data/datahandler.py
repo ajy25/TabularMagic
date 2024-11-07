@@ -310,8 +310,9 @@ class DataHandler:
         -------
         DataEmitter
         """
-        if y_var not in self._working_df_train.columns:
-            raise ValueError(f"Invalid target variable name: {y_var}.")
+        if y_var is not None:
+            if y_var not in self._working_df_train.columns:
+                raise ValueError(f"Invalid target variable name: {y_var}.")
         for var in X_vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")
@@ -343,8 +344,9 @@ class DataHandler:
         -------
         DataEmitter
         """
-        if y_var not in self._working_df_train.columns:
-            raise ValueError(f"Invalid target variable name: {y_var}.")
+        if y_var is not None:
+            if y_var not in self._working_df_train.columns:
+                raise ValueError(f"Invalid target variable name: {y_var}.")
         for var in X_vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")

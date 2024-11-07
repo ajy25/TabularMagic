@@ -1,6 +1,5 @@
-from .methods.gmm import GMMCluster
-
-from .base_cluster import BaseCluster
+from .base_cluster import BaseClust
+from .gmm import GMMClust
 from .cluster_report import ClusterReport
 
-__all__ = ["GMMCluster", "BaseCluster", "ClusterReport"]
+__all__ = ["GMMClust", "BaseClust", "ClusterReport"]

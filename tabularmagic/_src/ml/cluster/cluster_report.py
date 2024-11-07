@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from ...data.datahandler import DataHandler
 from ...display.plot_options import plot_options
+from ...display.print_utils import suppress_print_output
 from .base_cluster import BaseClust
 
 
@@ -41,6 +42,8 @@ class ClusterReport:
             If "all", fits models on all data.
         """
         self._models = models
+
+        self._datahandler = datahandler
 
         self._id_to_model = {}
         for model in self._models:
@@ -109,7 +112,9 @@ class ClusterReport:
     def plot_clusters(
         self,
         model_id: str,
-        dim_reduction_method: Literal["PCA", "TSNE"] = "PCA",
+        dim_reduction_method: Literal["pca", "tsne"] = "pca",
+        x_axis_var: str | None = None,
+        y_axis_var: str | None = None,
         dataset: Literal["train", "test"] = "test",
         figsize: tuple[float, float] = (5, 5),
         ax: plt.Axes | None = None,
@@ -121,9 +126,9 @@ class ClusterReport:
         model_id : str
             Model ID to obtain labels from.
 
-        dim_reduction_method: Literal["PCA", "TSNE"]
+        dim_reduction_method: Literal["pca", "tsne"]
             Dimensionality reduction method.
-            Default is "PCA".
+            Default is "pca".
 
         dataset : Literal["train", "test"]
             Dataset to plot. If the ClusterReport was initialized with
@@ -142,32 +147,57 @@ class ClusterReport:
             Figure with cluster plot.
         """
         X_df: pd.DataFrame = None
-        if dataset == "train":
-            X_df = self._emitter.emit_train_X()
-        elif dataset == "test":
-            X_df = self._emitter.emit_test_X()
-        else:
-            raise ValueError("dataset must be 'train' or 'test'.")
+
+        with suppress_print_output():
+
+            if dataset == "train":
+                X_df = self._emitter.emit_train_X()
+            elif dataset == "test":
+                X_df = self._emitter.emit_test_X()
+            else:
+                raise ValueError("dataset must be 'train' or 'test'.")
+
         labels_series = self.model(model_id).labels(dataset)
 
         X_reduced = None
 
-        if dim_reduction_method == "PCA":
-            pca = PCA(n_components=2)
-            X_reduced = pca.fit_transform(X_df)
-            X_reduced = pd.DataFrame(
-                X_reduced, columns=["PC1", "PC2"], index=X_df.index
-            )
+        if x_axis_var is None and y_axis_var is None:
 
-        elif dim_reduction_method == "TSNE":
-            tsne = TSNE(n_components=2)
-            X_reduced = tsne.fit_transform(X_df)
-            X_reduced = pd.DataFrame(
-                X_reduced, columns=["t-SNE1", "t-SNE2"], index=X_df.index
-            )
+            if dim_reduction_method == "pca":
+                pca = PCA(n_components=2)
+                X_reduced = pca.fit_transform(X_df)
+                X_reduced = pd.DataFrame(
+                    X_reduced, columns=["PC1", "PC2"], index=X_df.index
+                )
+
+            elif dim_reduction_method == "tsne":
+                tsne = TSNE(n_components=2)
+                X_reduced = tsne.fit_transform(X_df)
+                X_reduced = pd.DataFrame(
+                    X_reduced, columns=["t-SNE1", "t-SNE2"], index=X_df.index
+                )
+
+            else:
+                raise ValueError("dim_reduction_method must be 'pca' or 'tsne'.")
 
         else:
-            raise ValueError("dim_reduction_method must be 'PCA' or 'TSNE'.")
+
+            # obtain the entire dataset, indexed by the label data subset
+            # (this accounts for missing values and other data transformations)
+            # note: DataHandler reflects correct transformation methods
+            full_df = self._datahandler.df_all().loc[X_df.index]
+            if x_axis_var not in self._datahandler.numeric_vars():
+                raise ValueError("x_axis_var must be a numeric variable.")
+            if y_axis_var not in self._datahandler.numeric_vars():
+                raise ValueError("y_axis_var must be a numeric variable.")
+
+            X_reduced = full_df[[x_axis_var, y_axis_var]]
+
+            # ensure no missing values
+            if X_reduced.isnull().sum().sum() > 0:
+                raise ValueError(
+                    "x_axis_var and y_axis_var must not have missing values."
+                )
 
         plotting_df = X_reduced.join(labels_series)
 
@@ -179,6 +209,8 @@ class ClusterReport:
             y=plotting_df.columns[1],
             hue=labels_series.name,
             data=plotting_df,
+            s=plot_options._dot_size,
+            edgecolor=None,
             palette=plot_options._color_palette,
             ax=ax,
         )
@@ -186,6 +218,14 @@ class ClusterReport:
         ax.set_title(f"{model_id} Clusters")
         ax.set_xlabel(plotting_df.columns[0])
         ax.set_ylabel(plotting_df.columns[1])
+
+        ax.ticklabel_format(style="sci", axis="both", scilimits=plot_options._scilimits)
+        ax.yaxis.get_offset_text().set_fontsize(
+            ax.yaxis.get_ticklabels()[0].get_fontsize()
+        )
+        ax.xaxis.get_offset_text().set_fontsize(
+            ax.xaxis.get_ticklabels()[0].get_fontsize()
+        )
 
         ax.title.set_fontsize(plot_options._title_font_size)
         ax.xaxis.label.set_fontsize(plot_options._axis_title_font_size)

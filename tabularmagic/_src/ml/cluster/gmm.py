@@ -1,5 +1,6 @@
 from sklearn.mixture import GaussianMixture
 import pandas as pd
+from typing import Literal
 from .base_cluster import BaseClust
 
 
@@ -10,6 +11,7 @@ class GMMClust(BaseClust):
         self,
         n_components: int | None = None,
         max_n_components: int = 10,
+        criterion: Literal["bic", "aic"] = "bic",
         model_random_state: int = 42,
         name: str | None = None,
     ):
@@ -20,12 +22,19 @@ class GMMClust(BaseClust):
         n_components : int | None
             Number of components to fit.
             If None, the number of components is selected automatically
-            based on the Bayesian Information Criterion.
+            based on the criterion.
 
         max_n_components : int
             Maximum number of components to fit.
             This parameter is only used when n_components is None.
+            A grid search is performed from 1 to max_n_components to minimize
+            the criterion.
             Default is 10.
+
+        criterion : Literal["bic", "aic"]
+            The criterion to use when selecting the number of components.
+            The lower the better.
+            Default is "bic".
 
         model_random_state : int
             Random state for the model. Default is 42.
@@ -41,10 +50,13 @@ class GMMClust(BaseClust):
             self._id = name
         else:
             if n_components is None:
-                self._id = f"GMMClust(auto, max={max_n_components})"
+                self._id = (
+                    f"GMMClust(auto, max={max_n_components}, criterion={criterion})"
+                )
             else:
                 self._id = f"GMMClust({n_components})"
         self._max_n_components = max_n_components
+        self._criterion = criterion
         self._model_random_state = model_random_state
 
     def fit(self) -> None:
@@ -66,16 +78,20 @@ class GMMClust(BaseClust):
 
         else:
             best_n_components = 1
-            best_bic = float("inf")
+            best_metric = float("inf")  # the lower the better
             for n_components in range(1, self._max_n_components + 1):
                 self._estimator = GaussianMixture(
                     n_components=n_components,
                     random_state=self._model_random_state,
                 )
                 self._estimator.fit(X_train)
-                curr_bic = self._estimator.bic(X_train)
-                if curr_bic < best_bic:
-                    best_bic = curr_bic
+
+                if self._criterion == "aic":
+                    best_metric = self._estimator.aic(X_train)
+                elif self._criterion == "bic":
+                    best_metric = self._estimator.bic(X_train)
+                if best_metric < best_bic:
+                    best_bic = best_metric
                     best_n_components = n_components
             self._n_clusters = best_n_components
             self._estimator = GaussianMixture(

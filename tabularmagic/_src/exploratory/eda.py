@@ -1,4 +1,3 @@
-import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -309,6 +308,7 @@ class EDAReport:
             self._categorical_summary_statistics["n_missing"] = (
                 self._categorical_summary_statistics["n_missing"].astype(int)
             )
+            self._categorical_summary_statistics.index.name = "Variable"
 
         if len(self._numeric_vars) > 0:
             self._numeric_summary_statistics = pd.concat(
@@ -321,6 +321,7 @@ class EDAReport:
             self._numeric_summary_statistics["n_missing"] = (
                 self._numeric_summary_statistics["n_missing"].astype(int)
             )
+            self._numeric_summary_statistics.index.name = "Variable"
 
     # --------------------------------------------------------------------------
     # TABLE GENERATION
@@ -367,25 +368,16 @@ class EDAReport:
             raise ValueError(
                 f"Invalid input: {target}. Must be a known numeric variable."
             )
-
-        # Define column names
         if bonferroni_correction:
             p_val_name = f"p-value (Bonferroni corrected, n_tests={len(numeric_vars)})"
         else:
             p_val_name = "p-value"
-
-        # Initialize results DataFrame
-        corr_table = pd.DataFrame(
-            columns=[f"Pearson corr. with {target}", p_val_name, "n"]
-        )
-
-        # Compute correlations
+        corr_table = pd.DataFrame(columns=[f"Corr. w. {target}", p_val_name, "n"])
         for var in numeric_vars:
             var_data = self._df[var]
             target_data = self._df[target]
 
             if dropna:
-                # Remove rows where either variable is NaN
                 mask = ~(var_data.isna() | target_data.isna())
                 var_data = var_data[mask]
                 target_data = target_data[mask]
@@ -399,17 +391,14 @@ class EDAReport:
                         f"NaN values found in {var} or {target} and dropna=False"
                     )
 
-            # Calculate correlation and p-value
             corr, p = stats.pearsonr(var_data, target_data)
             if bonferroni_correction:
                 p *= len(numeric_vars)
 
             corr_table.loc[var] = [corr, p, len(var_data)]
 
-        # Format the numeric columns
         n_decimals = getattr(print_options, "_n_decimals", 4)
 
-        # Format correlation and p-value columns
         corr_table[f"Pearson corr. with {target}"] = corr_table[
             f"Pearson corr. with {target}"
         ].apply(lambda x: format_value(x, n_decimals))
@@ -417,7 +406,6 @@ class EDAReport:
             lambda x: format_value(x, n_decimals)
         )
 
-        # Handle the 'n' column
         if not dropna:
             corr_table = corr_table.drop("n", axis=1)
         else:

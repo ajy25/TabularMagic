@@ -183,6 +183,7 @@ class DataEmitter:
 
     def emit_train_test_Xy(
         self,
+        verbose: bool = True,
     ) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
         """Returns a tuple as follows:
         (X_train_df, y_train_series, X_test_df, y_test_series).
@@ -225,19 +226,17 @@ class DataEmitter:
         prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
         new_test_len = len(working_df_test)
-        if prev_train_len != new_train_len:
+        if prev_train_len != new_train_len and verbose:
             print_wrapped(
-                f"Train data: dropped {prev_train_len - new_train_len} rows "
-                "with missing values "
-                f"out of a total of {prev_train_len} rows.",
-                type="WARNING",
+                f"Train dataset: dropped {prev_train_len - new_train_len} examples "
+                f"with missing values out of {prev_train_len} total examples.",
+                type="NOTE",
             )
-        if prev_test_len != new_test_len:
+        if prev_test_len != new_test_len and verbose:
             print_wrapped(
-                f"Test data: dropped {prev_test_len - new_test_len} rows "
-                "with missing values "
-                f"out of a total of {prev_test_len} rows.",
-                type="WARNING",
+                f"Test dataset: dropped {prev_test_len - new_test_len} examples "
+                f"with missing values out of {prev_test_len} total examples.",
+                type="NOTE",
             )
         if self._pre_onehot_X_vars_subset is not None:
             xvars = self._pre_onehot_X_vars_subset
@@ -259,7 +258,7 @@ class DataEmitter:
             working_df_test[self._yvar],
         )
 
-    def emit_train_Xy(self) -> tuple[pd.DataFrame, pd.Series]:
+    def emit_train_Xy(self, verbose: bool = True) -> tuple[pd.DataFrame, pd.Series]:
         """Returns a tuple as follows: (X_train_df, y_train_series).
 
         ** WARNING **
@@ -285,7 +284,7 @@ class DataEmitter:
         pd.Series
             y_train_series: The training Series of the target variable.
         """
-        if self._yvar is None:
+        if self._yvar is None and verbose:
             raise ValueError("No y variable specified in DataEmitter initialization.")
         all_vars = self._Xvars + [self._yvar]
         prev_train_len = len(self._working_df_train)
@@ -293,10 +292,9 @@ class DataEmitter:
         new_train_len = len(working_df_train)
         if prev_train_len != new_train_len:
             print_wrapped(
-                f"Train data: dropped {prev_train_len - new_train_len} rows "
-                "with missing values "
-                f"out of a total of {prev_train_len} rows.",
-                type="WARNING",
+                f"Train dataset: dropped {prev_train_len - new_train_len} examples "
+                f"with missing values out of {prev_train_len} total examples.",
+                type="NOTE",
             )
         if self._pre_onehot_X_vars_subset is not None:
             xvars = self._pre_onehot_X_vars_subset
@@ -309,7 +307,7 @@ class DataEmitter:
             X_train_df = X_train_df[self._final_X_vars_subset]
         return X_train_df, working_df_train[self._yvar]
 
-    def emit_test_Xy(self) -> tuple[pd.DataFrame, pd.Series]:
+    def emit_test_Xy(self, verbose: bool = True) -> tuple[pd.DataFrame, pd.Series]:
         """Returns a tuple as follows: (X_test_df, y_test_series).
 
         ** WARNING **
@@ -335,7 +333,7 @@ class DataEmitter:
         pd.Series
             y_test_series: The test Series of the target variable.
         """
-        if self._yvar is None:
+        if self._yvar is None and verbose:
             raise ValueError("No y variable specified in DataEmitter initialization.")
         all_vars = self._Xvars + [self._yvar]
         prev_test_len = len(self._working_df_test)
@@ -343,9 +341,9 @@ class DataEmitter:
         new_test_len = len(working_df_test)
         if prev_test_len != new_test_len:
             print_wrapped(
-                f"Test data: dropped {prev_test_len - new_test_len} rows "
-                f"with missing values out of a total of {prev_test_len} rows.",
-                type="WARNING",
+                f"Test dataset: dropped {prev_test_len - new_test_len} examples "
+                f"with missing values out of {prev_test_len} total examples.",
+                type="NOTE",
             )
         if self._pre_onehot_X_vars_subset is not None:
             xvars = self._pre_onehot_X_vars_subset
@@ -358,7 +356,7 @@ class DataEmitter:
             X_test_df = X_test_df[self._final_X_vars_subset]
         return X_test_df, working_df_test[self._yvar]
 
-    def emit_train_X(self) -> pd.DataFrame:
+    def emit_train_X(self, verbose: bool = True) -> pd.DataFrame:
         """Returns X_train_df."""
         if self._yvar is None:
             all_vars = self._Xvars
@@ -367,12 +365,11 @@ class DataEmitter:
         prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
         new_train_len = len(working_df_train)
-        if prev_train_len != new_train_len:
+        if prev_train_len != new_train_len and verbose:
             print_wrapped(
-                f"Train data: dropped {prev_train_len - new_train_len} rows "
-                "with missing values "
-                f"out of a total of {prev_train_len} rows.",
-                type="WARNING",
+                f"Train dataset: dropped {prev_train_len - new_train_len} examples "
+                f"with missing values out of {prev_train_len} total examples.",
+                type="NOTE",
             )
         if self._pre_onehot_X_vars_subset is not None:
             xvars = self._pre_onehot_X_vars_subset
@@ -385,7 +382,7 @@ class DataEmitter:
             X_train_df = X_train_df[self._final_X_vars_subset]
         return X_train_df
 
-    def emit_test_X(self) -> pd.DataFrame:
+    def emit_test_X(self, verbose: bool = True) -> pd.DataFrame:
         """Returns X_test_df."""
         if self._yvar is None:
             all_vars = self._Xvars
@@ -394,11 +391,11 @@ class DataEmitter:
         prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
         new_test_len = len(working_df_test)
-        if prev_test_len != new_test_len:
+        if prev_test_len != new_test_len and verbose:
             print_wrapped(
-                f"Test data: dropped {prev_test_len - new_test_len} rows "
-                f"with missing values out of a total of {prev_test_len} rows.",
-                type="WARNING",
+                f"Test dataset: dropped {prev_test_len - new_test_len} examples "
+                f"with missing values out of {prev_test_len} total examples.",
+                type="NOTE",
             )
         if self._pre_onehot_X_vars_subset is not None:
             xvars = self._pre_onehot_X_vars_subset

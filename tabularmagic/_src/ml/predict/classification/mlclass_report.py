@@ -508,7 +508,7 @@ class MLClassificationReport:
         for model in self._models:
             if self._verbose:
                 print_wrapped(
-                    f"Evaluating model {quote_and_color(model._name)}.", type="UPDATE"
+                    f"Fitting model {quote_and_color(model._name)}.", type="UPDATE"
                 )
             model.specify_data(dataemitter=self._emitter, dataemitters=self._emitters)
             model.fit(verbose=self._verbose)

@@ -645,6 +645,9 @@ class Analyzer:
             If "all", fits models on all data.
             By default, fits models on all data.
         """
+        if features is None:
+            features = self._datahandler.vars()
+
         return ClusterReport(
             models=models,
             datahandler=self._datahandler,
@@ -1035,6 +1038,26 @@ class Analyzer:
             The DataHandler object takes care of data management and preprocessing.
         """
         return self._datahandler
+
+    def numeric_vars(self) -> list[str]:
+        """Returns the numeric variables in the working train DataFrame.
+
+        Returns
+        -------
+        list[str]
+            The numeric variables.
+        """
+        return self._datahandler.numeric_vars()
+
+    def categorical_vars(self) -> list[str]:
+        """Returns the categorical variables in the working train DataFrame.
+
+        Returns
+        -------
+        list[str]
+            The categorical variables.
+        """
+        return self._datahandler.categorical_vars()
 
     # --------------------------------------------------------------------------
     # MAGIC METHODS

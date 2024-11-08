@@ -12,7 +12,7 @@ class BaseClust:
         self,
     ):
         self._dataemitter = None
-        self._id = "BaseClusterModel"
+        self._name = "BaseClusterModel"
         self._estimator: BaseEstimator = None
         self._train_labels = None
         self._test_labels = None
@@ -113,4 +113,4 @@ class BaseClust:
         return self._n_clusters
 
     def __str__(self):
-        return self._id
+        return self._name

@@ -93,13 +93,13 @@ class VotingSelectionReport:
         """
         return self._votes_df.T
 
-    def _emit_train_X(self) -> pd.DataFrame:
+    def _emit_train_X(self, verbose: bool = True) -> pd.DataFrame:
         """Returns the training DataFrame with only the top features."""
-        return self._emitter.emit_train_Xy()[0][self._top_features]
+        return self._emitter.emit_train_Xy(verbose)[0][self._top_features]
 
-    def _emit_test_X(self) -> pd.DataFrame:
+    def _emit_test_X(self, verbose: bool = True) -> pd.DataFrame:
         """Returns the test DataFrame with only the top features."""
-        return self._emitter.emit_test_Xy()[0][self._top_features]
+        return self._emitter.emit_test_Xy(verbose)[0][self._top_features]
 
     def __getitem__(self, index: str) -> BaseFS:
         """Returns the RegressionBaseSelector by nickname index."""

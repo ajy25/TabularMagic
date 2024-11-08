@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from ...data.datahandler import DataHandler
 from ...display.plot_options import plot_options
-from ...display.print_utils import suppress_print_output
+from ...display.print_utils import suppress_print_output, print_wrapped, quote_and_color
 from .base_cluster import BaseClust
 
 
@@ -21,6 +21,7 @@ class ClusterReport:
         datahandler: DataHandler,
         features: list[str],
         dataset: Literal["train", "all"],
+        verbose: bool = True,
     ):
         """Initializes ClusterReport.
 
@@ -40,6 +41,9 @@ class ClusterReport:
             If "train", only fits models on training data.
             Then, predictions can be made on test data.
             If "all", fits models on all data.
+
+        verbose : bool
+            If True, prints progress. Default is True.
         """
         self._models = models
 
@@ -47,11 +51,11 @@ class ClusterReport:
 
         self._id_to_model = {}
         for model in self._models:
-            if model._id in self._id_to_model:
+            if model._name in self._id_to_model:
                 raise ValueError(
-                    f"Model IDs must be unique. Duplicate found: {model._id}"
+                    f"Model IDs must be unique. Duplicate found: {model._name}"
                 )
-            self._id_to_model[model._id] = model
+            self._id_to_model[model._name] = model
 
         for model in self._models:
             if not isinstance(model, BaseClust):
@@ -74,9 +78,21 @@ class ClusterReport:
         else:
             raise ValueError("dataset must be 'train' or 'all'.")
 
+        self._verbose = verbose
+
         for model in self._models:
+            if self._verbose:
+                print_wrapped(
+                    f"Fitting model {quote_and_color(model._name)}.", type="UPDATE"
+                )
             model.specify_data(self._emitter)
-            model.fit()
+            model.fit(verbose=self._verbose)
+
+            if self._verbose:
+                print_wrapped(
+                    f"Successfully evaluated model {quote_and_color(model._name)}.",
+                    type="UPDATE",
+                )
 
     def model(self, model_id: str) -> BaseClust:
         """Returns model by ID.

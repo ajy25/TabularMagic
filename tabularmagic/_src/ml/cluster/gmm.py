@@ -1,6 +1,7 @@
 from sklearn.mixture import GaussianMixture
 import pandas as pd
 from typing import Literal
+from ...display.print_utils import print_wrapped, quote_and_color
 from .base_cluster import BaseClust
 
 
@@ -47,23 +48,23 @@ class GMMClust(BaseClust):
         super().__init__()
         self._n_components = n_components
         if name is not None:
-            self._id = name
+            self._name = name
         else:
             if n_components is None:
-                self._id = (
+                self._name = (
                     f"GMMClust(auto, max={max_n_components}, criterion={criterion})"
                 )
             else:
-                self._id = f"GMMClust({n_components})"
+                self._name = f"GMMClust({n_components})"
         self._max_n_components = max_n_components
         self._criterion = criterion
         self._model_random_state = model_random_state
 
-    def fit(self) -> None:
+    def fit(self, verbose: bool = False) -> None:
         """Fits the model to the data."""
 
-        X_train = self._dataemitter.emit_train_X()
-        X_test = self._dataemitter.emit_test_X()
+        X_train = self._dataemitter.emit_train_X(verbose=verbose)
+        X_test = self._dataemitter.emit_test_X(verbose=verbose)
 
         if isinstance(self._n_components, int):
             self._estimator = GaussianMixture(
@@ -87,17 +88,25 @@ class GMMClust(BaseClust):
                 self._estimator.fit(X_train)
 
                 if self._criterion == "aic":
-                    best_metric = self._estimator.aic(X_train)
+                    metric = self._estimator.aic(X_train)
                 elif self._criterion == "bic":
-                    best_metric = self._estimator.bic(X_train)
-                if best_metric < best_bic:
-                    best_bic = best_metric
+                    metric = self._estimator.bic(X_train)
+                if metric < best_metric:
+                    best_metric = metric
                     best_n_components = n_components
             self._n_clusters = best_n_components
             self._estimator = GaussianMixture(
                 n_components=best_n_components,
                 random_state=self._model_random_state,
             )
+
+            if verbose:
+                print_wrapped(
+                    f"Identified optimal cluster number ({self._n_clusters}) for "
+                    f"{quote_and_color(self._name, 'blue')} "
+                    f"via {self._criterion}.",
+                    type="PROGRESS",
+                )
 
             self._train_labels = self._estimator.fit_predict(X_train)
             self._test_labels = self._estimator.predict(X_test)

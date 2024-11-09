@@ -103,7 +103,7 @@ TabularMagic provides a straightforward Python API that exponentially accelerate
 4. **Linear regression.** TabularMagic contains numerous methods to support statsmodels' classical linear statistical models, including diagnostic plots, stepwise feature selection, and statistical tests, enabling you to seamlessly switch between linear statistical modeling and ML modeling.
 5. **LLM support.**  (coming soon!) TabularMagic comes equipped with LangChain LLM agents and tools that allow you to chat with your data. 
 
-See more in `./dev_notes/notes.md`.
+See more in `./.dev_notes/notes.md`.
 
 
 

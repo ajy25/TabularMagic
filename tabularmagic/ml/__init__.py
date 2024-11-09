@@ -5,7 +5,6 @@ from .._src.ml.predict.regression import (
     MLPR,
     SVMR,
     CustomR,
-    BaseR,
 )
 from .._src.ml.predict.classification import (
     LinearC,
@@ -13,10 +12,12 @@ from .._src.ml.predict.classification import (
     MLPC,
     SVMC,
     CustomC,
-    BaseC,
 )
 
-from .._src.ml.cluster import BaseClust, GMMClust
+from .._src.ml.cluster import (
+    KMeansClust,
+    GMMClust,
+)
 
 
 __all__ = [
@@ -31,8 +32,6 @@ __all__ = [
     "CustomC",
     "MLPC",
     "SVMC",
-    "BaseR",
-    "BaseC",
-    "BaseClust",
     "GMMClust",
+    "KMeansClust",
 ]

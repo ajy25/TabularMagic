@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
-from sklearn.preprocessing import LabelEncoder, label_binarize
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import f1_score, roc_curve
 from sklearn.pipeline import Pipeline
 from typing import Literal
@@ -17,7 +17,6 @@ from ....display.print_utils import (
     print_wrapped,
     color_text,
     quote_and_color,
-    suppress_print_output,
 )
 from ..predict_utils import ColumnSelector
 
@@ -244,7 +243,7 @@ class BaseC(BasePredictModel):
     model selection processes.
     """
 
-    def __init__(self, threshold_strategy: Literal["f1", "roc"] | None = "f1"):
+    def __init__(self, threshold_strategy: Literal["f1", "roc"] | None = "roc"):
         """Initializes a BaseC object."""
         self._label_encoder = LabelEncoder()
         self._hyperparam_searcher: HyperparameterSearcher = None

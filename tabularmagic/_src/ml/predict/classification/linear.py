@@ -28,7 +28,7 @@ class LinearC(BaseC):
         max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
-        threshold_strategy: Literal["f1", "roc"] | None = "f1",
+        threshold_strategy: Literal["f1", "roc"] | None = "roc",
         **kwargs,
     ):
         """

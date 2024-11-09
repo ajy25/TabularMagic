@@ -290,7 +290,7 @@ class DataEmitter:
         prev_train_len = len(self._working_df_train)
         working_df_train = self._working_df_train[all_vars].dropna()
         new_train_len = len(working_df_train)
-        if prev_train_len != new_train_len:
+        if prev_train_len != new_train_len and verbose:
             print_wrapped(
                 f"Train dataset: dropped {prev_train_len - new_train_len} examples "
                 f"with missing values out of {prev_train_len} total examples.",
@@ -339,7 +339,7 @@ class DataEmitter:
         prev_test_len = len(self._working_df_test)
         working_df_test = self._working_df_test[all_vars].dropna()
         new_test_len = len(working_df_test)
-        if prev_test_len != new_test_len:
+        if prev_test_len != new_test_len and verbose:
             print_wrapped(
                 f"Test dataset: dropped {prev_test_len - new_test_len} examples "
                 f"with missing values out of {prev_test_len} total examples.",

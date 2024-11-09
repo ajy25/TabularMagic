@@ -53,6 +53,7 @@ class Analyzer:
         df_test: pd.DataFrame | None = None,
         test_size: float = 0.0,
         split_seed: int = 42,
+        id_column: str | None = None,
         verbose: bool = True,
         name: str = "Unnamed Dataset",
     ):
@@ -75,6 +76,11 @@ class Analyzer:
             testing. If test_size = 0, then the train DataFrame and the
             test DataFrame will both be the same as the input df.
             If df_test is provided, then test_size is ignored.
+
+        id_column : str | None
+            Default: None. The name of the column containing unique identifiers.
+            If not None, then the column will be set as the index of the DataFrame.
+            If None, then the input index will be used as the index of the DataFrame.
 
         split_seed : int
             Default: 42.
@@ -101,6 +107,14 @@ class Analyzer:
             df = df.reindex(sorted(df.columns), axis=1)
             df_test = df_test.reindex(sorted(df_test.columns), axis=1)
 
+            if id_column is not None:
+                if id_column not in df.columns:
+                    raise ValueError(f"ID column {id_column} not found in train data.")
+                if id_column not in df_test.columns:
+                    raise ValueError(f"ID column {id_column} not found in test data.")
+                df = df.set_index(id_column)
+                df_test = df_test.set_index(id_column)
+
             self._datahandler = DataHandler(
                 df_train=df, df_test=df_test, verbose=self._verbose, name=name
             )
@@ -124,12 +138,22 @@ class Analyzer:
             # ensure column names are sorted
             temp_train_df = temp_train_df.reindex(sorted(temp_train_df.columns), axis=1)
             temp_test_df = temp_test_df.reindex(sorted(temp_test_df.columns), axis=1)
+
+            if id_column is not None:
+                if id_column not in temp_train_df.columns:
+                    raise ValueError(f"ID column {id_column} not found in train data.")
+                if id_column not in temp_test_df.columns:
+                    raise ValueError(f"ID column {id_column} not found in test data.")
+                temp_train_df = temp_train_df.set_index(id_column)
+                temp_test_df = temp_test_df.set_index(id_column)
+
             self._datahandler = DataHandler(
                 df_train=temp_train_df,
                 df_test=temp_test_df,
                 verbose=self._verbose,
                 name=name,
             )
+
         self._name = name
 
         if self._verbose:

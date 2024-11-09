@@ -24,7 +24,7 @@ class SVMC(BaseC):
         feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int | None = None,
         name: str | None = None,
-        threshold_strategy: Literal["f1", "roc"] | None = "f1",
+        threshold_strategy: Literal["f1", "roc"] | None = "roc",
         **kwargs,
     ):
         """

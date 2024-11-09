@@ -23,7 +23,7 @@ class CustomC(BaseC):
         self,
         estimator: BaseEstimator | BaseSearchCV | Pipeline,
         name: str | None = None,
-        threshold_strategy: Literal["f1", "roc"] | None = "f1",
+        threshold_strategy: Literal["f1", "roc"] | None = "roc",
     ):
         """Initializes a CustomC object.
 

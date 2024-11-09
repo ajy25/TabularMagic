@@ -26,6 +26,7 @@ class MLPC(BaseC):
         max_n_features: int | None = 10,
         model_random_state: int = 42,
         name: str | None = None,
+        threshold_strategy: Literal["f1", "roc"] | None = "f1",
         **kwargs,
     ):
         """
@@ -54,8 +55,14 @@ class MLPC(BaseC):
             Default: 42. Random seed for the model.
 
         name : str
-            Default: None. Determines how the model shows up in the report.
-            If None, the name is set to be the class name.
+            Default: None. Determines how the model shows up in the reports.
+            If None, a default name is set based on the type of the model.
+
+        threshold_strategy : Literal['f1', 'roc'] | None
+            Default: 'f1'. Determines the decision threshold optimization strategy.
+            'f1' uses the F1 score, 'roc' uses the ROC curve.
+            If None, no threshold optimization is performed.
+            Only considered if model yields probabilities.
 
         **kwargs : dict
             Key word arguments are passed directly into the intialization of the
@@ -79,7 +86,7 @@ class MLPC(BaseC):
                 Default: 100. Number of trials for hyperparameter optimization. Only
                 used if hyperparam_search_method is 'optuna'.
         """
-        super().__init__()
+        super().__init__(threshold_strategy=threshold_strategy)
 
         self._feature_selectors = feature_selectors
         self._max_n_features = max_n_features

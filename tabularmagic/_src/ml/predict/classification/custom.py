@@ -2,6 +2,7 @@ from sklearn.model_selection._search import BaseSearchCV
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 import numpy as np
+from typing import Literal
 from .base import BaseC
 from ....metrics import (
     ClassificationMulticlassScorer,
@@ -22,6 +23,7 @@ class CustomC(BaseC):
         self,
         estimator: BaseEstimator | BaseSearchCV | Pipeline,
         name: str | None = None,
+        threshold_strategy: Literal["f1", "roc"] | None = "f1",
     ):
         """Initializes a CustomC object.
 
@@ -35,8 +37,14 @@ class CustomC(BaseC):
             Default: None.
             The name of the model. If None, the estimator's
             __str__() implementation is used.
+
+        threshold_strategy : Literal['f1', 'roc'] | None
+            Default: 'f1'. Determines the decision threshold optimization strategy.
+            'f1' uses the F1 score, 'roc' uses the ROC curve.
+            If None, no threshold optimization is performed.
+            Only considered if model yields probabilities.
         """
-        super().__init__()
+        super().__init__(threshold_strategy=threshold_strategy)
         self._estimator: BaseSearchCV | BaseEstimator | Pipeline = estimator
         if name is None:
             self._name = str(estimator)

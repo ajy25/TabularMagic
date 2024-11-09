@@ -540,7 +540,7 @@ class MLClassificationReport:
 
             if self._verbose:
                 print_wrapped(
-                    f"Successfully evaluated model {quote_and_color(model._name)}.",
+                    f"Successfully fitted model {quote_and_color(model._name)}.",
                     type="UPDATE",
                 )
 

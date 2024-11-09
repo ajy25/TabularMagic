@@ -102,7 +102,7 @@ class GMMClust(BaseClust):
 
             if verbose:
                 print_wrapped(
-                    f"Identified optimal cluster number ({self._n_clusters}) for "
+                    f"Identified {self._n_clusters} optimal clusters for "
                     f"{quote_and_color(self._name, 'blue')} "
                     f"via {self._criterion}.",
                     type="PROGRESS",

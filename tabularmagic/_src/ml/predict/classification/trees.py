@@ -43,6 +43,7 @@ class TreesC(BaseC):
         max_n_features: int | None = None,
         model_random_state: int = 42,
         name: str | None = None,
+        threshold_strategy: Literal["f1", "roc"] | None = "f1",
         **kwargs,
     ):
         """
@@ -76,7 +77,13 @@ class TreesC(BaseC):
 
         name : str
             Default: None. Determines how the model shows up in the reports.
-            If None, the name is set to be the class name.
+            If None, a default name is set based on the type of the model.
+
+        threshold_strategy : Literal['f1', 'roc'] | None
+            Default: 'f1'. Determines the decision threshold optimization strategy.
+            'f1' uses the F1 score, 'roc' uses the ROC curve.
+            If None, no threshold optimization is performed.
+            Only considered if model yields probabilities.
 
         **kwargs : dict
             Key word arguments are passed directly into the intialization of the
@@ -100,7 +107,7 @@ class TreesC(BaseC):
                 Default: 100. Number of trials for hyperparameter optimization. Only
                 used if hyperparam_search_method is 'optuna'.
         """
-        super().__init__()
+        super().__init__(threshold_strategy=threshold_strategy)
         self._dropfirst = True
 
         if name is None:

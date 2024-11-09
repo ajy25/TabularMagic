@@ -345,7 +345,7 @@ class MLRegressionReport:
         for model in self._models:
             if self._verbose:
                 print_wrapped(
-                    f"Evaluating model {quote_and_color(model._name)}.",
+                    f"Fitting model {quote_and_color(model._name)}.",
                     type="UPDATE",
                 )
             model.specify_data(

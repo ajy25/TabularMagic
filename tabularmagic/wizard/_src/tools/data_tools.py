@@ -22,9 +22,10 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(pandas_query_function, context=context),
         name="pandas_query_tool",
         description="This is a pandas query tool. "
-        "It allows you to extract information from the pandas DataFrame using plain "
-        "English queries. Useful for obtaining summary statistics on the "
-        "complete dataset or a subset of the dataset, as specified by the query.",
+        "It allows you to extract simple information from the pandas DataFrame "
+        "using plain English queries. "
+        "Useful for obtaining the column names or dataset shape."
+        "For more complex tasks, use this tool as a last resort.",
         fn_schema=PandasQueryInput,
     )
 

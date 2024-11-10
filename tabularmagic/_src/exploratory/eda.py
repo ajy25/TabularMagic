@@ -14,6 +14,18 @@ from ..display.plot_options import plot_options
 from ..utils import ensure_arg_list_uniqueness
 
 
+def safe_pearsonr(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+    """Safely compute Pearson correlation with missing value handling."""
+    # Get mask for pairwise complete observations
+    mask = ~(np.isnan(x) | np.isnan(y))
+    if np.sum(mask) < 2:  # Need at least 2 complete pairs
+        return np.nan, np.nan
+    try:
+        return stats.pearsonr(x[mask], y[mask])
+    except Exception:  # Catch any numerical computation errors
+        return np.nan, np.nan
+
+
 class CategoricalEDA:
     """Class for generating EDA-relevant plots and tables for a
     single categorical variable.
@@ -123,14 +135,20 @@ class CategoricalEDA:
             plt.close()
         return fig
 
-    def counts(self) -> pd.Series:
+    def counts(self, normalize: bool = False) -> pd.Series:
         """Returns the counts of each category in the variable.
+
+        Parameters
+        ----------
+        normalize : bool
+            Default: False. If True, returns the relative frequencies
+            of the categories
 
         Returns
         -------
         pd.Series
         """
-        return self._var_series.value_counts(normalize=False)
+        return self._var_series.value_counts(normalize=normalize)
 
 
 class NumericEDA:
@@ -328,11 +346,7 @@ class EDAReport:
     # --------------------------------------------------------------------------
     @ensure_arg_list_uniqueness()
     def tabulate_correlation_comparison(
-        self,
-        numeric_vars: list[str],
-        target: str,
-        bonferroni_correction: bool = False,
-        dropna: bool = True,
+        self, numeric_vars: list[str], target: str, bonferroni_correction: bool = False
     ) -> pd.DataFrame:
         """Generates a table of the Pearson correlation coefficients between the
         numeric variables and a target variable.
@@ -372,41 +386,32 @@ class EDAReport:
             p_val_name = f"p-value (Bonferroni corrected, n_tests={len(numeric_vars)})"
         else:
             p_val_name = "p-value"
-        corr_table = pd.DataFrame(columns=[f"Corr. w. {target}", p_val_name, "n"])
+
+        corr_column_name = f"Corr. w {target}"
+
+        corr_table = pd.DataFrame(columns=[corr_column_name, p_val_name, "n"])
+
+        has_missing = self._df[numeric_vars + [target]].isnull().any(axis=1).any()
+
         for var in numeric_vars:
             var_data = self._df[var]
             target_data = self._df[target]
 
-            if dropna:
-                mask = ~(var_data.isna() | target_data.isna())
-                var_data = var_data[mask]
-                target_data = target_data[mask]
-
-                if len(var_data) == 0:
-                    corr_table.loc[var] = [np.nan, np.nan, 0]
-                    continue
-            else:
-                if var_data.isna().any() or target_data.isna().any():
-                    raise ValueError(
-                        f"NaN values found in {var} or {target} and dropna=False"
-                    )
-
-            corr, p = stats.pearsonr(var_data, target_data)
+            corr, p = safe_pearsonr(var_data, target_data)
             if bonferroni_correction:
                 p *= len(numeric_vars)
-
             corr_table.loc[var] = [corr, p, len(var_data)]
 
         n_decimals = getattr(print_options, "_n_decimals", 4)
 
-        corr_table[f"Pearson corr. with {target}"] = corr_table[
-            f"Pearson corr. with {target}"
-        ].apply(lambda x: format_value(x, n_decimals))
+        corr_table[corr_column_name] = corr_table[corr_column_name].apply(
+            lambda x: format_value(x, n_decimals)
+        )
         corr_table[p_val_name] = corr_table[p_val_name].apply(
             lambda x: format_value(x, n_decimals)
         )
 
-        if not dropna:
+        if not has_missing:
             corr_table = corr_table.drop("n", axis=1)
         else:
             corr_table["n"] = corr_table["n"].astype(int)
@@ -424,7 +429,8 @@ class EDAReport:
 
         The function computes correlations efficiently by leveraging numpy operations
         and avoiding redundant calculations. For symmetric pairs (i,j) and (j,i),
-        it only computes one and mirrors the result.
+        it only computes one and mirrors the result. Handles missing values by using
+        pairwise complete observations.
 
         Parameters
         ----------
@@ -439,7 +445,7 @@ class EDAReport:
         pd.DataFrame
             DataFrame with index and columns as the numeric variables.
             Values are either correlation coefficients or "correlation (p-value)" if
-            p_values=True.
+            p_values=True. Missing values are represented as "NA".
 
         Raises
         ------
@@ -449,6 +455,8 @@ class EDAReport:
 
         def format_corr_pval(corr: float, pval: float, n_decimals: int = 4) -> str:
             """Format correlation and p-value pair with consistent decimal places."""
+            if pd.isna(corr) or pd.isna(pval):
+                return "NA"
             corr_str = format_value(corr, n_decimals)
             pval_str = format_value(pval, n_decimals)
             return f"{corr_str} ({pval_str})"
@@ -473,7 +481,7 @@ class EDAReport:
         # Compute correlations and p-values for upper triangle
         for i in range(n_vars):
             for j in range(i + 1, n_vars):
-                corr, p = stats.pearsonr(data[:, i], data[:, j])
+                corr, p = safe_pearsonr(data[:, i], data[:, j])
                 corr_matrix[i, j] = corr_matrix[j, i] = corr
                 if p_values:
                     p_matrix[i, j] = p_matrix[j, i] = p
@@ -481,9 +489,10 @@ class EDAReport:
         # Convert to DataFrame and format values
         if not p_values:
             # Format correlation values only
-            formatted_matrix = np.vectorize(lambda x: format_value(x, n_decimals))(
-                corr_matrix
-            )
+            def format_value_with_na(x):
+                return "NA" if pd.isna(x) else format_value(x, n_decimals)
+
+            formatted_matrix = np.vectorize(format_value_with_na)(corr_matrix)
             result = pd.DataFrame(
                 formatted_matrix, index=numeric_vars, columns=numeric_vars
             )
@@ -507,6 +516,23 @@ class EDAReport:
             )
 
         return result
+
+    def tabulate_tableone(self, vars: list[str], stratify_by: str) -> pd.DataFrame:
+        """
+        Generates a tableone for the given variables stratified by the given variable.
+
+        Parameters
+        ----------
+        vars : list[str]
+            List of variables to include in the tableone.
+
+        stratify_by : str
+            The variable to stratify by.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
 
     # --------------------------------------------------------------------------
     # PLOTTING
@@ -1142,6 +1168,8 @@ class EDAReport:
 
         def format_corr_pval(corr: float, pval: float, n_decimals: int = 4) -> str:
             """Format correlation and p-value pair."""
+            if pd.isna(corr) or pd.isna(pval):
+                return "NA"
             corr_str = format_value(corr, n_decimals)
             pval_str = format_value(pval, n_decimals)
             return f"{corr_str}\n(p={pval_str})"
@@ -1163,10 +1191,18 @@ class EDAReport:
         n_decimals = getattr(print_options, "_n_decimals", 4)
 
         if not p_values:
+            # Use pandas corr() which handles missing values with pairwise deletion
             corr = self._df[numeric_vars].corr()
 
-            # format the correlation values
-            corr_formatted = corr.map(lambda x: format_value(x, n_decimals))
+            # Format the correlation values, handling NaN
+            def format_value_with_na(x):
+                return "NA" if pd.isna(x) else format_value(x, n_decimals)
+
+            corr_formatted = corr.applymap(format_value_with_na)
+
+            # Create a mask for missing values to show them differently
+            mask = corr.isna()
+
             sns.heatmap(
                 corr,
                 annot=corr_formatted,
@@ -1182,6 +1218,7 @@ class EDAReport:
                 vmin=-1,  # Force scale from -1 to 1
                 vmax=1,
                 center=0,  # Center colormap at 0
+                mask=mask,  # Mask NA values
             )
         else:
             # initialize matrices for correlations and p-values
@@ -1201,12 +1238,16 @@ class EDAReport:
                             format_value(1.0, n_decimals) + "\n(p=1.0000)"
                         )
                     else:
-                        corr, p = stats.pearsonr(
+                        corr, p = safe_pearsonr(
                             self._df[numeric_vars[i]], self._df[numeric_vars[j]]
                         )
                         corr_matrix[i, j] = corr
                         p_matrix[i, j] = p
                         annot_matrix[i, j] = format_corr_pval(corr, p, n_decimals)
+
+            # Create mask for NA values
+            mask = np.isnan(corr_matrix)
+
             sns.heatmap(
                 corr_matrix,
                 annot=annot_matrix,
@@ -1222,6 +1263,7 @@ class EDAReport:
                 vmin=-1,
                 vmax=1,
                 center=0,
+                mask=mask,  # Mask NA values
             )
 
         # customize appearance
@@ -1632,6 +1674,34 @@ class EDAReport:
         pd.DataFrame | None
         """
         return self._numeric_summary_statistics.round(print_options._n_decimals)
+
+    def value_counts(
+        self, categorical_var: str, normalize: bool = False
+    ) -> pd.DataFrame:
+        """Returns the value counts for a given categorical variable as a
+        DataFrame, with first column as the unique values and the second
+        column as the counts.
+
+        Parameters
+        ----------
+        categorical_var : str
+            Categorical variable name.
+
+        normalize : bool
+            Default: False. If True, returns the value counts as proportions.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        if categorical_var not in self._categorical_vars:
+            raise ValueError(
+                f"Invalid input: {categorical_var}. "
+                + "Must be a known categorical variable."
+            )
+        return pd.DataFrame(
+            self._categorical_eda_dict[categorical_var].counts(normalize)
+        ).reset_index()
 
     def specific(self, var: str) -> CategoricalEDA | NumericEDA:
         """Returns the CategoricalEDA or NumericEDA object associated with

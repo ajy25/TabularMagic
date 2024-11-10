@@ -7,18 +7,10 @@ from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
 
 
-from ....ml import (
-    LinearC,
-    LinearR,
-    SVMC,
-    SVMR,
-    TreesC,
-    TreesR,
-    MLPC,
-    MLPR,
-    BaseC,
-    BaseR,
-)
+from ....ml import LinearC, LinearR, SVMC, SVMR, TreesC, TreesR, MLPC, MLPR
+
+
+from ...._base import BaseC, BaseR
 
 
 def parse_model_list_from_str(

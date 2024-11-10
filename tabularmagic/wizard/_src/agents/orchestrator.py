@@ -8,8 +8,6 @@ from .linear_regression_agent import build_linear_regression_agent
 from .ml_agent import build_ml_agent
 from .utils import build_function_calling_agent
 
-
-from ..tools.data_tools import build_pandas_query_tool
 from ..tools.io_tools import build_retrieve_text_tool
 
 from ..tools.tooling_context import ToolingContext
@@ -146,7 +144,6 @@ class Orchestrator:
             eda_agent_tool,
             linear_regression_agent_tool,
             ml_agent_tool,
-            build_pandas_query_tool(context),
             build_retrieve_text_tool(context),
         ]
 

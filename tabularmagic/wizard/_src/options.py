@@ -3,6 +3,7 @@ from typing import Literal, Callable
 from ._debug.logger import print_debug
 from .llms.groq.groq import build_groq
 from .llms.openai.openai import build_openai, build_openai_multimodal
+from .llms.ollama.ollama import build_ollama
 from .llms.api_key_utils import key_exists
 
 
@@ -31,7 +32,7 @@ class _WizardOptions:
             + str(self._multimodal_llm_build_function)
         )
 
-    def set_llm(self, llm_type: Literal["openai", "groq"]) -> None:
+    def set_llm(self, llm_type: Literal["openai", "groq", "ollama"]) -> None:
         """Sets the LLM type.
 
         Parameters
@@ -47,6 +48,8 @@ class _WizardOptions:
             if not key_exists("groq"):
                 raise ValueError("GROQ API key not found in .env file.")
             self._llm_build_function = build_groq
+        elif llm_type == "ollama":
+            self._llm_build_function = build_ollama
         else:
             raise ValueError("Invalid LLM type specified.")
 

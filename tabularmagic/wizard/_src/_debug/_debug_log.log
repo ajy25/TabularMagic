@@ -1,1 +1,4 @@
-2024-11-09 11:09:10 - Wizard Debug Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x17b1a3920> and multimodal LLM build function: <function build_openai_multimodal at 0x17b1a0d60>
+2024-11-09 17:15:51 - Wizard Debug Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x169f2fd80> and multimodal LLM build function: <function build_openai_multimodal at 0x169f2fec0>
+2024-11-09 17:15:51 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'. Train, test shapes: (1168, 81), (292, 81).
+2024-11-09 17:15:51 - Wizard Debug Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-11-09 17:15:52 - Wizard Debug Log - IO initialized.

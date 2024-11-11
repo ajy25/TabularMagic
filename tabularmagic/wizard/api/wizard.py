@@ -50,7 +50,7 @@ class Wizard:
         print_debug("IO initialized.")
 
         self._orchestrator_agent = Orchestrator(
-            llm=options.llm_build_function(), context=self.context, react=False
+            llm=options.llm_build_function(), context=self.context, react=True
         )
 
     def chat(self, message: str) -> str:

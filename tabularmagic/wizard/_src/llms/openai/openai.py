@@ -2,9 +2,6 @@ from llama_index.llms.openai import OpenAI
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal
 
 
-from llama_index.core.llms.function_calling import FunctionCallingLLM
-
-
 from ..api_key_utils import find_key
 
 

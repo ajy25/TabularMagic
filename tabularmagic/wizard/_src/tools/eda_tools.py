@@ -64,6 +64,70 @@ def build_plot_distribution_tool(context: ToolingContext) -> FunctionTool:
     )
 
 
+# Correlation comparison tool
+class _CorrelationComparisonInput(BaseModel):
+    target: str = Field(description="The target variable to compare correlations with.")
+    numeric_vars: str = Field(
+        description="Comma delimited list of variables with which to compare "
+        "correlations with the target variable. "
+        "Must be numeric variables."
+    )
+
+
+def _correlation_comparison_function(
+    target: str, numeric_vars: str, context: ToolingContext
+) -> str:
+    dict_output = (
+        context.data_container.analyzer.eda("all")
+        .tabulate_correlation_comparison(
+            target=target,
+            numeric_vars=[var.strip() for var in numeric_vars.split(",")],
+        )
+        .to_dict(orient="index")
+    )
+    return context._vectorstore_manager.add_str(dumps(dict_output))
+
+
+def build_correlation_comparison_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_correlation_comparison_function, context=context),
+        name="correlation_comparison_tool",
+        description="Compares the correlation of a target variable with other numeric variables. "
+        "Returns a JSON string containing the correlation values. "
+        "The JSON string will be added to STORAGE.",
+        fn_schema=_CorrelationComparisonInput,
+    )
+
+
+# Correlation matrix tool
+class _CorrelationMatrixInput(BaseModel):
+    numeric_vars: str = Field(
+        description="Comma delimited list of numeric variables to include in the correlation matrix. "
+    )
+
+
+def _correlation_matrix_function(numeric_vars: str, context: ToolingContext) -> str:
+    mat = (
+        context._data_container.analyzer.eda("all")
+        .tabulate_correlation_matrix(
+            numeric_vars=[var.strip() for var in numeric_vars.split(",")]
+        )
+        .to_dict("index")
+    )
+    return context._vectorstore_manager.add_str(dumps(mat))
+
+
+def build_correlation_matrix_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_correlation_matrix_function, context=context),
+        name="correlation_matrix_tool",
+        description="Computes a correlation matrix for the specified numeric variables. "
+        "Returns a JSON string containing the correlation matrix. "
+        "The JSON string will be added to STORAGE.",
+        fn_schema=_CorrelationMatrixInput,
+    )
+
+
 # Numeric summary statistics tool
 def _numeric_summary_statistics_function(context: ToolingContext) -> str:
     dict_output = context._data_container.analyzer.eda("all").numeric_stats().to_dict()

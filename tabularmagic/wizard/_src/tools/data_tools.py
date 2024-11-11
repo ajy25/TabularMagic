@@ -1,6 +1,7 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
+from json import dumps
 from .tooling_context import ToolingContext
 
 
@@ -30,6 +31,37 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
     )
 
 
+# dataset summary tool
+def _dataset_summary_function(context: ToolingContext) -> str:
+    output_dict = {}
+    output_dict["train_shape"] = (
+        context._data_container.analyzer.datahandler().df_train().shape
+    )
+    output_dict["test_shape"] = (
+        context._data_container.analyzer.datahandler().df_test().shape
+    )
+    output_dict["numeric_vars"] = (
+        context._data_container.analyzer.datahandler().numeric_vars()
+    )
+    output_dict["categorical_vars"] = (
+        context._data_container.analyzer.datahandler().categorical_vars()
+    )
+    return context._vectorstore_manager.add_str(dumps(output_dict))
+
+
+def build_dataset_summary_tool(context: ToolingContext) -> FunctionTool:
+    def temp_fn() -> str:
+        return _dataset_summary_function(context)
+
+    return FunctionTool.from_defaults(
+        fn=temp_fn,
+        name="dataset_summary_tool",
+        description="This tool provides a summary of the dataset. "
+        "It includes the shape of the training and test datasets, "
+        "as well as the numeric and categorical variables in the dataset.",
+    )
+
+
 # Get variable description tool
 class _GetVariableDescriptionInput(BaseModel):
     var: str = Field(description="The variable to get the description of.")
@@ -43,8 +75,7 @@ def build_get_variable_description_tool(context: ToolingContext) -> FunctionTool
     return FunctionTool.from_defaults(
         fn=partial(_get_variable_description_function, context=context),
         name="get_variable_description_tool",
-        description="Gets the description of a variable. "
-        "The description will be returned. "
+        description="Returns the description of a variable. "
         "If no description is available, an empty string will be returned.",
         fn_schema=_GetVariableDescriptionInput,
     )

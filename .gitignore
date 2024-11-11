@@ -1,4 +1,6 @@
 .pytest_cache
+__pycache__/
+.DS_Store/
 
 
 demo/regression/ignored*

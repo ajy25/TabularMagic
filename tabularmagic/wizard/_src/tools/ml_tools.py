@@ -5,11 +5,7 @@ from json import dumps
 from typing import Literal
 from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
-
-
 from ....ml import LinearC, LinearR, SVMC, SVMR, TreesC, TreesR, MLPC, MLPR
-
-
 from ...._base import BaseC, BaseR
 
 
@@ -36,7 +32,6 @@ def parse_model_list_from_str(
                 output.append(MLPR(name=model_str, n_jobs=2))
             else:
                 raise ValueError(f"Invalid model specification: {model_str}")
-
     elif type == "classification":
         for model_str in list_of_models:
             if model_str == "Logistic":
@@ -66,7 +61,6 @@ def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
     return [predictor.strip() for predictor in predictors_str.split(",")]
 
 
-# save text tool
 class _MLRegressionInput(BaseModel):
     models: str = Field(
         description="""A comma delimited string of machine learning models to evaluate.
@@ -113,10 +107,65 @@ def build_ml_regression_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_ml_regression_function, context=context),
         name="ml_regression_tool",
-        description="""Performs a regression exercise with a list of machine learning 
-        models that you must specify. Predicts the target variable with a list of 
-        predictor variables. Returns a string describing the model performances.
+        description="""Performs regression with a list of machine learning models that you must specify.
+        Predicts the target variable with a list of predictor variables.
+        Returns a string describing the model performances.
         The output string will be added to STORAGE.
         """,
         fn_schema=_MLRegressionInput,
+    )
+
+
+class _MLClassificationInput(BaseModel):
+    models: str = Field(
+        description="""A comma delimited string of machine learning models to evaluate.
+        The available models are (in `Model Name`: Description format)...
+
+        1. `Logistic`: Logistic regression
+        2. `Ridge`: Logistic regression with L2 penalty
+        3. `Lasso`: Logistic regression with L1 penalty
+        4. `RF`: Random forest classifier
+        5. `XGBoost`: XGBoost classifier
+        6. `SVM`: Support vector machine classifier with radial basis function kernel
+        7. `MLP`: Multilayer perceptron classifier
+
+        An example input (without the quotes) is: `Logistic, RF, XGBoost`.
+        """
+    )
+    target: str = Field(
+        description="The target variable, i.e. the variable to predict."
+    )
+    predictors: str = Field(
+        description="""A comma delimited string of variables used by the models 
+        to predict the target.
+
+        An example input (without the quotes) is: `var1, var2, var3`.
+        """
+    )
+
+
+def _ml_classification_function(
+    models: str, target: str, predictors: str, context: ToolingContext
+) -> str:
+    models_list = parse_model_list_from_str(models, type="classification")
+    print_debug(models_list)
+    predictors_list = parse_predictor_list_from_str(predictors)
+    print_debug(predictors_list)
+    report = context._data_container.analyzer.classify(
+        models=models_list, target=target, predictors=predictors_list
+    )
+    output_str = context._vectorstore_manager.add_str(dumps(report._to_dict()))
+    return output_str
+
+
+def build_ml_classification_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_ml_classification_function, context=context),
+        name="ml_classification_tool",
+        description="""Performs classification with a list of machine learning models that you must specify. 
+        Predicts the target variable with a list of predictor variables. 
+        Returns a string describing the model performances.
+        The output string will be added to STORAGE.
+        """,
+        fn_schema=_MLClassificationInput,
     )

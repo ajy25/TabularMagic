@@ -1,5 +1,5 @@
 from typing import Literal, Callable
-
+from functools import partial
 from ._debug.logger import print_debug
 from .llms.groq.groq import build_groq
 from .llms.openai.openai import build_openai, build_openai_multimodal
@@ -34,7 +34,9 @@ class _WizardOptions:
         )
 
     def set_llm(
-        self, llm_type: Literal["openai", "groq", "ollama", "togetherai"]
+        self,
+        llm_type: Literal["openai", "groq", "ollama", "togetherai"],
+        temperature: float = 0.3,
     ) -> None:
         """Sets the LLM type.
 
@@ -46,17 +48,19 @@ class _WizardOptions:
         if llm_type == "openai":
             if not key_exists("openai"):
                 raise ValueError("OpenAI API key not found in .env file.")
-            self._llm_build_function = build_openai
+            self._llm_build_function = partial(build_openai, temperature=temperature)
         elif llm_type == "groq":
             if not key_exists("groq"):
                 raise ValueError("GROQ API key not found in .env file.")
-            self._llm_build_function = build_groq
+            self._llm_build_function = partial(build_groq, temperature=temperature)
         elif llm_type == "ollama":
-            self._llm_build_function = build_ollama
+            self._llm_build_function = partial(build_ollama, temperature=temperature)
         elif llm_type == "togetherai":
             if not key_exists("togetherai"):
                 raise ValueError("TogetherAI API key not found in .env file.")
-            self._llm_build_function = build_togetherai
+            self._llm_build_function = partial(
+                build_togetherai, temperature=temperature
+            )
         else:
             raise ValueError("Invalid LLM type specified.")
 

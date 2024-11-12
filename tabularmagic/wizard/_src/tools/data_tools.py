@@ -1,15 +1,13 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
-from json import dumps
 from .tooling_context import ToolingContext
 
 
 # pandas query tool
 class PandasQueryInput(BaseModel):
     query: str = Field(
-        description="Query for extracting information from the dataset. "
-        "The query must be in plain English (natural language)."
+        description="Natural language query to extract simple information from the dataset."
     )
 
 
@@ -22,11 +20,8 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(pandas_query_function, context=context),
         name="pandas_query_tool",
-        description="This is a pandas query tool. "
-        "It allows you to extract simple information from the pandas DataFrame "
-        "using plain English queries. "
-        "Useful for obtaining the column names or dataset shape."
-        "For more complex tasks, use this tool as a last resort.",
+        description="""This tool allows you to extract simple information from the dataset via plain English.
+        Useful for obtaining statistics about subsets of examples.""",
         fn_schema=PandasQueryInput,
     )
 
@@ -46,19 +41,15 @@ def _dataset_summary_function(context: ToolingContext) -> str:
     output_dict["categorical_vars"] = (
         context._data_container.analyzer.datahandler().categorical_vars()
     )
-    return context._vectorstore_manager.add_str(dumps(output_dict))
+    return context.add_dict(output_dict)
 
 
 def build_dataset_summary_tool(context: ToolingContext) -> FunctionTool:
-    def temp_fn() -> str:
-        return _dataset_summary_function(context)
-
     return FunctionTool.from_defaults(
-        fn=temp_fn,
+        fn=partial(_dataset_summary_function, context=context),
         name="dataset_summary_tool",
-        description="This tool provides a summary of the dataset. "
-        "It includes the shape of the training and test datasets, "
-        "as well as the numeric and categorical variables in the dataset.",
+        description="""Provides a summary of the dataset, which includes the shape of the training and test datasets,
+        as well as the numeric and categorical variables in the dataset.""",
     )
 
 

@@ -1541,8 +1541,8 @@ class EDAReport:
         else:
             raise ValueError(f"Invalid input: {strategy}.")
 
-        group_1_str = f"{categories[0]}::{stratify_by}"
-        group_2_str = f"{categories[1]}::{stratify_by}"
+        group_1_str = f"{stratify_by}::{categories[0]}"
+        group_2_str = f"{stratify_by}::{categories[1]}"
 
         group_1_full_str = f"{numeric_var}_{group_1_str}"
         group_2_full_str = f"{numeric_var}_{group_2_str}"

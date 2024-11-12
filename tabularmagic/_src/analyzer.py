@@ -343,6 +343,11 @@ class Analyzer:
             raise ValueError("target must be specified if formula is None.")
 
         elif formula is None:
+            if target not in self._datahandler.numeric_vars():
+                raise ValueError(
+                    f"Target variable {quote_and_color(target, 'yellow')} "
+                    + "is not numeric."
+                )
             if predictors is None:
                 predictors = self._datahandler.vars()
                 if target in predictors:
@@ -385,6 +390,12 @@ class Analyzer:
             predictors = y_X_df_combined_train.columns.to_list()
             target = y_series_train.name
             predictors.remove(target)
+
+            if target not in self._datahandler.numeric_vars():
+                raise ValueError(
+                    f"Target variable {quote_and_color(target, 'yellow')} "
+                    + "is not numeric."
+                )
 
             datahandler = DataHandler(
                 y_X_df_combined_train, y_X_df_combined_test, verbose=False
@@ -1038,7 +1049,7 @@ class Analyzer:
 
         rename : bool
             Default: False. If True, the variables are renamed to
-            {pos_label}::{var}.
+            {var}::{pos_label}.
 
         Returns
         -------

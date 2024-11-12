@@ -19,8 +19,11 @@ def build_write_text_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_write_text_function, context=context),
         name="write_text_tool",
-        description="Writes text to STORAGE. "
-        "This tool is useful for storing summaries of results for later reference.",
+        description="""Writes text to STORAGE. 
+        This tool is useful for storing results for later reference. 
+        Do not use if no results were generated.
+        Input must include detailed results, statistics, and interpretations.
+        """,
         fn_schema=_WriteTextInput,
     )
 
@@ -28,9 +31,10 @@ def build_write_text_tool(context: ToolingContext) -> FunctionTool:
 # retrieve text tool
 class _RetrieveTextOutput(BaseModel):
     query: str = Field(
-        description="Natural language query to retrieve information in STORAGE. "
-        "For example, if STORAGE contains summary statistics, an appropriate query "
-        "could be: What is the mean of the variable 'mpg'?."
+        description="""Query used to retrieve information in STORAGE.
+        For example, if STORAGE contains summary statistics, an appropriate query could be:
+        What is the mean of the variable 'mpg'?
+        """
     )
 
 

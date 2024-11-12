@@ -4,21 +4,24 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core import StorageContext
 from llama_index.core.schema import TextNode
 import matplotlib.pyplot as plt
-import pathlib
+from pathlib import Path
+import pandas as pd
+from json import dumps
 
 from ..options import options
 from ..llms.utils import describe_image
 from .._debug.logger import print_debug
 
 
-io_path = pathlib.Path(__file__).resolve().parent
+io_path = Path(__file__).resolve().parent
 img_store_path = io_path / "_img_store"
 img_store_path.mkdir(exist_ok=True)
 
+table_store_path = io_path / "_table_store"
+table_store_path.mkdir(exist_ok=True)
 
 vector_store_path = io_path / "_vector_store"
 vector_store_path.mkdir(exist_ok=True)
-
 
 log_path = io_path / "_log"
 log_path.mkdir(exist_ok=True)
@@ -27,14 +30,11 @@ log_path.mkdir(exist_ok=True)
 class VectorStoreManager:
 
     def __init__(self, multimodal: bool = True):
-
         self._llm = options.llm_build_function()
-
         if options.multimodal and multimodal:
             self._multimodal_llm = options.multimodal_llm_build_function()
         else:
             self._multimodal_llm = None
-
         self.reset()
 
     def add_str(self, text: str) -> str:
@@ -58,7 +58,7 @@ class VectorStoreManager:
         fig: plt.Figure,
         text_description: str,
         augment_text_description: bool = True,
-    ) -> str:
+    ) -> tuple[str, Path]:
         """Store a figure as an image in the vector index.
 
         Parameters
@@ -77,6 +77,9 @@ class VectorStoreManager:
         -------
         str
             Description of the figure.
+
+        str
+            Path to the image.
         """
         img_path = img_store_path / f"{self._img_counter}.png"
 
@@ -110,7 +113,49 @@ class VectorStoreManager:
             ]
         )
 
-        return text_description
+        return text_description, img_path
+
+    def add_table(
+        self, table: pd.DataFrame, add_to_vectorstore: bool = True
+    ) -> tuple[str, Path]:
+        """Store a pandas DataFrame in the vector index.
+        But also stores pickled DataFrame in disk.
+
+        Parameters
+        ----------
+        table : pd.DataFrame
+            DataFrame to add to the vector index.
+
+        add_to_vectorstore : bool
+            Whether to add the DataFrame to the vector store, by default True.
+            May want to set to False if a custom dict including the DataFrame
+            is to be added to the vector store (e.g. use add_dict instead).
+
+        Returns
+        -------
+        str
+            The input DataFrame, verbatim.
+
+        str
+            Path to the pickled DataFrame.
+        """
+        table_path = table_store_path / f"{self._table_counter}.pkl"
+        table.to_pickle(table_path)
+        self._table_counter += 1
+        str_res = dumps(table.to_dict("index"))
+        str_res = f"Path to table: {table_path}\n\n" + str_res
+        if add_to_vectorstore:
+            self._index.insert_nodes(
+                nodes=[
+                    TextNode(
+                        text=str_res,
+                        metadata={
+                            "path": str(table_path),
+                        },
+                    )
+                ]
+            )
+        return str_res, table_path
 
     def reset(self):
 
@@ -119,6 +164,11 @@ class VectorStoreManager:
             img.unlink()
 
         self._img_counter = 0
+
+        # delete all tables
+        for table in table_store_path.iterdir():
+            table.unlink()
+        self._table_counter = 0
 
         client = qdrant_client.QdrantClient(path=vector_store_path)
 

@@ -540,13 +540,13 @@ class OLSReport:
         """
         return self._model
 
-    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test", "both"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
         Parameters
         ----------
-        dataset : Literal['train', 'test']
+        dataset : Literal['train', 'test', 'both']
             The dataset to compute the metrics for.
 
         Returns
@@ -557,6 +557,12 @@ class OLSReport:
             return self._train_report.metrics()
         elif dataset == "test":
             return self._test_report.metrics()
+        elif dataset == "both":
+            test_metrics = self._test_report.metrics()  # one column w/ model name
+            train_metrics = self._train_report.metrics()  # one column w/ model name
+            # stack the two DataFrames on top of each other
+            # add an outermost index level to differentiate between the two datasets
+            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
             raise ValueError('The dataset must be either "train" or "test".')
 
@@ -1286,6 +1292,28 @@ class OLSReport:
             initial_indent=4,
         )
 
+        col_ratios = [3, 4, 3, 3]
+        col_space = [max_width // sum(col_ratios) * i for i in col_ratios]
+
+        coefs_df = self.coefs("coef|se|pval")
+        coefs_df.index.name = "Predictor"
+
+        coefs_message = bold_text("Coefficients:") + "\n"
+        actual_coefs_message = fill_ignore_format(
+            coefs_df.to_string(col_space=col_space[1:]),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+        # bold the first two lines of the actual_coefs_message
+        actual_coefs_message = "\n".join(
+            [
+                bold_text(line) if i in [0, 1] else line
+                for i, line in enumerate(actual_coefs_message.split("\n"))
+            ]
+        )
+        coefs_message += actual_coefs_message
+
         final_message = (
             top_divider
             + title_message
@@ -1295,6 +1323,8 @@ class OLSReport:
             + predictors_message
             + divider
             + metrics_message
+            + divider
+            + coefs_message
             + bottom_divider
         )
 

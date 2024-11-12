@@ -290,8 +290,8 @@ def quote_and_color(
 
 
 @contextmanager
-def suppress_all_output():
-    """Suppress all output, including stdout and stderr."""
+def suppress_std_output():
+    """Suppress stdout and stderr."""
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         old_stderr = sys.stderr

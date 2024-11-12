@@ -354,7 +354,6 @@ class OLSLinearModel:
                 "ci_high": np.round(ci_high, print_options._n_decimals),
             }
         )
-
         if format == "coef(se)|pval":
             output_df["coef(se)"] = output_df.apply(
                 lambda row: f"{row['coef']} ({row['se']})", axis=1

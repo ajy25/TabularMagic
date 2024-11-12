@@ -9,11 +9,8 @@ from .ml_agent import build_ml_agent
 from .utils import build_function_calling_agent
 
 
-from ..tools.data_tools import (
-    build_get_variable_description_tool,
-    build_set_variable_description_tool,
-)
-from ..tools.io_tools import build_retrieve_text_tool
+from ..tools.data_tools import build_dataset_summary_tool
+
 
 from ..tools.tooling_context import ToolingContext
 from .system_prompts.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
@@ -98,9 +95,7 @@ class Orchestrator:
             eda_agent_tool,
             linear_regression_agent_tool,
             ml_agent_tool,
-            build_retrieve_text_tool(context),
-            build_get_variable_description_tool(context),
-            build_set_variable_description_tool(context),
+            build_dataset_summary_tool(context),
         ]
 
         self.agent = build_function_calling_agent(

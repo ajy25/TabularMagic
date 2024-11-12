@@ -564,7 +564,7 @@ class OLSReport:
             # add an outermost index level to differentiate between the two datasets
             return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
-            raise ValueError('The dataset must be either "train" or "test".')
+            raise ValueError('dataset must be either "train", "test", or "both".')
 
     def step(
         self,
@@ -1201,7 +1201,7 @@ class OLSReport:
         dict
         """
         return {
-            "coefficients": self.coefs("coef|ci_low|ci_high|pval").to_dict("index"),
+            "coefficients": self.coefs("coef(se)|pval").to_dict("index"),
             "train_metrics": self.metrics("train").to_dict("index"),
             "test_metrics": self.metrics("test").to_dict("index"),
         }

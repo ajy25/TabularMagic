@@ -27,6 +27,10 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
 
 
 # dataset summary tool
+class _BlankInput(BaseModel):
+    pass
+
+
 def _dataset_summary_function(context: ToolingContext) -> str:
     output_dict = {}
     output_dict["train_shape"] = (
@@ -50,6 +54,7 @@ def build_dataset_summary_tool(context: ToolingContext) -> FunctionTool:
         name="dataset_summary_tool",
         description="""Provides a summary of the dataset, which includes the shape of the training and test datasets,
         as well as the numeric and categorical variables in the dataset.""",
+        fn_schema=_BlankInput(),
     )
 
 

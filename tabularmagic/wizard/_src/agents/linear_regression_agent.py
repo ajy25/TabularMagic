@@ -3,7 +3,7 @@ from llama_index.core.llms.function_calling import FunctionCallingLLM
 
 from .utils import build_function_calling_agent
 from ..tools.io_tools import build_write_text_tool
-from ..tools.linear_regression_tools import build_ols_tool
+from ..tools.linear_regression_tools import build_ols_tool, build_logit_tool
 from ..tools.tooling_context import ToolingContext
 from .system_prompts.linear_regression_agent_system_prompt import (
     LINEAR_REGRESSION_SYSTEM_PROMPT,
@@ -39,8 +39,9 @@ def build_linear_regression_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     tools = [
-        build_write_text_tool(context),
+        # build_write_text_tool(context),
         build_ols_tool(context),
+        build_logit_tool(context),
     ]
     return build_function_calling_agent(
         llm=llm, tools=tools, system_prompt=system_prompt, react=react

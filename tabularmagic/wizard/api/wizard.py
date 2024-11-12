@@ -7,7 +7,7 @@ from .._src import (
     ToolingContext,
     print_debug,
 )
-from ..._src.display.print_utils import suppress_all_output, suppress_logging
+from ..._src.display.print_utils import suppress_std_output, suppress_logging
 from .._src.agents.orchestrator import Orchestrator
 from .._src.options import options
 

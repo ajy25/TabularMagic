@@ -580,14 +580,14 @@ class MLClassificationReport:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
-    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test", "both"]) -> pd.DataFrame:
         """Returns a DataFrame containing the evaluation metrics for
         all models on the specified data.
 
         Parameters
         ----------
-        dataset: Literal['train', 'test']
-            The dataset to return the fit statistics for.
+        dataset: Literal['train', 'test', 'both']
+            The dataset to return the metrics for.
 
         Returns
         -------
@@ -609,8 +609,24 @@ class MLClassificationReport:
                 ],
                 axis=1,
             )
+        elif dataset == "both":
+            test_metrics = pd.concat(
+                [
+                    report.test_report().metrics()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+            train_metrics = pd.concat(
+                [
+                    report.train_report().metrics()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
-            raise ValueError('dataset must be either "train" or "test".')
+            raise ValueError('dataset must be either "train", "test", or "both".')
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the evaluation metrics for
@@ -886,6 +902,12 @@ class MLClassificationReport:
         if self._models[0].is_binary() and self._datahandler.is_binary(self._y_var):
             return True
         return False
+
+    def _to_dict(self) -> dict:
+        return {
+            "train_metrics": self.metrics("train").to_dict("index"),
+            "test_metrics": self.metrics("test").to_dict("index"),
+        }
 
     def __getitem__(self, model_id: str) -> SingleModelMLClassReport:
         return self._id_to_report[model_id]

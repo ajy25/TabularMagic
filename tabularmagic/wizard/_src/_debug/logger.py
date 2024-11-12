@@ -1,10 +1,12 @@
 import logging
 from pathlib import Path
+import sys
+
 
 debug_path = Path(__file__).resolve().parent
 debug_log_path = debug_path / "_debug_log.log"
 
-WIZARD_LOGGER = logging.Logger("Wizard Debug Log", level=logging.DEBUG)
+WIZARD_LOGGER = logging.Logger("Wizard Log", level=logging.DEBUG)
 handler = logging.FileHandler(filename=debug_log_path)
 formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(message)s",

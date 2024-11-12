@@ -422,14 +422,14 @@ class MLRegressionReport:
             raise ValueError(f"Model {model_id} not found.")
         return self._id_to_model[model_id]
 
-    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
-        """Returns a DataFrame containing the goodness-of-fit statistics for
+    def metrics(self, dataset: Literal["train", "test", "both"]) -> pd.DataFrame:
+        """Returns a DataFrame containing the metrics for
         all models on the specified data.
 
         Parameters
         ----------
-        dataset : Literal['train', 'test']
-            The dataset for which to return the goodness-of-fit statistics.
+        dataset : Literal['train', 'test', 'both']
+            The dataset for which to return the metrics.
 
         Returns
         -------
@@ -451,8 +451,24 @@ class MLRegressionReport:
                 ],
                 axis=1,
             )
+        elif dataset == "both":
+            test_metrics = pd.concat(
+                [
+                    report.test_report().metrics()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+            train_metrics = pd.concat(
+                [
+                    report.train_report().metrics()
+                    for report in self._id_to_report.values()
+                ],
+                axis=1,
+            )
+            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
-            raise ValueError('dataset must be either "train" or "test".')
+            raise ValueError('dataset must be either "train", "test", or "both".')
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit

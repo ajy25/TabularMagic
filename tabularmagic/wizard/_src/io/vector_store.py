@@ -11,6 +11,7 @@ from json import dumps
 from ..options import options
 from ..llms.utils import describe_image
 from .._debug.logger import print_debug
+from ...._src.utils.serialize import prepare_for_json
 
 
 io_path = Path(__file__).resolve().parent
@@ -50,6 +51,7 @@ class VectorStoreManager:
         str
             The input text, verbatim.
         """
+        print_debug(f"Adding text to vector store: {text}")
         self._index.insert_nodes(nodes=[TextNode(text=text)])
         return text
 
@@ -82,6 +84,7 @@ class VectorStoreManager:
             Path to the image.
         """
         img_path = img_store_path / f"{self._img_counter}.png"
+        print_debug(f"Adding figure to vector store: {img_path}")
 
         fig.savefig(img_path)
         self._img_counter += 1
@@ -140,10 +143,11 @@ class VectorStoreManager:
             Path to the pickled DataFrame.
         """
         table_path = table_store_path / f"{self._table_counter}.pkl"
+        print_debug(f"Adding table to vector store: {table_path}")
         table.to_pickle(table_path)
         self._table_counter += 1
-        str_res = dumps(table.to_dict("index"))
-        str_res = f"Path to table: {table_path}\n\n" + str_res
+        str_res = dumps(prepare_for_json(table.to_dict("index")))
+        str_res = f"Path to table: {str(table_path)}\n\n" + str_res
         if add_to_vectorstore:
             self._index.insert_nodes(
                 nodes=[

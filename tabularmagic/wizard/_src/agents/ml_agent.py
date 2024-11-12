@@ -38,7 +38,7 @@ def build_ml_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     tools = [
-        build_write_text_tool(context),
+        # build_write_text_tool(context),
         build_ml_regression_tool(context),
         build_ml_classification_tool(context),
     ]

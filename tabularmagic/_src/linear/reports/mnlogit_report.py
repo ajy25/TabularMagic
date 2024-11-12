@@ -185,13 +185,13 @@ class MNLogitReport:
         """
         return self._model
 
-    def metrics(self, dataset: Literal["train", "test"]) -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test", "both"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
         Parameters
         ----------
-        dataset : Literal['train', 'test']
+        dataset : Literal['train', 'test', 'both']
             The dataset to generate the report for.
 
         Returns
@@ -202,5 +202,15 @@ class MNLogitReport:
             return self._train_report.metrics()
         elif dataset == "test":
             return self._test_report.metrics()
+        elif dataset == "both":
+            test_metrics = self._test_report.metrics()
+            train_metrics = self._train_report.metrics()
+            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
-            raise ValueError('specification must be either "train" or "test".')
+            raise ValueError('dataset must be either "train", "test", or "both".')
+
+    def _to_dict(self) -> dict:
+        return {
+            "train_metrics": self.metrics("train").to_dict("index"),
+            "test_metrics": self.metrics("test").to_dict("index"),
+        }

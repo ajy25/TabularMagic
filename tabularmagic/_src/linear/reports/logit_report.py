@@ -785,14 +785,14 @@ class LogitReport:
         """
         return self._model
 
-    def metrics(self, dataset: Literal["train", "test"] = "test") -> pd.DataFrame:
+    def metrics(self, dataset: Literal["train", "test", "both"]) -> pd.DataFrame:
         """Returns a DataFrame containing the goodness-of-fit statistics
         for the model.
 
         Parameters
         ----------
-        dataset : Literal['train', 'test']
-            Default: 'test'.
+        dataset : Literal['train', 'test', 'both']
+            The dataset to get the metrics for.
 
         Returns
         -------
@@ -802,8 +802,12 @@ class LogitReport:
             return self._train_report.metrics()
         elif dataset == "test":
             return self._test_report.metrics()
+        elif dataset == "both":
+            test_metrics = self._test_report.metrics()
+            train_metrics = self._train_report.metrics()
+            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
         else:
-            raise ValueError('specification must be either "train" or "test".')
+            raise ValueError('dataset must be either "train", "test", or "both".')
 
     def step(
         self,
@@ -1258,8 +1262,19 @@ class LogitReport:
         else:
             return self._test_report.get_outlier_indices()
 
-    def coefs(self) -> pd.DataFrame:
+    def coefs(
+        self,
+        format: Literal[
+            "coef(se)|pval", "coef|se|pval", "coef(ci)|pval", "coef|ci_low|ci_high|pval"
+        ] = "coef(se)|pval",
+    ) -> pd.DataFrame:
         """Returns a DataFrame containing the coefficients of the model.
+
+        Parameters
+        ----------
+        format : Literal["coef(se)|pval", "coef|se|pval", "coef(ci)|pval",
+                        "coef|ci_low|ci_high|pval"]
+            Default: 'coef(se)|pval'.
 
         Returns
         -------

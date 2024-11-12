@@ -7,8 +7,9 @@ from typing import Literal
 from ..metrics.classification_scoring import ClassificationBinaryScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness, is_numerical
-from ..display.print_utils import suppress_print_output
+from ..display.print_utils import suppress_std_output, suppress_print_output
 from .lmutils.score import score_model
+from ..display.print_options import print_options
 
 
 class LogitLinearModel:
@@ -85,7 +86,7 @@ class LogitLinearModel:
             self._y_label_order = self._label_encoder.classes_
             y_test = self._label_encoder.transform(y_test)
 
-        with suppress_print_output():
+        with suppress_std_output():
             if self.alpha == 0:
                 self.estimator = sm.Logit(y_train, X_train).fit(cov_type="HC3")
             else:
@@ -219,7 +220,7 @@ class LogitLinearModel:
         else:
             raise ValueError("direction must be 'both', 'backward', or 'forward'")
 
-        with suppress_print_output():
+        with suppress_std_output(), suppress_print_output():
             # set our starting score and best models
             current_score = score_model(
                 local_dataemitter,
@@ -378,11 +379,11 @@ class LogitLinearModel:
 
         output_df = pd.DataFrame(
             {
-                "coef": params,
-                "se": std_err,
-                "pval": p_values,
-                "ci_low": ci_low,
-                "ci_high": ci_high,
+                "coef": np.round(params, print_options._n_decimals),
+                "se": np.round(std_err, print_options._n_decimals),
+                "pval": np.round(p_values, print_options._n_decimals),
+                "ci_low": np.round(ci_low, print_options._n_decimals),
+                "ci_high": np.round(ci_high, print_options._n_decimals),
             }
         )
 

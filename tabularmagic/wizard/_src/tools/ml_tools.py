@@ -1,7 +1,6 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
-from json import dumps
 from typing import Literal
 from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
@@ -93,13 +92,19 @@ def _ml_regression_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
     models_list = parse_model_list_from_str(models, type="regression")
-    print_debug(models_list)
+    print_debug("_ml_regression_function called")
+    print_debug(
+        "_ml_regression_function Models to test: "
+        + str([model._name for model in models_list])
+    )
     predictors_list = parse_predictor_list_from_str(predictors)
-    print_debug(predictors_list)
+    print_debug("_ml_regression_function Target: " + target)
+    print_debug("_ml_regression_function Predictors: " + str(predictors_list))
     report = context._data_container.analyzer.regress(
         models=models_list, target=target, predictors=predictors_list
     )
-    output_str = context._vectorstore_manager.add_str(dumps(report._to_dict()))
+    context.add_table(table=report.metrics("both"), add_to_vectorstore=False)
+    output_str = context.add_dict(report._to_dict())
     return output_str
 
 
@@ -110,7 +115,6 @@ def build_ml_regression_tool(context: ToolingContext) -> FunctionTool:
         description="""Performs regression with a list of machine learning models that you must specify.
         Predicts the target variable with a list of predictor variables.
         Returns a string describing the model performances.
-        The output string will be added to STORAGE.
         """,
         fn_schema=_MLRegressionInput,
     )
@@ -148,13 +152,19 @@ def _ml_classification_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
     models_list = parse_model_list_from_str(models, type="classification")
-    print_debug(models_list)
+    print_debug("_ml_classification_function called")
+    print_debug(
+        "_ml_classification_function Models to test: "
+        + str([model._name for model in models_list])
+    )
     predictors_list = parse_predictor_list_from_str(predictors)
-    print_debug(predictors_list)
+    print_debug("_ml_classification_function Target: " + target)
+    print_debug("_ml_classification_function Predictors: " + str(predictors_list))
     report = context._data_container.analyzer.classify(
         models=models_list, target=target, predictors=predictors_list
     )
-    output_str = context._vectorstore_manager.add_str(dumps(report._to_dict()))
+    context.add_table(table=report.metrics("both"), add_to_vectorstore=False)
+    output_str = context.add_dict(report._to_dict())
     return output_str
 
 
@@ -165,7 +175,6 @@ def build_ml_classification_tool(context: ToolingContext) -> FunctionTool:
         description="""Performs classification with a list of machine learning models that you must specify. 
         Predicts the target variable with a list of predictor variables. 
         Returns a string describing the model performances.
-        The output string will be added to STORAGE.
         """,
         fn_schema=_MLClassificationInput,
     )

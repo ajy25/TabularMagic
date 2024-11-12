@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from json import dumps
+
 from ..._src import DataContainer, VectorStoreManager, CanvasQueue
+from .._debug.logger import print_debug
 
 
 class ToolingContext:
@@ -92,8 +94,10 @@ class ToolingContext:
         str
             The input table in json string format.
         """
+        print_debug(f"Adding table to storage.")
         strres, path = self._vectorstore_manager.add_table(table, add_to_vectorstore)
         self._canvas_queue.push_table(path)
+        print_debug(f"Added table to {path}: {strres}")
         return strres
 
     def add_dict(self, dictionary: dict) -> str:
@@ -109,7 +113,9 @@ class ToolingContext:
         str
             The input dictionary in json string format.
         """
+        print_debug(f"Adding dictionary to storage.")
         str_dict = dumps(dictionary)
+        print_debug(f"Added dictionary: {str_dict}")
         return self._vectorstore_manager.add_str(str_dict)
 
     @property

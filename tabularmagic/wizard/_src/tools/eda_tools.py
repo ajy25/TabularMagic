@@ -32,8 +32,7 @@ def build_test_equal_means_tool(context: ToolingContext) -> FunctionTool:
         description="""Tests whether the means of a numeric variable are equal across the different levels of a categorical variable.
         The null hypothesis is that the means are equal.
         This tool will automatically determine the correct statistical test to conduct.
-        Returns a JSON string containing results and which test used.
-        The JSON string will be added to STORAGE.""",
+        Returns a JSON string containing results and which test used.""",
         fn_schema=_TestEqualMeansInput,
     )
 
@@ -55,9 +54,7 @@ def build_plot_distribution_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(_plot_distribution_function, context=context),
         name="plot_distribution_tool",
         description="""Plots the distribution of variable.
-        A detailed text description of the plot will be saved to STORAGE, along with the plot itself.
-        The text description will be returned.
-        """,
+        The text description will be returned.""",
         fn_schema=_PlotDistributionInput,
     )
 
@@ -87,8 +84,7 @@ def build_correlation_comparison_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(_correlation_comparison_function, context=context),
         name="correlation_comparison_tool",
         description="Compares the correlation of a target variable with other numeric variables. "
-        "Returns a JSON string containing the correlation values. "
-        "The JSON string will be added to STORAGE.",
+        "Returns a JSON string containing the correlation values.",
         fn_schema=_CorrelationComparisonInput,
     )
 
@@ -112,10 +108,13 @@ def build_correlation_matrix_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(_correlation_matrix_function, context=context),
         name="correlation_matrix_tool",
         description="""Computes a correlation matrix for the specified numeric variables.
-        Returns a JSON string containing the correlation matrix.
-        The JSON string will be added to STORAGE.""",
+        Returns a JSON string containing the correlation matrix.""",
         fn_schema=_CorrelationMatrixInput,
     )
+
+
+class _BlankInput(BaseModel):
+    pass
 
 
 # Numeric summary statistics tool
@@ -125,12 +124,15 @@ def _numeric_summary_statistics_function(context: ToolingContext) -> str:
 
 
 def build_numeric_summary_statistics_tool(context: ToolingContext) -> FunctionTool:
+    def temp_fn():
+        return _numeric_summary_statistics_function(context)
+
     return FunctionTool.from_defaults(
-        fn=partial(_numeric_summary_statistics_function, context=context),
+        fn=temp_fn,
         name="numeric_summary_statistics_tool",
         description="""Generates summary statistics for the numeric variables in the dataset.
-        Returns a JSON string containing the summary statistics.
-        The JSON string will be added to STORAGE.""",
+        Returns a JSON string containing the summary statistics.""",
+        fn_schema=_BlankInput(),
     )
 
 
@@ -142,10 +144,13 @@ def _categorical_summary_statistics_function(context: ToolingContext) -> str:
 
 
 def build_categorical_summary_statistics_tool(context: ToolingContext) -> FunctionTool:
+    def temp_fn():
+        return _categorical_summary_statistics_function(context)
+
     return FunctionTool.from_defaults(
-        fn=partial(_categorical_summary_statistics_function, context=context),
+        fn=temp_fn(),
         name="categorical_summary_statistics_tool",
         description="""Generates summary statistics for the categorical variables in the dataset.
-        Returns a JSON string containing the summary statistics.
-        The JSON string will be added to STORAGE.""",
+        Returns a JSON string containing the summary statistics.""",
+        fn_schema=_BlankInput(),
     )

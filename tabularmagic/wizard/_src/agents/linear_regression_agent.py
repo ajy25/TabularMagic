@@ -2,7 +2,6 @@ from llama_index.core.agent import FunctionCallingAgent, ReActAgent
 from llama_index.core.llms.function_calling import FunctionCallingLLM
 
 from .utils import build_function_calling_agent
-from ..tools.io_tools import build_write_text_tool
 from ..tools.linear_regression_tools import build_ols_tool, build_logit_tool
 from ..tools.tooling_context import ToolingContext
 from .system_prompts.linear_regression_agent_system_prompt import (

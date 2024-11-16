@@ -24,16 +24,16 @@ class Orchestrator:
         if not isinstance(llm, FunctionCallingLLM):
             raise ValueError("The provided LLM must be a FunctionCallingLLM.")
 
-        self._eda_agent = build_eda_agent(llm=llm, context=context, react=react)
+        self._eda_agent = build_eda_agent(llm=llm, context=context, react=False)
         self._linear_regression_agent = build_linear_regression_agent(
-            llm=llm, context=context, react=react
+            llm=llm, context=context, react=False
         )
-        self._ml_agent = build_ml_agent(llm=llm, context=context, react=react)
+        self._ml_agent = build_ml_agent(llm=llm, context=context, react=False)
 
         class _EdaAgentTool(BaseModel):
             query: str = Field(
                 description="Natural language query for EDA agent. "
-                "Use proper variable names whenever possible."
+                "Use proper variable names if possible."
             )
 
         def eda_agent_fn(query: str) -> str:

@@ -100,13 +100,16 @@ class ToolingContext:
         print_debug(f"Added table to {path}: {strres}")
         return strres
 
-    def add_dict(self, dictionary: dict) -> str:
+    def add_dict(self, dictionary: dict, description: str | None = None) -> str:
         """Adds a dictionary.
 
         Parameters
         ----------
         dictionary : dict
             Dictionary to add to the vector index.
+
+        description : str, optional
+            Description of the dictionary, by default None
 
         Returns
         -------
@@ -115,7 +118,14 @@ class ToolingContext:
         """
         print_debug(f"Adding dictionary to storage.")
         str_dict = dumps(dictionary)
-        print_debug(f"Added dictionary: {str_dict}")
+        if description is not None:
+            str_dict = description + "\n\n" + str_dict
+            print_debug(f"Added dictionary with description: {description}")
+        else:
+            print_debug(
+                f"Added dictionary without description. "
+                f"First 20 characters: {str_dict[:20]}."
+            )
         return self._vectorstore_manager.add_str(str_dict)
 
     @property

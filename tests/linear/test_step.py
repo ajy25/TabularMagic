@@ -191,9 +191,6 @@ def test_backward_selection_logistic(setup_data):
         reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
     )
 
-    print(logistic_report.metrics())
-    print(reduced_logistic_report.metrics())
-
     # Assert that only the most important features are selected
     assert "x1" in selected_features  # Should be included
     assert "x2" not in selected_features  # Should be excluded
@@ -222,9 +219,6 @@ def test_both_direction_selection_logistic(setup_data):
         reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
     )
 
-    print(logistic_report.metrics())
-    print(reduced_logistic_report.metrics())
-
     # Assert that only the most important features are selected
     assert "x1" in selected_features  # Should be included
     assert "x2" not in selected_features  # Should be excluded
@@ -252,9 +246,6 @@ def test_forward_selection_logistic(setup_data):
     selected_features = (
         reduced_logistic_report.train_report()._X_eval_df.columns.tolist()
     )
-
-    print(logistic_report.metrics())
-    print(reduced_logistic_report.metrics())
 
     # Assert that only the most important features are selected
     assert "x1" in selected_features  # Should be included

@@ -10,7 +10,6 @@ from ..tools.eda_tools import (
     build_correlation_comparison_tool,
     build_correlation_matrix_tool,
 )
-from ..tools.io_tools import build_write_text_tool
 from ..tools.data_tools import build_pandas_query_tool
 from ..tools.tooling_context import ToolingContext
 
@@ -50,7 +49,6 @@ def build_eda_agent(
         build_plot_distribution_tool(context),
         build_numeric_summary_statistics_tool(context),
         build_categorical_summary_statistics_tool(context),
-        # build_write_text_tool(context),
         build_pandas_query_tool(context),
         build_correlation_comparison_tool(context),
         build_correlation_matrix_tool(context),

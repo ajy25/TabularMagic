@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 from functools import partial
 from .tooling_context import ToolingContext
 
+from .._debug.logger import print_debug
+
 
 # Means test tool
 class _TestEqualMeansInput(BaseModel):
@@ -148,7 +150,7 @@ def build_categorical_summary_statistics_tool(context: ToolingContext) -> Functi
         return _categorical_summary_statistics_function(context)
 
     return FunctionTool.from_defaults(
-        fn=temp_fn(),
+        fn=temp_fn,
         name="categorical_summary_statistics_tool",
         description="""Generates summary statistics for the categorical variables in the dataset.
         Returns a JSON string containing the summary statistics.""",

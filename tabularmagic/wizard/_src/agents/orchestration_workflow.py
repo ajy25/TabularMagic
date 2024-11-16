@@ -3,6 +3,7 @@ from llama_index.core.workflow import (
     StartEvent,
     StopEvent,
     Workflow,
+    Context,
     step,
 )
 from llama_index.core.llms.function_calling import FunctionCallingLLM
@@ -24,9 +25,17 @@ from .eda_agent import build_eda_agent
 from .linear_regression_agent import build_linear_regression_agent
 from .ml_agent import build_ml_agent
 
+from .._debug.logger import print_debug
+
 
 class VarDescriptionSetupEvent(Event):
-    var_to_desc: dict
+    pass
+
+
+class VarDescriptionSetupErrorEvent(Event):
+    objective: str
+    error: str
+    number: int
 
 
 class EDAAgentEvent(Event):
@@ -61,44 +70,137 @@ class WizardFlow(Workflow):
         data_container.set_analyzer(
             build_tabularmagic_analyzer(df, df_test=df_test, test_size=test_size)
         )
-        self._context = ToolingContext(
+        self._tooling_context = ToolingContext(
             data_container=data_container,
             vectorstore_manager=VectorStoreManager(),
             canvas_queue=CanvasQueue(),
         )
 
         self._eda_agent = build_eda_agent(
-            llm=self._llm, context=self._context, react=False
+            llm=self._llm, context=self._tooling_context, react=False
         )
         self._ml_agent = build_ml_agent(
-            llm=self._llm, context=self._context, react=False
+            llm=self._llm, context=self._tooling_context, react=False
         )
         self._linear_regression_agent = build_linear_regression_agent(
-            llm=self._llm, context=self._context, react=False
+            llm=self._llm, context=self._tooling_context, react=False
         )
 
     @step
-    async def setup_var_descriptions(self, ev: StartEvent) -> VarDescriptionSetupEvent:
+    async def setup_var_descriptions(
+        self, ctx: Context, ev: StartEvent | VarDescriptionSetupErrorEvent
+    ) -> VarDescriptionSetupEvent | VarDescriptionSetupErrorEvent:
         """Asks the LLM to guess the variable descriptions."""
 
-        prompt = "We will analyze a dataset. Here are the variables of the dataset: "
-        prompt += ", ".join(self._context.data_container.df.columns) + ". "
-        prompt += "Guess the descriptions of these variables. "
-        prompt += "Respond in the format: 'variable_name: description', "
-        prompt += "separated by commas between variables. "
-        prompt += "Do not include any other text in your response."
+        objective = ev.get("objective")
+        if objective is None:
+            raise ValueError("Objective is required.")
+        await ctx.set("objective", objective)
+        prompt = """We will analyze a dataset. Here are the variables of the dataset: 
+        {variables}. 
+        Guess the descriptions of these variables. 
+        Respond in the format: 'variable_name: description', separated by commas between variables. 
+        Do not include any other text in your response.
+        """.format(
+            variables=", ".join(self._tooling_context.data_container.df.columns)
+        )
+
+        if isinstance(ev, VarDescriptionSetupErrorEvent):
+            number = ev.number
+            prompt += (
+                "\n\nPreviously, this error occurred in your response: " + ev.error
+            )
+        else:
+            number = 0
+
+        if number > 3:
+            raise RuntimeError("Too many attempts. Please try again later.")
+
         response = await self._llm.acomplete(prompt)
         response = str(response)
 
         var_to_desc = {}
-        for pair in response.split(","):
-            var, desc = pair.split(":")
-            var_to_desc[var.strip()] = desc.strip()
+        try:
+            for pair in response.split(","):
+                var, desc = pair.split(":")
+                var_to_desc[var.strip()] = desc.strip()
+        except Exception as e:
+            return VarDescriptionSetupErrorEvent(
+                objective=objective,
+                error=f"Invalid response format: {e}. Please try again.",
+                number=number + 1,
+            )
 
-        self._context.add_dict(var_to_desc)
+        self._tooling_context.add_dict(var_to_desc)
 
-        return VarDescriptionSetupEvent(var_to_desc=var_to_desc)
+        print_debug(
+            "(setup_var_descriptions) Variable to description dictionary: {var_to_desc}".format(
+                var_to_desc=dumps(var_to_desc)
+            )
+        )
+
+        await ctx.set("var_to_description_dict", var_to_desc)
+
+        return VarDescriptionSetupEvent()
 
     @step
-    async def finish(self, ev: VarDescriptionSetupEvent) -> StopEvent:
-        return StopEvent(result=dumps(ev.var_to_desc))
+    async def run_eda(
+        self,
+        ctx: Context,
+        ev: VarDescriptionSetupEvent,
+    ) -> EDAAgentEvent:
+        """Runs the EDA agent."""
+        objective = await ctx.get("objective")
+        var_to_description_dict = await ctx.get("var_to_description_dict")
+
+        prompt = """
+        We will perform exploratory data analysis on the dataset.
+
+        Here is the overarching objective: {objective}.
+
+        Here are the variables and their descriptions:
+        {var_to_description_dict}.
+
+        Given this overarching objective and the variables, formulate a list of relevant analyses to run.
+        
+        Here are the options:
+        1. Compute summary statistics for each variable.
+        2. Compare the means of a variable across different groups.
+        3. Describe the distribution of a variable.
+        4. Compare the correlation of a variable with other variables.
+        5. Compute the correlation matrix.
+
+        Respond with instructions, separated by semicolons. You MUST use the proper variable names.
+        For example (assuming a dataset with numeric variables 'MPG', 'Horsepower', 'Weight' and categorical variable 'Cylinders'):
+        "Compute summary statistics; Compare the means of 'MPG' between 'Cylinders' groups; Describe the distribution of 'MPG'; Find the correlation between 'MPG' and the following: 'Horsepower, Weight'".
+        """.format(
+            objective=objective, var_to_description_dict=dumps(var_to_description_dict)
+        )
+
+        print_debug("(run_eda) LLM Prompt: {prompt}".format(prompt=prompt))
+
+        response = await self._llm.acomplete(prompt)
+        response = str(response)
+
+        list_of_instructions = response.split(";")
+        responses = []
+        for instruction in list_of_instructions:
+            print_debug(
+                "(run_eda) EDA Agent instruction: {instruction}".format(
+                    instruction=instruction
+                )
+            )
+            agent_response = self._eda_agent.chat(instruction)
+            responses.append(str(agent_response))
+
+        result = "\n\n\n".join(responses)
+
+        print_debug("(run_eda) EDA Agent response: {result}".format(result=result))
+
+        return EDAAgentEvent(info=result)
+
+    @step
+    async def finish(self, ev: EDAAgentEvent) -> StopEvent:
+        info = ev.info
+        print_debug(f"(finish) EDA Agent result: {info}")
+        return StopEvent(result=info)

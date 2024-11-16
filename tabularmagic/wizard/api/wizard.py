@@ -52,6 +52,8 @@ class Wizard:
         )
         print_debug("IO initialized.")
 
+        print_debug("Initializing the Orchestrator.")
+
         self._orchestrator_agent = Orchestrator(
             llm=options.llm_build_function(), context=self._context, react=False
         )

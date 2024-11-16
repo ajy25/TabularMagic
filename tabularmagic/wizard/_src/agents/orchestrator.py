@@ -15,6 +15,8 @@ from ..tools.data_tools import build_dataset_summary_tool
 from ..tools.tooling_context import ToolingContext
 from .system_prompts.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
 
+from .._debug.logger import print_debug
+
 
 class Orchestrator:
     """Class for orchestrating the interactions between the user and the LLMs."""
@@ -24,10 +26,15 @@ class Orchestrator:
         if not isinstance(llm, FunctionCallingLLM):
             raise ValueError("The provided LLM must be a FunctionCallingLLM.")
 
+        print_debug("Building EDA agent")
         self._eda_agent = build_eda_agent(llm=llm, context=context, react=False)
+
+        print_debug("Building Linear Regression agent")
         self._linear_regression_agent = build_linear_regression_agent(
             llm=llm, context=context, react=False
         )
+
+        print_debug("Building ML agent")
         self._ml_agent = build_ml_agent(llm=llm, context=context, react=False)
 
         class _EdaAgentTool(BaseModel):
@@ -98,9 +105,13 @@ class Orchestrator:
             build_dataset_summary_tool(context),
         ]
 
+        print_debug("Initializing Orchestrator agent...")
+
         self.agent = build_function_calling_agent(
             llm=llm, tools=tools, system_prompt=ORCHESTRATOR_SYSTEM_PROMPT, react=react
         )
+
+        print_debug("Orchestrator agent initialized.")
 
     def chat(self, message: str) -> str:
         """Interacts with the LLM to provide data analysis insights.

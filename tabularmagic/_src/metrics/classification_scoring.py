@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from ..display.print_utils import print_wrapped, color_text
+
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
@@ -8,6 +8,9 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
+
+
+from ..display.print_utils import print_wrapped, color_text
 
 
 class ClassificationBinaryScorer:

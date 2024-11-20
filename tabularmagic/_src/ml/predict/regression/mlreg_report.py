@@ -54,9 +54,17 @@ class SingleModelSingleDatasetMLRegReport:
         pd.DataFrame
         """
         if self._dataset == "train":
-            return self._model._train_scorer.stats_df()
+            return (
+                self._model._train_scorer.stats_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
         else:
-            return self._model._test_scorer.stats_df()
+            return (
+                self._model._test_scorer.stats_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated goodness-of-fit
@@ -84,9 +92,17 @@ class SingleModelSingleDatasetMLRegReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self._model._cv_scorer.stats_df()
+                return (
+                    self._model._cv_scorer.stats_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
             else:
-                return self._model._cv_scorer.cv_stats_df()
+                return (
+                    self._model._cv_scorer.cv_stats_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -220,7 +236,11 @@ class SingleModelMLRegReport:
         pd.DataFrame | None
             None is returned if the model does not have feature importances.
         """
-        return self._model.feature_importance()
+        return (
+            self._model.feature_importance()
+            .astype(float)
+            .round(print_options._n_decimals)
+        )
 
 
 class MLRegressionReport:

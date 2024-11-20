@@ -60,9 +60,17 @@ class SingleModelSingleDatasetMLClassReport:
         pd.DataFrame
         """
         if self._dataset == "train":
-            return self._model._train_scorer.stats_df()
+            return (
+                self._model._train_scorer.stats_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
         else:
-            return self._model._test_scorer.stats_df()
+            return (
+                self._model._test_scorer.stats_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
 
     def metrics_by_class(self) -> pd.DataFrame | None:
         """Returns a DataFrame containing the evaluation metrics
@@ -82,9 +90,17 @@ class SingleModelSingleDatasetMLClassReport:
             return None
 
         if self._dataset == "train":
-            return self._model._train_scorer.stats_by_class_df()
+            return (
+                self._model._train_scorer.stats_by_class_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
         else:
-            return self._model._test_scorer.stats_by_class_df()
+            return (
+                self._model._test_scorer.stats_by_class_df()
+                .astype(float)
+                .round(print_options._n_decimals)
+            )
 
     def cv_metrics(self, average_across_folds: bool = True) -> pd.DataFrame | None:
         """Returns a DataFrame containing the cross-validated evaluation metrics
@@ -110,9 +126,17 @@ class SingleModelSingleDatasetMLClassReport:
             return None
         if self._dataset == "train":
             if average_across_folds:
-                return self._model._cv_scorer.stats_df()
+                return (
+                    self._model._cv_scorer.stats_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
             else:
-                return self._model._cv_scorer.cv_stats_df()
+                return (
+                    self._model._cv_scorer.cv_stats_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
         elif self._dataset == "test":
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -155,9 +179,17 @@ class SingleModelSingleDatasetMLClassReport:
 
         if self._dataset == "train":
             if averaged_across_folds:
-                return self._model._cv_scorer.stats_by_class_df()
+                return (
+                    self._model._cv_scorer.stats_by_class_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
             else:
-                return self._model._cv_scorer.cv_stats_by_class_df()
+                return (
+                    self._model._cv_scorer.cv_stats_by_class_df()
+                    .astype(float)
+                    .round(print_options._n_decimals)
+                )
         else:
             print_wrapped(
                 "Cross validation statistics are not available for test data.",
@@ -386,7 +418,11 @@ class SingleModelMLClassReport:
         pd.DataFrame | None
             None is returned if the model does not have feature importances.
         """
-        return self._model.feature_importance()
+        return (
+            self._model.feature_importance()
+            .astype(float)
+            .round(print_options._n_decimals)
+        )
 
 
 class MLClassificationReport:

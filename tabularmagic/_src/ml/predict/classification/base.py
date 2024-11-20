@@ -171,7 +171,7 @@ def select_optimal_thresholds_multiclass(
                 optimal_idx = np.argmax(f1_scores)
                 optimal_threshold = thresholds[optimal_idx]
 
-            else:  # metric == "roc"
+            elif metric == "roc":
                 # Optimize using ROC curve
                 fpr, tpr, roc_thresholds = roc_curve(y_true_binary, prob_ratios)
                 # Find threshold that maximizes sensitivity + specificity
@@ -186,6 +186,9 @@ def select_optimal_thresholds_multiclass(
                     optimal_threshold = roc_thresholds[optimal_idx]
                 else:
                     optimal_threshold = 0.5
+
+            else:
+                raise ValueError(f"Invalid metric: {metric}")
 
             # Store optimal thresholds symmetrically
             optimal_thresholds[i][j] = optimal_threshold

@@ -444,7 +444,7 @@ class _SingleDatasetOLSReport:
         ----------
         pd.DataFrame
         """
-        return self.scorer.stats_df()
+        return self.scorer.stats_df().astype(float).round(print_options._n_decimals)
 
     def _compute_outliers(self):
         """Computes the outliers."""

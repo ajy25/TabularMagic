@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Literal
 from .._src import (
     build_tabularmagic_analyzer,
     VectorStoreManager,
@@ -9,6 +10,7 @@ from .._src import (
 )
 from ..._src.display.print_utils import suppress_std_output, suppress_logging
 from .._src.agents.orchestrator import Orchestrator
+from .._src.agents.single_agent import SingleAgent
 from .._src.options import options
 
 
@@ -58,7 +60,11 @@ class Wizard:
             llm=options.llm_build_function(), context=self._context, react=False
         )
 
-    def chat(self, message: str) -> str:
+        self._single_agent = SingleAgent(
+            llm=options.llm_build_function(), context=self._context, react=False
+        )
+
+    def chat(self, message: str, which: Literal["multi", "single"]) -> str:
         """Interacts with the LLM to provide data analysis insights.
 
         Parameters
@@ -66,10 +72,18 @@ class Wizard:
         message : str
             The message to send to the LLM.
 
+        which : Literal["multi", "single"]
+            If multi, the message is sent to the Orchestrator (multiple agent).
+            If single, the message is sent to a single agent.
+
         Returns
         -------
         str
             The response from the LLM.
         """
-        with suppress_logging():
-            return self._orchestrator_agent.chat(message)
+        if which == "multi":
+            with suppress_logging():
+                return self._orchestrator_agent.chat(message)
+        elif which == "single":
+            with suppress_logging():
+                return self._single_agent.chat(message)

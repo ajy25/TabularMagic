@@ -1,162 +1,136 @@
-import dash
-from dash import html, dcc, callback, Input, Output, State, dash_table
-import dash_bootstrap_components as dbc
-from pathlib import Path
-import sys
-import base64
-import io
-import datetime
+from flask import Flask, render_template, request, jsonify, send_file, app, g
 import pandas as pd
 
-path_to_src = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.append(str(path_to_src))
+from pathlib import Path
+import sys
+import matplotlib
+import os
 
-from tabularmagic.wizard._src.agents.eda_agent import build_eda_agent
-from tabularmagic.wizard._src.agents.linear_regression_agent import (
-    build_linear_regression_agent,
-)
-
-
-# Placeholder function for LLM interaction
-def f(message):
-    return f"LLM response to: {message}"
+ui_path = Path(__file__).parent.resolve()
+path_to_add = str(ui_path.parent.parent.parent)
+sys.path.append(path_to_add)
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-app.layout = dbc.Container(
-    [
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.H3("Chat with LLM"),
-                        dbc.Card(
-                            [
-                                dbc.CardBody(
-                                    [
-                                        html.Div(
-                                            id="chat-history",
-                                            style={
-                                                "height": "400px",
-                                                "overflow-y": "auto",
-                                            },
-                                        ),
-                                        dbc.Input(
-                                            id="user-input",
-                                            placeholder="Type your message...",
-                                            type="text",
-                                        ),
-                                        dbc.Button(
-                                            "Send",
-                                            id="send-button",
-                                            color="primary",
-                                            className="mt-2",
-                                        ),
-                                    ]
-                                )
-                            ]
-                        ),
-                    ],
-                    width=6,
-                ),
-                dbc.Col(
-                    [
-                        html.H3("File Upload"),
-                        dcc.Upload(
-                            id="upload-data",
-                            children=html.Div(
-                                ["Drag and Drop or ", html.A("Select Files")]
-                            ),
-                            style={
-                                "width": "100%",
-                                "height": "60px",
-                                "lineHeight": "60px",
-                                "borderWidth": "1px",
-                                "borderStyle": "dashed",
-                                "borderRadius": "5px",
-                                "textAlign": "center",
-                                "margin": "10px",
-                            },
-                            multiple=False,
-                        ),
-                        html.Div(id="output-data-upload"),
-                    ],
-                    width=6,
-                ),
-            ]
+
+from tabularmagic.wizard.api import Wizard
+
+
+wizard: Wizard = None
+
+
+def chat(msg: str) -> str:
+    """
+    Chat function that processes natural language queries on the uploaded dataset.
+    """
+    global wizard
+    if wizard is None:
+        return "No dataset uploaded. Please upload a dataset first."
+    
+    else:
+        return wizard.chat(
+            msg,
+            which="single"
         )
-    ],
-    fluid=True,
-)
+    
+def get_analysis():
+    return wizard._canvas_queue.get_analysis()
+
+# Initialize Flask app
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/upload", methods=["POST"])
+def upload_dataset():
+    """
+    Handle dataset upload and store it for the chat function.
+    """
+    global wizard
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    try:
+        # Read the uploaded CSV file
+        uploaded_data = pd.read_csv(file, index_col=0)
+        wizard = Wizard(uploaded_data, test_size=0.2)
+
+        return jsonify({"message": "Dataset uploaded successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/chat", methods=["POST"])
+def chat_route():
+    user_message = request.json.get("message")
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+    response_message = chat(user_message)
+    return jsonify({"response": response_message})
 
 
-@callback(
-    Output("chat-history", "children"),
-    Output("user-input", "value"),
-    Input("send-button", "n_clicks"),
-    State("user-input", "value"),
-    State("chat-history", "children"),
-    prevent_initial_call=True,
-)
-def update_chat(n_clicks, user_input, chat_history):
-    if user_input:
-        user_message = html.Div(f"You: {user_input}")
-        llm_response = html.Div(f"LLM: {f(user_input)}")
-
-        if chat_history is None:
-            chat_history = []
-
-        chat_history.extend([user_message, llm_response])
-
-        return chat_history, ""
-    return chat_history, user_input
-
-
-@callback(
-    Output("output-data-upload", "children"),
-    Input("upload-data", "contents"),
-    State("upload-data", "filename"),
-    State("upload-data", "last_modified"),
-)
-def update_output(content, name, date):
-    if content is not None:
-        content_type, content_string = content.split(",")
-        decoded = base64.b64decode(content_string)
-        try:
-            if "csv" in name:
-                # Assume that the user uploaded a CSV file
-                df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-            elif "xls" in name:
-                # Assume that the user uploaded an excel file
-                df = pd.read_excel(io.BytesIO(decoded))
+@app.route("/analysis", methods=["GET"])
+def get_analysis_history():
+    """
+    Retrieve the current analysis history (figures and tables).
+    """
+    if wizard is None:
+        return jsonify({"error": "No dataset uploaded. Please upload a dataset first."}), 400
+    
+    try:
+        analysis_items = get_analysis()
+        items = []
+        for path in analysis_items:
+            path_obj = Path(path)
+            if path_obj.exists():
+                if path_obj.suffix == ".png":
+                    items.append({"file_name": path_obj.name, "file_type": "figure", "file_path": str(path_obj)})
+                elif path_obj.suffix == ".pkl":
+                    # Load the DataFrame and convert to HTML
+                    df = pd.read_pickle(path_obj)
+                    html_table = df.to_html(classes="table", index=True)
+                    items.append({"file_name": path_obj.name, "file_type": "table", "content": html_table})
             else:
-                return html.Div(
-                    ["Unsupported file type. Please upload a CSV or Excel file."]
-                )
-
-            return html.Div(
-                [
-                    html.H5(f"File: {name}"),
-                    html.H6(f"Last modified: {datetime.datetime.fromtimestamp(date)}"),
-                    dash_table.DataTable(
-                        data=df.head().to_dict("records"),
-                        columns=[{"name": i, "id": i} for i in df.columns],
-                        style_table={"overflowX": "auto"},
-                        style_cell={
-                            "height": "auto",
-                            "minWidth": "100px",
-                            "width": "150px",
-                            "maxWidth": "180px",
-                            "whiteSpace": "normal",
-                        },
-                    ),
-                ]
-            )
-        except Exception as e:
-            print(e)
-            return html.Div(["There was an error processing this file."])
+                app.logger.warning(f"File not found: {path}")
+        return jsonify(items)
+    except Exception as e:
+        app.logger.error(f"Error retrieving analysis history: {str(e)}")
+        return jsonify({"error": "Failed to retrieve analysis history"}), 500
 
 
+    
+@app.route('/analysis/file/<filename>', methods=['GET'])
+def serve_file(filename):
+    """
+    Serve static files (figures) from the analysis queue.
+    """
+    if wizard is None:
+        return jsonify({"error": "No dataset uploaded. Please upload a dataset first."}), 400
+    
+    analysis_items = get_analysis()
+    for path in analysis_items:
+        if Path(path).name == filename:
+            file_path = Path(path)
+            if file_path.exists():
+                return send_file(file_path)
+    
+    return jsonify({"error": f"File '{filename}' not found."}), 404
+
+def get_wizard():
+    if 'wizard' not in g:
+        g.wizard = None
+    return g.wizard
+
+@app.teardown_appcontext
+def cleanup_wizard(exception=None):
+    g.pop('wizard', None)
+
+# Run the app
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    matplotlib.use("Agg")
+    app.run(debug=True)
+
+

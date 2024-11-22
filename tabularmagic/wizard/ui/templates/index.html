@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chat with Your Data</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: linear-gradient(to right, #6a11cb, #2575fc);
+                color: #333;
+            }
+            .container {
+                width: 95%; /* Keep it adaptive to viewport width */
+                height: 90vh; /* Adjust to 90% of the viewport height */
+                max-width: 1400px; /* Increase the maximum width */
+                background: white;
+                padding: 20px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+                display: flex; /* Ensure child elements adjust properly */
+                flex-direction: column;
+            }
+            .messages {
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                height: 400px;
+                overflow-y: auto;
+                padding: 10px;
+                margin-bottom: 20px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column; /* Stack messages vertically */
+                gap: 10px;
+            }
+            .message {
+                margin: 10px 0;
+                padding: 8px;
+                border-radius: 8px;
+                max-width: 80%;
+                word-wrap: break-word;
+            }
+            .message.user {
+                align-self: flex-end;
+                background-color: #d1e7ff;
+                text-align: right;
+                margin-left: auto; /* Align message box to the right */
+                margin-right: 0;
+            }
+            .message.bot {
+                align-self: flex-start;
+                background-color: #e7ffd1;
+                text-align: left;
+            }
+            .message.bot pre {
+                background: #f4f4f4;
+                padding: 10px;
+                border-radius: 5px;
+                overflow-x: auto;
+            }
+            form {
+                display: flex;
+                gap: 10px;
+            }
+            input[type="text"] {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            button {
+                padding: 10px 20px;
+                background-color: #2575fc;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            button:hover {
+                background-color: #6a11cb;
+            }
+            .upload-container {
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .chat-container {
+                display: flex;
+                gap: 20px;
+            }
+            .messages-container {
+                flex: 1;
+                border: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f9f9f9;
+                height: 500px;
+                overflow-y: auto;
+            }
+            .analysis-container {
+                flex: 1;
+                border: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f9f9f9;
+                height: 500px;
+                overflow-y: auto;
+            }
+            .table-container {
+                overflow-x: auto;
+                margin-top: 10px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                padding: 10px;
+                background-color: #fff;
+            }
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+            }
+            .table th, .table td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }
+            .table th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="upload-container">
+                <h2>Upload Your Dataset</h2>
+                <input type="file" id="csv-upload" accept=".csv">
+                <button onclick="uploadDataset()">Upload</button>
+                <p id="upload-status" class="loading"></p>
+            </div>
+            <div class="chat-container">
+                <!-- Chat history window -->
+                <div class="messages-container">
+                    <div class="messages" id="messages"></div>
+                    <form id="chat-form">
+                        <input type="text" id="user-input" placeholder="Ask a question about the dataset..." required>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
+
+                <!-- Analysis history window -->
+                <div class="analysis-container">
+                    <h3>Analysis History</h3>
+                    <div id="analysis-history"></div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+        <script>
+            const messagesDiv = document.getElementById('messages');
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const csvUploadInput = document.getElementById('csv-upload');
+            const uploadStatus = document.getElementById('upload-status');
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userMessage = userInput.value;
+
+                // Add user message to chat
+                addMessage(userMessage, "user");
+
+                // Clear input
+                userInput.value = "";
+
+                // Show loading indicator
+                addMessage("Thinking...", "bot");
+
+                // Send message to server
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage })
+                    });
+                    const data = await response.json();
+
+                    // Replace loading indicator with bot response
+                    removeLastMessage();
+                    if (data.response) {
+                        addMessage(data.response, "bot");
+                    } else {
+                        addMessage("Error: No response from server.", "bot");
+                    }
+                } catch (error) {
+                    removeLastMessage();
+                    addMessage("Error: Could not connect to server.", "bot");
+                }
+            });
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+
+                if (sender === "bot") {
+                    // Render Markdown for bot messages
+                    messageDiv.innerHTML = marked.parse(text);
+                } else {
+                    // Plain text for user messages
+                    messageDiv.textContent = text;
+                }
+
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
+            }
+
+            function removeLastMessage() {
+                const lastMessage = messagesDiv.lastChild;
+                if (lastMessage) {
+                    messagesDiv.removeChild(lastMessage);
+                }
+            }
+
+            async function uploadDataset() {
+                const file = csvUploadInput.files[0];
+                if (!file) {
+                    alert("Please select a dataset to upload.");
+                    return;
+                }
+
+                uploadStatus.textContent = "Uploading...";
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    uploadStatus.textContent = "";
+                    if (data.message) {
+                        alert(data.message);
+                    } else if (data.error) {
+                        alert("Error: " + data.error);
+                    }
+                } catch (error) {
+                    uploadStatus.textContent = "";
+                    alert("Error: Could not upload dataset.");
+                }
+            }
+        </script>
+        <script>
+            async function fetchAnalysisHistory() {
+                try {
+                    const response = await fetch('/analysis');
+                    const data = await response.json();
+
+                    const analysisDiv = document.getElementById('analysis-history');
+                    analysisDiv.innerHTML = ""; // Clear current content
+
+                    data.forEach(item => {
+                        const entry = document.createElement('div');
+                        entry.style.marginBottom = "10px";
+
+                        if (item.file_type === "figure") {
+                            // Add an image
+                            const img = document.createElement('img');
+                            img.src = `/analysis/file/${item.file_name}`;
+                            img.style.maxWidth = "100%";
+                            img.style.borderRadius = "8px";
+                            img.alt = "Analysis Figure";
+                            entry.appendChild(img);
+                        } else if (item.file_type === "table") {
+                            // Add table directly into the analysis window
+                            const tableDiv = document.createElement('div');
+                            tableDiv.innerHTML = item.content;
+                            tableDiv.classList.add('table-container');
+                            entry.appendChild(tableDiv);
+                        }
+
+                        analysisDiv.appendChild(entry);
+                    });
+                } catch (error) {
+                    console.error("Error fetching analysis history:", error);
+                }
+            }
+
+            // Refresh analysis history periodically
+            setInterval(fetchAnalysisHistory, 5000);
+        </script>
+    </body>
+</html>

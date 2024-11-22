@@ -1,12 +1,103 @@
-2024-11-21 15:10:20 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x3062f9ee0> and multimodal LLM build function: <function build_openai_multimodal at 0x3062fa020>
-2024-11-21 15:10:21 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'. Train, test shapes: (1168, 81), (292, 81).
-2024-11-21 15:10:21 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-11-21 15:10:21 - Wizard Log - IO initialized.
-2024-11-21 15:10:21 - Wizard Log - Initializing the Orchestrator.
-2024-11-21 15:10:21 - Wizard Log - Building EDA agent
-2024-11-21 15:10:21 - Wizard Log - Building Linear Regression agent
-2024-11-21 15:10:21 - Wizard Log - Building ML agent
-2024-11-21 15:10:21 - Wizard Log - Initializing Orchestrator agent...
-2024-11-21 15:10:21 - Wizard Log - Orchestrator agent initialized.
-2024-11-21 15:10:21 - Wizard Log - Initializing SingleAgent
-2024-11-21 15:10:21 - Wizard Log - SingleAgent initialized
+2024-11-22 15:25:45 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x17e8cafc0> and multimodal LLM build function: <function build_openai_multimodal at 0x17e8cb100>
+2024-11-22 15:26:00 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'. Train, test shapes: (1168, 80), (292, 80).
+2024-11-22 15:26:00 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-11-22 15:26:00 - Wizard Log - IO initialized.
+2024-11-22 15:26:00 - Wizard Log - Initializing the Orchestrator.
+2024-11-22 15:26:00 - Wizard Log - Building EDA agent
+2024-11-22 15:26:00 - Wizard Log - Building Linear Regression agent
+2024-11-22 15:26:00 - Wizard Log - Building ML agent
+2024-11-22 15:26:00 - Wizard Log - Initializing Orchestrator agent...
+2024-11-22 15:26:00 - Wizard Log - Orchestrator agent initialized.
+2024-11-22 15:26:00 - Wizard Log - Initializing SingleAgent
+2024-11-22 15:26:00 - Wizard Log - SingleAgent initialized
+2024-11-22 15:26:16 - Wizard Log - Adding dictionary to storage.
+2024-11-22 15:26:16 - Wizard Log - Added dictionary without description. First 20 characters: {"train_shape": [116.
+2024-11-22 15:26:16 - Wizard Log - Adding text to vector store: {"train_shape": [1168, 80], "test_shape": [292, 80], "numeric_vars": ["1stFlrSF", "2ndFlrSF", "3SsnPorch", "BedroomAbvGr", "BsmtFinSF1", "BsmtFinSF2", "BsmtFullBath", "BsmtHalfBath", "BsmtUnfSF", "EnclosedPorch", "Fireplaces", "FullBath", "GarageArea", "GarageCars", "GarageYrBlt", "GrLivArea", "HalfBath", "KitchenAbvGr", "LotArea", "LotFrontage", "LowQualFinSF", "MSSubClass", "MasVnrArea", "MiscVal", "MoSold", "OpenPorchSF", "OverallCond", "OverallQual", "PoolArea", "SalePrice", "ScreenPorch", "TotRmsAbvGrd", "TotalBsmtSF", "WoodDeckSF", "YearBuilt", "YearRemodAdd", "YrSold"], "categorical_vars": ["Alley", "BldgType", "BsmtCond", "BsmtExposure", "BsmtFinType1", "BsmtFinType2", "BsmtQual", "CentralAir", "Condition1", "Condition2", "Electrical", "ExterCond", "ExterQual", "Exterior1st", "Exterior2nd", "Fence", "FireplaceQu", "Foundation", "Functional", "GarageCond", "GarageFinish", "GarageQual", "GarageType", "Heating", "HeatingQC", "HouseStyle", "KitchenQual", "LandContour", "LandSlope", "LotConfig", "LotShape", "MSZoning", "MasVnrType", "MiscFeature", "Neighborhood", "PavedDrive", "PoolQC", "RoofMatl", "RoofStyle", "SaleCondition", "SaleType", "Street", "Utilities"]}
+2024-11-22 15:26:39 - Wizard Log - Adding figure to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_img_store/0.png
+2024-11-22 15:27:12 - Wizard Log - Adding table to storage.
+2024-11-22 15:27:12 - Wizard Log - Adding table to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/0.pkl
+2024-11-22 15:27:12 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/0.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/0.pkl
+
+{"1stFlrSF": {"Corr. w SalePrice": "0.606", "p-value": "0.000", "n": 1460}, "2ndFlrSF": {"Corr. w SalePrice": "0.319", "p-value": "0.000", "n": 1460}, "3SsnPorch": {"Corr. w SalePrice": "0.045", "p-value": "0.089", "n": 1460}, "BedroomAbvGr": {"Corr. w SalePrice": "0.168", "p-value": "0.000", "n": 1460}, "BsmtFinSF1": {"Corr. w SalePrice": "0.386", "p-value": "0.000", "n": 1460}, "BsmtFinSF2": {"Corr. w SalePrice": "-0.011", "p-value": "0.664", "n": 1460}, "BsmtFullBath": {"Corr. w SalePrice": "0.227", "p-value": "0.000", "n": 1460}, "BsmtHalfBath": {"Corr. w SalePrice": "-0.017", "p-value": "0.520", "n": 1460}, "BsmtUnfSF": {"Corr. w SalePrice": "0.214", "p-value": "0.000", "n": 1460}, "EnclosedPorch": {"Corr. w SalePrice": "-0.129", "p-value": "0.000", "n": 1460}, "Fireplaces": {"Corr. w SalePrice": "0.467", "p-value": "0.000", "n": 1460}, "FullBath": {"Corr. w SalePrice": "0.561", "p-value": "0.000", "n": 1460}, "GarageArea": {"Corr. w SalePrice": "0.623", "p-value": "0.000", "n": 1460}, "GarageCars": {"Corr. w SalePrice": "0.640", "p-value": "0.000", "n": 1460}, "GarageYrBlt": {"Corr. w SalePrice": "0.486", "p-value": "0.000", "n": 1460}, "GrLivArea": {"Corr. w SalePrice": "0.709", "p-value": "0.000", "n": 1460}, "HalfBath": {"Corr. w SalePrice": "0.284", "p-value": "0.000", "n": 1460}, "KitchenAbvGr": {"Corr. w SalePrice": "-0.136", "p-value": "0.000", "n": 1460}, "LotArea": {"Corr. w SalePrice": "0.264", "p-value": "0.000", "n": 1460}, "LotFrontage": {"Corr. w SalePrice": "0.352", "p-value": "0.000", "n": 1460}, "LowQualFinSF": {"Corr. w SalePrice": "-0.026", "p-value": "0.328", "n": 1460}, "MSSubClass": {"Corr. w SalePrice": "-0.084", "p-value": "0.001", "n": 1460}, "MasVnrArea": {"Corr. w SalePrice": "0.477", "p-value": "0.000", "n": 1460}, "MiscVal": {"Corr. w SalePrice": "-0.021", "p-value": "0.418", "n": 1460}, "MoSold": {"Corr. w SalePrice": "0.046", "p-value": "0.076", "n": 1460}, "OpenPorchSF": {"Corr. w SalePrice": "0.316", "p-value": "0.000", "n": 1460}, "OverallCond": {"Corr. w SalePrice": "-0.078", "p-value": "0.003", "n": 1460}, "OverallQual": {"Corr. w SalePrice": "0.791", "p-value": "0.000", "n": 1460}, "PoolArea": {"Corr. w SalePrice": "0.092", "p-value": "0.000", "n": 1460}, "ScreenPorch": {"Corr. w SalePrice": "0.111", "p-value": "0.000", "n": 1460}, "TotRmsAbvGrd": {"Corr. w SalePrice": "0.534", "p-value": "0.000", "n": 1460}, "TotalBsmtSF": {"Corr. w SalePrice": "0.614", "p-value": "0.000", "n": 1460}, "WoodDeckSF": {"Corr. w SalePrice": "0.324", "p-value": "0.000", "n": 1460}, "YearBuilt": {"Corr. w SalePrice": "0.523", "p-value": "0.000", "n": 1460}, "YearRemodAdd": {"Corr. w SalePrice": "0.507", "p-value": "0.000", "n": 1460}, "YrSold": {"Corr. w SalePrice": "-0.029", "p-value": "0.269", "n": 1460}}
+2024-11-22 15:28:12 - Wizard Log - _ols_function call: formula: SalePrice ~ OverallQual + GrLivArea + GarageCars + GarageArea
+2024-11-22 15:28:12 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'OverallQual', [0m[95m'GrLivArea', [0m[95m'GarageCars', [0m[95m'GarageArea'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.734[0m                            R2:       [93m0.762[0m 
+    Adj. R2:  [93m0.733[0m                            Adj. R2:  [93m0.759[0m 
+    RMSE:     [93m39826.775[0m                        RMSE:     [93m42682.003[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                     -93845.683           9861.291              0.000 
+  OverallQual                26709.845           1309.095              0.000 
+  GrLivArea                     46.016              8.017              0.000 
+  GarageCars                 13324.586           8916.055              0.135 
+  GarageArea                    37.280             29.590              0.208 
+========================================================================================
+2024-11-22 15:28:12 - Wizard Log - Adding table to storage.
+2024-11-22 15:28:12 - Wizard Log - Adding table to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/1.pkl
+2024-11-22 15:28:12 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/1.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/1.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 39826.775}, "('train', 'mae')": {"OLS Linear Model": 26726.101}, "('train', 'mape')": {"OLS Linear Model": 0.162}, "('train', 'pearsonr')": {"OLS Linear Model": 0.857}, "('train', 'spearmanr')": {"OLS Linear Model": 0.885}, "('train', 'r2')": {"OLS Linear Model": 0.734}, "('train', 'adjr2')": {"OLS Linear Model": 0.733}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 42682.003}, "('test', 'mae')": {"OLS Linear Model": 27542.043}, "('test', 'mape')": {"OLS Linear Model": 0.172}, "('test', 'pearsonr')": {"OLS Linear Model": 0.879}, "('test', 'spearmanr')": {"OLS Linear Model": 0.898}, "('test', 'r2')": {"OLS Linear Model": 0.762}, "('test', 'adjr2')": {"OLS Linear Model": 0.759}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-11-22 15:28:12 - Wizard Log - Adding table to storage.
+2024-11-22 15:28:12 - Wizard Log - Adding table to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/2.pkl
+2024-11-22 15:28:12 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/2.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/2.pkl
+
+{"const": {"Coefficient (Std. Error)": "-93845.683 (9861.291)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "26709.845 (1309.095)", "p-value": 0.0}, "GrLivArea": {"Coefficient (Std. Error)": "46.016 (8.017)", "p-value": 0.0}, "GarageCars": {"Coefficient (Std. Error)": "13324.586 (8916.055)", "p-value": 0.135}, "GarageArea": {"Coefficient (Std. Error)": "37.28 (29.59)", "p-value": 0.208}}
+2024-11-22 15:28:12 - Wizard Log - Adding dictionary to storage.
+2024-11-22 15:28:12 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-11-22 15:28:12 - Wizard Log - Adding text to vector store: {"coefficients": {"const": {"Coefficient (Std. Error)": "-93845.683 (9861.291)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "26709.845 (1309.095)", "p-value": 0.0}, "GrLivArea": {"Coefficient (Std. Error)": "46.016 (8.017)", "p-value": 0.0}, "GarageCars": {"Coefficient (Std. Error)": "13324.586 (8916.055)", "p-value": 0.135}, "GarageArea": {"Coefficient (Std. Error)": "37.28 (29.59)", "p-value": 0.208}}, "train_metrics": {"rmse": {"OLS Linear Model": 39826.775}, "mae": {"OLS Linear Model": 26726.101}, "mape": {"OLS Linear Model": 0.162}, "pearsonr": {"OLS Linear Model": 0.857}, "spearmanr": {"OLS Linear Model": 0.885}, "r2": {"OLS Linear Model": 0.734}, "adjr2": {"OLS Linear Model": 0.733}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 42682.003}, "mae": {"OLS Linear Model": 27542.043}, "mape": {"OLS Linear Model": 0.172}, "pearsonr": {"OLS Linear Model": 0.879}, "spearmanr": {"OLS Linear Model": 0.898}, "r2": {"OLS Linear Model": 0.762}, "adjr2": {"OLS Linear Model": 0.759}, "n_obs": {"OLS Linear Model": 292.0}}}
+2024-11-22 15:28:13 - Wizard Log - Adding figure to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_img_store/1.png
+2024-11-22 15:28:27 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-93845.683 (9861.291)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "26709.845 (1309.095)", "p-value": 0.0}, "GrLivArea": {"Coefficient (Std. Error)": "46.016 (8.017)", "p-value": 0.0}, "GarageCars": {"Coefficient (Std. Error)": "13324.586 (8916.055)", "p-value": 0.135}, "GarageArea": {"Coefficient (Std. Error)": "37.28 (29.59)", "p-value": 0.208}}, "train_metrics": {"rmse": {"OLS Linear Model": 39826.775}, "mae": {"OLS Linear Model": 26726.101}, "mape": {"OLS Linear Model": 0.162}, "pearsonr": {"OLS Linear Model": 0.857}, "spearmanr": {"OLS Linear Model": 0.885}, "r2": {"OLS Linear Model": 0.734}, "adjr2": {"OLS Linear Model": 0.733}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 42682.003}, "mae": {"OLS Linear Model": 27542.043}, "mape": {"OLS Linear Model": 0.172}, "pearsonr": {"OLS Linear Model": 0.879}, "spearmanr": {"OLS Linear Model": 0.898}, "r2": {"OLS Linear Model": 0.762}, "adjr2": {"OLS Linear Model": 0.759}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_img_store/1.png
+
+Description: Diagnostic plots.
+The statistical figure consists of four plots arranged in a 2x2 grid, each providing insights into the results of an Ordinary Least Squares (OLS) linear regression analysis. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis shows the observed values.
+   - **Data Points**: There are numerous black dots scattered throughout the plot, indicating the relationship between observed and predicted values.
+   - **Line**: A dashed diagonal line (y = x) is present, which serves as a reference. Ideally, points should cluster around this line, indicating good predictive accuracy.
+   - **Correlation**: The correlation coefficient (p = 0.857) suggests a strong positive relationship between observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The black dots are scattered around the horizontal line at zero, indicating that residuals are randomly distributed.
+   - **Pattern**: There is no discernible pattern, which is a good sign, suggesting that the model's assumptions are met (homoscedasticity).
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage (a measure of how far an independent variable deviates from its mean), while the y-axis shows standardized residuals.
+   - **Data Points**: The black dots are scattered, with some points extending beyond the typical range, indicating potential outliers.
+   - **Interpretation**: Points with high leverage and large standardized residuals may indicate influential observations that could disproportionately affect the regression results.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents the theoretical quantiles of a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: The black dots form a roughly straight line, suggesting that the residuals are approximately normally distributed.
+   - **Interpretation**: Deviations from the line at the extremes may indicate departures from normality, but overall, the plot supports the assumption of normality for the residuals.
+
+Overall, the figure provides a comprehensive view of the regression model's performance, checking for linearity, homoscedasticity, influential points, and normality of residuals.
+2024-11-22 15:29:36 - Wizard Log - _ml_regression_function called
+2024-11-22 15:29:36 - Wizard Log - _ml_regression_function Models to test: ['RF']
+2024-11-22 15:29:36 - Wizard Log - _ml_regression_function Target: SalePrice
+2024-11-22 15:29:36 - Wizard Log - _ml_regression_function Predictors: ['OverallQual', 'GrLivArea', 'GarageCars', 'GarageArea']
+2024-11-22 15:29:36 - Analyzer Log - Fitting model 'RF'.
+2024-11-22 15:29:36 - Analyzer Log - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-11-22 15:30:38 - Analyzer Log - Successfully evaluated model 'RF'.
+2024-11-22 15:30:38 - Wizard Log - Adding table to storage.
+2024-11-22 15:30:38 - Wizard Log - Adding table to vector store: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/3.pkl
+2024-11-22 15:30:38 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/3.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/3.pkl
+
+{"('train', 'rmse')": {"RF": 29862.173}, "('train', 'mae')": {"RF": 19899.933}, "('train', 'mape')": {"RF": 0.12}, "('train', 'pearsonr')": {"RF": 0.924}, "('train', 'spearmanr')": {"RF": 0.916}, "('train', 'r2')": {"RF": 0.85}, "('train', 'adjr2')": {"RF": 0.85}, "('train', 'n_obs')": {"RF": 1168.0}, "('test', 'rmse')": {"RF": 36264.947}, "('test', 'mae')": {"RF": 22939.397}, "('test', 'mape')": {"RF": 0.148}, "('test', 'pearsonr')": {"RF": 0.917}, "('test', 'spearmanr')": {"RF": 0.895}, "('test', 'r2')": {"RF": 0.829}, "('test', 'adjr2')": {"RF": 0.826}, "('test', 'n_obs')": {"RF": 292.0}}
+2024-11-22 15:30:38 - Wizard Log - Adding dictionary to storage.
+2024-11-22 15:30:38 - Wizard Log - Added dictionary without description. First 20 characters: {"train_metrics": {".
+2024-11-22 15:30:38 - Wizard Log - Adding text to vector store: {"train_metrics": {"rmse": {"RF": 29862.173}, "mae": {"RF": 19899.933}, "mape": {"RF": 0.12}, "pearsonr": {"RF": 0.924}, "spearmanr": {"RF": 0.916}, "r2": {"RF": 0.85}, "adjr2": {"RF": 0.85}, "n_obs": {"RF": 1168.0}}, "test_metrics": {"rmse": {"RF": 36264.947}, "mae": {"RF": 22939.397}, "mape": {"RF": 0.148}, "pearsonr": {"RF": 0.917}, "spearmanr": {"RF": 0.895}, "r2": {"RF": 0.829}, "adjr2": {"RF": 0.826}, "n_obs": {"RF": 292.0}}}

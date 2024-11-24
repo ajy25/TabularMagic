@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Literal
 from .._src import (
     build_tabularmagic_analyzer,
-    VectorStoreManager,
+    StorageManager,
     DataContainer,
     CanvasQueue,
     ToolingContext,
@@ -45,7 +45,7 @@ class Wizard:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self._vectorstore_manager = VectorStoreManager(multimodal=True)
+        self._vectorstore_manager = StorageManager(multimodal=True)
         self._canvas_queue = CanvasQueue()
         self._context = ToolingContext(
             data_container=self._data_container,

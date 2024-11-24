@@ -28,7 +28,7 @@ log_path = io_path / "_log"
 log_path.mkdir(exist_ok=True)
 
 
-class VectorStoreManager:
+class StorageManager:
 
     def __init__(self, multimodal: bool = True):
         self._llm = options.llm_build_function()

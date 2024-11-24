@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from json import dumps
 
-from ..._src import DataContainer, VectorStoreManager, CanvasQueue
+from ..._src import DataContainer, StorageManager, CanvasQueue
 from .._debug.logger import print_debug
 
 
@@ -11,7 +11,7 @@ class ToolingContext:
     def __init__(
         self,
         data_container: DataContainer,
-        vectorstore_manager: VectorStoreManager,
+        vectorstore_manager: StorageManager,
         canvas_queue: CanvasQueue,
     ):
         """Initializes the ToolingContext object.
@@ -133,7 +133,7 @@ class ToolingContext:
         return self._data_container
 
     @property
-    def vectorstore_manager(self) -> VectorStoreManager:
+    def vectorstore_manager(self) -> StorageManager:
         return self._vectorstore_manager
 
     @property

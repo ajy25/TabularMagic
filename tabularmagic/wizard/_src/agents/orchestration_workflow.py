@@ -14,7 +14,7 @@ from json import dumps
 
 from ..options import options
 from ..tools.tooling_context import ToolingContext
-from ..io.vector_store import VectorStoreManager
+from ..io.storage_manager import StorageManager
 from ..io.datacontainer import DataContainer
 from ..io.canvas import CanvasQueue
 
@@ -72,7 +72,7 @@ class WizardFlow(Workflow):
         )
         self._tooling_context = ToolingContext(
             data_container=data_container,
-            vectorstore_manager=VectorStoreManager(),
+            vectorstore_manager=StorageManager(),
             canvas_queue=CanvasQueue(),
         )
 

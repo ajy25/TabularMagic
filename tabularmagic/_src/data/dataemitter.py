@@ -682,10 +682,14 @@ class DataEmitter:
         if len(numeric_vars) > 0:
             if numeric_strategy == "5nn":
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
-            else:
+            elif numeric_strategy == "10nn":
+                imputer = KNNImputer(n_neighbors=10, keep_empty_features=True)
+            elif numeric_strategy in ["median", "mean"]:
                 imputer = SimpleImputer(
                     strategy=numeric_strategy, keep_empty_features=True
                 )
+            else:
+                raise ValueError("Invalid numeric imputation strategy.")
             self._working_df_train[numeric_vars] = imputer.fit_transform(
                 self._working_df_train[numeric_vars]
             )
@@ -698,9 +702,18 @@ class DataEmitter:
         # impute categorical variables
         imputer = None
         if len(categorical_vars) > 0:
-            imputer = SimpleImputer(
-                strategy=categorical_strategy, keep_empty_features=True
-            )
+            if categorical_strategy == "missing":
+                imputer = SimpleImputer(
+                    strategy="constant",
+                    fill_value="tm_missing",
+                    keep_empty_features=True,
+                )
+            elif categorical_strategy == "most_frequent":
+                imputer = SimpleImputer(
+                    strategy="most_frequent", keep_empty_features=True
+                )
+            else:
+                raise ValueError("Invalid categorical imputation strategy.")
             self._working_df_train[categorical_vars] = imputer.fit_transform(
                 self._working_df_train[categorical_vars]
             )

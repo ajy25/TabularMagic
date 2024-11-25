@@ -1012,11 +1012,11 @@ class LogitReport:
         metrics_message += "\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                "F1:  "
+                "F1:    "
                 + color_text(
                     str(np.round(self.metrics("train").at["f1", mstr], n_dec)), "yellow"
                 ),
-                "F1:  "
+                "F1:    "
                 + color_text(
                     str(np.round(self.metrics("test").at["f1", mstr], n_dec)), "yellow"
                 ),
@@ -1027,12 +1027,12 @@ class LogitReport:
         metrics_message += "\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                "Acc: "
+                "Acc:   "
                 + color_text(
                     str(np.round(self.metrics("train").at["accuracy", mstr], n_dec)),
                     "yellow",
                 ),
-                "Acc: "
+                "Acc:   "
                 + color_text(
                     str(np.round(self.metrics("test").at["accuracy", mstr], n_dec)),
                     "yellow",
@@ -1041,6 +1041,46 @@ class LogitReport:
             ),
             initial_indent=4,
         )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "AUROC: "
+                + color_text(
+                    str(np.round(self.metrics("train").at["roc_auc", mstr], n_dec)),
+                    "yellow",
+                ),
+                "AUROC: "
+                + color_text(
+                    str(np.round(self.metrics("test").at["roc_auc", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+
+        col_ratios = [3, 4, 3, 3]
+        col_space = [max_width // sum(col_ratios) * i for i in col_ratios]
+
+        coefs_df = self.coefs("coef|se|pval")
+        coefs_df.index.name = "Predictor"
+
+        coefs_message = bold_text("Coefficients:") + "\n"
+        actual_coefs_message = fill_ignore_format(
+            coefs_df.to_string(col_space=col_space[1:]),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+        # bold the first two lines of the actual_coefs_message
+        actual_coefs_message = "\n".join(
+            [
+                bold_text(line) if i in [0, 1] else line
+                for i, line in enumerate(actual_coefs_message.split("\n"))
+            ]
+        )
+        coefs_message += actual_coefs_message
+
         final_message = (
             top_divider
             + title_message
@@ -1050,6 +1090,8 @@ class LogitReport:
             + predictors_message
             + divider
             + metrics_message
+            + divider
+            + coefs_message
             + bottom_divider
         )
 

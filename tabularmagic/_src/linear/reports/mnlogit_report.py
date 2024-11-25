@@ -1,15 +1,18 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from scipy import stats
 from typing import Literal
-from adjustText import adjust_text
 from ...data.datahandler import DataHandler, DataEmitter
-from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..mnlogit import MNLogitLinearModel
-from ...display.print_utils import print_wrapped, suppress_print_output
-from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
+from ...display.print_options import print_options
+from ...display.print_utils import (
+    color_text,
+    bold_text,
+    suppress_print_output,
+    list_to_string,
+    fill_ignore_format,
+    format_two_column,
+)
 
 
 class _SingleDatasetMNLogitReport:
@@ -46,6 +49,11 @@ class _SingleDatasetMNLogitReport:
         self._y_pred_score = self.scorer._y_pred_score
         self._y_pred = self.scorer._y_pred
         self._y_true = self.scorer._y_true
+
+        if np.isnan(self._y_pred_score).sum() > 0:
+            raise ValueError(
+                "NaNs found in predictions. Please try refitting with regularization."
+            )
 
         self._include_text = False
 
@@ -91,6 +99,8 @@ class MNLogitReport:
         predictors : list[str]
             The names of the independent variables.
         """
+        max_iter = 200
+
         self._model = model
         self._datahandler = datahandler
         if dataemitter is not None:
@@ -98,7 +108,7 @@ class MNLogitReport:
         else:
             self._dataemitter = self._datahandler.train_test_emitter(target, predictors)
         self._model.specify_data(self._dataemitter)
-        self._model.fit()
+        self._model.fit(max_iter=max_iter)
         self._target = target
         self._predictors = predictors
         self._train_report = _SingleDatasetMNLogitReport(model, "train")
@@ -221,3 +231,88 @@ class MNLogitReport:
             "train_metrics": self.metrics("train").to_dict("index"),
             "test_metrics": self.metrics("test").to_dict("index"),
         }
+
+    def __str__(self) -> str:
+        max_width = print_options._max_line_width
+        n_dec = print_options._n_decimals
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("Logistic Regression Report")
+
+        target_var = "'" + self._target + "'"
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        metrics_message = f"{bold_text('Metrics:')}\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                bold_text("Train"), bold_text("Test"), total_len=max_width - 2
+            ),
+            initial_indent=2,
+        )
+        mstr = str(self._model)
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "F1:  "
+                + color_text(
+                    str(np.round(self.metrics("train").at["f1", mstr], n_dec)), "yellow"
+                ),
+                "F1:  "
+                + color_text(
+                    str(np.round(self.metrics("test").at["f1", mstr], n_dec)), "yellow"
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+        metrics_message += "\n"
+        metrics_message += fill_ignore_format(
+            format_two_column(
+                "Acc: "
+                + color_text(
+                    str(np.round(self.metrics("train").at["accuracy", mstr], n_dec)),
+                    "yellow",
+                ),
+                "Acc: "
+                + color_text(
+                    str(np.round(self.metrics("test").at["accuracy", mstr], n_dec)),
+                    "yellow",
+                ),
+                total_len=max_width - 2,
+            ),
+            initial_indent=4,
+        )
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider
+            + metrics_message
+            + bottom_divider
+        )
+
+        return final_message
+
+    def _repr_pretty_(self, p, cycle) -> str:
+        p.text(str(self))

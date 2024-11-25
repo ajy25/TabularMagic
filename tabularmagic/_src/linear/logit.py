@@ -391,8 +391,10 @@ class LogitLinearModel:
         std_err = self.estimator.bse
         p_values = self.estimator.pvalues
 
-        ci_low = params - 1.96 * std_err
-        ci_high = params + 1.96 * std_err
+        two_stdevs = 1.959963984540054
+
+        ci_low = params - two_stdevs * std_err
+        ci_high = params + two_stdevs * std_err
 
         output_df = pd.DataFrame(
             {
@@ -403,7 +405,6 @@ class LogitLinearModel:
                 "ci_high": np.round(ci_high, print_options._n_decimals),
             }
         )
-
         if format == "coef(se)|pval":
             output_df["coef(se)"] = output_df.apply(
                 lambda row: f"{row['coef']} ({row['se']})", axis=1
@@ -413,11 +414,12 @@ class LogitLinearModel:
                 columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
+            output_df = output_df[["coef", "se", "pval"]]
             output_df = output_df.rename(
                 columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
-            output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
+            output_df["ci_str"] = output_df["coef"] + two_stdevs * output_df["se"]
             output_df["coef(ci)"] = output_df.apply(
                 lambda row: f"{row['coef']} ({row['ci_low']}, {row['ci_high']})", axis=1
             )
@@ -436,7 +438,6 @@ class LogitLinearModel:
             )
         else:
             raise ValueError("Invalid format")
-
         return output_df
 
     def __str__(self):

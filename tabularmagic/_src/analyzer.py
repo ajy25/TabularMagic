@@ -462,7 +462,8 @@ class Analyzer:
                 if target in predictors:
                     if self._verbose:
                         print_wrapped(
-                            f"Removing target variable {quote_and_color(target, 'yellow')} "
+                            f"Removing target variable "
+                            f"{quote_and_color(target, 'yellow')} "
                             + "from predictors.",
                             type="WARNING",
                         )
@@ -845,8 +846,8 @@ class Analyzer:
         self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        numeric_strategy: Literal["median", "mean", "5nn"] = "median",
-        categorical_strategy: Literal["most_frequent"] = "most_frequent",
+        numeric_strategy: Literal["median", "mean", "5nn", "10nn"] = "median",
+        categorical_strategy: Literal["most_frequent", "missing"] = "most_frequent",
     ) -> "Analyzer":
         """Imputes missing values. The imputer is fit on the train DataFrame
         and transforms both train and test DataFrames.
@@ -861,17 +862,19 @@ class Analyzer:
             Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
 
-        numeric_strategy : Literal['median', 'mean', '5nn']
+        numeric_strategy : Literal['median', 'mean', '5nn', '10nn']
             Default: 'median'.
             Strategy for imputing missing values in numeric variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
+            - '10nn': impute with 10-nearest neighbors.
 
         categorical_strategy : Literal['most_frequent']
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
             - 'most_frequent': impute with most frequent value.
+            - 'missing': impute with 'missing'.
 
         Returns
         -------

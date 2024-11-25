@@ -112,16 +112,26 @@ def score_model(
     else:
         raise ValueError("Model must be one of 'ols', 'logit', or 'mnlogit'.")
 
+    max_iter = 100
+
     if alpha == 0:
-        output = new_model.fit()
+        output = new_model.fit(maxiter=max_iter)
+        stat = 0
         if metric == "aic":
-            return output.aic
+            stat = output.aic
         elif metric == "bic":
-            return output.bic
+            stat = output.bic
         else:
             raise ValueError("Metric must be one of 'aic', 'bic'")
     else:
-        output = new_model.fit_regularized(alpha=alpha, L1_wt=l1_weight)
-        return compute_aic_bic(
+        output = new_model.fit_regularized(
+            alpha=alpha, L1_wt=l1_weight, maxiter=max_iter
+        )
+        stat = compute_aic_bic(
             output, X_train_w_constant, y_train, True if metric == "aic" else False
         )
+
+    if isinstance(stat, float):
+        return stat
+    else:
+        return stat.mean()

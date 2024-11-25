@@ -6,7 +6,7 @@ from ..data.datahandler import DataEmitter
 import pandas as pd
 from typing import Literal
 from ..utils import ensure_arg_list_uniqueness, is_numerical
-from ..display.print_utils import suppress_print_output
+from ..display.print_utils import suppress_print_output, suppress_std_output
 from .lmutils.score import score_model
 
 from ..ml.predict.classification.thresholding_utils import (
@@ -226,8 +226,7 @@ class MNLogitLinearModel:
         else:
             raise ValueError("direction must be 'both', 'backward', or 'forward'")
 
-        with suppress_print_output():
-            # set our starting score and best models
+        with suppress_std_output(), suppress_print_output():
             current_score = score_model(
                 local_dataemitter,
                 included_vars,

@@ -781,8 +781,8 @@ class DataHandler:
         self,
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
-        numeric_strategy: Literal["median", "mean", "5nn"] = "median",
-        categorical_strategy: Literal["most_frequent"] = "most_frequent",
+        numeric_strategy: Literal["median", "mean", "5nn", "10nn"] = "median",
+        categorical_strategy: Literal["most_frequent", "missing"] = "most_frequent",
     ) -> "DataHandler":
         """Imputes missing values in-place. Imputer is fit on train DataFrame
         and transforms both train and test DataFrames.
@@ -797,17 +797,19 @@ class DataHandler:
             Default: None. List of variables to exclude from imputing missing values.
             If None, no variables are excluded.
 
-        numeric_strategy : Literal['median', 'mean', '5nn']
+        numeric_strategy : Literal['median', 'mean', '5nn', '10nn']
             Default: 'median'.
             Strategy for imputing missing values in numeric variables.
             - 'median': impute with median.
             - 'mean': impute with mean.
             - '5nn': impute with 5-nearest neighbors.
+            - '10nn': impute with 10-nearest neighbors.
 
-        categorical_strategy : Literal['most_frequent']
+        categorical_strategy : Literal['most_frequent', 'missing']
             Default: 'most_frequent'.
             Strategy for imputing missing values in categorical variables.
             - 'most_frequent': impute with most frequent value.
+            - 'missing': impute with a new category 'tm_missing'.
 
         Returns
         -------
@@ -829,14 +831,45 @@ class DataHandler:
         if len(numeric_vars) == 0 and len(categorical_vars) == 0:
             raise ValueError("No variables were provided.")
 
+        # keep only the vars with missing values
+        df = self.df_all()
+        missing_numeric_vars = [var for var in numeric_vars if df[var].isna().any()]
+        missing_categorical_vars = [
+            var for var in categorical_vars if df[var].isna().any()
+        ]
+
+        if len(missing_numeric_vars) != len(numeric_vars):
+            vars_not_missing = list(set(numeric_vars) - set(missing_numeric_vars))
+            print_wrapped(
+                f"Numeric variables {list_to_string(vars_not_missing)} "
+                + "have no missing values. "
+                + "Imputer will be fit on all variables regardless.",
+                type="NOTE",
+            )
+
+        if len(missing_categorical_vars) != len(categorical_vars):
+            vars_not_missing = list(
+                set(categorical_vars) - set(missing_categorical_vars)
+            )
+            print_wrapped(
+                f"Categorical variables {list_to_string(vars_not_missing)} "
+                + "have no missing values. "
+                + "Imputer will be fit on all variables regardless.",
+                type="NOTE",
+            )
+
         # impute numeric variables
         if len(numeric_vars) > 0:
             if numeric_strategy == "5nn":
                 imputer = KNNImputer(n_neighbors=5, keep_empty_features=True)
-            else:
+            elif numeric_strategy == "10nn":
+                imputer = KNNImputer(n_neighbors=10, keep_empty_features=True)
+            elif numeric_strategy in ["median", "mean"]:
                 imputer = SimpleImputer(
                     strategy=numeric_strategy, keep_empty_features=True
                 )
+            else:
+                raise ValueError("Invalid numeric imputation strategy.")
             self._working_df_train[numeric_vars] = imputer.fit_transform(
                 self._working_df_train[numeric_vars]
             )
@@ -846,9 +879,18 @@ class DataHandler:
 
         # impute categorical variables
         if len(categorical_vars) > 0:
-            imputer = SimpleImputer(
-                strategy=categorical_strategy, keep_empty_features=True
-            )
+            if categorical_strategy == "missing":
+                imputer = SimpleImputer(
+                    strategy="constant",
+                    fill_value="tm_missing",
+                    keep_empty_features=True,
+                )
+            elif categorical_strategy == "most_frequent":
+                imputer = SimpleImputer(
+                    strategy="most_frequent", keep_empty_features=True
+                )
+            else:
+                raise ValueError("Invalid categorical imputation strategy.")
             self._working_df_train[categorical_vars] = imputer.fit_transform(
                 self._working_df_train[categorical_vars]
             )
@@ -857,21 +899,24 @@ class DataHandler:
             )
 
         if self._verbose:
+
             message = "Imputed missing values with "
 
             if len(numeric_vars) > 0:
                 message += (
                     f"strategy {quote_and_color(numeric_strategy, 'yellow')} "
-                    + f"for numeric variables {list_to_string(numeric_vars)} "
+                    + f"for numeric variables {list_to_string(numeric_vars)}"
                 )
                 if len(categorical_vars) > 0:
-                    message += "and "
+                    message += " and "
 
             if len(categorical_vars) > 0:
                 message += (
                     f"strategy {quote_and_color(categorical_strategy, 'yellow')} "
                     + f"for categorical variables {list_to_string(categorical_vars)}"
                 )
+
+            message += "."
 
             print_wrapped(
                 message,

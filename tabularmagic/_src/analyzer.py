@@ -98,7 +98,12 @@ class Analyzer:
 
         self._verbose = verbose
 
+        # force column names to str
         df.columns = df.columns.astype(str)
+
+        # force bool columns to str
+        bool_cols = df.select_dtypes(include=["bool"]).columns
+        df[bool_cols] = df[bool_cols].astype(str)
 
         if df_test is not None:
             df_test.columns = df_test.columns.astype(str)
@@ -351,11 +356,12 @@ class Analyzer:
             if predictors is None:
                 predictors = self._datahandler.vars()
                 if target in predictors:
-                    print_wrapped(
-                        f"Removing target variable {quote_and_color(target, 'yellow')} "
-                        + "from predictors.",
-                        type="WARNING",
-                    )
+                    if self._verbose:
+                        print_wrapped(
+                            f"Removing target variable {quote_and_color(target, 'yellow')} "
+                            + "from predictors.",
+                            type="WARNING",
+                        )
                     predictors.remove(target)
             return OLSReport(
                 OLSLinearModel(alpha=alpha, l1_weight=l1_weight),
@@ -456,11 +462,12 @@ class Analyzer:
             if predictors is None:
                 predictors = self._datahandler.vars()
                 if target in predictors:
-                    print_wrapped(
-                        f"Removing target variable {quote_and_color(target, 'yellow')} "
-                        + "from predictors.",
-                        type="WARNING",
-                    )
+                    if self._verbose:
+                        print_wrapped(
+                            f"Removing target variable {quote_and_color(target, 'yellow')} "
+                            + "from predictors.",
+                            type="WARNING",
+                        )
                     predictors.remove(target)
             # decide between binary and multinomial logit
             df_all = self._datahandler.df_all()

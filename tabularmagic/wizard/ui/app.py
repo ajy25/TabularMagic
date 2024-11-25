@@ -146,18 +146,25 @@ def serve_file(filename):
             400,
         )
 
-    # analysis_items = get_analysis()
-    # for item in analysis_items:
-    #     if isinstance(item, CanvasFigure) or
-    #     if item.path.name == filename:
-    #         file_path = Path(path)
-    #         if file_path.exists():
-    #             return send_file(file_path)
+    analysis_items = get_analysis()
+    for item in analysis_items:
+        if isinstance(item, CanvasFigure) and item._path.name == filename:
+            file_path = item._path
+            if file_path.exists():
+                return send_file(file_path)
 
-    # return jsonify({"error": f"File '{filename}' not found."}), 404
+    return jsonify({"error": f"File '{filename}' not found."}), 404
+
+
+class App:
+    def __init__(self):
+        matplotlib.use("Agg")
+        self.app = app
+
+    def run(self, debug: bool = False):
+        self.app.run(debug=debug)
 
 
 # Run the app
 if __name__ == "__main__":
-    matplotlib.use("Agg")
     app.run(debug=True)

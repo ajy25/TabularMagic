@@ -1333,11 +1333,22 @@ class DataHandler:
             Dictionary mapping categorical variables to their categories.
         """
         categorical_vars = df.select_dtypes(
-            include=["object", "category", "bool"]
+            include=["object", "category"]
         ).columns.to_list()
-        numeric_vars = df.select_dtypes(
-            exclude=["object", "category", "bool"]
-        ).columns.to_list()
+        numeric_vars = df.select_dtypes(include=["int", "float"]).columns.to_list()
+
+        all_vars = df.columns.to_list()
+
+        # identify vars not in both but in all_vars
+        vars_not_in_both = list(set(all_vars) - set(categorical_vars + numeric_vars))
+
+        if len(vars_not_in_both) > 0:
+            var_to_type = {var: df[var].dtype for var in vars_not_in_both}
+            raise ValueError(
+                f"Variables {list_to_string(vars_not_in_both)} "
+                + f"are of incompatible types: {str(var_to_type)}"
+            )
+
         categorical_mapped = self._compute_categories(df, categorical_vars)
         return categorical_vars, numeric_vars, categorical_mapped
 

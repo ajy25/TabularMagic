@@ -20,7 +20,7 @@ def setup_data():
     df_house = pd.read_csv(
         parent_dir / "demo" / "regression" / "house_price_data" / "data.csv"
     )
-    df_house["ExterQual_binary"] = df_house["ExterQual"] == "TA"
+    df_house["ExterQual_binary"] = (df_house["ExterQual"] == "TA").astype(bool)
 
     df_house = df_house[
         [
@@ -56,7 +56,10 @@ def test_pipeline_generation_regression(setup_data):
     train_data = setup_data["df_house_mini_train"]
     test_data = setup_data["df_house_mini_test"]
 
-    analyzer = tm.Analyzer(train_data, test_data, verbose=False)
+    analyzer = tm.Analyzer(train_data, test_data, verbose=True)
+
+    print(analyzer.datahandler().df_test().dtypes)
+    print(analyzer.datahandler().df_test().dtypes)
 
     report = analyzer.regress(
         models=[

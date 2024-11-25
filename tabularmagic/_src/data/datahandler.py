@@ -59,6 +59,11 @@ class DataHandler:
         )
         self._verbose = verbose
 
+        # force bool to int, object to category
+        bool_cols = df_train.select_dtypes(include=["bool"]).columns
+        df_train[bool_cols] = df_train[bool_cols].astype(int)
+        df_test[bool_cols] = df_test[bool_cols].astype(int)
+
         # verify and set the original DataFrames
         self._verify_input_dfs(df_train, df_test)
 
@@ -1333,9 +1338,9 @@ class DataHandler:
             Dictionary mapping categorical variables to their categories.
         """
         categorical_vars = df.select_dtypes(
-            include=["object", "category"]
+            include=["category", "object"]
         ).columns.to_list()
-        numeric_vars = df.select_dtypes(include=["int", "float"]).columns.to_list()
+        numeric_vars = df.select_dtypes(include=["number"]).columns.to_list()
 
         all_vars = df.columns.to_list()
 
@@ -1398,6 +1403,7 @@ class DataHandler:
         df_test = df_test[df_train.columns]
         for a, b in zip(df_test.columns, df_train.columns):
             assert a == b
+
         return df_train, df_test
 
     def _rename_varnames(self, df_train: pd.DataFrame, df_test: pd.DataFrame):

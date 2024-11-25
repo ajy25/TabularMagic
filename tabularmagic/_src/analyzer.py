@@ -101,10 +101,6 @@ class Analyzer:
         # force column names to str
         df.columns = df.columns.astype(str)
 
-        # force bool columns to str
-        bool_cols = df.select_dtypes(include=["bool"]).columns
-        df[bool_cols] = df[bool_cols].astype(str)
-
         if df_test is not None:
             df_test.columns = df_test.columns.astype(str)
 

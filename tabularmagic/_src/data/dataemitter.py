@@ -113,6 +113,11 @@ class DataEmitter:
 
         step_tracer: PreprocessStepTracer
         """
+        # force bool to int, force object to category
+        bool_cols = df_train.select_dtypes(include=["bool"]).columns
+        df_train[bool_cols] = df_train[bool_cols].astype(int)
+        df_test[bool_cols] = df_test[bool_cols].astype(int)
+
         self._working_df_train = df_train.copy()
         self._working_df_test = df_test.copy()
 
@@ -1140,11 +1145,10 @@ class DataEmitter:
             categorical_mapped : Dictionary with categorical variables as keys
         """
         categorical_vars = df.select_dtypes(
-            include=["object", "category", "bool"]
+            include=["category", "object"]
         ).columns.to_list()
-        numeric_vars = df.select_dtypes(
-            exclude=["object", "category", "bool"]
-        ).columns.to_list()
+        numeric_vars = df.select_dtypes(include=["number"]).columns.to_list()
+
         categorical_mapped = self._compute_categories(df, categorical_vars)
         return categorical_vars, numeric_vars, categorical_mapped
 
@@ -1220,6 +1224,10 @@ class DataEmitter:
             raise ValueError("Input must be a DataFrame.")
 
         X = X.copy()
+
+        # force bool to int
+        bool_cols = X.select_dtypes(include=["bool"]).columns
+        X[bool_cols] = X[bool_cols].astype(int)
 
         for step in self._step_tracer._steps:
             if step["step"] == "onehot":

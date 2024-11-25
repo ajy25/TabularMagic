@@ -9,6 +9,11 @@ from ..utils import ensure_arg_list_uniqueness, is_numerical
 from ..display.print_utils import suppress_print_output
 from .lmutils.score import score_model
 
+from ..ml.predict.classification.thresholding_utils import (
+    select_optimal_thresholds_multiclass,
+    predict_with_thresholds_multiclass,
+)
+
 
 class MNLogitLinearModel:
     """Statsmodels MNLogit wrapper."""
@@ -17,6 +22,7 @@ class MNLogitLinearModel:
         self,
         alpha: float = 0.0,
         l1_weight: float = 0.0,
+        threshold_strategy: Literal["f1", "roc"] | None = "roc",
         name: str = "MNLogit Linear Model",
     ):
         """
@@ -29,6 +35,11 @@ class MNLogitLinearModel:
 
         l1_weight : float
             Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
+
+        threshold_strategy : Literal["f1", "roc"] | None
+            Default: 'roc'. The strategy to use for determining the threshold for
+            classification. If None, the threshold will be set to the maximum
+            probability class.
 
         name : str
             Default: 'MNLogit Linear Model'. The name of the model.
@@ -45,6 +56,8 @@ class MNLogitLinearModel:
         self._name = name
         self._label_encoder = None
 
+        self._threshold_strategy = threshold_strategy
+
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
 
@@ -55,7 +68,7 @@ class MNLogitLinearModel:
         """
         self._dataemitter = dataemitter
 
-    def fit(self):
+    def fit(self, max_iter: int | None = None):
         """Fits the model based on the data specified."""
 
         # Emit all data
@@ -76,14 +89,34 @@ class MNLogitLinearModel:
 
         with suppress_print_output():
             if self.alpha == 0:
-                self.estimator = sm.MNLogit(y_train, X_train).fit(cov_type="HC3")
+                if max_iter is None:
+                    max_iter = 50
+                self.estimator = sm.MNLogit(y_train, X_train).fit(
+                    cov_type="HC3",
+                    maxiter=max_iter,
+                )
             else:
+                if max_iter is None:
+                    max_iter = "defined_by_method"
                 self.estimator = sm.MNLogit(y_train, X_train).fit_regularized(
-                    method="l1", alpha=self.alpha, L1_wt=self.l1_weight
+                    method="l1",
+                    alpha=self.alpha,
+                    L1_wt=self.l1_weight,
+                    maxiter=max_iter,
                 )
 
         y_score_train: np.ndarray = self.estimator.predict(X_train).to_numpy()
-        y_pred_train = np.argmax(y_score_train, axis=1)
+
+        self._threshold = select_optimal_thresholds_multiclass(
+            y_true=y_train,
+            y_pred_score=y_score_train,
+            metric=self._threshold_strategy,
+        )
+
+        y_pred_train = predict_with_thresholds_multiclass(
+            y_pred_score=y_score_train,
+            thresholds=self._threshold,
+        )
 
         self.train_scorer = ClassificationMulticlassScorer(
             y_pred=self._label_encoder.inverse_transform(y_pred_train),
@@ -94,7 +127,11 @@ class MNLogitLinearModel:
         )
 
         y_score_test = self.estimator.predict(X_test).to_numpy()
-        y_pred_test = np.argmax(y_score_test, axis=1)
+
+        y_pred_test = predict_with_thresholds_multiclass(
+            y_pred_score=y_score_test,
+            thresholds=self._threshold,
+        )
 
         self.test_scorer = ClassificationMulticlassScorer(
             y_pred=self._label_encoder.inverse_transform(y_pred_test),
@@ -362,11 +399,11 @@ class MNLogitLinearModel:
             )
             output_df = output_df[["coef(se)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "P-value"}
+                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
             output_df = output_df.rename(
-                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "P-value"}
+                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
             output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
@@ -375,7 +412,7 @@ class MNLogitLinearModel:
             )
             output_df = output_df[["coef(ci)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "P-value"}
+                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "p-value"}
             )
         elif format == "coef|ci_low|ci_high|pval":
             output_df = output_df.rename(
@@ -383,7 +420,7 @@ class MNLogitLinearModel:
                     "coef": "Coefficient",
                     "ci_low": "CI Lower Bound",
                     "ci_high": "CI Upper Bound",
-                    "pval": "P-value",
+                    "pval": "p-value",
                 }
             )
         else:

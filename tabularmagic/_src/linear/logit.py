@@ -1,5 +1,5 @@
 import statsmodels.api as sm
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, roc_curve
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import pandas as pd
@@ -10,6 +10,10 @@ from ..utils import ensure_arg_list_uniqueness, is_numerical
 from ..display.print_utils import suppress_std_output, suppress_print_output
 from .lmutils.score import score_model
 from ..display.print_options import print_options
+from ..ml.predict.classification.thresholding_utils import (
+    select_optimal_threshold_binary,
+    predict_with_threshold_binary,
+)
 
 
 class LogitLinearModel:
@@ -19,6 +23,7 @@ class LogitLinearModel:
         self,
         alpha: float = 0.0,
         l1_weight: float = 0.0,
+        threshold_strategy: Literal["f1", "roc"] | None = "roc",
         name: str = "Logit Linear Model",
     ):
         """
@@ -46,6 +51,7 @@ class LogitLinearModel:
         self.estimator = None
         self._name = name
         self._label_encoder = None
+        self._threshold_strategy = threshold_strategy
 
     def specify_data(self, dataemitter: DataEmitter):
         """Adds a DataEmitter object to the model.
@@ -57,7 +63,7 @@ class LogitLinearModel:
         """
         self._dataemitter = dataemitter
 
-    def fit(self):
+    def fit(self, max_iter: int | None = None):
         """Fits the model based on the data specified."""
 
         # Emit all data
@@ -88,43 +94,41 @@ class LogitLinearModel:
 
         with suppress_std_output():
             if self.alpha == 0:
-                self.estimator = sm.Logit(y_train, X_train).fit(cov_type="HC3")
+                if max_iter is None:
+                    max_iter = 50
+                self.estimator = sm.Logit(y_train, X_train).fit(
+                    cov_type="HC3", maxiter=max_iter
+                )
             else:
+                if max_iter is None:
+                    max_iter = "defined_by_method"
                 self.estimator = sm.Logit(y_train, X_train).fit_regularized(
-                    alpha=self.alpha, L1_wt=self.l1_weight
+                    alpha=self.alpha, L1_wt=self.l1_weight, maxiter=max_iter
                 )
 
         y_pred_train: np.ndarray = self.estimator.predict(exog=X_train).to_numpy()
 
-        # Find the best threshold based on f1 score
-        best_score = None
-        best_threshold = None
-        for temp_threshold in np.linspace(0.0, 1.0, num=21):
-            y_pred_train_binary = (y_pred_train > temp_threshold).astype(int)
-            curr_score = f1_score(y_train, y_pred_train_binary)
-            if best_score is None or curr_score > best_score:
-                best_score = curr_score
-                best_threshold = temp_threshold
+        self._threshold = select_optimal_threshold_binary(
+            y_true=y_train, y_pred_score=y_pred_train, metric=self._threshold_strategy
+        )
 
-        y_pred_train_binary = (y_pred_train >= best_threshold).astype(int)
-
-        y_pred_train_reshaped = y_pred_train.reshape(-1, 1)
+        y_pred_train_binary = predict_with_threshold_binary(
+            y_pred_score=y_pred_train, threshold=self._threshold
+        )
 
         self.train_scorer = ClassificationBinaryScorer(
             y_pred=y_pred_train_binary,
             y_true=y_train,
             pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
-            y_pred_score=np.hstack(
-                [
-                    1 - y_pred_train_reshaped,
-                    y_pred_train_reshaped,
-                ]
-            ),
+            y_pred_score=y_pred_train,
             name=self._name,
         )
 
         y_pred_test = self.estimator.predict(X_test).to_numpy()
-        y_pred_test_binary = (y_pred_test >= best_threshold).astype(int)
+
+        y_pred_test_binary = predict_with_threshold_binary(
+            y_pred_score=y_pred_test, threshold=self._threshold
+        )
 
         y_pred_test_reshaped = y_pred_test.reshape(-1, 1)
 
@@ -134,6 +138,19 @@ class LogitLinearModel:
             pos_label=self._y_label_order[1] if self._y_label_order is not None else 1,
             y_pred_score=np.hstack([1 - y_pred_test_reshaped, y_pred_test_reshaped]),
             name=self._name,
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Predicts the target variable for the given data."""
+
+        # ensure X contains the correct predictors
+        if not set(X.columns) == set(self._dataemitter.X_vars()):
+            raise ValueError("X must contain the same predictors as the training data")
+
+        X = sm.add_constant(X, has_constant="add")
+        y_pred = self.estimator.predict(X).to_numpy()
+        return predict_with_threshold_binary(
+            y_pred_score=y_pred, threshold=self._threshold
         )
 
     @ensure_arg_list_uniqueness()
@@ -393,11 +410,11 @@ class LogitLinearModel:
             )
             output_df = output_df[["coef(se)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "P-value"}
+                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
             output_df = output_df.rename(
-                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "P-value"}
+                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
             output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
@@ -406,7 +423,7 @@ class LogitLinearModel:
             )
             output_df = output_df[["coef(ci)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "P-value"}
+                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "p-value"}
             )
         elif format == "coef|ci_low|ci_high|pval":
             output_df = output_df.rename(
@@ -414,7 +431,7 @@ class LogitLinearModel:
                     "coef": "Coefficient",
                     "ci_low": "CI Lower Bound",
                     "ci_high": "CI Upper Bound",
-                    "pval": "P-value",
+                    "pval": "p-value",
                 }
             )
         else:

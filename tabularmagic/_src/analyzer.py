@@ -161,10 +161,7 @@ class Analyzer:
             shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
                 "Analyzer initialized for dataset "
-                f"{quote_and_color(self._name, 'yellow')}. "
-                + "Train, test shapes: "
-                + f'{shapes_dict["train"]}, '
-                + f'{shapes_dict["test"]}.',
+                f"{quote_and_color(self._name, 'yellow')}.",
                 type="UPDATE",
             )
 
@@ -422,6 +419,7 @@ class Analyzer:
         formula: str | None = None,
         alpha: float = 0.0,
         l1_weight: float = 0.0,
+        threshold_strategy: Literal["f1", "roc"] | None = None,
     ) -> LogitReport | MNLogitReport:
         """Performs logistic regression.
         if formula is provided, performs logistic regression via formula.
@@ -446,6 +444,10 @@ class Analyzer:
         l1_weight : float
             Default: 0. The weight of the L1 penalty. Must be a float between 0 and 1.
 
+        threshold_strategy : Literal['f1', 'roc'] | None
+            Default: None. The strategy for determining the threshold for binary
+            classification. If None, the threshold is set to 0.5.
+
         Returns
         -------
         LogitReport | MNLogitReport
@@ -469,14 +471,22 @@ class Analyzer:
             df_all = self._datahandler.df_all()
             if len(df_all[target].unique()) == 2:
                 return LogitReport(
-                    LogitLinearModel(alpha=alpha, l1_weight=l1_weight),
+                    LogitLinearModel(
+                        alpha=alpha,
+                        l1_weight=l1_weight,
+                        threshold_strategy=threshold_strategy,
+                    ),
                     self._datahandler,
                     target,
                     predictors,
                 )
             else:
                 return MNLogitReport(
-                    MNLogitLinearModel(alpha=alpha, l1_weight=l1_weight),
+                    MNLogitLinearModel(
+                        alpha=alpha,
+                        l1_weight=l1_weight,
+                        threshold_strategy=threshold_strategy,
+                    ),
                     self._datahandler,
                     target,
                     predictors,
@@ -517,10 +527,26 @@ class Analyzer:
             # decide between binary and multinomial logit
             df_all = datahandler.df_all()
             if len(df_all[target].unique()) == 2:
-                return LogitReport(LogitLinearModel(), datahandler, target, predictors)
+                return LogitReport(
+                    LogitLinearModel(
+                        alpha=alpha,
+                        l1_weight=l1_weight,
+                        threshold_strategy=threshold_strategy,
+                    ),
+                    datahandler,
+                    target,
+                    predictors,
+                )
             else:
                 return MNLogitReport(
-                    MNLogitLinearModel(), datahandler, target, predictors
+                    MNLogitLinearModel(
+                        alpha=alpha,
+                        l1_weight=l1_weight,
+                        threshold_strategy=threshold_strategy,
+                    ),
+                    datahandler,
+                    target,
+                    predictors,
                 )
 
     # --------------------------------------------------------------------------

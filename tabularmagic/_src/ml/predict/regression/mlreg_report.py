@@ -486,7 +486,9 @@ class MLRegressionReport:
                 ],
                 axis=1,
             )
-            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
+            return pd.concat(
+                [train_metrics, test_metrics], keys=["train", "test"], names=["Dataset"]
+            )
         else:
             raise ValueError('dataset must be either "train", "test", or "both".')
 

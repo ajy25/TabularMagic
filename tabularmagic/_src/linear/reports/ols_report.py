@@ -8,7 +8,7 @@ from ...data import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..ols import OLSLinearModel
 from ...display.print_utils import print_wrapped, suppress_print_output
-from ..lmutils.constants import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
+from .linearreport_utils import MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
 from ..lmutils.plot import (
     plot_residuals_vs_var,
     plot_residuals_vs_fitted,
@@ -562,7 +562,9 @@ class OLSReport:
             train_metrics = self._train_report.metrics()  # one column w/ model name
             # stack the two DataFrames on top of each other
             # add an outermost index level to differentiate between the two datasets
-            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
+            return pd.concat(
+                [train_metrics, test_metrics], keys=["train", "test"], names=["Dataset"]
+            )
         else:
             raise ValueError('dataset must be either "train", "test", or "both".')
 

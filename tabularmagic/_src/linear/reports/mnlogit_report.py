@@ -9,7 +9,7 @@ from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import plot_obs_vs_pred, decrease_font_sizes_axs
 from ..mnlogit import MNLogitLinearModel
 from ...display.print_utils import print_wrapped, suppress_print_output
-from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, train_only_message
+from .linearreport_utils import reverse_argsort, MAX_N_OUTLIERS_TEXT, TRAIN_ONLY_MESSAGE
 
 
 class _SingleDatasetMNLogitReport:
@@ -158,10 +158,15 @@ class MNLogitReport:
         new_emitter.select_predictors_pre_onehot(selected_vars)
 
         return MNLogitReport(
-            MNLogitLinearModel(),
+            MNLogitLinearModel(
+                alpha=self._model.alpha,
+                l1_weight=self._model.l1_weight,
+                threshold_strategy=self._model._threshold_strategy,
+                name=self._model._name + " (Reduced)",
+            ),
             self._datahandler,
             self._target,
-            self._predictors,
+            selected_vars,
             new_emitter,
         )
 
@@ -205,7 +210,9 @@ class MNLogitReport:
         elif dataset == "both":
             test_metrics = self._test_report.metrics()
             train_metrics = self._train_report.metrics()
-            return pd.concat([train_metrics, test_metrics], keys=["train", "test"])
+            return pd.concat(
+                [train_metrics, test_metrics], keys=["train", "test"], names=["Dataset"]
+            )
         else:
             raise ValueError('dataset must be either "train", "test", or "both".')
 

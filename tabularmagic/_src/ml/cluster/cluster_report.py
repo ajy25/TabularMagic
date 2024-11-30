@@ -225,7 +225,7 @@ class ClusterReport:
             y=plotting_df.columns[1],
             hue=labels_series.name,
             data=plotting_df,
-            s=plot_options._dot_size,
+            s=plot_options._dot_size + 1,
             edgecolor=None,
             palette=plot_options._color_palette,
             ax=ax,

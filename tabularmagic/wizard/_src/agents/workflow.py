@@ -18,7 +18,7 @@ from ..io.storage_manager import StorageManager
 from ..io.datacontainer import DataContainer
 from ..io.canvas import CanvasQueue
 
-from ..._src import build_tabularmagic_analyzer
+from .. import build_tabularmagic_analyzer
 
 
 from .eda_agent import build_eda_agent
@@ -72,7 +72,7 @@ class WizardFlow(Workflow):
         )
         self._tooling_context = ToolingContext(
             data_container=data_container,
-            vectorstore_manager=StorageManager(),
+            storage_manager=StorageManager(),
             canvas_queue=CanvasQueue(),
         )
 

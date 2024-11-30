@@ -1,7 +1,15 @@
 import pandas as pd
 from . import BaseFS
 from ..data.datahandler import DataEmitter
-from ..display.print_utils import print_wrapped, quote_and_color
+from ..display.print_utils import (
+    print_wrapped,
+    quote_and_color,
+    color_text,
+    bold_text,
+    fill_ignore_format,
+    list_to_string,
+)
+from ..display.print_options import print_options
 
 
 class VotingSelectionReport:
@@ -35,6 +43,11 @@ class VotingSelectionReport:
         """
         self._selector_to_support = {}
         self._emitter = dataemitter
+
+        self._y_var = self._emitter.y_var()
+        self._predictors = self._emitter.X_vars()
+
+        self._selectors = selectors
 
         for selector in selectors:
             if verbose:
@@ -104,3 +117,79 @@ class VotingSelectionReport:
     def __getitem__(self, index: str) -> BaseFS:
         """Returns the RegressionBaseSelector by nickname index."""
         return self._selector_dict_indexable_by_str[index]
+
+    def __str__(self) -> str:
+        n_dec = print_options._n_decimals
+        max_width = print_options._max_line_width
+
+        top_divider = color_text("=" * max_width, "none") + "\n"
+        bottom_divider = "\n" + color_text("=" * max_width, "none")
+        divider = "\n" + color_text("-" * max_width, "none") + "\n"
+        divider_invisible = "\n" + " " * max_width + "\n"
+
+        title_message = bold_text("Voting Selection Report")
+
+        target_var = "'" + self._y_var + "'"
+        target_message = f"{bold_text('Target variable:')}\n"
+        target_message += fill_ignore_format(
+            color_text(target_var, "purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        predictors_message = f"{bold_text('Candidate predictor variables:')}\n"
+        predictors_message += fill_ignore_format(
+            list_to_string(self._predictors),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        models_str = list_to_string(
+            [model._name for model in self._selectors],
+            color="blue",
+        )
+        models_message = f"{bold_text('Feature selectors:')}\n"
+        models_message += fill_ignore_format(
+            models_str,
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        selected_features_message = f"{bold_text('Selected features:')}\n"
+        selected_features_message += fill_ignore_format(
+            list_to_string(self._top_features, color="purple"),
+            width=max_width,
+            initial_indent=2,
+            subsequent_indent=2,
+        )
+
+        final_message = (
+            top_divider
+            + title_message
+            + divider
+            + target_message
+            + divider_invisible
+            + predictors_message
+            + divider_invisible
+            + models_message
+            + divider
+            + selected_features_message
+            + bottom_divider
+        )
+
+        return final_message
+
+    def _to_dict(self) -> dict:
+        """Returns the object as a dictionary."""
+        return {
+            "target": self._y_var,
+            "candidate_predictors": self._predictors,
+            "feature_selectors": [str(selector) for selector in self._selectors],
+            "selected_features": self._top_features,
+        }
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(str(self))

@@ -291,6 +291,16 @@
                             tableDiv.innerHTML = item.content;
                             tableDiv.classList.add('table-container');
                             entry.appendChild(tableDiv);
+                        } else if (item.file_type == "thought") {
+                            // Add text directly into the analysis window
+                            const thoughtDiv = document.createElement('div');
+                            thoughtDiv.innerHTML = marked.parse(item.content);
+                            entry.appendChild(thoughtDiv);
+                        } else if (item.file_type == "code") {
+                            // Add code block directly into the analysis window
+                            const codeBlock = document.createElement('pre');
+                            codeBlock.textContent = item.content;
+                            entry.appendChild(codeBlock);
                         }
 
                         analysisDiv.appendChild(entry);

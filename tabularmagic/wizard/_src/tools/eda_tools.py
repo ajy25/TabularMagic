@@ -24,6 +24,16 @@ def _test_equal_means_function(
         .test_equal_means(numeric_var=numeric_var, stratify_by=categorical_var)
         ._to_dict()
     )
+    context.add_thought(
+        "I am going to test whether the means of the variable {numeric_var} are equal across the different levels of the variable {categorical_var}.".format(
+            numeric_var=numeric_var, categorical_var=categorical_var
+        )
+    )
+    context.add_code(
+        "analyzer.eda().test_equal_means(numeric_var='{}', stratify_by='{}')".format(
+            numeric_var, categorical_var
+        )
+    )
     return context.add_dict(dict_output)
 
 
@@ -46,6 +56,10 @@ class _PlotDistributionInput(BaseModel):
 
 def _plot_distribution_function(var: str, context: ToolingContext) -> str:
     fig = context._data_container.analyzer.eda("all").plot_distribution(var)
+    context.add_thought(
+        "I am going to plot the distribution of the variable: {var}.".format(var=var)
+    )
+    context.add_code("analyzer.eda().plot_distribution('{}')".format(var))
     return context.add_figure(
         fig, text_description=f"Distribution plot of variable: {var}."
     )
@@ -72,11 +86,22 @@ class _CorrelationComparisonInput(BaseModel):
 def _correlation_comparison_function(
     target: str, numeric_vars: str, context: ToolingContext
 ) -> str:
+    vars_list = [var.strip() for var in numeric_vars.split(",")]
     df_output = context.data_container.analyzer.eda(
         "all"
     ).tabulate_correlation_comparison(
         target=target,
-        numeric_vars=[var.strip() for var in numeric_vars.split(",")],
+        numeric_vars=vars_list,
+    )
+    context.add_thought(
+        "I am going to compare the correlation of {target} with the following variables: {vars_list}.".format(
+            target=target, vars_list=", ".join(vars_list)
+        )
+    )
+    context.add_code(
+        "analyzer.eda().tabulate_correlation_comparison(target='{}', numeric_vars=['{}'])".format(
+            target, "', '".join(vars_list)
+        )
     )
     return context.add_table(df_output, add_to_vectorstore=True)
 
@@ -102,6 +127,16 @@ def _correlation_matrix_function(numeric_vars: str, context: ToolingContext) -> 
     df_output = context._data_container.analyzer.eda("all").tabulate_correlation_matrix(
         numeric_vars=[var.strip() for var in numeric_vars.split(",")]
     )
+    context.add_thought(
+        "I am going to compute the correlation matrix for the following variables: {vars_list}.".format(
+            vars_list=numeric_vars
+        )
+    )
+    context.add_code(
+        "analyzer.eda().tabulate_correlation_matrix(numeric_vars=['{}'])".format(
+            "', '".join([numeric_vars])
+        )
+    )
     return context.add_table(df_output, add_to_vectorstore=True)
 
 
@@ -122,6 +157,10 @@ class _BlankInput(BaseModel):
 # Numeric summary statistics tool
 def _numeric_summary_statistics_function(context: ToolingContext) -> str:
     df_output = context._data_container.analyzer.eda("all").numeric_stats()
+    context.add_thought(
+        "I am going to generate summary statistics for the numeric variables in the dataset."
+    )
+    context.add_code("analyzer.eda().numeric_stats()")
     return context.add_table(df_output, add_to_vectorstore=True)
 
 
@@ -142,6 +181,10 @@ def build_numeric_summary_statistics_tool(context: ToolingContext) -> FunctionTo
 def _categorical_summary_statistics_function(context: ToolingContext) -> str:
     """Generates categorical summary statistics for the dataset."""
     df_output = context._data_container.analyzer.eda("all").categorical_stats()
+    context.add_thought(
+        "I am going to generate summary statistics for the categorical variables in the dataset."
+    )
+    context.add_code("analyzer.eda().categorical_stats()")
     return context.add_table(df_output, add_to_vectorstore=True)
 
 

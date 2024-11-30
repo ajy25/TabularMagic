@@ -1,11 +1,17 @@
 from llama_index.core.agent import FunctionCallingAgent, ReActAgent
 from llama_index.core.llms.function_calling import FunctionCallingLLM
+from llama_index.core import VectorStoreIndex
+from llama_index.core.objects import ObjectIndex
+from llama_index.core.agent import FunctionCallingAgent
 
 
-from .utils import build_function_calling_agent
 from .._debug.logger import print_debug
 
-from ..tools.ml_tools import build_ml_regression_tool, build_ml_classification_tool
+from ..tools.ml_tools import (
+    build_ml_regression_tool,
+    build_ml_classification_tool,
+    build_feature_selection_tool,
+)
 from ..tools.eda_tools import (
     build_test_equal_means_tool,
     build_plot_distribution_tool,
@@ -18,7 +24,7 @@ from ..tools.linear_regression_tools import build_ols_tool, build_logit_tool
 from ..tools.data_tools import build_dataset_summary_tool, build_pandas_query_tool
 from ..tools.tooling_context import ToolingContext
 
-from .system_prompts.single_agent_system_prompt import SINGLE_SYSTEM_PROMPT
+from .prompt.single_agent_system_prompt import SINGLE_SYSTEM_PROMPT
 
 
 def build_agent(
@@ -51,6 +57,7 @@ def build_agent(
     """
 
     tools = [
+        build_feature_selection_tool(context),
         build_ml_regression_tool(context),
         build_ml_classification_tool(context),
         build_test_equal_means_tool(context),
@@ -64,12 +71,27 @@ def build_agent(
         build_dataset_summary_tool(context),
         build_pandas_query_tool(context),
     ]
-    return build_function_calling_agent(
-        llm=llm,
-        tools=tools,
-        system_prompt=system_prompt,
-        react=react,
+    obj_index = ObjectIndex.from_objects(
+        tools,
+        index_cls=VectorStoreIndex,
     )
+    tool_retriever = obj_index.as_retriever(similarity_top_k=3)
+
+    if react:
+        agent = ReActAgent.from_tools(
+            llm=llm,
+            tool_retriever=tool_retriever,
+            verbose=True,
+            system_prompt=system_prompt,
+        )
+    else:
+        agent = FunctionCallingAgent.from_tools(
+            llm=llm,
+            tool_retriever=tool_retriever,
+            verbose=True,
+            system_prompt=system_prompt,
+        )
+    return agent
 
 
 class SingleAgent:

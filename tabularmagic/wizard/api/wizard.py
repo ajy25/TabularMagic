@@ -8,7 +8,7 @@ from .._src import (
     ToolingContext,
     print_debug,
 )
-from ..._src.display.print_utils import suppress_std_output, suppress_logging
+from ..._src.display.print_utils import suppress_logging
 from .._src.agents.orchestrator import Orchestrator
 from .._src.agents.single_agent import SingleAgent
 from .._src.options import options
@@ -45,11 +45,11 @@ class Wizard:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self._vectorstore_manager = StorageManager(multimodal=True)
+        self._vectorstore_manager = StorageManager(multimodal=True, vectorstore=False)
         self._canvas_queue = CanvasQueue()
         self._context = ToolingContext(
             data_container=self._data_container,
-            vectorstore_manager=self._vectorstore_manager,
+            storage_manager=self._vectorstore_manager,
             canvas_queue=self._canvas_queue,
         )
         print_debug("IO initialized.")

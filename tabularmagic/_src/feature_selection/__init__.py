@@ -8,7 +8,7 @@ from .boruta_feature_selection import (
     BorutaFSC,
 )
 from .base_feature_selection import BaseFSR, BaseFSC, BaseFS
-from .voteselect import VotingSelectionReport
+from .voteselect_report import VotingSelectionReport
 
 
 __all__ = [

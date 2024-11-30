@@ -30,8 +30,19 @@ log_path.mkdir(exist_ok=True)
 
 class StorageManager:
 
-    def __init__(self, multimodal: bool = True):
+    def __init__(self, multimodal: bool = True, vectorstore: bool = False):
+        """Initializes the StorageManager object.
+
+        Parameters
+        ----------
+        multimodal : bool
+            Whether to use a multimodal LLM, by default True.
+
+        vectorstore : bool
+            Whether to store data in a vector store, by default False.
+        """
         self._llm = options.llm_build_function()
+        self._use_vectorstore = vectorstore
         if options.multimodal and multimodal:
             self._multimodal_llm = options.multimodal_llm_build_function()
         else:
@@ -51,8 +62,9 @@ class StorageManager:
         str
             The input text, verbatim.
         """
-        print_debug(f"Adding text to vector store: {text}")
-        self._index.insert_nodes(nodes=[TextNode(text=text)])
+        if self._use_vectorstore:
+            print_debug(f"Adding text to vector store: {text}")
+            self._index.insert_nodes(nodes=[TextNode(text=text)])
         return text
 
     def add_figure(
@@ -84,7 +96,6 @@ class StorageManager:
             Path to the image.
         """
         img_path = img_store_path / f"{self._img_counter}.png"
-        print_debug(f"Adding figure to vector store: {img_path}")
 
         fig.savefig(img_path)
         self._img_counter += 1
@@ -97,24 +108,24 @@ class StorageManager:
             )
         else:
             text_description += "\n"
-            text_description += "A specific description is unavailable. "
-            "Let the user know that they can enable multimodal mode to "
-            "get a more detailed description."
+            text_description += "A detailed description is unavailable."
 
         text_description = (
             f"Path to image: {img_path}\n\n" + f"Description: {text_description}"
         )
 
-        self._index.insert_nodes(
-            nodes=[
-                TextNode(
-                    text=text_description,
-                    metadata={
-                        "path": str(img_path),
-                    },
-                )
-            ]
-        )
+        if self._use_vectorstore:
+            print_debug(f"Adding figure to vector store: {img_path}")
+            self._index.insert_nodes(
+                nodes=[
+                    TextNode(
+                        text=text_description,
+                        metadata={
+                            "path": str(img_path),
+                        },
+                    )
+                ]
+            )
 
         return text_description, img_path
 
@@ -143,12 +154,12 @@ class StorageManager:
             Path to the pickled DataFrame.
         """
         table_path = table_store_path / f"{self._table_counter}.pkl"
-        print_debug(f"Adding table to vector store: {table_path}")
         table.to_pickle(table_path)
         self._table_counter += 1
         str_res = dumps(prepare_for_json(table.to_dict("index")))
         str_res = f"Path to table: {str(table_path)}\n\n" + str_res
-        if add_to_vectorstore:
+        if self._use_vectorstore and add_to_vectorstore:
+            print_debug(f"Adding table to vector store: {table_path}")
             self._index.insert_nodes(
                 nodes=[
                     TextNode(
@@ -174,27 +185,35 @@ class StorageManager:
             table.unlink()
         self._table_counter = 0
 
-        client = qdrant_client.QdrantClient(path=vector_store_path)
+        if self._use_vectorstore:
 
-        if (vector_store_path / "collection" / "text_store").exists():
-            client.delete_collection("text_store")
+            client = qdrant_client.QdrantClient(path=vector_store_path)
 
-        vector_store = QdrantVectorStore(collection_name="text_store", client=client)
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store,
-        )
-        self._index = VectorStoreIndex.from_documents(
-            documents=[], storage_context=storage_context
-        )
+            if (vector_store_path / "collection" / "text_store").exists():
+                client.delete_collection("text_store")
 
-        self._retriever = self._index.as_retriever(similarity_top_k=1)
+            vector_store = QdrantVectorStore(
+                collection_name="text_store", client=client
+            )
+            storage_context = StorageContext.from_defaults(
+                vector_store=vector_store,
+            )
+            self._index = VectorStoreIndex.from_documents(
+                documents=[], storage_context=storage_context
+            )
 
-        self._query_engn = self._index.as_query_engine(llm=self._llm)
+            self._retriever = self._index.as_retriever(similarity_top_k=1)
+
+            self._query_engn = self._index.as_query_engine(llm=self._llm)
 
     @property
     def retriever(self):
+        if not self._use_vectorstore:
+            raise ValueError("Vector store not in use.")
         return self._retriever
 
     @property
     def query_engine(self):
+        if not self._use_vectorstore:
+            raise ValueError("Vector store not in use.")
         return self._query_engn

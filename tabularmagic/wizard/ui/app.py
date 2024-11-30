@@ -13,10 +13,8 @@ sys.path.append(path_to_add)
 from tabularmagic.wizard.api import Wizard
 
 from tabularmagic.wizard._src.io.canvas import (
-    CanvasQueue,
     CanvasCode,
     CanvasFigure,
-    CanvasItem,
     CanvasTable,
     CanvasThought,
 )
@@ -93,7 +91,7 @@ def chat_route():
 @app.route("/analysis", methods=["GET"])
 def get_analysis_history():
     """
-    Retrieve the current analysis history (figures and tables).
+    Retrieve the current analysis history (figures, tables, thoughts, code).
     """
     if wizard is None:
         return (
@@ -125,6 +123,20 @@ def get_analysis_history():
                         "file_name": path_obj.name,
                         "file_type": "table",
                         "content": html_table,
+                    }
+                )
+            elif isinstance(item, CanvasThought):
+                items.append(
+                    {
+                        "file_type": "thought",
+                        "content": item._thought,
+                    }
+                )
+            elif isinstance(item, CanvasCode):
+                items.append(
+                    {
+                        "file_type": "code",
+                        "content": item._code,
                     }
                 )
             else:
@@ -163,8 +175,3 @@ class App:
 
     def run(self, debug: bool = False):
         self.app.run(debug=debug)
-
-
-# Run the app
-if __name__ == "__main__":
-    app.run(debug=True)

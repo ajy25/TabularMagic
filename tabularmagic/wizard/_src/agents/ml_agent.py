@@ -5,7 +5,7 @@ from .utils import build_function_calling_agent
 from ..tools.ml_tools import build_ml_regression_tool, build_ml_classification_tool
 from ..tools.tooling_context import ToolingContext
 
-from .system_prompts.ml_agent_system_prompt import ML_SYSTEM_PROMPT
+from .prompt.ml_agent_system_prompt import ML_SYSTEM_PROMPT
 
 
 def build_ml_agent(
@@ -37,7 +37,6 @@ def build_ml_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     tools = [
-        # build_write_text_tool(context),
         build_ml_regression_tool(context),
         build_ml_classification_tool(context),
     ]

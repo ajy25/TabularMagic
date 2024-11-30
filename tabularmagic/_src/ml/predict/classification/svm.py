@@ -19,7 +19,7 @@ class SVMC(BaseC):
     def __init__(
         self,
         type: Literal["linear", "poly", "rbf"] = "rbf",
-        hyperparam_search_method: Literal[None, "grid", "random"] = None,
+        hyperparam_search_method: Literal[None, "grid", "optuna"] = None,
         hyperparam_search_space: Mapping[str, Iterable] | None = None,
         feature_selectors: list[BaseFSC] | None = None,
         max_n_features: int | None = None,
@@ -110,13 +110,15 @@ class SVMC(BaseC):
                     "C": FloatDistribution(1e-2, 1e2, log=True),
                     "degree": IntDistribution(2, 5),
                     "coef0": IntDistribution(0, 10),
-                    "gamma": CategoricalDistribution(["scale", "auto"]),
+                    "gamma": CategoricalDistribution(["scale", "auto", None]),
                 }
             elif type == "rbf":
                 hyperparam_search_space = {
                     "C": FloatDistribution(1e-2, 1e2, log=True),
-                    "gamma": CategoricalDistribution(["scale", "auto"]),
+                    "gamma": FloatDistribution(1e-4, 1, log=True),
                 }
+            else:
+                raise ValueError(f"Invalid kernel type: {type}")
 
         self._hyperparam_searcher = HyperparameterSearcher(
             estimator=self._best_estimator,

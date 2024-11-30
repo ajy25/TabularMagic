@@ -15,8 +15,11 @@ from ..display.print_utils import print_wrapped
 class BorutaFSR(BaseFSR):
     def __init__(
         self,
-        estimator: Literal["tree", "rf", "xgb"] = "rf",
+        estimator: Literal[
+            "decision_tree", "random_forest", "xgboost"
+        ] = "random_forest",
         n_estimators: int = 100,
+        max_depth: int = 5,
         model_random_state: int = 42,
         name: str | None = None,
     ):
@@ -25,12 +28,15 @@ class BorutaFSR(BaseFSR):
 
         Parameters
         ----------
-        estimator : Literal["tree", "rf", "xgb"]
-            Default: "rf". The estimator to use for Boruta. Default
+        estimator : Literal["decision_tree", "random_forest", "xgboost"]
+            Default: "random_forest". The estimator to use for Boruta. Default
             hyperparameters are used for the estimator.
 
         n_estimators : int
             Default: 100. The number of estimators to use for Boruta.
+
+        max_depth : int
+            Default: 5. The maximum depth of the trees in the ensemble.
 
         model_random_state : int
             Default: 42. The random state to use for the estimator.
@@ -43,15 +49,23 @@ class BorutaFSR(BaseFSR):
         super().__init__(name)
 
         sk_estimator = None
-        if estimator == "tree":
-            sk_estimator = DecisionTreeRegressor(random_state=model_random_state)
-        elif estimator == "rf":
-            sk_estimator = RandomForestRegressor(random_state=model_random_state)
-        elif estimator == "xgb":
-            sk_estimator = XGBRegressor(random_state=model_random_state)
+        if estimator == "decision_tree":
+            sk_estimator = DecisionTreeRegressor(
+                max_depth=max_depth, random_state=model_random_state
+            )
+        elif estimator == "random_forest":
+            sk_estimator = RandomForestRegressor(
+                max_depth=max_depth,
+                random_state=model_random_state,
+            )
+        elif estimator == "xgboost":
+            sk_estimator = XGBRegressor(
+                max_depth=max_depth, random_state=model_random_state
+            )
         else:
             raise ValueError(
-                f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
+                f"estimator must be one of 'decision_tree', 'random_forest', "
+                f"or 'xgboost'. Got: {estimator}"
             )
 
         self._selector = BorutaPy(
@@ -96,8 +110,11 @@ class BorutaFSR(BaseFSR):
 class BorutaFSC(BaseFSC):
     def __init__(
         self,
-        estimator: Literal["tree", "rf", "xgb"] = "rf",
+        estimator: Literal[
+            "decision_tree", "random_forest", "xgboost"
+        ] = "random_forest",
         n_estimators: int = 100,
+        max_depth: int = 5,
         model_random_state: int = 42,
         name: str | None = None,
     ):
@@ -106,12 +123,15 @@ class BorutaFSC(BaseFSC):
 
         Parameters
         ----------
-        estimator : Literal["tree", "rf", "xgb"]
-            Default: "rf". The estimator to use for Boruta. Default
+        estimator : Literal["decision_tree", "random_forest", "xgboost"]
+            Default: "random_forest". The estimator to use for Boruta. Default
             hyperparameters are used for the estimator.
 
         n_estimators : int
             Default: 100. The number of estimators to use for Boruta's estimator.
+
+        max_depth : int
+            Default: 5. The maximum depth of the trees in the ensemble.
 
         model_random_state : int
             Default: 42. The random state to use for the estimator.
@@ -124,21 +144,26 @@ class BorutaFSC(BaseFSC):
         super().__init__(name)
 
         sk_estimator = None
-        if estimator == "tree":
+        if estimator == "decision_tree":
             sk_estimator = DecisionTreeClassifier(
+                max_depth=max_depth,
                 random_state=model_random_state,
                 class_weight="balanced",
             )
-        elif estimator == "rf":
+        elif estimator == "random_forest":
             sk_estimator = RandomForestClassifier(
+                max_depth=max_depth,
                 random_state=model_random_state,
                 class_weight="balanced",
             )
-        elif estimator == "xgb":
-            sk_estimator = XGBClassifier(random_state=model_random_state)
+        elif estimator == "xgboost":
+            sk_estimator = XGBClassifier(
+                max_depth=max_depth, random_state=model_random_state
+            )
         else:
             raise ValueError(
-                f"estimator must be one of 'tree', 'rf', or 'xgb'. Got: {estimator}"
+                f"estimator must be one of 'decision_tree', 'random_forest', "
+                f"or 'xgboost'. Got: {estimator}"
             )
 
         self._selector = BorutaPy(

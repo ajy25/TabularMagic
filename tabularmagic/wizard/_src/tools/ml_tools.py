@@ -6,54 +6,83 @@ from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
 from ....ml import LinearC, LinearR, SVMC, SVMR, TreesC, TreesR, MLPC, MLPR
 from ...._base import BaseC, BaseR
+from ....fs import (
+    BorutaFSC,
+    BorutaFSR,
+    KBestFSC,
+    KBestFSR,
+)
 
 
 def parse_model_list_from_str(
-    models_str: str, type: Literal["classification", "regression"]
-) -> list[BaseC] | list[BaseR]:
+    models_str: str, type: Literal["classification", "regression"], n_jobs: int = 4
+) -> tuple[list[BaseC] | list[BaseR], list[str]]:
     list_of_models = [model_str.strip() for model_str in models_str.split(",")]
     output = []
+    output_code = []
     if type == "regression":
         for model_str in list_of_models:
             if model_str == "OLS":
                 output.append(LinearR("ols", name=model_str))
+                output_code.append("LinearR('ols', name='OLS')")
             elif model_str == "Ridge":
-                output.append(LinearR("l2", name=model_str, n_jobs=2))
+                output.append(LinearR("l2", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"LinearR('l2', name='Ridge', n_jobs={n_jobs})")
             elif model_str == "Lasso":
-                output.append(LinearR("l1", name=model_str, n_jobs=2))
+                output.append(LinearR("l1", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"LinearR('l1', name='Lasso', n_jobs={n_jobs})")
             elif model_str == "RF":
-                output.append(TreesR("random_forest", name=model_str, n_jobs=2))
+                output.append(TreesR("random_forest", name=model_str, n_jobs=n_jobs))
+                output_code.append(
+                    f"TreesR('random_forest', name='RF', n_jobs={n_jobs})"
+                )
             elif model_str == "XGBoost":
-                output.append(TreesR("xgboost", name=model_str, n_jobs=2))
+                output.append(TreesR("xgboost", name=model_str, n_jobs=n_jobs))
+                output_code.append(
+                    f"TreesR('xgboost', name='XGBoost', n_jobs={n_jobs})"
+                )
             elif model_str == "SVM":
-                output.append(SVMR("rbf", name=model_str, n_jobs=2))
+                output.append(SVMR("rbf", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"SVMR('rbf', name='SVM', n_jobs={n_jobs})")
             elif model_str == "MLP":
-                output.append(MLPR(name=model_str, n_jobs=2))
+                output.append(MLPR(name=model_str, n_jobs=n_jobs))
+                output_code.append(f"MLPR(name='MLP', n_jobs={n_jobs})")
             else:
                 raise ValueError(f"Invalid model specification: {model_str}")
     elif type == "classification":
         for model_str in list_of_models:
             if model_str == "Logistic":
-                output.append(LinearC("logistic", name=model_str))
+                output.append(LinearC("no_penalty", name=model_str))
+                output_code.append("LinearC('no_penalty', name='Logistic'")
             elif model_str == "Ridge":
-                output.append(LinearC("l2", name=model_str))
+                output.append(LinearC("l2", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"LinearC('l2', name='Ridge', n_jobs={n_jobs})")
             elif model_str == "Lasso":
-                output.append(LinearC("l1", name=model_str))
+                output.append(LinearC("l1", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"LinearC('l1', name='Lasso', n_jobs={n_jobs})")
             elif model_str == "RF":
-                output.append(TreesC("random_forest", name=model_str))
+                output.append(TreesC("random_forest", name=model_str, n_jobs=n_jobs))
+                output_code.append(
+                    f"TreesC('random_forest', name='RF', n_jobs={n_jobs})"
+                )
             elif model_str == "XGBoost":
-                output.append(TreesC("xgboost", name=model_str))
+                output.append(TreesC("xgboost", name=model_str, n_jobs=n_jobs))
+                output_code.append(
+                    f"TreesC('xgboost', name='XGBoost', n_jobs={n_jobs})"
+                )
             elif model_str == "SVM":
-                output.append(SVMC("rbf", name=model_str))
+                output.append(SVMC("rbf", name=model_str, n_jobs=n_jobs))
+                output_code.append(f"SVMC('rbf', name='SVM', n_jobs={n_jobs})")
             elif model_str == "MLP":
-                output.append(MLPC(name=model_str))
+                output.append(MLPC(name=model_str, n_jobs=n_jobs))
+                output_code.append(f"MLPC(name='MLP', n_jobs={n_jobs})")
             else:
                 raise ValueError(f"Invalid model specification: {model_str}")
 
     else:
         raise ValueError(f"Invalid ML problem type: {type}")
 
-    return output
+    return output, output_code
 
 
 def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
@@ -91,18 +120,33 @@ class _MLRegressionInput(BaseModel):
 def _ml_regression_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
-    models_list = parse_model_list_from_str(models, type="regression")
+    models_list, models_list_code = parse_model_list_from_str(models, type="regression")
+    models_list_str = ", ".join([model._name for model in models_list])
     print_debug("_ml_regression_function called")
-    print_debug(
-        "_ml_regression_function Models to test: "
-        + str([model._name for model in models_list])
-    )
+    print_debug("_ml_regression_function Models to test: " + models_list_str)
     predictors_list = parse_predictor_list_from_str(predictors)
     print_debug("_ml_regression_function Target: " + target)
     print_debug("_ml_regression_function Predictors: " + str(predictors_list))
     report = context._data_container.analyzer.regress(
         models=models_list, target=target, predictors=predictors_list
     )
+
+    context.add_thought(
+        "I am going to predict {target} with {predictors} using models {models}.".format(
+            target=target, predictors=", ".join(predictors_list), models=models_list_str
+        )
+    )
+
+    models_str_code = ", ".join(models_list_code)
+
+    context.add_code(
+        "analyzer.regress(models=[{models_str_code}], target='{target}', predictors=['{predictors}'])".format(
+            models_str_code=models_str_code,
+            target=target,
+            predictors="', '".join(predictors_list),
+        )
+    )
+
     context.add_table(table=report.metrics("both"), add_to_vectorstore=False)
     output_str = context.add_dict(report._to_dict())
     return output_str
@@ -151,18 +195,39 @@ class _MLClassificationInput(BaseModel):
 def _ml_classification_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
-    models_list = parse_model_list_from_str(models, type="classification")
-    print_debug("_ml_classification_function called")
-    print_debug(
-        "_ml_classification_function Models to test: "
-        + str([model._name for model in models_list])
+    models_list, models_list_code = parse_model_list_from_str(
+        models, type="classification"
     )
+    models_list_str = ", ".join([model._name for model in models_list])
+
+    print_debug("_ml_classification_function called")
+    print_debug("_ml_classification_function Models to test: " + models_list_str)
+
     predictors_list = parse_predictor_list_from_str(predictors)
+
     print_debug("_ml_classification_function Target: " + target)
     print_debug("_ml_classification_function Predictors: " + str(predictors_list))
+
+    context.add_thought(
+        "I am going to predict {target} with {predictors} using models {models}.".format(
+            target=target, predictors=", ".join(predictors_list), models=models_list_str
+        )
+    )
+
     report = context._data_container.analyzer.classify(
         models=models_list, target=target, predictors=predictors_list
     )
+
+    models_str_code = ", ".join(models_list_code)
+
+    context.add_code(
+        "analyzer.classify(models=[{models_str_code}], target='{target}', predictors=['{predictors}'])".format(
+            models_str_code=models_str_code,
+            target=target,
+            predictors="', '".join(predictors_list),
+        )
+    )
+
     context.add_table(table=report.metrics("both"), add_to_vectorstore=False)
     output_str = context.add_dict(report._to_dict())
     return output_str
@@ -177,4 +242,104 @@ def build_ml_classification_tool(context: ToolingContext) -> FunctionTool:
         Returns a string describing the model performances.
         """,
         fn_schema=_MLClassificationInput,
+    )
+
+
+class _FeatureSelectionInput(BaseModel):
+    feature_selector: str = Field(
+        description="""The feature selection method to use. The available methods are...
+
+        1. `Boruta`: Boruta method (automatically selects the number of features)
+        2. `Select{N}Best`: Select N best features based on the F-score, where you replace {N} with the number of features you want to select.
+
+        Two example inputs (without the quotes) are: `Boruta` and `Select5Best`.
+        """
+    )
+    target: str = Field(
+        description="The target variable, i.e. the variable to predict."
+    )
+    predictors: str = Field(
+        description="""A comma delimited string of variables used by the models 
+        to predict the target.
+
+        An example input (without the quotes) is: `var1, var2, var3`.
+        """
+    )
+
+
+def _feature_selection_function(
+    feature_selector: str, target: str, predictors: str, context: ToolingContext
+) -> str:
+    print_debug("_feature_selection_function called")
+    print_debug("_feature_selection_function Feature selector: " + feature_selector)
+    predictors_list = parse_predictor_list_from_str(predictors)
+    print_debug("_feature_selection_function Target: " + target)
+    print_debug("_feature_selection_function Predictors: " + str(predictors_list))
+
+    # figure out if target is categorical or continuous
+    if target in context._data_container.analyzer.numeric_vars():
+        target_type = "regression"
+    elif target in context._data_container.analyzer.categorical_vars():
+        target_type = "classification"
+    else:
+        raise ValueError(f"Target variable {target} is not found in the dataset.")
+
+    if feature_selector == "Boruta":
+        fs = BorutaFSC() if target_type == "classification" else BorutaFSR()
+        fs_code = "BorutaFSC()" if target_type == "classification" else "BorutaFSR()"
+    else:
+        # should be of the form "Select{N}Best"
+        if not feature_selector.startswith("Select") or not feature_selector.endswith(
+            "Best"
+        ):
+            raise ValueError(
+                "Invalid feature selector. Should be of the form 'Select{N}Best' where {N} is the number of features to select."
+            )
+        k = int(feature_selector[6:-4])
+        fs = (
+            KBestFSC(k=k, scorer="f_classif")
+            if target_type == "classification"
+            else KBestFSR(k=k, scorer="f_regression")
+        )
+        fs_code = (
+            f"KBestFSC(k={k}, scorer='f_classif')"
+            if target_type == "classification"
+            else f"KBestFSR(k={k}, scorer='f_regression')"
+        )
+
+    report = context._data_container.analyzer.select_features(
+        feature_selectors=[fs], target=target, predictors=predictors_list
+    )
+
+    context.add_thought(
+        "I am going to select features to predict {target} with {predictors} using the {feature_selector} method.".format(
+            target=target,
+            predictors=", ".join(predictors_list),
+            feature_selector=feature_selector,
+        )
+    )
+
+    context.add_code(
+        "analyzer.select_features(feature_selectors=[{fs_code}], target='{target}', predictors=['{predictors}'])".format(
+            fs_code=fs_code,
+            target=target,
+            predictors="', '".join(predictors_list),
+        )
+    )
+
+    output_str = context.add_dict(report._to_dict())
+    return output_str
+
+
+def build_feature_selection_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_feature_selection_function, context=context),
+        name="feature_selection_tool",
+        description="""Performs feature selection with a specified method. 
+        Selects the best features from a list of predictor variables to predict the target variable. 
+        Returns a string describing the selected features.
+        Categorical variables are one-hot encoded before feature selection.
+        If a category is selected, the output would be `<variable_name>::<category>`.
+        """,
+        fn_schema=_FeatureSelectionInput,
     )

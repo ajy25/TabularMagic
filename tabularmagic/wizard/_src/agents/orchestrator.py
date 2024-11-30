@@ -13,7 +13,7 @@ from ..tools.data_tools import build_dataset_summary_tool
 
 
 from ..tools.tooling_context import ToolingContext
-from .system_prompts.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
+from .prompt.orchestrator_system_prompt import ORCHESTRATOR_SYSTEM_PROMPT
 
 from .._debug.logger import print_debug
 

@@ -13,7 +13,7 @@ from ..tools.eda_tools import (
 from ..tools.data_tools import build_pandas_query_tool
 from ..tools.tooling_context import ToolingContext
 
-from .system_prompts.eda_agent_system_prompt import EDA_SYSTEM_PROMPT
+from .prompt.eda_agent_system_prompt import EDA_SYSTEM_PROMPT
 
 
 def build_eda_agent(

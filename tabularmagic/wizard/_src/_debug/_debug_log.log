@@ -1,1 +1,90 @@
-2024-11-25 03:22:35 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x176d75f80> and multimodal LLM build function: <function build_openai_multimodal at 0x176d760c0>
+2024-11-28 07:35:48 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x3027c7740> and multimodal LLM build function: <function build_openai_multimodal at 0x3027c4ae0>
+2024-11-28 07:35:53 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-11-28 07:35:53 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-11-28 07:35:53 - Wizard Log - IO initialized.
+2024-11-28 07:35:53 - Wizard Log - Initializing the Orchestrator.
+2024-11-28 07:35:53 - Wizard Log - Building EDA agent
+2024-11-28 07:35:53 - Wizard Log - Building Linear Regression agent
+2024-11-28 07:35:53 - Wizard Log - Building ML agent
+2024-11-28 07:35:53 - Wizard Log - Initializing Orchestrator agent...
+2024-11-28 07:35:53 - Wizard Log - Orchestrator agent initialized.
+2024-11-28 07:35:53 - Wizard Log - Initializing SingleAgent
+2024-11-28 07:35:53 - Wizard Log - SingleAgent initialized
+2024-11-28 07:36:03 - Wizard Log - Adding dictionary to storage.
+2024-11-28 07:36:03 - Wizard Log - Added dictionary without description. First 20 characters: {"train_shape": [116.
+2024-11-28 07:36:31 - Wizard Log - _feature_selection_function called
+2024-11-28 07:36:31 - Wizard Log - _feature_selection_function Feature selector: Boruta
+2024-11-28 07:36:31 - Wizard Log - _feature_selection_function Target: SalePrice
+2024-11-28 07:36:31 - Wizard Log - _feature_selection_function Predictors: ['1stFlrSF', '2ndFlrSF', '3SsnPorch', 'BedroomAbvGr', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtFullBath', 'BsmtHalfBath', 'BsmtUnfSF', 'EnclosedPorch', 'Fireplaces', 'FullBath', 'GarageArea', 'GarageCars', 'GarageYrBlt', 'GrLivArea', 'HalfBath', 'KitchenAbvGr', 'LotArea', 'LotFrontage', 'LowQualFinSF', 'MSSubClass', 'MasVnrArea', 'MiscVal', 'MoSold', 'OpenPorchSF', 'OverallCond', 'OverallQual', 'PoolArea', 'ScreenPorch', 'TotRmsAbvGrd', 'TotalBsmtSF', 'WoodDeckSF', 'YearBuilt', 'YearRemodAdd', 'YrSold', 'Alley', 'BldgType', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', 'BsmtQual', 'CentralAir', 'Condition1', 'Condition2', 'Electrical', 'ExterCond', 'ExterQual', 'Exterior1st', 'Exterior2nd', 'Fence', 'FireplaceQu', 'Foundation', 'Functional', 'GarageCond', 'GarageFinish', 'GarageQual', 'GarageType', 'Heating', 'HeatingQC', 'KitchenQual', 'LandContour', 'LandSlope', 'LotConfig', 'LotShape', 'MSZoning', 'MasVnrType', 'MiscFeature', 'Neighborhood', 'PavedDrive', 'PoolQC', 'RoofMatl', 'RoofStyle', 'SaleCondition', 'SaleType', 'Street', 'Utilities']
+2024-11-28 07:36:31 - Analyzer Log - Fitting 'BorutaFSR'.
+2024-11-28 07:36:31 - Analyzer Log - Train dataset: dropped 1168 examples with missing values out of 1168 total examples.
+2024-11-28 07:36:34 - Wizard Log - _feature_selection_function called
+2024-11-28 07:36:34 - Wizard Log - _feature_selection_function Feature selector: Boruta
+2024-11-28 07:36:34 - Wizard Log - _feature_selection_function Target: SalePrice
+2024-11-28 07:36:34 - Wizard Log - _feature_selection_function Predictors: ['1stFlrSF', '2ndFlrSF', 'BedroomAbvGr', 'BsmtFinSF1', 'BsmtFullBath', 'GarageArea', 'GrLivArea', 'OverallQual', 'YearBuilt', 'Neighborhood']
+2024-11-28 07:36:34 - Analyzer Log - Fitting 'BorutaFSR'.
+2024-11-28 07:36:36 - Wizard Log - Adding dictionary to storage.
+2024-11-28 07:36:36 - Wizard Log - Added dictionary without description. First 20 characters: {"target": "SalePric.
+2024-11-28 07:37:33 - Wizard Log - _ols_function call: formula: SalePrice ~ 1stFlrSF + 2ndFlrSF + BsmtFinSF1 + GarageArea + GrLivArea + OverallQual + YearBuilt
+2024-11-28 07:37:33 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'BsmtFinSF1', [0m[95m'GarageArea', [0m[95m'GrLivArea', [0m[95m'OverallQual', 
+  [0m[95m'YearBuilt'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.767[0m                            R2:       [93m0.803[0m 
+    Adj. R2:  [93m0.765[0m                            Adj. R2:  [93m0.798[0m 
+    RMSE:     [93m37311.511[0m                        RMSE:     [93m38917.005[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -744228.433          79540.980              0.000 
+  1stFlrSF                      33.509             40.510              0.408 
+  2ndFlrSF                      17.225             38.809              0.657 
+  BsmtFinSF1                    19.299             11.424              0.091 
+  GarageArea                    42.897              7.642              0.000 
+  GrLivArea                     29.461             37.114              0.427 
+  OverallQual                22600.130           2011.378              0.000 
+  YearBuilt                    338.936             42.775              0.000 
+========================================================================================
+2024-11-28 07:37:33 - Wizard Log - Adding table to storage.
+2024-11-28 07:37:33 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/0.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/0.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 37311.511}, "('train', 'mae')": {"OLS Linear Model": 23100.221}, "('train', 'mape')": {"OLS Linear Model": 0.138}, "('train', 'pearsonr')": {"OLS Linear Model": 0.876}, "('train', 'spearmanr')": {"OLS Linear Model": 0.919}, "('train', 'r2')": {"OLS Linear Model": 0.767}, "('train', 'adjr2')": {"OLS Linear Model": 0.765}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 38917.005}, "('test', 'mae')": {"OLS Linear Model": 24166.508}, "('test', 'mape')": {"OLS Linear Model": 0.146}, "('test', 'pearsonr')": {"OLS Linear Model": 0.9}, "('test', 'spearmanr')": {"OLS Linear Model": 0.928}, "('test', 'r2')": {"OLS Linear Model": 0.803}, "('test', 'adjr2')": {"OLS Linear Model": 0.798}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-11-28 07:37:33 - Wizard Log - Adding table to storage.
+2024-11-28 07:37:33 - Wizard Log - Added table to /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/1.pkl: Path to table: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_table_store/1.pkl
+
+{"const": {"Coefficient (Std. Error)": "-744228.433 (79540.98)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "33.509 (40.51)", "p-value": 0.408}, "2ndFlrSF": {"Coefficient (Std. Error)": "17.225 (38.809)", "p-value": 0.657}, "BsmtFinSF1": {"Coefficient (Std. Error)": "19.299 (11.424)", "p-value": 0.091}, "GarageArea": {"Coefficient (Std. Error)": "42.897 (7.642)", "p-value": 0.0}, "GrLivArea": {"Coefficient (Std. Error)": "29.461 (37.114)", "p-value": 0.427}, "OverallQual": {"Coefficient (Std. Error)": "22600.13 (2011.378)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "338.936 (42.775)", "p-value": 0.0}}
+2024-11-28 07:37:33 - Wizard Log - Adding dictionary to storage.
+2024-11-28 07:37:33 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-11-28 07:37:42 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-744228.433 (79540.98)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "33.509 (40.51)", "p-value": 0.408}, "2ndFlrSF": {"Coefficient (Std. Error)": "17.225 (38.809)", "p-value": 0.657}, "BsmtFinSF1": {"Coefficient (Std. Error)": "19.299 (11.424)", "p-value": 0.091}, "GarageArea": {"Coefficient (Std. Error)": "42.897 (7.642)", "p-value": 0.0}, "GrLivArea": {"Coefficient (Std. Error)": "29.461 (37.114)", "p-value": 0.427}, "OverallQual": {"Coefficient (Std. Error)": "22600.13 (2011.378)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "338.936 (42.775)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 37311.511}, "mae": {"OLS Linear Model": 23100.221}, "mape": {"OLS Linear Model": 0.138}, "pearsonr": {"OLS Linear Model": 0.876}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.767}, "adjr2": {"OLS Linear Model": 0.765}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 38917.005}, "mae": {"OLS Linear Model": 24166.508}, "mape": {"OLS Linear Model": 0.146}, "pearsonr": {"OLS Linear Model": 0.9}, "spearmanr": {"OLS Linear Model": 0.928}, "r2": {"OLS Linear Model": 0.803}, "adjr2": {"OLS Linear Model": 0.798}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/projects/TabularMagic/tabularmagic/wizard/_src/io/_img_store/0.png
+
+Description: Diagnostic plots.
+The statistical figure consists of four plots arranged in a 2x2 grid, commonly used to assess the results of an Ordinary Least Squares (OLS) regression analysis. Here’s a detailed description of each plot:
+
+1. **Top Left: OLS Linear Model - Observed vs. Predicted**
+   - This scatter plot displays the relationship between the observed values (y-axis) and the predicted values (x-axis) from the OLS regression.
+   - A diagonal dashed line represents the ideal scenario where observed values equal predicted values (y = x).
+   - The correlation coefficient (R² = 0.876) indicates a strong positive relationship between the observed and predicted values, suggesting that the model explains a significant portion of the variance in the data.
+
+2. **Top Right: Residuals vs. Fitted**
+   - This plot shows the residuals (the differences between observed and predicted values) on the y-axis against the fitted values (predicted values) on the x-axis.
+   - Ideally, residuals should be randomly scattered around zero, indicating that the model's assumptions are met. Any patterns (e.g., funnel shape) could suggest issues like heteroscedasticity.
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - This plot displays standardized residuals (y-axis) against leverage (x-axis), which measures the influence of each observation on the fitted values.
+   - Points that are far from the center may indicate influential observations. A common threshold for concern is when standardized residuals exceed ±3.
+
+4. **Bottom Right: Q-Q Plot**
+   - The Quantile-Quantile (Q-Q) plot compares the quantiles of the standardized residuals to the quantiles of a normal distribution.
+   - If the points lie approximately along the diagonal line, it suggests that the residuals are normally distributed, which is an assumption of OLS regression.
+
+Overall, these plots are essential for diagnosing the fit of the regression model and checking the validity of its assumptions.

@@ -11,7 +11,7 @@ class ToolingContext:
     def __init__(
         self,
         data_container: DataContainer,
-        vectorstore_manager: StorageManager,
+        storage_manager: StorageManager,
         canvas_queue: CanvasQueue,
     ):
         """Initializes the ToolingContext object.
@@ -19,13 +19,16 @@ class ToolingContext:
         Parameters
         ----------
         data_container : DataContainer
-            The DataContainer object to use for storing data.
+            The DataContainer object to use retrieving data.
 
-        vectorstore_manager : VectorStoreManager
-            The VectorStoreManager object to use for storing data.
+        storage_manager : StorageManager
+            The StorageManager object to use for storing information and analysis.
+
+        canvas_queue : CanvasQueue
+            The CanvasQueue object to use for storing images, tables, etc. for UI use.
         """
         self._data_container = data_container
-        self._vectorstore_manager = vectorstore_manager
+        self._vectorstore_manager = storage_manager
         self._canvas_queue = canvas_queue
 
     def add_figure(
@@ -127,6 +130,36 @@ class ToolingContext:
                 f"First 20 characters: {str_dict[:20]}."
             )
         return self._vectorstore_manager.add_str(str_dict)
+
+    def add_thought(self, thought: str) -> str:
+        """Adds a thought to the canvas queue.
+
+        Parameters
+        ----------
+        thought : str
+            Thought to add to the vector index.
+
+        Returns
+        -------
+        str
+            The input thought, verbatim.
+        """
+        return self._canvas_queue.push_thought(thought)
+
+    def add_code(self, code: str) -> str:
+        """Adds code to the canvas queue.
+
+        Parameters
+        ----------
+        code : str
+            Code to add to the vector index.
+
+        Returns
+        -------
+        str
+            The input code, verbatim.
+        """
+        return self._canvas_queue.push_code(code)
 
     @property
     def data_container(self) -> DataContainer:

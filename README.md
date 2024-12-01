@@ -85,21 +85,21 @@ You can open up a chat user interface by running the following code and clicking
 Your conversation with the AI agent appears on the left, while the AI agent's analyses (figures made, tables produced, TableMage commands used) appear on the right.
 
 ```python
-import tablemage as tm
-tm.mage.App().run()
+from tablemage.mage import App
+App().run()
 ```
 
 Or, you can chat with the AI agent directly in Python:
 
 ```python
-import tablemage as tm
+from tablemage.mage import Mage
 import pandas as pd
 
 # load table
 df = ...
 
 # initialize a Mage object
-mage = tm.mage.Mage(df, test_size=0.2)
+mage = Mage(df, test_size=0.2)
 
 # chat with the Mage
 print(mage.chat("Compute the summary statistics for the numeric variables."))

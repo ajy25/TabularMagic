@@ -4,9 +4,7 @@ from llama_index.llms.groq import Groq
 from ..api_key_utils import find_key
 
 
-def build_groq(
-    model: str | None = None, temperature: float = 0.0
-) -> Groq:
+def build_groq(model: str | None = None, temperature: float = 0.0) -> Groq:
     """Builds a Groq object using LlamaIndex.
     If no Groq API key is found in the .env file, raises a ValueError.
 

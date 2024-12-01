@@ -22,6 +22,17 @@ from ..tools.eda_tools import (
 )
 from ..tools.linear_regression_tools import build_ols_tool, build_logit_tool
 from ..tools.data_tools import build_dataset_summary_tool, build_pandas_query_tool
+from ..tools.transform_tools import (
+    build_drop_highly_missing_vars_tool,
+    build_drop_na_tool,
+    build_engineer_feature_tool,
+    build_impute_tool,
+    build_scale_tool,
+    build_load_state_tool,
+    build_save_state_tool,
+    build_onehot_encode_tool,
+    build_revert_to_original_tool,
+)
 from ..tools.tooling_context import ToolingContext
 
 from .prompt.single_agent_system_prompt import SINGLE_SYSTEM_PROMPT
@@ -70,12 +81,21 @@ def build_agent(
         build_logit_tool(context),
         build_dataset_summary_tool(context),
         build_pandas_query_tool(context),
+        build_drop_highly_missing_vars_tool(context),
+        build_drop_na_tool(context),
+        build_engineer_feature_tool(context),
+        build_impute_tool(context),
+        build_scale_tool(context),
+        build_load_state_tool(context),
+        build_save_state_tool(context),
+        build_onehot_encode_tool(context),
+        build_revert_to_original_tool(context),
     ]
     obj_index = ObjectIndex.from_objects(
         tools,
         index_cls=VectorStoreIndex,
     )
-    tool_retriever = obj_index.as_retriever(similarity_top_k=3)
+    tool_retriever = obj_index.as_retriever(similarity_top_k=5)
 
     if react:
         agent = ReActAgent.from_tools(

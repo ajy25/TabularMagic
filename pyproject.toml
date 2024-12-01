@@ -9,8 +9,8 @@ version = "0.1.0a1"
 description = "A Python package for low-code analysis of tabular data"
 authors = [
     {name = "Andrew Yang", email = "andrew_j_yang@brown.edu"},
-    {name = "Ryan Zhang", email = "rzryanz00@gmail.com"},
-    {name = "Joshua Woo", email = "joshua_woo@brown.edu"}
+    {name = "Joshua Woo", email = "joshua_woo@brown.edu"},
+    {name = "Ryan Zhang", email = "rzryanz00@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,16 +35,22 @@ classifiers = [
 
 
 [project.optional-dependencies]
-wizard = [
-    "llama-index>=0.11.10",
+mage = [
     "pydantic>=2.8.2",
-    "python-dotenv>=0.21.0"
+    "python-dotenv>=0.21.0",
+    "llama-index>=0.11.23",
+    "llama-index-experimental>=0.4.0",
+    "qdrant-client>=1.12.0",
+    "llama-index-llms-groq>=0.2.0",
+    "llama-index-llms-ollama>=0.3.6",
+    "llama-index-llms-together>=0.2.0",
+    "llama-index-vector-stores-qdrant",
+    "flask",
 ]
 
 
 [project.urls]
 Homepage = "https://tabularmagic.readthedocs.io/"
-
 
 
 [tool.hatch.metadata]

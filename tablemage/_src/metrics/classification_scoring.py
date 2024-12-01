@@ -52,8 +52,8 @@ class ClassificationBinaryScorer:
             self._name = "Model"
         else:
             self._name = name
-        self._y_pred = y_pred
-        self._y_true = y_true
+        self._y_pred = np.asarray(y_pred)
+        self._y_true = np.asarray(y_true)
         self._pos_label = pos_label
 
         if y_pred_score is not None:
@@ -63,7 +63,7 @@ class ClassificationBinaryScorer:
             elif isinstance(y_pred_score, list):
                 if len(y_pred_score[0].shape) == 2:
                     y_pred_score = [elem[:, 1] for elem in y_pred_score]
-        self._y_pred_score = y_pred_score
+        self._y_pred_score = np.asarray(y_pred_score)
 
         self._stats_df = None
         self._cv_stats_df = None
@@ -234,10 +234,10 @@ class ClassificationMulticlassScorer:
             self._name = "Model"
         else:
             self._name = name
-        self._y_pred = y_pred
-        self._y_true = y_true
-        self._y_pred_score = y_pred_score
-        self._y_pred_class_order = y_pred_class_order
+        self._y_pred = np.asarray(y_pred)
+        self._y_true = np.asarray(y_true)
+        self._y_pred_score = np.asarray(y_pred_score)
+        self._y_pred_class_order = np.asarray(y_pred_class_order)
 
         self._stats_df = None
         self._cv_stats_df = None

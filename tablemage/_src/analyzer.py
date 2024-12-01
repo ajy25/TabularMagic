@@ -1125,6 +1125,16 @@ class Analyzer:
         """
         return self._datahandler.categorical_vars()
 
+    def vars(self) -> list[str]:
+        """Returns the variables in the working train DataFrame.
+
+        Returns
+        -------
+        list[str]
+            The variables.
+        """
+        return self._datahandler.vars()
+
     def shape(self, dataset: Literal["train", "test"]) -> tuple[int, int]:
         """Returns the shape of the working train DataFrame.
 

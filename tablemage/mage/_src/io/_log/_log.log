@@ -1,1 +1,13 @@
-2024-12-01 13:50:38 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-01 16:10:37 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-01 16:12:00 - Analyzer Log - Fitting model 'OLS'.
+2024-12-01 16:12:00 - Analyzer Log - Fitting 'OLS'. Search method: GridSearchCV (1 fits per fold, 5 total fits). 
+2024-12-01 16:12:00 - Analyzer Log - Successfully evaluated model 'OLS'.
+2024-12-01 16:12:00 - Analyzer Log - Fitting model 'Lasso'.
+2024-12-01 16:12:00 - Analyzer Log - Fitting 'Lasso'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-01 16:12:01 - Analyzer Log - Successfully evaluated model 'Lasso'.
+2024-12-01 16:12:01 - Analyzer Log - Fitting model 'XGBoost'.
+2024-12-01 16:12:01 - Analyzer Log - Fitting 'XGBoost'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-01 16:12:23 - Analyzer Log - Successfully evaluated model 'XGBoost'.
+2024-12-01 16:12:41 - Analyzer Log - Engineered feature 'TotalArea' = 'GrLivArea' + 'TotalBsmtSF'.
+2024-12-01 16:12:43 - Analyzer Log - Engineered feature 'TotalRooms' = 'BedroomAbvGr' + 'FullBath' + 'HalfBath'.
+2024-12-01 16:12:44 - Analyzer Log - Engineered feature 'Age' = 'YrSold' - 'YearBuilt'.

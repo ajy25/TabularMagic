@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
 from typing import Literal, Any
 from ...data.datahandler import DataHandler, DataEmitter
 from ...metrics.visualization import decrease_font_sizes_axs
@@ -65,15 +64,15 @@ class _SingleDatasetLogitReport:
         self._y_pred_score = np.clip(self._y_pred_score, eps, 1 - eps)
         self._y_pred_logit = np.log(self._y_pred_score / (1 - self._y_pred_score))
 
-        self._y_pred = self.scorer._y_pred
-        self._y_true = self.scorer._y_true
+        self._y_pred = np.array(self.scorer._y_pred)
+        self._y_true = np.array(self.scorer._y_true)
 
         # response residuals
         self._residuals = self._y_true - self._y_pred_score
 
         # Pearson residuals
         self._stdresiduals = self._residuals / np.sqrt(
-            self._y_pred_score * (1 - self._y_pred_score)
+            self._y_pred_score * (1 - self._y_pred_score) + eps
         )
 
         self._outlier_threshold = 2

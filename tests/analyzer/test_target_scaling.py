@@ -8,8 +8,8 @@ parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(parent_dir))
 
 
-import tabularmagic as tm
-from tabularmagic._src.data.preprocessing import (
+import tablemage as tm
+from tablemage._src.data.preprocessing import (
     MinMaxSingleVar,
     StandardizeSingleVar,
     LogTransformSingleVar,

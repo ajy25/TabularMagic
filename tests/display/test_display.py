@@ -5,7 +5,7 @@ parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(parent_dir))
 
 
-from tabularmagic._src.display.print_utils import (
+from tablemage._src.display.print_utils import (
     len_ignore_format,
     color_text,
     bold_text,

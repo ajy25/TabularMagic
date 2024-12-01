@@ -11,7 +11,7 @@ parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(parent_dir))
 
 
-import tabularmagic as tm
+import tablemage as tm
 
 SAMPLE_SIZE = 100
 

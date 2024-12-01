@@ -14,7 +14,7 @@ from .._src.agents.single_agent import SingleAgent
 from .._src.options import options
 
 
-class Wizard:
+class Mage:
     """Class for interacting with the LLMs for data analysis on tabular data."""
 
     def __init__(
@@ -23,7 +23,7 @@ class Wizard:
         df_test: pd.DataFrame | None = None,
         test_size: float = 0.2,
     ):
-        """Initializes the Wizard object.
+        """Initializes the Mage object.
 
         Parameters
         ----------

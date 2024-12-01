@@ -8,7 +8,7 @@ import sys
 parent_dir = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(parent_dir))
 
-from tabularmagic._src.data.datahandler import (
+from tablemage._src.data.datahandler import (
     DataHandler,
 )
 

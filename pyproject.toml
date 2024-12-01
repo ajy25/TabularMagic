@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "tabularmagic"
+name = "tablemage"
 version = "0.1.0a1"
 description = "A Python package for low-code analysis of tabular data"
 authors = [
@@ -49,6 +49,5 @@ Homepage = "https://tabularmagic.readthedocs.io/"
 
 [tool.hatch.metadata]
 packages = [
-    {include = "tabularmagic"},
-    {include = "tabularwizard"}
+    {include = "tablemage"}
 ]

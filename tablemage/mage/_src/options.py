@@ -36,30 +36,44 @@ class _WizardOptions:
     def set_llm(
         self,
         llm_type: Literal["openai", "groq", "ollama", "togetherai"],
-        temperature: float = 0.3,
+        model_name: str | None = None,
+        temperature: float = 0.0,
     ) -> None:
         """Sets the LLM type.
 
         Parameters
         ----------
-        llm_type : Literal["openai", "groq"]
+        llm_type : Literal["openai", "groq", "ollama", "togetherai"]
             The type of LLM to use.
+
+        model_name : str, optional
+            The name of the model to use, by default None.
+            If None, the default model for llm_type will be used.
+
+        temperature : float, optional
+            The temperature to use for the LLM, by default 0.0.
         """
         if llm_type == "openai":
             if not key_exists("openai"):
                 raise ValueError("OpenAI API key not found in .env file.")
-            self._llm_build_function = partial(build_openai, temperature=temperature)
+            self._llm_build_function = partial(
+                build_openai, temperature=temperature, model=model_name
+            )
         elif llm_type == "groq":
             if not key_exists("groq"):
                 raise ValueError("GROQ API key not found in .env file.")
-            self._llm_build_function = partial(build_groq, temperature=temperature)
+            self._llm_build_function = partial(
+                build_groq, temperature=temperature, model=model_name
+            )
         elif llm_type == "ollama":
-            self._llm_build_function = partial(build_ollama, temperature=temperature)
+            self._llm_build_function = partial(
+                build_ollama, temperature=temperature, model=model_name
+            )
         elif llm_type == "togetherai":
             if not key_exists("togetherai"):
                 raise ValueError("TogetherAI API key not found in .env file.")
             self._llm_build_function = partial(
-                build_togetherai, temperature=temperature
+                build_togetherai, temperature=temperature, model=model_name
             )
         else:
             raise ValueError("Invalid LLM type specified.")

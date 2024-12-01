@@ -186,7 +186,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
         if is_numeric(expression, df):
             return df[[expression]]
         else:
-            output = pd.get_dummies(df[[expression]], drop_first=True)
+            output = pd.get_dummies(df[[expression]], drop_first=True, prefix_sep="::")
             return output.astype(int)
 
 

@@ -495,7 +495,7 @@ class Analyzer:
 
         else:
             try:
-                y_series_train, y_scaler, X_df_train = parse_and_transform_rlike(
+                y_series_train, _, X_df_train = parse_and_transform_rlike(
                     formula, self._datahandler.df_train()
                 )
                 y_series_test, _, X_df_test = parse_and_transform_rlike(
@@ -523,7 +523,6 @@ class Analyzer:
             datahandler = DataHandler(
                 y_X_df_combined_train, y_X_df_combined_test, verbose=False
             )
-            datahandler.add_scaler(y_scaler, target)
 
             # decide between binary and multinomial logit
             df_all = datahandler.df_all()
@@ -1125,6 +1124,26 @@ class Analyzer:
             The categorical variables.
         """
         return self._datahandler.categorical_vars()
+
+    def shape(self, dataset: Literal["train", "test"]) -> tuple[int, int]:
+        """Returns the shape of the working train DataFrame.
+
+        Parameters
+        ----------
+        dataset : Literal['train', 'test']
+            The dataset to get the shape of.
+
+        Returns
+        -------
+        tuple[int, int]
+            The shape of the working DataFrame.
+        """
+        if dataset == "train":
+            return self._datahandler._working_df_train.shape
+        elif dataset == "test":
+            return self._datahandler._working_df_test.shape
+        else:
+            raise ValueError(f"Invalid input: dataset = {dataset}.")
 
     # --------------------------------------------------------------------------
     # MAGIC METHODS

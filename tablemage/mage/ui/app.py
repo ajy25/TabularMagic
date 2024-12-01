@@ -11,6 +11,8 @@ sys.path.append(path_to_add)
 
 
 from tablemage.mage.api import Mage
+from tablemage.mage._src.options import options
+
 
 from tablemage.mage._src.io.canvas import (
     CanvasCode,
@@ -20,23 +22,25 @@ from tablemage.mage._src.io.canvas import (
 )
 
 
-wizard: Mage = None
+options.set_llm("groq", temperature=0)
+
+mage: Mage = None
 
 
 def chat(msg: str) -> str:
     """
     Chat function that processes natural language queries on the uploaded dataset.
     """
-    global wizard
-    if wizard is None:
+    global mage
+    if mage is None:
         return "No dataset uploaded. Please upload a dataset first."
 
     else:
-        return wizard.chat(msg, which="single")
+        return mage.chat(msg, which="single")
 
 
 def get_analysis():
-    return wizard._canvas_queue.get_analysis()
+    return mage._canvas_queue.get_analysis()
 
 
 # Initialize Flask app
@@ -53,7 +57,7 @@ def upload_dataset():
     """
     Handle dataset upload and store it for the chat function.
     """
-    global wizard
+    global mage
     if "file" not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
     file = request.files["file"]
@@ -72,7 +76,7 @@ def upload_dataset():
     try:
         # Read the uploaded CSV file
         uploaded_data = pd.read_csv(file, index_col=0)
-        wizard = Mage(uploaded_data, test_size=test_size)
+        mage = Mage(uploaded_data, test_size=test_size)
 
         return jsonify({"message": "Dataset uploaded successfully"}), 200
     except Exception as e:
@@ -93,7 +97,7 @@ def get_analysis_history():
     """
     Retrieve the current analysis history (figures, tables, thoughts, code).
     """
-    if wizard is None:
+    if mage is None:
         return (
             jsonify({"error": "No dataset uploaded. Please upload a dataset first."}),
             400,
@@ -152,7 +156,7 @@ def serve_file(filename):
     """
     Serve static files (figures) from the analysis queue.
     """
-    if wizard is None:
+    if mage is None:
         return (
             jsonify({"error": "No dataset uploaded. Please upload a dataset first."}),
             400,

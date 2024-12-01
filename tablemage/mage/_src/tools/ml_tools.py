@@ -109,11 +109,8 @@ class _MLRegressionInput(BaseModel):
         description="The target variable, i.e. the variable to predict."
     )
     predictors: str = Field(
-        description="""A comma delimited string of variables used by the models 
-        to predict the target.
-
-        An example input (without the quotes) is: `var1, var2, var3`.
-        """
+        description="A comma delimited string of variables used by the models to predict the target. "
+        "An example input (without the quotes) is: `var1, var2, var3`."
     )
 
 
@@ -127,14 +124,12 @@ def _ml_regression_function(
     predictors_list = parse_predictor_list_from_str(predictors)
     print_debug("_ml_regression_function Target: " + target)
     print_debug("_ml_regression_function Predictors: " + str(predictors_list))
-    report = context._data_container.analyzer.regress(
-        models=models_list, target=target, predictors=predictors_list
-    )
 
     context.add_thought(
         "I am going to predict {target} with {predictors} using models {models}.".format(
             target=target, predictors=", ".join(predictors_list), models=models_list_str
         )
+        + " This might take a while."
     )
 
     models_str_code = ", ".join(models_list_code)
@@ -145,6 +140,10 @@ def _ml_regression_function(
             target=target,
             predictors="', '".join(predictors_list),
         )
+    )
+
+    report = context._data_container.analyzer.regress(
+        models=models_list, target=target, predictors=predictors_list
     )
 
     context.add_table(table=report.metrics("both"), add_to_vectorstore=False)
@@ -184,11 +183,8 @@ class _MLClassificationInput(BaseModel):
         description="The target variable, i.e. the variable to predict."
     )
     predictors: str = Field(
-        description="""A comma delimited string of variables used by the models 
-        to predict the target.
-
-        An example input (without the quotes) is: `var1, var2, var3`.
-        """
+        description="A comma delimited string of variables used by the models to predict the target. "
+        "An example input (without the quotes) is: `var1, var2, var3`."
     )
 
 
@@ -212,20 +208,19 @@ def _ml_classification_function(
         "I am going to predict {target} with {predictors} using models {models}.".format(
             target=target, predictors=", ".join(predictors_list), models=models_list_str
         )
+        + " This might take a while."
     )
-
-    report = context._data_container.analyzer.classify(
-        models=models_list, target=target, predictors=predictors_list
-    )
-
     models_str_code = ", ".join(models_list_code)
-
     context.add_code(
         "analyzer.classify(models=[{models_str_code}], target='{target}', predictors=['{predictors}'])".format(
             models_str_code=models_str_code,
             target=target,
             predictors="', '".join(predictors_list),
         )
+    )
+
+    report = context._data_container.analyzer.classify(
+        models=models_list, target=target, predictors=predictors_list
     )
 
     context.add_table(table=report.metrics("both"), add_to_vectorstore=False)

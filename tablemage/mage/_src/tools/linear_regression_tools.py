@@ -5,20 +5,37 @@ from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
 
 
+def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
+    return [predictor.strip() for predictor in predictors_str.split(",")]
+
+
 # OLS tool
 class _OLSToolInput(BaseModel):
-    formula: str = Field(
-        description="""Formula for the least squares regression.
-        Target variable must be numeric.
-        For example, y ~ x1 + x2.
-        The formula should be a string."""
+    target: str = Field(
+        description="The target variable, i.e. the variable to predict."
+    )
+
+    predictors: str = Field(
+        description="A comma delimited string of variables used by the models to predict the target. "
+        "An example input (without the quotes) is: `var1, var2, var3`."
     )
 
 
-def _ols_function(formula: str, context: ToolingContext) -> str:
+def _ols_function(target: str, predictors: str, context: ToolingContext) -> str:
     """Performs ordinary least squares regression."""
-    print_debug(f"_ols_function call: " f"formula: {formula}")
-    ols_report = context._data_container.analyzer.ols(formula=formula.strip())
+    print_debug(f"_ols_function call: " f"predictors: {predictors}, target: {target}")
+    context.add_thought(
+        "I am going to perform ordinary least squares regression to predict {target} using the predictors: {predictors}.".format(
+            target=target, predictors=predictors
+        )
+    )
+    context.add_code(
+        f"analyzer.ols(target='{target}', predictors={parse_predictor_list_from_str(predictors)})"
+    )
+
+    ols_report = context._data_container.analyzer.ols(
+        target=target.strip(), predictors=parse_predictor_list_from_str(predictors)
+    )
     print_debug(f"summary: {str(ols_report)}")
     context.add_table(ols_report.metrics("both"), add_to_vectorstore=False)
     context.add_table(ols_report.coefs(), add_to_vectorstore=False)
@@ -43,18 +60,31 @@ def build_ols_tool(context: ToolingContext) -> FunctionTool:
 
 # Logit tool
 class _LogitToolInput(BaseModel):
-    formula: str = Field(
-        description="""Formula for the logistic regression.
-        Target variable must be categorical.
-        For example, y ~ x1 + x2.
-        The formula should be a string."""
+    target: str = Field(
+        description="The target variable, i.e. the variable to predict."
+    )
+    predictors: str = Field(
+        description="A comma delimited string of variables used by the models to predict the target. "
+        "An example input (without the quotes) is: `var1, var2, var3`."
     )
 
 
-def _logit_function(formula: str, context: ToolingContext) -> str:
+def _logit_function(target: str, predictors: str, context: ToolingContext) -> str:
     """Performs logistic regression."""
-    print_debug(f"_logit_function call: " f"formula: {formula}")
-    logit_report = context._data_container.analyzer.logit(formula=formula.strip())
+    print_debug(f"_logit_function call: " f"predictors: {predictors}, target: {target}")
+    context.add_thought(
+        "I am going to perform logistic regression to predict {target} using the predictors: {predictors}.".format(
+            target=target, predictors=predictors
+        )
+    )
+    context.add_code(
+        "analyzer.logit(target='{target}', predictors={predictors})".format(
+            target=target, predictors=str(parse_predictor_list_from_str(predictors))
+        )
+    )
+    logit_report = context._data_container.analyzer.logit(
+        target=target.strip(), predictors=parse_predictor_list_from_str(predictors)
+    )
     context.add_table(logit_report.metrics("both"), add_to_vectorstore=False)
     context.add_table(logit_report.coefs(), add_to_vectorstore=False)
     output_str = context.add_dict(logit_report._to_dict())

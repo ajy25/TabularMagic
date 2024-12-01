@@ -15,6 +15,11 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 WIZARD_LOGGER.addHandler(handler)
 
+# let's add sys.stderr to the logger
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_handler.setLevel(logging.DEBUG)
+WIZARD_LOGGER.addHandler(stream_handler)
+
 
 def print_debug(message: str):
     WIZARD_LOGGER.debug(message)

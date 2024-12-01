@@ -12,6 +12,10 @@ class PandasQueryInput(BaseModel):
 
 
 def pandas_query_function(query: str, context: ToolingContext) -> str:
+    context.add_thought(
+        "I am going to query the dataset with the following natural language query: "
+        f"{query}."
+    )
     response = context._data_container.pd_query_engine.query(query)
     return str(response)
 
@@ -32,6 +36,15 @@ class _BlankInput(BaseModel):
 
 
 def _dataset_summary_function(context: ToolingContext) -> str:
+    context.add_thought(
+        "I am going to obtain a summary of the dataset, which includes the shape of the training and test datasets, "
+        "as well as the numeric and categorical variables in the dataset."
+    )
+    context.add_code("analyzer.shape('train')")
+    context.add_code("analyzer.shape('test')")
+    context.add_code("analyzer.numeric_vars()")
+    context.add_code("analyzer.categorical_vars()")
+    context._data_container.analyzer
     output_dict = {}
     output_dict["train_shape"] = (
         context._data_container.analyzer.datahandler().df_train().shape

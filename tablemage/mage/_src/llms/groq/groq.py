@@ -5,7 +5,7 @@ from ..api_key_utils import find_key
 
 
 def build_groq(
-    model: str = "llama-3.1-70b-versatile", temperature: float = 0.0
+    model: str | None = None, temperature: float = 0.0
 ) -> Groq:
     """Builds a Groq object using LlamaIndex.
     If no Groq API key is found in the .env file, raises a ValueError.
@@ -24,8 +24,9 @@ def build_groq(
     Groq
         An Groq object from LlamaIndex.
     """
+    if model is None:
+        model = "llama-3.1-70b-versatile"
     api_key = find_key("groq")
     if not api_key:
         raise ValueError("No Groq API key found in .env file")
-
     return Groq(model=model, temperature=temperature, api_key=api_key)

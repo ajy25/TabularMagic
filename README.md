@@ -81,6 +81,10 @@ Check out the `./demo` directory for detailed examples and discussion of other f
 
 ## Quick start (no-code)
 
+First, you'll need to add a `.env` file to the cloned directory. 
+You can copy and post the existing `.env_template`. 
+Then, provide the relevant API key(s).
+
 You can open up a chat user interface by running the following code and clicking on the URL that appears in the terminal.
 Your conversation with the AI agent appears on the left, while the AI agent's analyses (figures made, tables produced, TableMage commands used) appear on the right.
 

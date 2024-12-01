@@ -85,6 +85,7 @@ def _logit_function(target: str, predictors: str, context: ToolingContext) -> st
     logit_report = context._data_container.analyzer.logit(
         target=target.strip(), predictors=parse_predictor_list_from_str(predictors)
     )
+    print_debug(f"_logit_function call finished")
     context.add_table(logit_report.metrics("both"), add_to_vectorstore=False)
     context.add_table(logit_report.coefs(), add_to_vectorstore=False)
     output_str = context.add_dict(logit_report._to_dict())

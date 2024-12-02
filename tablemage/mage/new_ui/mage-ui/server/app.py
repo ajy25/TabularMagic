@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
-# Add the project root to Python path
- # Adjust the number based on directory depth
+import matplotlib
+matplotlib.use('Agg')
 
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
@@ -142,6 +142,8 @@ def get_analysis_history():
         for item in analysis_items:
             if isinstance(item, CanvasFigure):
                 path_obj = Path(item.path)
+                print(f"Sending figure info to frontend: {path_obj.name}")  # Debug print
+
                 items.append({
                     "file_name": path_obj.name,
                     "file_type": "figure",
@@ -178,8 +180,14 @@ def serve_file(filename):
 
     analysis_items = get_analysis()
     for item in analysis_items:
+        print(f"Requested filename: {filename}")  # Debug print
         if isinstance(item, CanvasFigure) and item._path.name == filename:
+            print(f"Checking figure path: {item._path}")  # Debug print
+            print(f"Figure path name: {item._path.name}")  # Debug print
             file_path = item._path
+            print(f"Found matching file: {file_path}")  # Debug print
+            print(f"File exists: {file_path.exists()}")  # Debug print
+                
             if file_path.exists():
                 return send_file(file_path)
 

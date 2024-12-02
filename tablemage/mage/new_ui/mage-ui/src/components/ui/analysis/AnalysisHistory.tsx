@@ -26,7 +26,7 @@ export default function AnalysisHistory({ items }: AnalysisHistoryProps) {
               <Card key={index} className="p-4 bg-white shadow-sm">
                 {item.file_type === 'figure' && (
                   <img
-                    src={`/api/analysis/file/${item.file_name}`}
+                    src={`/@_img_store/${item.file_name}`}
                     alt="Analysis Figure"
                     className="max-w-full rounded-lg"
                   />

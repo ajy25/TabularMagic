@@ -26,9 +26,14 @@ export default function AnalysisHistory({ items }: AnalysisHistoryProps) {
               <Card key={index} className="p-4 bg-white shadow-sm">
                 {item.file_type === 'figure' && (
                   <img
-                    src={`/@_img_store/${item.file_name}`}
+                    src={`http://localhost:5005/api/analysis/file/${item.file_name}`}
                     alt="Analysis Figure"
                     className="max-w-full rounded-lg"
+                    onError={(e) => {
+                        console.error('Error loading image:', e);
+                        // Optional: show the actual path that failed
+                        console.log('Failed image path:', e.currentTarget.src);
+                      }}
                   />
                 )}
                 

@@ -4,7 +4,18 @@ from functools import partial
 from typing import Literal
 from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
-from ....ml import LinearC, LinearR, SVMC, SVMR, TreesC, TreesR, MLPC, MLPR
+from ....ml import (
+    LinearC,
+    LinearR,
+    SVMC,
+    SVMR,
+    TreesC,
+    TreesR,
+    MLPC,
+    MLPR,
+    GMMClust,
+    KMeansClust,
+)
 from ...._base import BaseC, BaseR
 from ....fs import (
     BorutaFSC,
@@ -12,10 +23,13 @@ from ....fs import (
     KBestFSC,
     KBestFSR,
 )
+from ..._src.options import options
 
 
 def parse_model_list_from_str(
-    models_str: str, type: Literal["classification", "regression"], n_jobs: int = 4
+    models_str: str,
+    type: Literal["classification", "regression"],
+    n_jobs: int = options._cpu_count,
 ) -> tuple[list[BaseC] | list[BaseR], list[str]]:
     list_of_models = [model_str.strip() for model_str in models_str.split(",")]
     output = []
@@ -78,7 +92,6 @@ def parse_model_list_from_str(
                 output_code.append(f"MLPC(name='MLP', n_jobs={n_jobs})")
             else:
                 raise ValueError(f"Invalid model specification: {model_str}")
-
     else:
         raise ValueError(f"Invalid ML problem type: {type}")
 
@@ -302,10 +315,6 @@ def _feature_selection_function(
             else f"KBestFSR(k={k}, scorer='f_regression')"
         )
 
-    report = context._data_container.analyzer.select_features(
-        feature_selectors=[fs], target=target, predictors=predictors_list
-    )
-
     context.add_thought(
         "I am going to select features to predict {target} with {predictors} using the {feature_selector} method.".format(
             target=target,
@@ -320,6 +329,10 @@ def _feature_selection_function(
             target=target,
             predictors="', '".join(predictors_list),
         )
+    )
+
+    report = context._data_container.analyzer.select_features(
+        feature_selectors=[fs], target=target, predictors=predictors_list
     )
 
     output_str = context.add_dict(report._to_dict())
@@ -337,4 +350,112 @@ def build_feature_selection_tool(context: ToolingContext) -> FunctionTool:
         If a category is selected, the output would be `<variable_name>::<category>`.
         """,
         fn_schema=_FeatureSelectionInput,
+    )
+
+
+class _ClusteringInput(BaseModel):
+    features: str = Field(
+        description="""A comma delimited string of variables to use for clustering.
+        An example input (without the quotes) is: `var1, var2, var3`.
+        """
+    )
+    model: str = Field(
+        description="""The available models are (in `Model Name`: Description format)...
+
+        1. `KMeans`: KMeans clustering
+        2. `GMM`: Gaussian mixture model clustering
+
+        An example input (without the quotes) is: `KMeans`.
+        """
+    )
+    n_clusters: int = Field(
+        description="The number of clusters to create. An example input (without the quotes) is: `5`. "
+        "If left blank (empty str), the optimal number of clusters will be automatically determined."
+    )
+    max_n_clusters: int = Field(
+        description="The maximum number of clusters to test. An example input (without the quotes) is: `10`. "
+        "This is only used if `n_clusters` is left blank (empty str). Leave blank if `n_clusters` is specified."
+    )
+    vis_type: str = Field(
+        description="""The type of visualization to use. The available types are...
+
+        1. `PCA`: Principal component analysis
+        2. `TSNE`: t-distributed stochastic neighbor embedding
+
+        An example input (without the quotes) is: `PCA`.
+        """
+    )
+
+
+def _clustering_function(
+    features: str,
+    model: str,
+    n_clusters: int,
+    max_n_clusters: int,
+    vis_type: str,
+    context: ToolingContext,
+) -> str:
+    """Clustering function."""
+
+    n_clusters = int(n_clusters) if n_clusters != "" else None
+    max_n_clusters = int(max_n_clusters) if max_n_clusters != "" else 10
+
+    print_debug("_clustering_function called")
+    print_debug("_clustering_function Features: " + features)
+    print_debug("_clustering_function Model: " + model)
+    print_debug("_clustering_function Number of clusters: " + str(n_clusters))
+    print_debug("_clustering_function Max number of clusters: " + str(max_n_clusters))
+
+    features_list = parse_predictor_list_from_str(features)
+    print_debug("_clustering_function Features: " + str(features_list))
+
+    if model == "KMeans":
+        clust = KMeansClust(k=n_clusters, max_k=max_n_clusters)
+        clust_code = f"KMeansClust(k={n_clusters}, max_k={max_n_clusters})"
+    elif model == "GMM":
+        clust = GMMClust(n_components=n_clusters, max_n_components=max_n_clusters)
+        clust_code = (
+            f"GMMClust(n_components={n_clusters}, max_n_components={max_n_clusters})"
+        )
+    else:
+        raise ValueError(f"Invalid clustering model: {model}")
+
+    context.add_thought(
+        "I am going to cluster the data using the {model} model with {n_clusters} clusters.".format(
+            model=model, n_clusters=n_clusters
+        )
+    )
+
+    context.add_code(
+        "analyzer.cluster(models=[{clust_code}], features=['{features}'])".format(
+            clust_code=clust_code, features="', '".join(features_list)
+        )
+    )
+
+    report = context._data_container.analyzer.cluster(
+        models=[clust], features=features_list
+    )
+
+    output_str = context.add_figure(
+        fig=report.plot_clusters(
+            model_id=clust._name,
+            dim_reduction_method="pca" if vis_type == "PCA" else "tsne",
+        ),
+        text_description="{vistype} clustering visualization of the data, considering the features {features}.".format(
+            vistype=vis_type, features=", ".join(features_list)
+        ),
+    )
+
+    return output_str
+
+
+def build_clustering_tool(context: ToolingContext) -> FunctionTool:
+    return FunctionTool.from_defaults(
+        fn=partial(_clustering_function, context=context),
+        name="clustering_tool",
+        description="""Performs clustering with a specified method. 
+        Clusters the data using a list of variables. 
+        Returns a figure showing the clusters.
+        """,
+        fn_schema=_ClusteringInput,
     )

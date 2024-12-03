@@ -32,6 +32,10 @@ TableMage is built with the standard Python data science stack (scikit-learn, sc
 For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. 
 TableMage requires Python version 3.10 or later.
 
+**Note for MacOS:** You'll likely run into an error when installing XGBoost, one of the dependencies for TableMage.
+Specifically, you need to install libomp: `brew install libomp`. This requries Homebrew installation.
+Then, reinstall XGBoost with `pip uninstall xgboost` followed by `pip install xgboost`.
+
 ## Quick start (low-code)
 
 You'll probably use TableMage for ML model benchmarking. Here's how to do it.
@@ -82,8 +86,8 @@ Check out the `./demo` directory for detailed examples and discussion of other f
 ## Quick start (no-code)
 
 First, you'll need to add a `.env` file to the cloned directory. 
-You can copy and post the existing `.env_template`. 
-Then, provide the relevant API key(s).
+Copy and paste the existing `./.env_template`, and fill in the relevant API key(s).
+If you're using Ollama for LLM inference, simply have the Ollama app running in the background.
 
 You can open up a chat user interface by running the following code and clicking on the URL that appears in the terminal.
 Your conversation with the AI agent appears on the left, while the AI agent's analyses (figures made, tables produced, TableMage commands used) appear on the right.

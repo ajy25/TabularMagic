@@ -12,7 +12,7 @@ class _TestEqualMeansInput(BaseModel):
         description="The categorical variable that defines the groups/levels."
     )
     numeric_var: str = Field(
-        description="The numeric variable to test between the groups/levels."
+        description="The numeric variable of interest to test the means of."
     )
 
 
@@ -43,7 +43,7 @@ def build_test_equal_means_tool(context: ToolingContext) -> FunctionTool:
         name="test_equal_means_tool",
         description="""Tests whether the means of a numeric variable are equal across the different levels of a categorical variable.
         The null hypothesis is that the means are equal.
-        This tool will automatically determine the correct statistical test to conduct.
+        This tool will automatically determine the correct statistical test (e.g. t-test, ANOVA, etc.) to conduct.
         Returns a JSON string containing results and which test used.""",
         fn_schema=_TestEqualMeansInput,
     )
@@ -69,8 +69,7 @@ def build_plot_distribution_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_plot_distribution_function, context=context),
         name="plot_distribution_tool",
-        description="""Plots the distribution of variable.
-        The text description will be returned.""",
+        description="""Plots the distribution of a variable.""",
         fn_schema=_PlotDistributionInput,
     )
 

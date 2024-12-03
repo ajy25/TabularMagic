@@ -21,9 +21,6 @@ from tablemage.mage._src.io.canvas import (
     CanvasThought,
 )
 
-
-options.set_llm("groq", temperature=0)
-
 mage: Mage = None
 
 
@@ -178,4 +175,4 @@ class App:
         self.app = app
 
     def run(self, debug: bool = False):
-        self.app.run(debug=debug)
+        self.app.run(host="0.0.0.0", debug=debug)

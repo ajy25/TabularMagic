@@ -11,6 +11,7 @@ from ..tools.ml_tools import (
     build_ml_regression_tool,
     build_ml_classification_tool,
     build_feature_selection_tool,
+    build_clustering_tool,
 )
 from ..tools.eda_tools import (
     build_test_equal_means_tool,
@@ -28,8 +29,6 @@ from ..tools.transform_tools import (
     build_engineer_feature_tool,
     build_impute_tool,
     build_scale_tool,
-    build_load_state_tool,
-    build_save_state_tool,
     build_onehot_encode_tool,
     build_revert_to_original_tool,
 )
@@ -86,10 +85,9 @@ def build_agent(
         build_engineer_feature_tool(context),
         build_impute_tool(context),
         build_scale_tool(context),
-        build_load_state_tool(context),
-        build_save_state_tool(context),
         build_onehot_encode_tool(context),
         build_revert_to_original_tool(context),
+        build_clustering_tool(context),
     ]
     obj_index = ObjectIndex.from_objects(
         tools,

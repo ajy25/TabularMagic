@@ -1,5 +1,6 @@
 from typing import Literal, Callable
 from functools import partial
+import os
 from ._debug.logger import print_debug
 from .llms.groq.groq import build_groq
 from .llms.openai.openai import build_openai, build_openai_multimodal
@@ -11,8 +12,13 @@ from .llms.api_key_utils import key_exists
 class _WizardOptions:
 
     def __init__(self):
+
         self._multimodal_llm_build_function = None
         self._llm_build_function = None
+
+        self._cpu_count = os.cpu_count()
+        if self._cpu_count is None:
+            self._cpu_count = 1
 
         if key_exists("openai"):
             self._llm_build_function = build_openai
@@ -59,11 +65,19 @@ class _WizardOptions:
             self._llm_build_function = partial(
                 build_openai, temperature=temperature, model=model_name
             )
+            print_debug(
+                "OpenAI LLM build function has been set to: "
+                + str(self._llm_build_function)
+            )
         elif llm_type == "groq":
             if not key_exists("groq"):
                 raise ValueError("GROQ API key not found in .env file.")
             self._llm_build_function = partial(
                 build_groq, temperature=temperature, model=model_name
+            )
+            print_debug(
+                "GROQ LLM build function has been set to: "
+                + str(self._llm_build_function)
             )
         elif llm_type == "ollama":
             self._llm_build_function = partial(
@@ -77,6 +91,21 @@ class _WizardOptions:
             )
         else:
             raise ValueError("Invalid LLM type specified.")
+
+    def set_multimodal_llm(self, llm_type: Literal["openai"]) -> None:
+        """Sets the multimodal LLM type.
+
+        Parameters
+        ----------
+        llm_type : Literal["openai"]
+            The type of multimodal LLM to use.
+        """
+        if llm_type == "openai":
+            if not key_exists("openai"):
+                raise ValueError("OpenAI API key not found in .env file.")
+            self._multimodal_llm_build_function = build_openai_multimodal
+        else:
+            raise ValueError("Invalid multimodal LLM type specified.")
 
     @property
     def llm_build_function(self) -> Callable:

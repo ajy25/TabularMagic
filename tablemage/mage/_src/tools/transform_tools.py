@@ -68,6 +68,8 @@ class _DropHighlyMissingVarsInput(BaseModel):
 def drop_highly_missing_vars_function(
     threshold: float, ignore_vars: str, context: ToolingContext
 ) -> str:
+    threshold = float(threshold)
+
     context.add_thought(
         "I am going to drop columns with a proportion of missing values above the threshold "
         f"{threshold}."

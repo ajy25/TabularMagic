@@ -1,13 +1,13 @@
-2024-12-01 16:10:37 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting model 'OLS'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting 'OLS'. Search method: GridSearchCV (1 fits per fold, 5 total fits). 
-2024-12-01 16:12:00 - Analyzer Log - Successfully evaluated model 'OLS'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting model 'Lasso'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting 'Lasso'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-12-01 16:12:01 - Analyzer Log - Successfully evaluated model 'Lasso'.
-2024-12-01 16:12:01 - Analyzer Log - Fitting model 'XGBoost'.
-2024-12-01 16:12:01 - Analyzer Log - Fitting 'XGBoost'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-12-01 16:12:23 - Analyzer Log - Successfully evaluated model 'XGBoost'.
-2024-12-01 16:12:41 - Analyzer Log - Engineered feature 'TotalArea' = 'GrLivArea' + 'TotalBsmtSF'.
-2024-12-01 16:12:43 - Analyzer Log - Engineered feature 'TotalRooms' = 'BedroomAbvGr' + 'FullBath' + 'HalfBath'.
-2024-12-01 16:12:44 - Analyzer Log - Engineered feature 'Age' = 'YrSold' - 'YearBuilt'.
+2024-12-03 00:38:09 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-03 00:40:55 - Analyzer Log - Fitting model 'KMeansClust(5)'.
+2024-12-03 00:40:55 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
+2024-12-03 00:40:55 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
+2024-12-03 00:42:22 - Analyzer Log - Engineered feature 'TotalSquareFootage' = '1stFlrSF' + '2ndFlrSF' + 'BsmtFinSF1' + 'BsmtFinSF2' + 'TotalBsmtSF' + 'WoodDeckSF' + 'OpenPorchSF' + 'EnclosedPorch' + 'ScreenPorch'.
+2024-12-03 00:44:28 - Analyzer Log - Feature 'YearBuilt' already exists. Overwriting.
+2024-12-03 00:44:28 - Analyzer Log - Engineered feature 'YearBuilt' = 'YearBuilt'.
+2024-12-03 00:44:56 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).
+2024-12-03 00:47:04 - Analyzer Log - Fitting model 'RF'.
+2024-12-03 00:47:04 - Analyzer Log - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-03 00:48:02 - Analyzer Log - Successfully evaluated model 'RF'.
+2024-12-03 00:49:32 - Analyzer Log - Fitting 'KBestFSR(f_regression)'.
+2024-12-03 00:49:53 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).

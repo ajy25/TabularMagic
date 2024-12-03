@@ -1,44 +1,439 @@
-2024-12-01 16:10:21 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x16f689080> and multimodal LLM build function: <function build_openai_multimodal at 0x16fffcd60>
-2024-12-01 16:10:37 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-01 16:10:37 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-12-01 16:10:37 - Wizard Log - IO initialized.
-2024-12-01 16:10:37 - Wizard Log - Initializing the Orchestrator.
-2024-12-01 16:10:37 - Wizard Log - Building EDA agent
-2024-12-01 16:10:37 - Wizard Log - Building Linear Regression agent
-2024-12-01 16:10:37 - Wizard Log - Building ML agent
-2024-12-01 16:10:37 - Wizard Log - Initializing Orchestrator agent...
-2024-12-01 16:10:37 - Wizard Log - Orchestrator agent initialized.
-2024-12-01 16:10:37 - Wizard Log - Initializing SingleAgent
-2024-12-01 16:10:37 - Wizard Log - SingleAgent initialized
-2024-12-01 16:10:43 - Wizard Log - Adding dictionary to storage.
-2024-12-01 16:10:43 - Wizard Log - Added dictionary without description. First 20 characters: {"train_shape": [116.
-2024-12-01 16:11:27 - Wizard Log - Adding table to storage.
-2024-12-01 16:11:27 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl
+2024-12-03 00:37:57 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x175789120> and multimodal LLM build function: <function build_openai_multimodal at 0x176200ea0>
+2024-12-03 00:38:09 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-03 00:38:09 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-12-03 00:38:09 - Wizard Log - IO initialized.
+2024-12-03 00:38:09 - Wizard Log - Initializing the Orchestrator.
+2024-12-03 00:38:09 - Wizard Log - Building EDA agent
+2024-12-03 00:38:09 - Wizard Log - Building Linear Regression agent
+2024-12-03 00:38:09 - Wizard Log - Building ML agent
+2024-12-03 00:38:09 - Wizard Log - Initializing Orchestrator agent...
+2024-12-03 00:38:09 - Wizard Log - Orchestrator agent initialized.
+2024-12-03 00:38:09 - Wizard Log - Initializing SingleAgent
+2024-12-03 00:38:10 - Wizard Log - SingleAgent initialized
+2024-12-03 00:38:22 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:38:22 - Wizard Log - Added dictionary without description. First 20 characters: {"train_shape": [116.
+2024-12-03 00:38:53 - Wizard Log - Adding table to storage.
+2024-12-03 00:38:53 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl
 
 {"1stFlrSF": {"min": 334.0, "max": 4692.0, "mean": 1162.627, "std": 386.588, "variance": 149450.079, "skew": 1.375, "kurtosis": 5.722, "q1": 882.0, "median": 1087.0, "q3": 1391.25, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "2ndFlrSF": {"min": 0.0, "max": 2065.0, "mean": 346.992, "std": 436.528, "variance": 190557.075, "skew": 0.812, "kurtosis": -0.556, "q1": 0.0, "median": 0.0, "q3": 728.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "3SsnPorch": {"min": 0.0, "max": 508.0, "mean": 3.41, "std": 29.317, "variance": 859.506, "skew": 10.294, "kurtosis": 123.235, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BedroomAbvGr": {"min": 0.0, "max": 8.0, "mean": 2.866, "std": 0.816, "variance": 0.665, "skew": 0.212, "kurtosis": 2.219, "q1": 2.0, "median": 3.0, "q3": 3.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtFinSF1": {"min": 0.0, "max": 5644.0, "mean": 443.64, "std": 456.098, "variance": 208025.468, "skew": 1.684, "kurtosis": 11.076, "q1": 0.0, "median": 383.5, "q3": 712.25, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtFinSF2": {"min": 0.0, "max": 1474.0, "mean": 46.549, "std": 161.319, "variance": 26023.908, "skew": 4.251, "kurtosis": 20.04, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtFullBath": {"min": 0.0, "max": 3.0, "mean": 0.425, "std": 0.519, "variance": 0.269, "skew": 0.595, "kurtosis": -0.84, "q1": 0.0, "median": 0.0, "q3": 1.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtHalfBath": {"min": 0.0, "max": 2.0, "mean": 0.058, "std": 0.239, "variance": 0.057, "skew": 4.099, "kurtosis": 16.336, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtUnfSF": {"min": 0.0, "max": 2336.0, "mean": 567.24, "std": 441.867, "variance": 195246.406, "skew": 0.919, "kurtosis": 0.469, "q1": 223.0, "median": 477.5, "q3": 808.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "EnclosedPorch": {"min": 0.0, "max": 552.0, "mean": 21.954, "std": 61.119, "variance": 3735.55, "skew": 3.087, "kurtosis": 10.391, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Fireplaces": {"min": 0.0, "max": 3.0, "mean": 0.613, "std": 0.645, "variance": 0.416, "skew": 0.649, "kurtosis": -0.221, "q1": 0.0, "median": 1.0, "q3": 1.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "FullBath": {"min": 0.0, "max": 3.0, "mean": 1.565, "std": 0.551, "variance": 0.304, "skew": 0.037, "kurtosis": -0.858, "q1": 1.0, "median": 2.0, "q3": 2.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "GarageArea": {"min": 0.0, "max": 1418.0, "mean": 472.98, "std": 213.805, "variance": 45712.51, "skew": 0.18, "kurtosis": 0.91, "q1": 334.5, "median": 480.0, "q3": 576.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "GarageCars": {"min": 0.0, "max": 4.0, "mean": 1.767, "std": 0.747, "variance": 0.558, "skew": -0.342, "kurtosis": 0.216, "q1": 1.0, "median": 2.0, "q3": 2.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "GarageYrBlt": {"min": 1900.0, "max": 2010.0, "mean": 1978.506, "std": 24.69, "variance": 609.583, "skew": -0.649, "kurtosis": -0.421, "q1": 1961.0, "median": 1980.0, "q3": 2002.0, "n_missing": 81, "missing_rate": 0.055, "n": 1460}, "GrLivArea": {"min": 334.0, "max": 5642.0, "mean": 1515.464, "std": 525.48, "variance": 276129.633, "skew": 1.365, "kurtosis": 4.874, "q1": 1129.5, "median": 1464.0, "q3": 1776.75, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "HalfBath": {"min": 0.0, "max": 2.0, "mean": 0.383, "std": 0.503, "variance": 0.253, "skew": 0.675, "kurtosis": -1.077, "q1": 0.0, "median": 0.0, "q3": 1.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "KitchenAbvGr": {"min": 0.0, "max": 3.0, "mean": 1.047, "std": 0.22, "variance": 0.049, "skew": 4.484, "kurtosis": 21.455, "q1": 1.0, "median": 1.0, "q3": 1.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LotArea": {"min": 1300.0, "max": 215245.0, "mean": 10516.828, "std": 9981.265, "variance": 99625649.65, "skew": 12.195, "kurtosis": 202.544, "q1": 7553.5, "median": 9478.5, "q3": 11601.5, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LotFrontage": {"min": 21.0, "max": 313.0, "mean": 70.05, "std": 24.285, "variance": 589.749, "skew": 2.161, "kurtosis": 17.375, "q1": 59.0, "median": 69.0, "q3": 80.0, "n_missing": 259, "missing_rate": 0.177, "n": 1460}, "LowQualFinSF": {"min": 0.0, "max": 572.0, "mean": 5.845, "std": 48.623, "variance": 2364.204, "skew": 9.002, "kurtosis": 82.946, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "MSSubClass": {"min": 20.0, "max": 190.0, "mean": 56.897, "std": 42.301, "variance": 1789.338, "skew": 1.406, "kurtosis": 1.571, "q1": 20.0, "median": 50.0, "q3": 70.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "MasVnrArea": {"min": 0.0, "max": 1600.0, "mean": 103.685, "std": 181.066, "variance": 32784.971, "skew": 2.666, "kurtosis": 10.044, "q1": 0.0, "median": 0.0, "q3": 166.0, "n_missing": 8, "missing_rate": 0.005, "n": 1460}, "MiscVal": {"min": 0.0, "max": 15500.0, "mean": 43.489, "std": 496.123, "variance": 246138.055, "skew": 24.452, "kurtosis": 698.601, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "MoSold": {"min": 1.0, "max": 12.0, "mean": 6.322, "std": 2.704, "variance": 7.31, "skew": 0.212, "kurtosis": -0.407, "q1": 5.0, "median": 6.0, "q3": 8.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "OpenPorchSF": {"min": 0.0, "max": 547.0, "mean": 46.66, "std": 66.256, "variance": 4389.861, "skew": 2.362, "kurtosis": 8.457, "q1": 0.0, "median": 25.0, "q3": 68.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "OverallCond": {"min": 1.0, "max": 9.0, "mean": 5.575, "std": 1.113, "variance": 1.238, "skew": 0.692, "kurtosis": 1.099, "q1": 5.0, "median": 5.0, "q3": 6.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "OverallQual": {"min": 1.0, "max": 10.0, "mean": 6.099, "std": 1.383, "variance": 1.913, "skew": 0.217, "kurtosis": 0.092, "q1": 5.0, "median": 6.0, "q3": 7.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "PoolArea": {"min": 0.0, "max": 738.0, "mean": 2.759, "std": 40.177, "variance": 1614.216, "skew": 14.813, "kurtosis": 222.501, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "SalePrice": {"min": 34900.0, "max": 755000.0, "mean": 180921.196, "std": 79442.503, "variance": 6311111264.297, "skew": 1.881, "kurtosis": 6.51, "q1": 129975.0, "median": 163000.0, "q3": 214000.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "ScreenPorch": {"min": 0.0, "max": 480.0, "mean": 15.061, "std": 55.757, "variance": 3108.889, "skew": 4.118, "kurtosis": 18.372, "q1": 0.0, "median": 0.0, "q3": 0.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "TotRmsAbvGrd": {"min": 2.0, "max": 14.0, "mean": 6.518, "std": 1.625, "variance": 2.642, "skew": 0.676, "kurtosis": 0.874, "q1": 5.0, "median": 6.0, "q3": 7.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "TotalBsmtSF": {"min": 0.0, "max": 6110.0, "mean": 1057.429, "std": 438.705, "variance": 192462.362, "skew": 1.523, "kurtosis": 13.201, "q1": 795.75, "median": 991.5, "q3": 1298.25, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "WoodDeckSF": {"min": 0.0, "max": 857.0, "mean": 94.245, "std": 125.339, "variance": 15709.813, "skew": 1.54, "kurtosis": 2.979, "q1": 0.0, "median": 0.0, "q3": 168.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "YearBuilt": {"min": 1872.0, "max": 2010.0, "mean": 1971.268, "std": 30.203, "variance": 912.215, "skew": -0.613, "kurtosis": -0.442, "q1": 1954.0, "median": 1973.0, "q3": 2000.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "YearRemodAdd": {"min": 1950.0, "max": 2010.0, "mean": 1984.866, "std": 20.645, "variance": 426.233, "skew": -0.503, "kurtosis": -1.272, "q1": 1967.0, "median": 1994.0, "q3": 2004.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "YrSold": {"min": 2006.0, "max": 2010.0, "mean": 2007.816, "std": 1.328, "variance": 1.764, "skew": 0.096, "kurtosis": -1.191, "q1": 2007.0, "median": 2008.0, "q3": 2009.0, "n_missing": 0, "missing_rate": 0.0, "n": 1460}}
-2024-12-01 16:11:58 - Wizard Log - _ml_regression_function called
-2024-12-01 16:11:58 - Wizard Log - _ml_regression_function Models to test: OLS, Lasso, XGBoost
-2024-12-01 16:11:58 - Wizard Log - _ml_regression_function Target: saleprice
-2024-12-01 16:11:58 - Wizard Log - _ml_regression_function Predictors: ['feature1', 'feature2', 'feature3']
-2024-12-01 16:12:00 - Wizard Log - _ml_regression_function called
-2024-12-01 16:12:00 - Wizard Log - _ml_regression_function Models to test: OLS, Lasso, XGBoost
-2024-12-01 16:12:00 - Wizard Log - _ml_regression_function Target: SalePrice
-2024-12-01 16:12:00 - Wizard Log - _ml_regression_function Predictors: ['1stFlrSF', '2ndFlrSF', 'GrLivArea']
-2024-12-01 16:12:00 - Analyzer Log - Fitting model 'OLS'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting 'OLS'. Search method: GridSearchCV (1 fits per fold, 5 total fits). 
-2024-12-01 16:12:00 - Analyzer Log - Successfully evaluated model 'OLS'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting model 'Lasso'.
-2024-12-01 16:12:00 - Analyzer Log - Fitting 'Lasso'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-12-01 16:12:01 - Analyzer Log - Successfully evaluated model 'Lasso'.
-2024-12-01 16:12:01 - Analyzer Log - Fitting model 'XGBoost'.
-2024-12-01 16:12:01 - Analyzer Log - Fitting 'XGBoost'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-12-01 16:12:23 - Analyzer Log - Successfully evaluated model 'XGBoost'.
-2024-12-01 16:12:23 - Wizard Log - Adding table to storage.
-2024-12-01 16:12:23 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl
+2024-12-03 00:38:53 - Wizard Log - Adding table to storage.
+2024-12-03 00:38:53 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl
 
-{"('train', 'rmse')": {"OLS": 51860.48, "Lasso": 51860.686, "XGBoost": 44659.324}, "('train', 'mae')": {"OLS": 34410.2, "Lasso": 34412.215, "XGBoost": 30955.838}, "('train', 'mape')": {"OLS": 0.205, "Lasso": 0.205, "XGBoost": 0.187}, "('train', 'pearsonr')": {"OLS": 0.741, "Lasso": 0.741, "XGBoost": 0.819}, "('train', 'spearmanr')": {"OLS": 0.772, "Lasso": 0.772, "XGBoost": 0.804}, "('train', 'r2')": {"OLS": 0.549, "Lasso": 0.549, "XGBoost": 0.666}, "('train', 'adjr2')": {"OLS": 0.548, "Lasso": 0.548, "XGBoost": 0.665}, "('train', 'n_obs')": {"OLS": 1168.0, "Lasso": 1168.0, "XGBoost": 1168.0}, "('test', 'rmse')": {"OLS": 52452.536, "Lasso": 52465.133, "XGBoost": 52748.742}, "('test', 'mae')": {"OLS": 34984.67, "Lasso": 34998.988, "XGBoost": 35171.612}, "('test', 'mape')": {"OLS": 0.21, "Lasso": 0.21, "XGBoost": 0.214}, "('test', 'pearsonr')": {"OLS": 0.817, "Lasso": 0.817, "XGBoost": 0.808}, "('test', 'spearmanr')": {"OLS": 0.81, "Lasso": 0.81, "XGBoost": 0.812}, "('test', 'r2')": {"OLS": 0.641, "Lasso": 0.641, "XGBoost": 0.637}, "('test', 'adjr2')": {"OLS": 0.638, "Lasso": 0.637, "XGBoost": 0.633}, "('test', 'n_obs')": {"OLS": 292.0, "Lasso": 292.0, "XGBoost": 292.0}}
-2024-12-01 16:12:23 - Wizard Log - Adding dictionary to storage.
-2024-12-01 16:12:23 - Wizard Log - Added dictionary without description. First 20 characters: {"train_metrics": {".
-2024-12-01 16:12:41 - Analyzer Log - Engineered feature 'TotalArea' = 'GrLivArea' + 'TotalBsmtSF'.
-2024-12-01 16:12:43 - Analyzer Log - Engineered feature 'TotalRooms' = 'BedroomAbvGr' + 'FullBath' + 'HalfBath'.
-2024-12-01 16:12:44 - Analyzer Log - Engineered feature 'Age' = 'YrSold' - 'YearBuilt'.
+{"Alley": {"n_unique": 2, "most_common": "Grvl", "least_common": "Pave", "n_missing": 1369, "missing_rate": 0.9376712328767123, "n": 1460}, "BldgType": {"n_unique": 5, "most_common": "1Fam", "least_common": "2fmCon", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "BsmtCond": {"n_unique": 4, "most_common": "TA", "least_common": "Po", "n_missing": 37, "missing_rate": 0.025342465753424658, "n": 1460}, "BsmtExposure": {"n_unique": 4, "most_common": "No", "least_common": "Mn", "n_missing": 38, "missing_rate": 0.026027397260273973, "n": 1460}, "BsmtFinType1": {"n_unique": 6, "most_common": "Unf", "least_common": "LwQ", "n_missing": 37, "missing_rate": 0.025342465753424658, "n": 1460}, "BsmtFinType2": {"n_unique": 6, "most_common": "Unf", "least_common": "GLQ", "n_missing": 38, "missing_rate": 0.026027397260273973, "n": 1460}, "BsmtQual": {"n_unique": 4, "most_common": "TA", "least_common": "Fa", "n_missing": 37, "missing_rate": 0.025342465753424658, "n": 1460}, "CentralAir": {"n_unique": 2, "most_common": "Y", "least_common": "N", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Condition1": {"n_unique": 9, "most_common": "Norm", "least_common": "RRNe", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Condition2": {"n_unique": 8, "most_common": "Norm", "least_common": "PosA", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Electrical": {"n_unique": 5, "most_common": "SBrkr", "least_common": "Mix", "n_missing": 1, "missing_rate": 0.0006849315068493151, "n": 1460}, "ExterCond": {"n_unique": 5, "most_common": "TA", "least_common": "Po", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "ExterQual": {"n_unique": 4, "most_common": "TA", "least_common": "Fa", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Exterior1st": {"n_unique": 15, "most_common": "VinylSd", "least_common": "ImStucc", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Exterior2nd": {"n_unique": 16, "most_common": "VinylSd", "least_common": "Other", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Fence": {"n_unique": 4, "most_common": "MnPrv", "least_common": "MnWw", "n_missing": 1179, "missing_rate": 0.8075342465753425, "n": 1460}, "FireplaceQu": {"n_unique": 5, "most_common": "Gd", "least_common": "Po", "n_missing": 690, "missing_rate": 0.4726027397260274, "n": 1460}, "Foundation": {"n_unique": 6, "most_common": "PConc", "least_common": "Wood", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Functional": {"n_unique": 7, "most_common": "Typ", "least_common": "Sev", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "GarageCond": {"n_unique": 5, "most_common": "TA", "least_common": "Ex", "n_missing": 81, "missing_rate": 0.05547945205479452, "n": 1460}, "GarageFinish": {"n_unique": 3, "most_common": "Unf", "least_common": "Fin", "n_missing": 81, "missing_rate": 0.05547945205479452, "n": 1460}, "GarageQual": {"n_unique": 5, "most_common": "TA", "least_common": "Po", "n_missing": 81, "missing_rate": 0.05547945205479452, "n": 1460}, "GarageType": {"n_unique": 6, "most_common": "Attchd", "least_common": "2Types", "n_missing": 81, "missing_rate": 0.05547945205479452, "n": 1460}, "Heating": {"n_unique": 6, "most_common": "GasA", "least_common": "Floor", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "HeatingQC": {"n_unique": 5, "most_common": "Ex", "least_common": "Po", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "HouseStyle": {"n_unique": 8, "most_common": "1Story", "least_common": "2.5Fin", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "KitchenQual": {"n_unique": 4, "most_common": "TA", "least_common": "Fa", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LandContour": {"n_unique": 4, "most_common": "Lvl", "least_common": "Low", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LandSlope": {"n_unique": 3, "most_common": "Gtl", "least_common": "Sev", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LotConfig": {"n_unique": 5, "most_common": "Inside", "least_common": "FR3", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "LotShape": {"n_unique": 4, "most_common": "Reg", "least_common": "IR3", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "MSZoning": {"n_unique": 5, "most_common": "RL", "least_common": "C (all)", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "MasVnrType": {"n_unique": 3, "most_common": "BrkFace", "least_common": "BrkCmn", "n_missing": 872, "missing_rate": 0.5972602739726027, "n": 1460}, "MiscFeature": {"n_unique": 4, "most_common": "Shed", "least_common": "TenC", "n_missing": 1406, "missing_rate": 0.963013698630137, "n": 1460}, "Neighborhood": {"n_unique": 25, "most_common": "NAmes", "least_common": "Blueste", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "PavedDrive": {"n_unique": 3, "most_common": "Y", "least_common": "P", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "PoolQC": {"n_unique": 3, "most_common": "Gd", "least_common": "Fa", "n_missing": 1453, "missing_rate": 0.9952054794520548, "n": 1460}, "RoofMatl": {"n_unique": 8, "most_common": "CompShg", "least_common": "Metal", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "RoofStyle": {"n_unique": 6, "most_common": "Gable", "least_common": "Shed", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "SaleCondition": {"n_unique": 6, "most_common": "Normal", "least_common": "AdjLand", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "SaleType": {"n_unique": 9, "most_common": "WD", "least_common": "Con", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Street": {"n_unique": 2, "most_common": "Pave", "least_common": "Grvl", "n_missing": 0, "missing_rate": 0.0, "n": 1460}, "Utilities": {"n_unique": 2, "most_common": "AllPub", "least_common": "NoSeWa", "n_missing": 0, "missing_rate": 0.0, "n": 1460}}
+2024-12-03 00:40:08 - Wizard Log - Adding table to storage.
+2024-12-03 00:40:08 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/2.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/2.pkl
+
+{"1stFlrSF": {"Corr. w SalePrice": "0.606", "p-value": "0.000"}, "2ndFlrSF": {"Corr. w SalePrice": "0.319", "p-value": "0.000"}, "BsmtFinSF1": {"Corr. w SalePrice": "0.386", "p-value": "0.000"}, "BsmtFinSF2": {"Corr. w SalePrice": "-0.011", "p-value": "0.664"}, "GrLivArea": {"Corr. w SalePrice": "0.709", "p-value": "0.000"}, "TotalBsmtSF": {"Corr. w SalePrice": "0.614", "p-value": "0.000"}, "WoodDeckSF": {"Corr. w SalePrice": "0.324", "p-value": "0.000"}, "OpenPorchSF": {"Corr. w SalePrice": "0.316", "p-value": "0.000"}, "EnclosedPorch": {"Corr. w SalePrice": "-0.129", "p-value": "0.000"}, "ScreenPorch": {"Corr. w SalePrice": "0.111", "p-value": "0.000"}}
+2024-12-03 00:40:55 - Wizard Log - _clustering_function called
+2024-12-03 00:40:55 - Wizard Log - _clustering_function Features: 1stFlrSF, 2ndFlrSF, BsmtFinSF1, BsmtFinSF2, GrLivArea, TotalBsmtSF, WoodDeckSF, OpenPorchSF, EnclosedPorch, ScreenPorch
+2024-12-03 00:40:55 - Wizard Log - _clustering_function Model: KMeans
+2024-12-03 00:40:55 - Wizard Log - _clustering_function Number of clusters: 5
+2024-12-03 00:40:55 - Wizard Log - _clustering_function Max number of clusters: 10
+2024-12-03 00:40:55 - Wizard Log - _clustering_function Features: ['1stFlrSF', '2ndFlrSF', 'BsmtFinSF1', 'BsmtFinSF2', 'GrLivArea', 'TotalBsmtSF', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch', 'ScreenPorch']
+2024-12-03 00:40:55 - Analyzer Log - Fitting model 'KMeansClust(5)'.
+2024-12-03 00:40:55 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
+2024-12-03 00:40:55 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
+2024-12-03 00:42:22 - Analyzer Log - Engineered feature 'TotalSquareFootage' = '1stFlrSF' + '2ndFlrSF' + 'BsmtFinSF1' + 'BsmtFinSF2' + 'TotalBsmtSF' + 'WoodDeckSF' + 'OpenPorchSF' + 'EnclosedPorch' + 'ScreenPorch'.
+2024-12-03 00:43:10 - Wizard Log - Adding table to storage.
+2024-12-03 00:43:10 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/3.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/3.pkl
+
+{"TotalSquareFootage": {"Corr. w SalePrice": "0.746", "p-value": "0.000"}}
+2024-12-03 00:43:37 - Wizard Log - _ols_function call: predictors: TotalSquareFootage, target: SalePrice
+2024-12-03 00:43:37 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'TotalSquareFootage'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.525[0m                            R2:       [93m0.643[0m 
+    Adj. R2:  [93m0.525[0m                            Adj. R2:  [93m0.642[0m 
+    RMSE:     [93m53213.778[0m                        RMSE:     [93m52297.125[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                                  Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                         [0m
+  const                             26624.654          24841.444              0.284 
+  TotalSquareFootage                   47.527              7.902              0.000 
+========================================================================================
+2024-12-03 00:43:37 - Wizard Log - Adding table to storage.
+2024-12-03 00:43:37 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/4.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/4.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 53213.778}, "('train', 'mae')": {"OLS Linear Model": 36167.95}, "('train', 'mape')": {"OLS Linear Model": 0.212}, "('train', 'pearsonr')": {"OLS Linear Model": 0.725}, "('train', 'spearmanr')": {"OLS Linear Model": 0.764}, "('train', 'r2')": {"OLS Linear Model": 0.525}, "('train', 'adjr2')": {"OLS Linear Model": 0.525}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 52297.125}, "('test', 'mae')": {"OLS Linear Model": 35827.521}, "('test', 'mape')": {"OLS Linear Model": 0.214}, "('test', 'pearsonr')": {"OLS Linear Model": 0.826}, "('test', 'spearmanr')": {"OLS Linear Model": 0.809}, "('test', 'r2')": {"OLS Linear Model": 0.643}, "('test', 'adjr2')": {"OLS Linear Model": 0.642}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:43:37 - Wizard Log - Adding table to storage.
+2024-12-03 00:43:37 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/5.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/5.pkl
+
+{"const": {"Coefficient (Std. Error)": "26624.654 (24841.444)", "p-value": 0.284}, "TotalSquareFootage": {"Coefficient (Std. Error)": "47.527 (7.902)", "p-value": 0.0}}
+2024-12-03 00:43:37 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:43:37 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:43:52 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "26624.654 (24841.444)", "p-value": 0.284}, "TotalSquareFootage": {"Coefficient (Std. Error)": "47.527 (7.902)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 53213.778}, "mae": {"OLS Linear Model": 36167.95}, "mape": {"OLS Linear Model": 0.212}, "pearsonr": {"OLS Linear Model": 0.725}, "spearmanr": {"OLS Linear Model": 0.764}, "r2": {"OLS Linear Model": 0.525}, "adjr2": {"OLS Linear Model": 0.525}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 52297.125}, "mae": {"OLS Linear Model": 35827.521}, "mape": {"OLS Linear Model": 0.214}, "pearsonr": {"OLS Linear Model": 0.826}, "spearmanr": {"OLS Linear Model": 0.809}, "r2": {"OLS Linear Model": 0.643}, "adjr2": {"OLS Linear Model": 0.642}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/2.png
+
+Description: Diagnostic plots.
+The statistical figure consists of four plots arranged in a 2x2 grid, typically used to assess the results of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points scattered throughout the plot, indicating the relationship between observed and predicted values.
+   - **Line**: A dashed diagonal line (y = x) is present, which serves as a reference. Points close to this line indicate good predictions.
+   - **Correlation**: The correlation coefficient (p = 0.725) suggests a moderate positive relationship between observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, and the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, indicating that residuals are randomly distributed.
+   - **Pattern**: Ideally, there should be no discernible pattern; any systematic pattern could indicate issues with the model.
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage (a measure of how far an independent variable deviates from its mean), while the y-axis shows standardized residuals.
+   - **Data Points**: Points are plotted to assess the influence of each observation on the fitted model.
+   - **Horizontal Line**: A horizontal line at zero indicates where residuals are expected to be centered. Points outside a certain range may indicate influential observations.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents theoretical quantiles from a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: Points are plotted to assess the normality of residuals. Ideally, they should fall along the diagonal line.
+   - **Interpretation**: Deviations from the line suggest departures from normality, which can affect the validity of statistical inferences.
+
+Overall, these plots are essential for diagnosing the fit of the regression model, checking assumptions, and identifying potential outliers or influential data points.
+2024-12-03 00:44:28 - Analyzer Log - Feature 'YearBuilt' already exists. Overwriting.
+2024-12-03 00:44:28 - Analyzer Log - Engineered feature 'YearBuilt' = 'YearBuilt'.
+2024-12-03 00:44:56 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).
+2024-12-03 00:46:03 - Wizard Log - _ols_function call: predictors: 1stFlrSF, 2ndFlrSF, YearBuilt, OverallQual, target: SalePrice
+2024-12-03 00:46:03 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'YearBuilt', [0m[95m'OverallQual'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.747[0m                            R2:       [93m0.786[0m 
+    Adj. R2:  [93m0.746[0m                            Adj. R2:  [93m0.783[0m 
+    RMSE:     [93m38859.758[0m                        RMSE:     [93m40492.79[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -959581.598          91087.829                0.0 
+  1stFlrSF                      81.392             15.141                0.0 
+  2ndFlrSF                      49.860              7.531                0.0 
+  YearBuilt                    448.843             47.183                0.0 
+  OverallQual                23461.997           2056.064                0.0 
+========================================================================================
+2024-12-03 00:46:03 - Wizard Log - Adding table to storage.
+2024-12-03 00:46:03 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/6.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/6.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 38859.758}, "('train', 'mae')": {"OLS Linear Model": 25227.925}, "('train', 'mape')": {"OLS Linear Model": 0.15}, "('train', 'pearsonr')": {"OLS Linear Model": 0.864}, "('train', 'spearmanr')": {"OLS Linear Model": 0.905}, "('train', 'r2')": {"OLS Linear Model": 0.747}, "('train', 'adjr2')": {"OLS Linear Model": 0.746}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 40492.79}, "('test', 'mae')": {"OLS Linear Model": 25748.929}, "('test', 'mape')": {"OLS Linear Model": 0.152}, "('test', 'pearsonr')": {"OLS Linear Model": 0.892}, "('test', 'spearmanr')": {"OLS Linear Model": 0.919}, "('test', 'r2')": {"OLS Linear Model": 0.786}, "('test', 'adjr2')": {"OLS Linear Model": 0.783}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:46:03 - Wizard Log - Adding table to storage.
+2024-12-03 00:46:03 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/7.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/7.pkl
+
+{"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}
+2024-12-03 00:46:03 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:46:03 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:46:13 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 38859.758}, "mae": {"OLS Linear Model": 25227.925}, "mape": {"OLS Linear Model": 0.15}, "pearsonr": {"OLS Linear Model": 0.864}, "spearmanr": {"OLS Linear Model": 0.905}, "r2": {"OLS Linear Model": 0.747}, "adjr2": {"OLS Linear Model": 0.746}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 40492.79}, "mae": {"OLS Linear Model": 25748.929}, "mape": {"OLS Linear Model": 0.152}, "pearsonr": {"OLS Linear Model": 0.892}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.786}, "adjr2": {"OLS Linear Model": 0.783}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/3.png
+
+Description: Diagnostic plots.
+The statistical figure you provided consists of four plots arranged in a 2x2 grid, commonly used to assess the fit of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points plotted, which appear to be scattered around a diagonal line (y = x), indicating a positive correlation between observed and predicted values.
+   - **Line of Best Fit**: A dashed diagonal line (often representing perfect predictions) is included, suggesting that as predicted values increase, observed values also tend to increase.
+   - **R-squared Value**: The correlation coefficient (R = 0.864) indicates a strong positive relationship between the observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, which is ideal. However, there may be some patterns or trends visible, indicating potential issues with homoscedasticity (constant variance of residuals).
+   - **Interpretation**: Ideally, residuals should be randomly distributed without any discernible pattern, suggesting that the model is appropriate.
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage (a measure of how far an independent variable deviates from its mean), while the y-axis shows standardized residuals.
+   - **Data Points**: Points are plotted to assess the influence of individual data points on the regression model. High leverage points can disproportionately affect the model.
+   - **Interpretation**: Points that fall outside the typical range (often beyond ±2 or ±3) may indicate influential observations that could affect the model's validity.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents theoretical quantiles from a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: The points should ideally fall along the 45-degree reference line, indicating that the residuals are normally distributed.
+   - **Interpretation**: Deviations from this line, especially in the tails, suggest that the residuals may not be normally distributed, which could violate the assumptions of the OLS regression.
+
+Overall, this figure provides a comprehensive diagnostic check for the linear regression model, allowing for the assessment of fit, residual behavior, and the normality of residuals.
+2024-12-03 00:47:04 - Wizard Log - _ml_regression_function called
+2024-12-03 00:47:04 - Wizard Log - _ml_regression_function Models to test: RF
+2024-12-03 00:47:04 - Wizard Log - _ml_regression_function Target: SalePrice
+2024-12-03 00:47:04 - Wizard Log - _ml_regression_function Predictors: ['1stFlrSF', '2ndFlrSF', 'YearBuilt', 'OverallQual']
+2024-12-03 00:47:04 - Analyzer Log - Fitting model 'RF'.
+2024-12-03 00:47:04 - Analyzer Log - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-03 00:48:02 - Analyzer Log - Successfully evaluated model 'RF'.
+2024-12-03 00:48:02 - Wizard Log - Adding table to storage.
+2024-12-03 00:48:02 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/8.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/8.pkl
+
+{"('train', 'rmse')": {"RF": 18583.447}, "('train', 'mae')": {"RF": 13422.336}, "('train', 'mape')": {"RF": 0.082}, "('train', 'pearsonr')": {"RF": 0.972}, "('train', 'spearmanr')": {"RF": 0.96}, "('train', 'r2')": {"RF": 0.942}, "('train', 'adjr2')": {"RF": 0.942}, "('train', 'n_obs')": {"RF": 1168.0}, "('test', 'rmse')": {"RF": 31078.947}, "('test', 'mae')": {"RF": 20570.397}, "('test', 'mape')": {"RF": 0.127}, "('test', 'pearsonr')": {"RF": 0.938}, "('test', 'spearmanr')": {"RF": 0.924}, "('test', 'r2')": {"RF": 0.874}, "('test', 'adjr2')": {"RF": 0.872}, "('test', 'n_obs')": {"RF": 292.0}}
+2024-12-03 00:48:02 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:48:02 - Wizard Log - Added dictionary without description. First 20 characters: {"train_metrics": {".
+2024-12-03 00:49:32 - Wizard Log - _feature_selection_function called
+2024-12-03 00:49:32 - Wizard Log - _feature_selection_function Feature selector: Select5Best
+2024-12-03 00:49:32 - Wizard Log - _feature_selection_function Target: SalePrice
+2024-12-03 00:49:32 - Wizard Log - _feature_selection_function Predictors: ['1stFlrSF', '2ndFlrSF', 'YearBuilt', 'OverallQual']
+2024-12-03 00:49:32 - Analyzer Log - Fitting 'KBestFSR(f_regression)'.
+2024-12-03 00:49:32 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:49:32 - Wizard Log - Added dictionary without description. First 20 characters: {"target": "SalePric.
+2024-12-03 00:49:53 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).
+2024-12-03 00:49:55 - Wizard Log - _ols_function call: predictors: 1stFlrSF, 2ndFlrSF, YearBuilt, OverallQual, target: SalePrice
+2024-12-03 00:49:55 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'YearBuilt', [0m[95m'OverallQual'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.747[0m                            R2:       [93m0.786[0m 
+    Adj. R2:  [93m0.746[0m                            Adj. R2:  [93m0.783[0m 
+    RMSE:     [93m38859.758[0m                        RMSE:     [93m40492.79[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -959581.598          91087.829                0.0 
+  1stFlrSF                      81.392             15.141                0.0 
+  2ndFlrSF                      49.860              7.531                0.0 
+  YearBuilt                    448.843             47.183                0.0 
+  OverallQual                23461.997           2056.064                0.0 
+========================================================================================
+2024-12-03 00:49:55 - Wizard Log - Adding table to storage.
+2024-12-03 00:49:55 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/9.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/9.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 38859.758}, "('train', 'mae')": {"OLS Linear Model": 25227.925}, "('train', 'mape')": {"OLS Linear Model": 0.15}, "('train', 'pearsonr')": {"OLS Linear Model": 0.864}, "('train', 'spearmanr')": {"OLS Linear Model": 0.905}, "('train', 'r2')": {"OLS Linear Model": 0.747}, "('train', 'adjr2')": {"OLS Linear Model": 0.746}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 40492.79}, "('test', 'mae')": {"OLS Linear Model": 25748.929}, "('test', 'mape')": {"OLS Linear Model": 0.152}, "('test', 'pearsonr')": {"OLS Linear Model": 0.892}, "('test', 'spearmanr')": {"OLS Linear Model": 0.919}, "('test', 'r2')": {"OLS Linear Model": 0.786}, "('test', 'adjr2')": {"OLS Linear Model": 0.783}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:49:55 - Wizard Log - Adding table to storage.
+2024-12-03 00:49:55 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/10.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/10.pkl
+
+{"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}
+2024-12-03 00:49:55 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:49:55 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:50:04 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 38859.758}, "mae": {"OLS Linear Model": 25227.925}, "mape": {"OLS Linear Model": 0.15}, "pearsonr": {"OLS Linear Model": 0.864}, "spearmanr": {"OLS Linear Model": 0.905}, "r2": {"OLS Linear Model": 0.747}, "adjr2": {"OLS Linear Model": 0.746}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 40492.79}, "mae": {"OLS Linear Model": 25748.929}, "mape": {"OLS Linear Model": 0.152}, "pearsonr": {"OLS Linear Model": 0.892}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.786}, "adjr2": {"OLS Linear Model": 0.783}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/4.png
+
+Description: Diagnostic plots.
+The statistical figure you provided consists of four plots arranged in a 2x2 grid, commonly used to assess the fit of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points plotted, likely indicating a positive correlation between observed and predicted values.
+   - **Line**: A dashed diagonal line (y = x) is present, which serves as a reference line. Ideally, points should cluster around this line, indicating that the model's predictions are close to the actual values.
+   - **R-squared Value**: The correlation coefficient (R = 0.864) suggests a strong positive relationship between the observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, which is ideal. There should be no discernible pattern; if there were, it would indicate potential issues with the model.
+   - **Spread**: The spread of residuals appears relatively constant across the range of fitted values, suggesting homoscedasticity (constant variance of residuals).
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage, which measures the influence of each observation on the fitted values, while the y-axis shows standardized residuals.
+   - **Data Points**: Points are plotted to assess the influence of observations. Observations with high leverage and large residuals may indicate potential outliers.
+   - **Reference Lines**: Horizontal lines at ±2 or ±3 may be present to indicate thresholds for standardized residuals, helping to identify outliers.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents theoretical quantiles from a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: Points are plotted to assess the normality of residuals. Ideally, they should fall along the diagonal line, indicating that the residuals are normally distributed.
+   - **Deviations**: Any significant deviations from the line, especially in the tails, suggest departures from normality, which could affect the validity of statistical inferences.
+
+Overall, this figure provides a comprehensive diagnostic of the linear regression model, allowing for the assessment of fit, residual behavior, and the normality of residuals.
+2024-12-03 00:50:07 - Wizard Log - _ols_function call: predictors: 1stFlrSF, 2ndFlrSF, YearBuilt, OverallQual, target: SalePrice
+2024-12-03 00:50:07 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'YearBuilt', [0m[95m'OverallQual'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.747[0m                            R2:       [93m0.786[0m 
+    Adj. R2:  [93m0.746[0m                            Adj. R2:  [93m0.783[0m 
+    RMSE:     [93m38859.758[0m                        RMSE:     [93m40492.79[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -959581.598          91087.829                0.0 
+  1stFlrSF                      81.392             15.141                0.0 
+  2ndFlrSF                      49.860              7.531                0.0 
+  YearBuilt                    448.843             47.183                0.0 
+  OverallQual                23461.997           2056.064                0.0 
+========================================================================================
+2024-12-03 00:50:07 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:07 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/11.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/11.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 38859.758}, "('train', 'mae')": {"OLS Linear Model": 25227.925}, "('train', 'mape')": {"OLS Linear Model": 0.15}, "('train', 'pearsonr')": {"OLS Linear Model": 0.864}, "('train', 'spearmanr')": {"OLS Linear Model": 0.905}, "('train', 'r2')": {"OLS Linear Model": 0.747}, "('train', 'adjr2')": {"OLS Linear Model": 0.746}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 40492.79}, "('test', 'mae')": {"OLS Linear Model": 25748.929}, "('test', 'mape')": {"OLS Linear Model": 0.152}, "('test', 'pearsonr')": {"OLS Linear Model": 0.892}, "('test', 'spearmanr')": {"OLS Linear Model": 0.919}, "('test', 'r2')": {"OLS Linear Model": 0.786}, "('test', 'adjr2')": {"OLS Linear Model": 0.783}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:50:07 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:07 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/12.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/12.pkl
+
+{"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}
+2024-12-03 00:50:07 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:50:07 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:50:18 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 38859.758}, "mae": {"OLS Linear Model": 25227.925}, "mape": {"OLS Linear Model": 0.15}, "pearsonr": {"OLS Linear Model": 0.864}, "spearmanr": {"OLS Linear Model": 0.905}, "r2": {"OLS Linear Model": 0.747}, "adjr2": {"OLS Linear Model": 0.746}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 40492.79}, "mae": {"OLS Linear Model": 25748.929}, "mape": {"OLS Linear Model": 0.152}, "pearsonr": {"OLS Linear Model": 0.892}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.786}, "adjr2": {"OLS Linear Model": 0.783}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/5.png
+
+Description: Diagnostic plots.
+The statistical figure you provided consists of four plots arranged in a 2x2 grid, commonly used to assess the fit of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points plotted, which appear to be scattered around a diagonal line (y = x), indicating a positive correlation between observed and predicted values.
+   - **Line of Best Fit**: A dashed diagonal line (often representing perfect predictions) is included, showing how closely the predicted values match the observed values.
+   - **R-squared Value**: The correlation coefficient (R = 0.864) suggests a strong positive relationship, indicating that the model explains a significant portion of the variance in the observed data.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, which is ideal. There is no apparent pattern, suggesting that the residuals are randomly distributed.
+   - **Interpretation**: A random scatter indicates that the model assumptions are likely met, particularly the assumption of homoscedasticity (constant variance of residuals).
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage (a measure of how far an independent variable deviates from its mean), while the y-axis shows standardized residuals.
+   - **Data Points**: Points are scattered, with some outliers visible. The plot helps identify influential data points that have high leverage and large residuals.
+   - **Interpretation**: Points that are far from the center may indicate influential observations that could disproportionately affect the regression results.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents the theoretical quantiles of a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: The points form a roughly straight line, indicating that the residuals are approximately normally distributed.
+   - **Interpretation**: Deviations from the line at the ends may suggest slight departures from normality, but overall, the plot supports the assumption of normality for the residuals.
+
+Overall, this figure provides a comprehensive diagnostic of the OLS regression model, assessing the fit, residuals, leverage, and normality of residuals, which are crucial for validating the model's assumptions.
+2024-12-03 00:50:20 - Wizard Log - _ols_function call: predictors: 1stFlrSF, 2ndFlrSF, YearBuilt, OverallQual, target: SalePrice
+2024-12-03 00:50:20 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'YearBuilt', [0m[95m'OverallQual'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.747[0m                            R2:       [93m0.786[0m 
+    Adj. R2:  [93m0.746[0m                            Adj. R2:  [93m0.783[0m 
+    RMSE:     [93m38859.758[0m                        RMSE:     [93m40492.79[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -959581.598          91087.829                0.0 
+  1stFlrSF                      81.392             15.141                0.0 
+  2ndFlrSF                      49.860              7.531                0.0 
+  YearBuilt                    448.843             47.183                0.0 
+  OverallQual                23461.997           2056.064                0.0 
+========================================================================================
+2024-12-03 00:50:20 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:20 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/13.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/13.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 38859.758}, "('train', 'mae')": {"OLS Linear Model": 25227.925}, "('train', 'mape')": {"OLS Linear Model": 0.15}, "('train', 'pearsonr')": {"OLS Linear Model": 0.864}, "('train', 'spearmanr')": {"OLS Linear Model": 0.905}, "('train', 'r2')": {"OLS Linear Model": 0.747}, "('train', 'adjr2')": {"OLS Linear Model": 0.746}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 40492.79}, "('test', 'mae')": {"OLS Linear Model": 25748.929}, "('test', 'mape')": {"OLS Linear Model": 0.152}, "('test', 'pearsonr')": {"OLS Linear Model": 0.892}, "('test', 'spearmanr')": {"OLS Linear Model": 0.919}, "('test', 'r2')": {"OLS Linear Model": 0.786}, "('test', 'adjr2')": {"OLS Linear Model": 0.783}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:50:20 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:20 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/14.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/14.pkl
+
+{"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}
+2024-12-03 00:50:20 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:50:20 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:50:31 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 38859.758}, "mae": {"OLS Linear Model": 25227.925}, "mape": {"OLS Linear Model": 0.15}, "pearsonr": {"OLS Linear Model": 0.864}, "spearmanr": {"OLS Linear Model": 0.905}, "r2": {"OLS Linear Model": 0.747}, "adjr2": {"OLS Linear Model": 0.746}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 40492.79}, "mae": {"OLS Linear Model": 25748.929}, "mape": {"OLS Linear Model": 0.152}, "pearsonr": {"OLS Linear Model": 0.892}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.786}, "adjr2": {"OLS Linear Model": 0.783}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/6.png
+
+Description: Diagnostic plots.
+The statistical figure you provided consists of four plots arranged in a 2x2 grid, commonly used to assess the fit of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points plotted, likely indicating a positive correlation between observed and predicted values.
+   - **Line**: A dashed diagonal line (y = x) is present, which serves as a reference line. Ideally, points should cluster around this line, indicating that the model's predictions are close to the actual values.
+   - **R-squared Value**: The correlation coefficient (R = 0.864) suggests a strong positive relationship between the observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, which is ideal. There should be no discernible pattern; if there were, it would indicate potential issues with the model (e.g., non-linearity).
+   - **Spread**: The spread of residuals appears relatively constant across the range of fitted values, suggesting homoscedasticity (constant variance).
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage, which measures the influence of each observation on the fitted values, while the y-axis shows standardized residuals.
+   - **Data Points**: Points are plotted to assess the influence of high-leverage points on the model. Ideally, most points should fall within the range of -2 to 2 on the y-axis.
+   - **Outliers**: Any points that fall outside this range may indicate potential outliers or influential observations.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents the theoretical quantiles of a normal distribution, while the y-axis shows the standardized residuals.
+   - **Line**: A reference line (typically a 45-degree line) is included. Points should ideally fall along this line if the residuals are normally distributed.
+   - **Distribution**: Deviations from the line, especially in the tails, may suggest that the residuals are not normally distributed, which could affect the validity of statistical inferences made from the model.
+
+Overall, this figure provides a comprehensive diagnostic of the OLS regression model, allowing for the assessment of fit, residual behavior, and the normality of residuals.
+2024-12-03 00:50:32 - Wizard Log - _ols_function call: predictors: 1stFlrSF, 2ndFlrSF, YearBuilt, OverallQual, target: SalePrice
+2024-12-03 00:50:32 - Wizard Log - summary: ========================================================================================
+[1mOrdinary Least Squares Regression Report[0m
+----------------------------------------------------------------------------------------
+[1mTarget variable:[0m
+  [95m'SalePrice'[0m 
+                                                                                        
+[1mPredictor variables:[0m
+  [95m'1stFlrSF', [0m[95m'2ndFlrSF', [0m[95m'YearBuilt', [0m[95m'OverallQual'[0m 
+----------------------------------------------------------------------------------------
+[1mMetrics:[0m
+  [1mTrain[0m                                      [1mTest[0m 
+    R2:       [93m0.747[0m                            R2:       [93m0.786[0m 
+    Adj. R2:  [93m0.746[0m                            Adj. R2:  [93m0.783[0m 
+    RMSE:     [93m38859.758[0m                        RMSE:     [93m40492.79[0m 
+----------------------------------------------------------------------------------------
+[1mCoefficients:[0m
+[1m                           Coefficient         Std. Error            p-value [0m
+[1m  Predictor                                                                  [0m
+  const                    -959581.598          91087.829                0.0 
+  1stFlrSF                      81.392             15.141                0.0 
+  2ndFlrSF                      49.860              7.531                0.0 
+  YearBuilt                    448.843             47.183                0.0 
+  OverallQual                23461.997           2056.064                0.0 
+========================================================================================
+2024-12-03 00:50:32 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:32 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/15.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/15.pkl
+
+{"('train', 'rmse')": {"OLS Linear Model": 38859.758}, "('train', 'mae')": {"OLS Linear Model": 25227.925}, "('train', 'mape')": {"OLS Linear Model": 0.15}, "('train', 'pearsonr')": {"OLS Linear Model": 0.864}, "('train', 'spearmanr')": {"OLS Linear Model": 0.905}, "('train', 'r2')": {"OLS Linear Model": 0.747}, "('train', 'adjr2')": {"OLS Linear Model": 0.746}, "('train', 'n_obs')": {"OLS Linear Model": 1168.0}, "('test', 'rmse')": {"OLS Linear Model": 40492.79}, "('test', 'mae')": {"OLS Linear Model": 25748.929}, "('test', 'mape')": {"OLS Linear Model": 0.152}, "('test', 'pearsonr')": {"OLS Linear Model": 0.892}, "('test', 'spearmanr')": {"OLS Linear Model": 0.919}, "('test', 'r2')": {"OLS Linear Model": 0.786}, "('test', 'adjr2')": {"OLS Linear Model": 0.783}, "('test', 'n_obs')": {"OLS Linear Model": 292.0}}
+2024-12-03 00:50:32 - Wizard Log - Adding table to storage.
+2024-12-03 00:50:32 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/16.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/16.pkl
+
+{"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}
+2024-12-03 00:50:32 - Wizard Log - Adding dictionary to storage.
+2024-12-03 00:50:32 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-03 00:50:44 - Wizard Log - _ols_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "-959581.598 (91087.829)", "p-value": 0.0}, "1stFlrSF": {"Coefficient (Std. Error)": "81.392 (15.141)", "p-value": 0.0}, "2ndFlrSF": {"Coefficient (Std. Error)": "49.86 (7.531)", "p-value": 0.0}, "YearBuilt": {"Coefficient (Std. Error)": "448.843 (47.183)", "p-value": 0.0}, "OverallQual": {"Coefficient (Std. Error)": "23461.997 (2056.064)", "p-value": 0.0}}, "train_metrics": {"rmse": {"OLS Linear Model": 38859.758}, "mae": {"OLS Linear Model": 25227.925}, "mape": {"OLS Linear Model": 0.15}, "pearsonr": {"OLS Linear Model": 0.864}, "spearmanr": {"OLS Linear Model": 0.905}, "r2": {"OLS Linear Model": 0.747}, "adjr2": {"OLS Linear Model": 0.746}, "n_obs": {"OLS Linear Model": 1168.0}}, "test_metrics": {"rmse": {"OLS Linear Model": 40492.79}, "mae": {"OLS Linear Model": 25748.929}, "mape": {"OLS Linear Model": 0.152}, "pearsonr": {"OLS Linear Model": 0.892}, "spearmanr": {"OLS Linear Model": 0.919}, "r2": {"OLS Linear Model": 0.786}, "adjr2": {"OLS Linear Model": 0.783}, "n_obs": {"OLS Linear Model": 292.0}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/7.png
+
+Description: Diagnostic plots.
+The statistical figure you provided consists of four plots arranged in a 2x2 grid, commonly used to assess the fit of an Ordinary Least Squares (OLS) linear regression model. Here’s a detailed description of each plot:
+
+1. **Top Left: Observed vs. Predicted**
+   - **Axes**: The x-axis represents the predicted values from the regression model, while the y-axis represents the observed values.
+   - **Data Points**: There are numerous data points plotted, likely indicating a positive correlation between observed and predicted values.
+   - **Line**: A dashed diagonal line (y = x) is present, which serves as a reference line. Ideally, points should cluster around this line, indicating that the model's predictions are close to the actual values.
+   - **R-squared Value**: The correlation coefficient (R = 0.864) suggests a strong positive relationship between the observed and predicted values.
+
+2. **Top Right: Residuals vs. Fitted**
+   - **Axes**: The x-axis shows the fitted (predicted) values, while the y-axis displays the residuals (the differences between observed and predicted values).
+   - **Data Points**: The points are scattered around the horizontal line at zero, which is ideal. There should be no discernible pattern; if there were, it would indicate potential issues with the model.
+   - **Spread**: The spread of residuals appears relatively constant across the range of fitted values, suggesting homoscedasticity (constant variance of residuals).
+
+3. **Bottom Left: Standardized Residuals vs. Leverage**
+   - **Axes**: The x-axis represents leverage, which measures the influence of each observation on the fitted values, while the y-axis shows standardized residuals.
+   - **Data Points**: Points are plotted to assess the influence of observations. Observations with high leverage and large residuals may indicate potential outliers.
+   - **Horizontal Lines**: There may be reference lines at ±2 or ±3, indicating thresholds for standardized residuals. Points outside these lines could be considered influential.
+
+4. **Bottom Right: Q-Q Plot**
+   - **Axes**: The x-axis represents theoretical quantiles from a normal distribution, while the y-axis shows the standardized residuals.
+   - **Data Points**: Points are plotted to assess the normality of residuals. Ideally, they should fall along the 45-degree reference line.
+   - **Interpretation**: Deviations from this line, especially in the tails, suggest that the residuals may not be normally distributed, which could affect the validity of statistical inferences made from the model.
+
+Overall, this figure provides a comprehensive diagnostic of the OLS regression model, allowing for the assessment of fit, residual behavior, and the normality of residuals.

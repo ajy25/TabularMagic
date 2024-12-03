@@ -66,7 +66,7 @@ def build_dataset_summary_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(_dataset_summary_function, context=context),
         name="dataset_summary_tool",
         description="""Provides a summary of the dataset, which includes the shape of the training and test datasets,
-        as well as the numeric and categorical variables in the dataset.""",
+        as well as the names of the numeric and categorical variables in the dataset.""",
         fn_schema=_BlankInput(),
     )
 

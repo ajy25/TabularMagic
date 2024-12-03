@@ -1,13 +1,22 @@
-2024-12-03 00:38:09 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-03 00:40:55 - Analyzer Log - Fitting model 'KMeansClust(5)'.
-2024-12-03 00:40:55 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
-2024-12-03 00:40:55 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
-2024-12-03 00:42:22 - Analyzer Log - Engineered feature 'TotalSquareFootage' = '1stFlrSF' + '2ndFlrSF' + 'BsmtFinSF1' + 'BsmtFinSF2' + 'TotalBsmtSF' + 'WoodDeckSF' + 'OpenPorchSF' + 'EnclosedPorch' + 'ScreenPorch'.
-2024-12-03 00:44:28 - Analyzer Log - Feature 'YearBuilt' already exists. Overwriting.
-2024-12-03 00:44:28 - Analyzer Log - Engineered feature 'YearBuilt' = 'YearBuilt'.
-2024-12-03 00:44:56 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).
-2024-12-03 00:47:04 - Analyzer Log - Fitting model 'RF'.
-2024-12-03 00:47:04 - Analyzer Log - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
-2024-12-03 00:48:02 - Analyzer Log - Successfully evaluated model 'RF'.
-2024-12-03 00:49:32 - Analyzer Log - Fitting 'KBestFSR(f_regression)'.
-2024-12-03 00:49:53 - Analyzer Log - Datasets reset to original state. Train, test shapes: (1168, 80), (292, 80).
+2024-12-03 13:47:12 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-03 13:48:07 - Analyzer Log - Train dataset: dropped 140 examples with missing values out of 712 total examples.
+2024-12-03 13:48:07 - Analyzer Log - Test dataset: dropped 37 examples with missing values out of 179 total examples.
+2024-12-03 13:49:59 - Analyzer Log - Fitting model 'KMeansClust(5)'.
+2024-12-03 13:49:59 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:49:59 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:49:59 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
+2024-12-03 13:49:59 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
+2024-12-03 13:50:31 - Analyzer Log - Fitting model 'GMMClust(5)'.
+2024-12-03 13:50:31 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:50:31 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:50:31 - Analyzer Log - Successfully fitted model 'GMMClust(5)'.
+2024-12-03 13:51:04 - Analyzer Log - Fitting model 'GMMClust(auto, max=10, criterion=bic)'.
+2024-12-03 13:51:04 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:51:04 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:51:04 - Analyzer Log - Identified 9 optimal clusters for 'GMMClust(auto, max=10, criterion=bic)' via bic.
+2024-12-03 13:51:04 - Analyzer Log - Successfully fitted model 'GMMClust(auto, max=10, criterion=bic)'.
+2024-12-03 13:51:38 - Analyzer Log - Fitting model 'KMeansClust(8)'.
+2024-12-03 13:51:38 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:51:38 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-03 13:51:38 - Analyzer Log - Identified 8 optimal clusters for 'KMeansClust(8)' via silhouette.
+2024-12-03 13:51:38 - Analyzer Log - Successfully fitted model 'KMeansClust(8)'.

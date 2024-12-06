@@ -44,7 +44,7 @@ export default function Home() {
 
   return (
     <div className="h-screen flex">
-      <div className="flex-1 flex flex-col p-6">
+      <div className="flex-1 flex flex-col p-6 overflow-y-auto">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold mb-2">Dataset Analyzer</h1>
           <p className="text-gray-600">Upload your dataset and chat with the AI analyzer</p>

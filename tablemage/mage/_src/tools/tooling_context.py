@@ -28,7 +28,7 @@ class ToolingContext:
             The CanvasQueue object to use for storing images, tables, etc. for UI use.
         """
         self._data_container = data_container
-        self._vectorstore_manager = storage_manager
+        self._storage_manager = storage_manager
         self._canvas_queue = canvas_queue
 
     def add_figure(
@@ -56,7 +56,7 @@ class ToolingContext:
         str
             Description of the figure.
         """
-        descr, path = self._vectorstore_manager.add_figure(
+        descr, path = self._storage_manager.add_figure(
             fig=fig,
             text_description=text_description,
             augment_text_description=augment_text_description,
@@ -77,7 +77,7 @@ class ToolingContext:
         str
             The input text, verbatim.
         """
-        return self._vectorstore_manager.add_str(text)
+        return self._storage_manager.add_str(text)
 
     def add_table(self, table: pd.DataFrame, add_to_vectorstore: bool = True) -> str:
         """Adds a pandas DataFrame.
@@ -98,7 +98,7 @@ class ToolingContext:
             The input table in json string format.
         """
         print_debug(f"Adding table to storage.")
-        strres, path = self._vectorstore_manager.add_table(table, add_to_vectorstore)
+        strres, path = self._storage_manager.add_table(table, add_to_vectorstore)
         self._canvas_queue.push_table(path)
         print_debug(f"Added table to {path}: {strres}")
         return strres
@@ -129,7 +129,7 @@ class ToolingContext:
                 f"Added dictionary without description. "
                 f"First 20 characters: {str_dict[:20]}."
             )
-        return self._vectorstore_manager.add_str(str_dict)
+        return self._storage_manager.add_str(str_dict)
 
     def add_thought(self, thought: str) -> str:
         """Adds a thought to the canvas queue.
@@ -166,8 +166,8 @@ class ToolingContext:
         return self._data_container
 
     @property
-    def vectorstore_manager(self) -> StorageManager:
-        return self._vectorstore_manager
+    def storage_manager(self) -> StorageManager:
+        return self._storage_manager
 
     @property
     def canvas_queue(self) -> CanvasQueue:

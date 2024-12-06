@@ -1,7 +1,9 @@
 import qdrant_client
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.core import StorageContext
+from llama_index.core.vector_stores import SimpleVectorStore
+from llama_index.core import StorageContext, Settings
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.core.schema import TextNode
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -12,6 +14,8 @@ from ..options import options
 from ..llms.utils import describe_image
 from .._debug.logger import print_debug
 from ...._src.utils.serialize import prepare_for_json
+
+Settings.embed_model = FastEmbedEmbedding(model_name="BAAI/bge-base-en-v1.5")
 
 
 io_path = Path(__file__).resolve().parent
@@ -177,7 +181,6 @@ class StorageManager:
         # delete all images
         for img in img_store_path.iterdir():
             img.unlink()
-
         self._img_counter = 0
 
         # delete all tables
@@ -185,25 +188,16 @@ class StorageManager:
             table.unlink()
         self._table_counter = 0
 
+        for log in log_path.iterdir():
+            log.unlink()
+        (log_path / "_log.log").touch()
+
         if self._use_vectorstore:
-
-            client = qdrant_client.QdrantClient(path=vector_store_path)
-
-            if (vector_store_path / "collection" / "text_store").exists():
-                client.delete_collection("text_store")
-
-            vector_store = QdrantVectorStore(
-                collection_name="text_store", client=client
-            )
-            storage_context = StorageContext.from_defaults(
-                vector_store=vector_store,
-            )
+            _, storage_context = self.setup_vector_store("storage_manager_collection")
             self._index = VectorStoreIndex.from_documents(
                 documents=[], storage_context=storage_context
             )
-
             self._retriever = self._index.as_retriever(similarity_top_k=1)
-
             self._query_engn = self._index.as_query_engine(llm=self._llm)
 
     @property
@@ -217,3 +211,23 @@ class StorageManager:
         if not self._use_vectorstore:
             raise ValueError("Vector store not in use.")
         return self._query_engn
+
+    def setup_vector_store(
+        self,
+        collection_name: str,
+        path: Path = vector_store_path,
+        qdrant: bool = False,
+    ) -> tuple[QdrantVectorStore | SimpleVectorStore, StorageContext]:
+        if qdrant:
+            client = qdrant_client.QdrantClient(path=path)
+            if (path / "collection" / collection_name).exists():
+                client.delete_collection(collection_name)
+            vector_store = QdrantVectorStore(
+                collection_name=collection_name, client=client
+            )
+        else:
+            vector_store = SimpleVectorStore().persist()
+        storage_context = StorageContext.from_defaults(
+            vector_store=vector_store,
+        )
+        return vector_store, storage_context

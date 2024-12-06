@@ -3,7 +3,14 @@ from llama_index.core.llms.function_calling import FunctionCallingLLM
 from llama_index.core import VectorStoreIndex
 from llama_index.core.objects import ObjectIndex
 from llama_index.core.agent import FunctionCallingAgent
-
+from llama_index.core.memory import (
+    ChatMemoryBuffer,
+    VectorMemory,
+    SimpleComposableMemory,
+)
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
+from typing import Literal
+from pathlib import Path
 
 from .._debug.logger import print_debug
 
@@ -37,10 +44,14 @@ from ..tools.tooling_context import ToolingContext
 from .prompt.single_agent_system_prompt import SINGLE_SYSTEM_PROMPT
 
 
+io_path = Path(__file__).resolve().parent.parent / "io"
+
+
 def build_agent(
     llm: FunctionCallingLLM,
     context: ToolingContext,
     system_prompt: str = SINGLE_SYSTEM_PROMPT,
+    memory: Literal["buffer", "vector"] = "vector",
     react: bool = False,
 ) -> FunctionCallingAgent | ReActAgent:
     """Builds an agent.
@@ -56,6 +67,9 @@ def build_agent(
     system_prompt : str
         System prompt. Default linear regression system prompt is used if not provided.
 
+    memory : Literal["buffer", "vector"]
+        Memory type to use. Default is "vector".
+
     react : bool
         If True, a ReActAgent is returned. Otherwise, a FunctionCallingAgent is returned.
         If True, the system prompt is not considered.
@@ -65,6 +79,27 @@ def build_agent(
     FunctionCallingAgent | ReActAgent
         Either a FunctionCallingAgent or a ReActAgent
     """
+    if memory == "buffer":
+        memory = ChatMemoryBuffer.from_defaults(token_limit=1000)
+
+    elif memory == "vector":
+        vector_store, _ = context.storage_manager.setup_vector_store(
+            "vector_memory",
+            path=io_path / "_vector_memory",
+        )
+        buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=1000)
+        vector_memory = VectorMemory.from_defaults(
+            vector_store=vector_store,
+            embed_model=FastEmbedEmbedding(model_name="BAAI/bge-base-en-v1.5"),
+            retriever_kwargs={"similarity_top_k": 2},
+        )
+        memory = SimpleComposableMemory(
+            primary_memory=buffer_memory,
+            secondary_memory_sources=[vector_memory],
+        )
+
+    else:
+        raise ValueError("The memory type must be either 'buffer' or 'vector'.")
 
     tools = [
         build_feature_selection_tool(context),
@@ -101,6 +136,7 @@ def build_agent(
             tool_retriever=tool_retriever,
             verbose=True,
             system_prompt=system_prompt,
+            memory=memory,
         )
     else:
         agent = FunctionCallingAgent.from_tools(
@@ -108,6 +144,7 @@ def build_agent(
             tool_retriever=tool_retriever,
             verbose=True,
             system_prompt=system_prompt,
+            memory=memory,
         )
     return agent
 
@@ -121,7 +158,9 @@ class SingleAgent:
 
         print_debug("Initializing SingleAgent")
 
-        self._agent = build_agent(llm=llm, context=context, react=react)
+        self._agent = build_agent(
+            llm=llm, context=context, react=react, memory="vector"
+        )
 
         print_debug("SingleAgent initialized")
 

@@ -16,30 +16,31 @@ export default function AnalysisHistory({ items }: AnalysisHistoryProps) {
       </div>
       
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-full">
           {items.length === 0 ? (
             <div className="text-gray-500 text-center p-4">
               No analysis results yet. Try asking a question about your data!
             </div>
           ) : (
             items.map((item, index) => (
-              <Card key={index} className="p-4 bg-white shadow-sm">
+              <Card key={index} className="p-4 bg-white shadow-sm w-full">
                 {item.file_type === 'figure' && (
-                  <img
-                    src={`http://localhost:5005/api/analysis/file/${item.file_name}`}
-                    alt="Analysis Figure"
-                    className="max-w-full rounded-lg"
-                    onError={(e) => {
+                  <div className="max-w-full overflow-hidden">
+                    <img
+                      src={`http://localhost:5005/api/analysis/file/${item.file_name}`}
+                      alt="Analysis Figure"
+                      className="w-full h-auto rounded-lg"
+                      onError={(e) => {
                         console.error('Error loading image:', e);
-                        // Optional: show the actual path that failed
                         console.log('Failed image path:', e.currentTarget.src);
                       }}
-                  />
+                    />
+                  </div>
                 )}
                 
                 {item.file_type === 'table' && (
                   <div 
-                    className="overflow-x-auto"
+                    className="max-w-full overflow-x-auto"
                     dangerouslySetInnerHTML={{ __html: item.content || '' }}
                   />
                 )}
@@ -51,8 +52,8 @@ export default function AnalysisHistory({ items }: AnalysisHistoryProps) {
                 )}
                 
                 {item.file_type === 'code' && (
-                  <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{item.content}</code>
+                  <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm max-w-full">
+                    <code className="whitespace-pre-wrap break-all">{item.content}</code>
                   </pre>
                 )}
               </Card>

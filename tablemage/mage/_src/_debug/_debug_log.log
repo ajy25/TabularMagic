@@ -1,22 +1,109 @@
-2024-12-05 17:35:59 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_openai at 0x17708d1c0> and multimodal LLM build function: <function build_openai_multimodal at 0x1785e8f40>
-2024-12-05 17:36:00 - Wizard Log - GROQ LLM build function has been set to: functools.partial(<function build_groq at 0x17708df80>, temperature=0, model='llama3-groq-70b-8192-tool-use-preview')
-2024-12-05 17:36:08 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-05 17:36:08 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-12-05 17:36:08 - Wizard Log - IO initialized.
-2024-12-05 17:36:08 - Wizard Log - Initializing the Orchestrator.
-2024-12-05 17:36:08 - Wizard Log - Building EDA agent
-2024-12-05 17:36:08 - Wizard Log - Building Linear Regression agent
-2024-12-05 17:36:08 - Wizard Log - Building ML agent
-2024-12-05 17:36:08 - Wizard Log - Initializing Orchestrator agent...
-2024-12-05 17:36:08 - Wizard Log - Orchestrator agent initialized.
-2024-12-05 17:36:08 - Wizard Log - Initializing SingleAgent
-2024-12-05 17:36:17 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-05 17:36:17 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-12-05 17:36:17 - Wizard Log - IO initialized.
-2024-12-05 17:36:17 - Wizard Log - Initializing the Orchestrator.
-2024-12-05 17:36:17 - Wizard Log - Building EDA agent
-2024-12-05 17:36:17 - Wizard Log - Building Linear Regression agent
-2024-12-05 17:36:17 - Wizard Log - Building ML agent
-2024-12-05 17:36:17 - Wizard Log - Initializing Orchestrator agent...
-2024-12-05 17:36:17 - Wizard Log - Orchestrator agent initialized.
-2024-12-05 17:36:17 - Wizard Log - Initializing SingleAgent
+2024-12-07 06:15:01 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_groq at 0x16be8df80> and multimodal LLM build function: None
+2024-12-07 06:15:02 - Wizard Log - GROQ LLM build function has been set to: functools.partial(<function build_groq at 0x16be8df80>, temperature=0, model='llama-3.3-70b-versatile')
+2024-12-07 06:15:10 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
+2024-12-07 06:15:10 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
+2024-12-07 06:15:10 - Wizard Log - IO initialized.
+2024-12-07 06:15:10 - Wizard Log - Initializing the Orchestrator.
+2024-12-07 06:15:10 - Wizard Log - Initializing SingleAgent
+2024-12-07 06:15:13 - Wizard Log - SingleAgent initialized
+2024-12-07 06:15:16 - Wizard Log - Adding dictionary to storage.
+2024-12-07 06:15:16 - Wizard Log - Added dictionary without description. First 20 characters: {"train_shape": {"n_.
+2024-12-07 06:16:00 - Wizard Log - _clustering_function called
+2024-12-07 06:16:00 - Wizard Log - _clustering_function Features: Age, Survived, Sex, Fare
+2024-12-07 06:16:00 - Wizard Log - _clustering_function Model: KMeans
+2024-12-07 06:16:00 - Wizard Log - _clustering_function Number of clusters: 5
+2024-12-07 06:16:00 - Wizard Log - _clustering_function Max number of clusters: 10
+2024-12-07 06:16:00 - Wizard Log - _clustering_function Features: ['Age', 'Survived', 'Sex', 'Fare']
+2024-12-07 06:16:00 - Analyzer Log - Fitting model 'KMeansClust(5)'.
+2024-12-07 06:16:00 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:00 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:00 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
+2024-12-07 06:16:00 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
+2024-12-07 06:16:13 - Wizard Log - _clustering_function called
+2024-12-07 06:16:13 - Wizard Log - _clustering_function Features: Age, Survived, Sex, Fare
+2024-12-07 06:16:13 - Wizard Log - _clustering_function Model: KMeans
+2024-12-07 06:16:13 - Wizard Log - _clustering_function Number of clusters: 5
+2024-12-07 06:16:13 - Wizard Log - _clustering_function Max number of clusters: 10
+2024-12-07 06:16:13 - Wizard Log - _clustering_function Features: ['Age', 'Survived', 'Sex', 'Fare']
+2024-12-07 06:16:13 - Analyzer Log - Fitting model 'KMeansClust(5)'.
+2024-12-07 06:16:13 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:13 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:13 - Analyzer Log - Identified 5 optimal clusters for 'KMeansClust(5)' via silhouette.
+2024-12-07 06:16:13 - Analyzer Log - Successfully fitted model 'KMeansClust(5)'.
+2024-12-07 06:16:32 - Wizard Log - _clustering_function called
+2024-12-07 06:16:32 - Wizard Log - _clustering_function Features: Age, Survived, Sex, Fare
+2024-12-07 06:16:32 - Wizard Log - _clustering_function Model: KMeans
+2024-12-07 06:16:32 - Wizard Log - _clustering_function Number of clusters: None
+2024-12-07 06:16:32 - Wizard Log - _clustering_function Max number of clusters: 10
+2024-12-07 06:16:32 - Wizard Log - _clustering_function Features: ['Age', 'Survived', 'Sex', 'Fare']
+2024-12-07 06:16:32 - Analyzer Log - Fitting model 'KMeansClust(auto, max=10, criterion=silhouette)'.
+2024-12-07 06:16:32 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:32 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:32 - Analyzer Log - Identified 2 optimal clusters for 'KMeansClust(auto, max=10, criterion=silhouette)' via silhouette.
+2024-12-07 06:16:32 - Analyzer Log - Successfully fitted model 'KMeansClust(auto, max=10, criterion=silhouette)'.
+2024-12-07 06:16:52 - Wizard Log - _clustering_function called
+2024-12-07 06:16:52 - Wizard Log - _clustering_function Features: Age, Survived, Sex, Fare
+2024-12-07 06:16:52 - Wizard Log - _clustering_function Model: GMM
+2024-12-07 06:16:52 - Wizard Log - _clustering_function Number of clusters: None
+2024-12-07 06:16:52 - Wizard Log - _clustering_function Max number of clusters: 10
+2024-12-07 06:16:52 - Wizard Log - _clustering_function Features: ['Age', 'Survived', 'Sex', 'Fare']
+2024-12-07 06:16:52 - Analyzer Log - Fitting model 'GMMClust(auto, max=10, criterion=bic)'.
+2024-12-07 06:16:52 - Analyzer Log - Train dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:52 - Analyzer Log - Test dataset: dropped 177 examples with missing values out of 891 total examples.
+2024-12-07 06:16:52 - Analyzer Log - Identified 8 optimal clusters for 'GMMClust(auto, max=10, criterion=bic)' via bic.
+2024-12-07 06:16:52 - Analyzer Log - Successfully fitted model 'GMMClust(auto, max=10, criterion=bic)'.
+2024-12-07 06:26:20 - Wizard Log - Adding dictionary to storage.
+2024-12-07 06:26:20 - Wizard Log - Added dictionary without description. First 20 characters: {"Description of tes.
+2024-12-07 06:29:33 - Wizard Log - Adding table to storage.
+2024-12-07 06:29:33 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/0.pkl
+
+{"Survived": {"Corr. w Fare": "0.257", "p-value": "0.000"}}
+2024-12-07 06:29:51 - Wizard Log - Adding dictionary to storage.
+2024-12-07 06:29:51 - Wizard Log - Added dictionary without description. First 20 characters: {"Description of tes.
+2024-12-07 06:30:36 - Wizard Log - _ml_classification_function called
+2024-12-07 06:30:36 - Wizard Log - _ml_classification_function Models to test: Logistic, RF, XGBoost
+2024-12-07 06:30:36 - Wizard Log - _ml_classification_function Target: Survived
+2024-12-07 06:30:36 - Wizard Log - _ml_classification_function Predictors: ['Age', 'Sex', 'Fare']
+2024-12-07 06:30:36 - Analyzer Log - Fitting model 'Logistic'.
+2024-12-07 06:30:36 - Analyzer Log - Train dataset: dropped 140 examples with missing values out of 712 total examples.
+2024-12-07 06:30:36 - Analyzer Log - Fitting 'Logistic'. Search method: GridSearchCV (1 fits per fold, 5 total fits). 
+2024-12-07 06:30:36 - Analyzer Log - Optimal threshold set for 'Logistic' via roc.
+2024-12-07 06:30:36 - Analyzer Log - Test dataset: dropped 37 examples with missing values out of 179 total examples.
+2024-12-07 06:30:36 - Analyzer Log - Successfully fitted model 'Logistic'.
+2024-12-07 06:30:36 - Analyzer Log - Fitting model 'RF'.
+2024-12-07 06:30:36 - Analyzer Log - Train dataset: dropped 140 examples with missing values out of 712 total examples.
+2024-12-07 06:30:36 - Analyzer Log - Fitting 'RF'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-07 06:31:29 - Analyzer Log - Optimal threshold set for 'RF' via roc.
+2024-12-07 06:31:29 - Analyzer Log - Test dataset: dropped 37 examples with missing values out of 179 total examples.
+2024-12-07 06:31:29 - Analyzer Log - Successfully fitted model 'RF'.
+2024-12-07 06:31:29 - Analyzer Log - Fitting model 'XGBoost'.
+2024-12-07 06:31:29 - Analyzer Log - Train dataset: dropped 140 examples with missing values out of 712 total examples.
+2024-12-07 06:31:29 - Analyzer Log - Fitting 'XGBoost'. Search method: OptunaSearchCV (100 trials, 500 total fits). 
+2024-12-07 06:32:19 - Analyzer Log - Optimal threshold set for 'XGBoost' via roc.
+2024-12-07 06:32:19 - Analyzer Log - Test dataset: dropped 37 examples with missing values out of 179 total examples.
+2024-12-07 06:32:19 - Analyzer Log - Successfully fitted model 'XGBoost'.
+2024-12-07 06:32:19 - Wizard Log - Adding table to storage.
+2024-12-07 06:32:19 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/1.pkl
+
+{"('train', 'accuracy')": {"Logistic": 0.78, "RF": 0.904, "XGBoost": 0.9}, "('train', 'f1')": {"Logistic": 0.724, "RF": 0.872, "XGBoost": 0.871}, "('train', 'precision')": {"Logistic": 0.737, "RF": 0.949, "XGBoost": 0.915}, "('train', 'recall')": {"Logistic": 0.711, "RF": 0.806, "XGBoost": 0.832}, "('train', 'roc_auc')": {"Logistic": 0.821, "RF": 0.954, "XGBoost": 0.957}, "('train', 'n_obs')": {"Logistic": 572.0, "RF": 572.0, "XGBoost": 572.0}, "('test', 'accuracy')": {"Logistic": 0.775, "RF": 0.761, "XGBoost": 0.824}, "('test', 'f1')": {"Logistic": 0.719, "RF": 0.667, "XGBoost": 0.779}, "('test', 'precision')": {"Logistic": 0.732, "RF": 0.773, "XGBoost": 0.8}, "('test', 'recall')": {"Logistic": 0.707, "RF": 0.586, "XGBoost": 0.759}, "('test', 'roc_auc')": {"Logistic": 0.862, "RF": 0.874, "XGBoost": 0.86}, "('test', 'n_obs')": {"Logistic": 142.0, "RF": 142.0, "XGBoost": 142.0}}
+2024-12-07 06:32:19 - Wizard Log - Adding dictionary to storage.
+2024-12-07 06:32:19 - Wizard Log - Added dictionary without description. First 20 characters: {"train_metrics": {".
+2024-12-07 06:55:42 - Wizard Log - _logit_function call: predictors: Age, Sex, Fare, target: Survived
+2024-12-07 06:55:42 - Analyzer Log - Train dataset: dropped 140 examples with missing values out of 712 total examples.
+2024-12-07 06:55:42 - Analyzer Log - Test dataset: dropped 37 examples with missing values out of 179 total examples.
+2024-12-07 06:55:42 - Wizard Log - _logit_function call finished
+2024-12-07 06:55:42 - Wizard Log - Adding table to storage.
+2024-12-07 06:55:42 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/2.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/2.pkl
+
+{"('train', 'accuracy')": {"Logit Linear Model": 0.7797202797202797}, "('train', 'f1')": {"Logit Linear Model": 0.7174887892376681}, "('train', 'precision')": {"Logit Linear Model": 0.7476635514018691}, "('train', 'recall')": {"Logit Linear Model": 0.6896551724137931}, "('train', 'roc_auc')": {"Logit Linear Model": 0.8212030933062882}, "('train', 'n_obs')": {"Logit Linear Model": 572}, "('test', 'accuracy')": {"Logit Linear Model": 0.7746478873239436}, "('test', 'f1')": {"Logit Linear Model": 0.7142857142857143}, "('test', 'precision')": {"Logit Linear Model": 0.7407407407407407}, "('test', 'recall')": {"Logit Linear Model": 0.6896551724137931}, "('test', 'roc_auc')": {"Logit Linear Model": 0.8622742200328407}, "('test', 'n_obs')": {"Logit Linear Model": 142}}
+2024-12-07 06:55:42 - Wizard Log - Adding table to storage.
+2024-12-07 06:55:42 - Wizard Log - Added table to /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/3.pkl: Path to table: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_table_store/3.pkl
+
+{"const": {"Coefficient (Std. Error)": "0.896 (0.298)", "p-value": 0.003}, "Sex::male": {"Coefficient (Std. Error)": "-2.389 (0.213)", "p-value": 0.0}, "Age": {"Coefficient (Std. Error)": "-0.006 (0.008)", "p-value": 0.431}, "Fare": {"Coefficient (Std. Error)": "0.011 (0.003)", "p-value": 0.0}}
+2024-12-07 06:55:42 - Wizard Log - Adding dictionary to storage.
+2024-12-07 06:55:42 - Wizard Log - Added dictionary without description. First 20 characters: {"coefficients": {"c.
+2024-12-07 06:55:42 - Wizard Log - _logit_function output: {"coefficients": {"const": {"Coefficient (Std. Error)": "0.896 (0.298)", "p-value": 0.003}, "Sex::male": {"Coefficient (Std. Error)": "-2.389 (0.213)", "p-value": 0.0}, "Age": {"Coefficient (Std. Error)": "-0.006 (0.008)", "p-value": 0.431}, "Fare": {"Coefficient (Std. Error)": "0.011 (0.003)", "p-value": 0.0}}, "train_metrics": {"accuracy": {"Logit Linear Model": 0.7797202797202797}, "f1": {"Logit Linear Model": 0.7174887892376681}, "precision": {"Logit Linear Model": 0.7476635514018691}, "recall": {"Logit Linear Model": 0.6896551724137931}, "roc_auc": {"Logit Linear Model": 0.8212030933062882}, "n_obs": {"Logit Linear Model": 572}}, "test_metrics": {"accuracy": {"Logit Linear Model": 0.7746478873239436}, "f1": {"Logit Linear Model": 0.7142857142857143}, "precision": {"Logit Linear Model": 0.7407407407407407}, "recall": {"Logit Linear Model": 0.6896551724137931}, "roc_auc": {"Logit Linear Model": 0.8622742200328407}, "n_obs": {"Logit Linear Model": 142}}}
+Path to image: /Users/andrewyang/Desktop/research/TableMage/tablemage/mage/_src/io/_img_store/5.png
+
+Description: Diagnostic plots.
+A detailed description is unavailable.

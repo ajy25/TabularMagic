@@ -1311,10 +1311,12 @@ class EDAReport:
         StatisticalTestResult
         """
         if stratify_by not in self._categorical_vars:
-            raise ValueError(
-                f"Invalid input: {stratify_by}. "
-                "Must be a known categorical variable."
-            )
+            if len(self._df[stratify_by].unique()) > 20:
+                raise ValueError(
+                    f"Invalid input: {stratify_by}. "
+                    "Must be a categorical variable or numeric variable with <= 20 unique values."
+                )
+
         groups = self._df.groupby(stratify_by)[numeric_var].apply(list).to_dict()
         if len(groups) < 2:
             raise ValueError(
@@ -1323,7 +1325,8 @@ class EDAReport:
         elif len(groups) == 2:
             return self.ttest(numeric_var, stratify_by, "auto")
         else:
-            return self.anova(numeric_var, stratify_by)
+            return self.anova(numeric_var, stratify_by, "auto")
+
 
     def anova(
         self,
@@ -1391,11 +1394,26 @@ class EDAReport:
                 is_normal = False
                 break
 
+        long_description = ""
+
         if strategy == "auto":
             if is_normal and is_homoskedastic:
                 strategy = "anova_oneway"
+                long_description = "A one-way ANOVA test was conducted. "
+                "ANOVA is only somewhat robust to heteroscedasticity and violations of the normality assumption."
+                "The Bartlett test was used to test for homoskedasticity. "
+                "The Shapiro-Wilk test was used to test for normality. "
+                "Both tests were conducted at a significance level of 0.05. "
+                "Both tests indicated that the assumptions of ANOVA were met."
             else:
                 strategy = "kruskal"
+                long_description = "A Kruskal-Wallis test was conducted. "
+                "The Kruskal-Wallis test is a non-parametric test that does not assume normality or homoskedasticity. "
+                "The Bartlett test was used to test for homoskedasticity. "
+                "The Shapiro-Wilk test was used to test for normality. "
+                "Both tests were conducted at a significance level of 0.05. "
+                "At least one of the assumptions of ANOVA was violated. "
+                "Hence, the Kruskal-Wallis test was used instead."
 
         if strategy == "kruskal":
             h_stat, p_val = stats.kruskal(*groups)
@@ -1410,6 +1428,7 @@ class EDAReport:
                 null_hypothesis_description="All group means are equal",
                 alternative_hypothesis_description="At least one group's mean is "
                 "different from the others",
+                long_description=long_description,
             )
 
         elif strategy == "anova_oneway":
@@ -1429,6 +1448,7 @@ class EDAReport:
                 assumptions_description="1. Data in each group are normally "
                 "distributed. 2. Variances of each group are equal. "
                 "3. Samples are independent.",
+                long_description=long_description,
             )
 
     def ttest(
@@ -1501,6 +1521,8 @@ class EDAReport:
             self._df[stratify_by] == categories[1], numeric_var
         ].to_numpy()
 
+        long_description = ""
+
         if strategy == "auto":
             auto_alpha = 0.05
 
@@ -1527,13 +1549,30 @@ class EDAReport:
             if is_equal_var:
                 if is_normal:
                     test_type = "student"
+
+                    long_description = "Student's t-test was conducted. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "The Levene test was used to test for homoskedasticity. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "Both tests indicated that the assumptions of Student's t-test were met."
+
                 else:
-                    test_type = "welch"
+                    test_type = "yuen"
+
+                    long_description = "Yuen's (20% trimmed mean) t-test was conducted. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "The Levene test was used to test for homoskedasticity. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "The Shapiro-Wilk test indicated that the data were not normally distributed. "
+                    "Hence, Yuen's test was used instead, to compare the trimmed means of the groups."
+
             else:
                 if is_normal:
-                    test_type = "yuen"
+                    test_type = "welch"
                 else:
                     test_type = "mann-whitney"
+
+                    
 
         elif strategy in ["student", "welch", "yuen", "mann-whitney"]:
             test_type = strategy

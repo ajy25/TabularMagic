@@ -1,5 +1,4 @@
 import pandas as pd
-from typing import Literal
 from .._src import (
     build_tabularmagic_analyzer,
     StorageManager,
@@ -9,7 +8,6 @@ from .._src import (
     print_debug,
 )
 from ..._src.display.print_utils import suppress_logging
-from .._src.agents.orchestrator import Orchestrator
 from .._src.agents.single_agent import SingleAgent
 from .._src.options import options
 
@@ -45,7 +43,10 @@ class Mage:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self._vectorstore_manager = StorageManager(multimodal=True, vectorstore=False)
+        self._vectorstore_manager = StorageManager(
+            multimodal=False, 
+            vectorstore=False
+        )
         self._canvas_queue = CanvasQueue()
         self._context = ToolingContext(
             data_container=self._data_container,
@@ -53,18 +54,12 @@ class Mage:
             canvas_queue=self._canvas_queue,
         )
         print_debug("IO initialized.")
-
         print_debug("Initializing the Orchestrator.")
-
-        self._orchestrator_agent = Orchestrator(
-            llm=options.llm_build_function(), context=self._context, react=False
-        )
-
         self._single_agent = SingleAgent(
             llm=options.llm_build_function(), context=self._context, react=False
         )
 
-    def chat(self, message: str, which: Literal["multi", "single"]) -> str:
+    def chat(self, message: str) -> str:
         """Interacts with the LLM to provide data analysis insights.
 
         Parameters
@@ -81,9 +76,5 @@ class Mage:
         str
             The response from the LLM.
         """
-        if which == "multi":
-            with suppress_logging():
-                return self._orchestrator_agent.chat(message)
-        elif which == "single":
-            with suppress_logging():
-                return self._single_agent.chat(message)
+        with suppress_logging():
+            return self._single_agent.chat(message)

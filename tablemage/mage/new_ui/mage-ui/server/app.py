@@ -1,5 +1,7 @@
 import sys
+
 from pathlib import Path
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -7,6 +9,9 @@ from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
+
+
+sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
 from tablemage.mage.api import Mage
 from tablemage.mage._src.options import options
 
@@ -17,7 +22,7 @@ from tablemage.mage._src.io.canvas import (
     CanvasThought,
 )
 
-options.set_llm("groq", temperature=0)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -34,7 +39,7 @@ def chat(msg: str) -> str:
     if mage is None:
         return "No dataset uploaded. Please upload a dataset first."
     else:
-        return mage.chat(msg, which="single")
+        return mage.chat(msg)
 
 def get_analysis():
     """

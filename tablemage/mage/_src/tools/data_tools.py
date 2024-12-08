@@ -47,10 +47,28 @@ def _dataset_summary_function(context: ToolingContext) -> str:
     context._data_container.analyzer
     output_dict = {}
     output_dict["train_shape"] = (
-        context._data_container.analyzer.datahandler().df_train().shape
+        {
+            "n_rows": context._data_container.analyzer.datahandler().df_train().shape[0],
+            "n_vars": context._data_container.analyzer.datahandler().df_train().shape[1],
+            "n_categorical_vars": len(
+                context._data_container.analyzer.datahandler().categorical_vars()
+            ),
+            "n_numeric_vars": len(
+                context._data_container.analyzer.datahandler().numeric_vars()
+            ),
+        }
     )
     output_dict["test_shape"] = (
-        context._data_container.analyzer.datahandler().df_test().shape
+        {
+            "n_rows": context._data_container.analyzer.datahandler().df_test().shape[0],
+            "n_vars": context._data_container.analyzer.datahandler().df_test().shape[1],
+            "n_categorical_vars": len(
+                context._data_container.analyzer.datahandler().categorical_vars()
+            ),
+            "n_numeric_vars": len(
+                context._data_container.analyzer.datahandler().numeric_vars()
+            ),
+        }
     )
     output_dict["numeric_vars"] = (
         context._data_container.analyzer.datahandler().numeric_vars()

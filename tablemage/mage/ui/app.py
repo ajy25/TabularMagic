@@ -11,7 +11,6 @@ sys.path.append(path_to_add)
 
 
 from tablemage.mage.api import Mage
-from tablemage.mage._src.options import options
 
 
 from tablemage.mage._src.io.canvas import (
@@ -33,7 +32,7 @@ def chat(msg: str) -> str:
         return "No dataset uploaded. Please upload a dataset first."
 
     else:
-        return mage.chat(msg, which="single")
+        return mage.chat(msg)
 
 
 def get_analysis():

@@ -5,7 +5,6 @@ from ._debug.logger import print_debug
 from .llms.groq.groq import build_groq
 from .llms.openai.openai import build_openai, build_openai_multimodal
 from .llms.ollama.ollama import build_ollama
-from .llms.togetherai.togetherai import build_togetherai
 from .llms.api_key_utils import key_exists
 
 
@@ -41,7 +40,7 @@ class _WizardOptions:
 
     def set_llm(
         self,
-        llm_type: Literal["openai", "groq", "ollama", "togetherai"],
+        llm_type: Literal["openai", "groq", "ollama"],
         model_name: str | None = None,
         temperature: float = 0.0,
     ) -> None:
@@ -49,7 +48,7 @@ class _WizardOptions:
 
         Parameters
         ----------
-        llm_type : Literal["openai", "groq", "ollama", "togetherai"]
+        llm_type : Literal["openai", "groq", "ollama"]
             The type of LLM to use.
 
         model_name : str, optional
@@ -82,12 +81,6 @@ class _WizardOptions:
         elif llm_type == "ollama":
             self._llm_build_function = partial(
                 build_ollama, temperature=temperature, model=model_name
-            )
-        elif llm_type == "togetherai":
-            if not key_exists("togetherai"):
-                raise ValueError("TogetherAI API key not found in .env file.")
-            self._llm_build_function = partial(
-                build_togetherai, temperature=temperature, model=model_name
             )
         else:
             raise ValueError("Invalid LLM type specified.")

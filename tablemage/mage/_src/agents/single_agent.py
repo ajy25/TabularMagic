@@ -28,8 +28,14 @@ from ..tools.eda_tools import (
     build_correlation_comparison_tool,
     build_correlation_matrix_tool,
 )
-from ..tools.linear_regression_tools import build_ols_tool, build_logit_tool
-from ..tools.data_tools import build_dataset_summary_tool, build_pandas_query_tool
+from ..tools.linear_regression_tools import (
+    build_ols_tool, 
+    build_logit_tool
+)
+from ..tools.data_tools import (
+    build_dataset_summary_tool, 
+    build_pandas_query_tool
+)
 from ..tools.transform_tools import (
     build_drop_highly_missing_vars_tool,
     build_drop_na_tool,

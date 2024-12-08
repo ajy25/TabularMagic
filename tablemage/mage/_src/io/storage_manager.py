@@ -101,7 +101,7 @@ class StorageManager:
         """
         img_path = img_store_path / f"{self._img_counter}.png"
 
-        fig.savefig(img_path)
+        fig.savefig(img_path, dpi=400)
         self._img_counter += 1
 
         if augment_text_description and self._multimodal_llm is not None:

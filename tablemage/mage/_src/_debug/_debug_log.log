@@ -1,7 +1,0 @@
-2024-12-08 17:11:14 - Wizard Log - A new _WizardOptions object has been created with LLM build function: <function build_groq at 0x16f660b80> and multimodal LLM build function: None
-2024-12-08 17:11:18 - Analyzer Log - Analyzer initialized for dataset 'Unnamed Dataset'.
-2024-12-08 17:11:18 - Wizard Log - Data container initialized with the Analyzer built from the provided DataFrame.
-2024-12-08 17:11:18 - Wizard Log - IO initialized.
-2024-12-08 17:11:18 - Wizard Log - Initializing the Orchestrator.
-2024-12-08 17:11:18 - Wizard Log - Initializing SingleAgent
-2024-12-08 17:11:21 - Wizard Log - SingleAgent initialized

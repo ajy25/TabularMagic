@@ -5,6 +5,8 @@ import sys
 
 debug_path = Path(__file__).resolve().parent
 debug_log_path = debug_path / "_debug_log.log"
+if not debug_log_path.exists():
+    debug_log_path.touch()
 
 WIZARD_LOGGER = logging.Logger("Wizard Log", level=logging.DEBUG)
 handler = logging.FileHandler(filename=debug_log_path)

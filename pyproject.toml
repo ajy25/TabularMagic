@@ -28,7 +28,7 @@ dependencies = [
     "optuna-integration>=3.6.0"
 ]
 license = {file = "LICENSE"}
-keywords = ["data science", "low-code", "no-code" "statistics", "machine learning"]
+keywords = ["data science", "low-code", "no-code", "statistics", "machine learning"]
 classifiers = [
     "Programming Language :: Python"
 ]

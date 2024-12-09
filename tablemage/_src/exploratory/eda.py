@@ -1327,7 +1327,6 @@ class EDAReport:
         else:
             return self.anova(numeric_var, stratify_by, "auto")
 
-
     def anova(
         self,
         numeric_var: str,
@@ -1559,7 +1558,9 @@ class EDAReport:
                 else:
                     test_type = "yuen"
 
-                    long_description = "Yuen's (20% trimmed mean) t-test was conducted. "
+                    long_description = (
+                        "Yuen's (20% trimmed mean) t-test was conducted. "
+                    )
                     "The Shapiro-Wilk test was used to test for normality. "
                     "The Levene test was used to test for homoskedasticity. "
                     "Both tests were conducted at a significance level of 0.05. "
@@ -1571,8 +1572,6 @@ class EDAReport:
                     test_type = "welch"
                 else:
                     test_type = "mann-whitney"
-
-                    
 
         elif strategy in ["student", "welch", "yuen", "mann-whitney"]:
             test_type = strategy

@@ -43,10 +43,7 @@ class Mage:
             "Data container initialized with the Analyzer built from the "
             "provided DataFrame."
         )
-        self._vectorstore_manager = StorageManager(
-            multimodal=False, 
-            vectorstore=False
-        )
+        self._vectorstore_manager = StorageManager(multimodal=False, vectorstore=False)
         self._canvas_queue = CanvasQueue()
         self._context = ToolingContext(
             data_container=self._data_container,

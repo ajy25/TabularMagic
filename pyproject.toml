@@ -28,7 +28,7 @@ dependencies = [
     "optuna-integration>=3.6.0"
 ]
 license = {file = "LICENSE"}
-keywords = ["data science", "low-code", "statistics", "machine learning"]
+keywords = ["data science", "low-code", "no-code" "statistics", "machine learning"]
 classifiers = [
     "Programming Language :: Python"
 ]
@@ -36,8 +36,6 @@ classifiers = [
 
 [project.optional-dependencies]
 mage = [
-    "pydantic>=2.8.2",
-    "python-dotenv>=0.21.0",
     "llama-index>=0.11.23",
     "llama-index-experimental>=0.4.0",
     "qdrant-client>=1.12.0",
@@ -46,11 +44,14 @@ mage = [
     "llama-index-llms-together>=0.2.0",
     "llama-index-vector-stores-qdrant",
     "flask",
+    "python-dotenv",
+    "llama-index-embeddings-fastembed",
+    "fastembed",
 ]
 
 
 [project.urls]
-Homepage = "https://tabularmagic.readthedocs.io/"
+Homepage = "https://tablemage.readthedocs.io/"
 
 
 [tool.hatch.metadata]

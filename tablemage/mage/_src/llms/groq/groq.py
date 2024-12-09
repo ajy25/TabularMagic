@@ -28,7 +28,3 @@ def build_groq(model: str | None = None, temperature: float = 0.0) -> Groq:
     if not api_key:
         raise ValueError("No Groq API key found in .env file")
     return Groq(model=model, temperature=temperature, api_key=api_key)
-
-
-
-

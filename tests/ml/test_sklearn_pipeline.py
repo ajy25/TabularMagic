@@ -175,7 +175,7 @@ def test_pipeline_generation_regression(setup_data):
     # STEP 5
     # test the pipeline with feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+    analyzer.engineer_numeric_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
 
     report = analyzer.regress(
         models=[
@@ -335,7 +335,7 @@ def test_pipeline_generation_classification(setup_data):
     # STEP 5
     # test the pipeline with feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+    analyzer.engineer_numeric_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
 
     report = analyzer.classify(
         models=[

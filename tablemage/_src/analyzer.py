@@ -771,13 +771,14 @@ class Analyzer:
         self._datahandler.remove_data_checkpoint(checkpoint_name)
         return self
 
-    def engineer_feature(self, feature_name: str, formula: str) -> "Analyzer":
-        """Engineers a new feature based on a formula.
+    def engineer_numeric_feature(self, feature_name: str, formula: str) -> "Analyzer":
+        """Engineers a new feature based on a formula. The formula
+        can only involve numeric variables. Creates another numeric variable.
 
         Parameters
         ----------
         feature_name : str
-            The name of the new numeric variable engineered.
+            The name of the new variable engineered.
 
         formula : str
             Formula for the new feature. For example, "x1 + x2" would create
@@ -785,25 +786,35 @@ class Analyzer:
             All variables used must be numeric.
             Handles the following operations:
 
-            - Addition (+)
-            - Subtraction (-)
-            - Multiplication (*)
-            - Division (/)
-            - Parentheses ()
-            - Exponentiation (**)
-            - Logarithm (log)
-            - Exponential (exp)
-            - Square root (sqrt)
+                - Addition (+)
+                - Subtraction (-)
+                - Multiplication (*)
+                - Division (/)
+                - Parentheses ()
+                - Exponentiation (**)
+                - Logarithm (log)
+                - Exponential (exp)
+                - Square root (sqrt)
 
             If the i-th unit is missing a value in any of the variables used in the
             formula, then the i-th unit of the new feature will be missing.
+
+        Examples
+        --------
+        >>> analyzer.engineer_numeric_feature("x3", "x1 + x2")
+        >>> assert "x3" in analyzer.datahandler.vars()
+        True
+        >>> assert analyzer.datahandler.df_train()["x3"].equals(
+        ...     analyzer.datahandler.df_train()["x1"] + analyzer.datahandler.df_train()["x2"]
+        ... )
+        True
 
         Returns
         -------
         Analyzer
             Returns self for method chaining.
         """
-        self._datahandler.engineer_feature(feature_name, formula)
+        self._datahandler.engineer_numeric_feature(feature_name, formula)
         return self
 
     @ensure_arg_list_uniqueness()
@@ -1152,6 +1163,29 @@ class Analyzer:
             return self._datahandler._working_df_train.shape
         elif dataset == "test":
             return self._datahandler._working_df_test.shape
+        else:
+            raise ValueError(f"Invalid input: dataset = {dataset}.")
+
+    def value_counts(self, var: str, dataset: Literal["train", "test"]) -> pd.Series:
+        """Returns the value counts of a variable in the working train DataFrame.
+
+        Parameters
+        ----------
+        var : str
+            The variable to get the value counts of.
+
+        dataset : Literal['train', 'test']
+            The dataset to get the value counts of.
+
+        Returns
+        -------
+        pd.Series
+            The value counts of the variable.
+        """
+        if dataset == "train":
+            return self._datahandler._working_df_train[var].value_counts()
+        elif dataset == "test":
+            return self._datahandler._working_df_test[var].value_counts()
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 

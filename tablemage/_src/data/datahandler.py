@@ -498,31 +498,48 @@ class DataHandler:
     # PREPROCESSING and FEATURE ENGINEERING
     # --------------------------------------------------------------------------
 
-    def engineer_feature(
+    def engineer_numeric_feature(
         self,
         feature_name: str,
         formula: str,
     ) -> "DataHandler":
-        """Engineers a new feature based on a formula.
+        """Engineers a new feature based on a formula. The formula
+        can only involve numeric variables. Yields a new numeric variable.
 
         Parameters
         ----------
         feature_name : str
-            Name of the new feature.
+            The name of the new variable engineered.
 
         formula : str
             Formula for the new feature. For example, "x1 + x2" would create
             a new feature that is the sum of the columns x1 and x2 in the DataFrame.
+            All variables used must be numeric.
             Handles the following operations:
-            - Addition (+)
-            - Subtraction (-)
-            - Multiplication (*)
-            - Division (/)
-            - Parentheses ()
-            - Exponentiation (**)
-            - Logarithm (log)
-            - Exponential (exp)
-            - Square root (sqrt)
+
+            - Arithmetic expressions, yielding a new numeric variable
+                - Addition (+)
+                - Subtraction (-)
+                - Multiplication (*)
+                - Division (/)
+                - Parentheses ()
+                - Exponentiation (**)
+                - Logarithm (log)
+                - Exponential (exp)
+                - Square root (sqrt)
+
+            If the i-th unit is missing a value in any of the variables used in the
+            formula, then the i-th unit of the new feature will be missing.
+
+        Examples
+        --------
+        >>> analyzer.engineer_feature("x3", "x1 + x2")
+        >>> assert "x3" in analyzer.datahandler.vars()
+        True
+        >>> assert analyzer.datahandler.df_train()["x3"].equals(
+        ...     analyzer.datahandler.df_train()["x1"] + analyzer.datahandler.df_train()["x2"]
+        ... )
+        True
 
         Returns
         -------
@@ -563,7 +580,7 @@ class DataHandler:
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
 
         self._preprocess_step_tracer.add_step(
-            "engineer_feature",
+            "engineer_numeric_feature",
             {
                 "feature_name": feature_name,
                 "formula": formula,
@@ -571,6 +588,49 @@ class DataHandler:
         )
 
         return self
+
+    def engineer_categorical_feature(
+        self,
+        feature_name: str,
+        formula: str,
+    ) -> "DataHandler":
+        """Engineers a new feature based on a formula. The formula
+        can involve both categorical and numeric variables. Yields a new
+        categorical variable.
+
+        Parameters
+        ----------
+        feature_name : str
+            The name of the new variable engineered.
+
+        formula : str
+            A formula for defining the new categorical variable. For example,
+            "'a' if x1 > 0 else 'b'" would create a new feature that is 'a' if the
+            value of x1 is greater than 0 and 'b' otherwise. Or,
+            "'a' if x1 > 0 else 'b' if x2 > 0 else 'c'" would create a new feature
+            that is 'a' if the value of x1 is greater than 0, 'b' if the value
+            of x2 is greater than 0, and 'c' otherwise. Or,
+            "'a' if x2 == yes else 'b' if x2 == maybe else 'c'" would create a new
+            feature that is 'a' if the value of x2 is 'yes', 'b' if the value
+            of x2 is 'maybe', and 'c' otherwise.
+        """
+        raise NotImplementedError("This method is not yet implemented.")
+
+        feature_name = rename_var(feature_name)  # rename the variable
+
+        if feature_name in self._working_df_train.columns:
+            print_wrapped(
+                f"Feature {quote_and_color(feature_name, 'purple')} already exists. "
+                "Overwriting.",
+                type="WARNING",
+                level="INFO",
+            )
+
+        try:
+            # Use the eval function on the formula with DataFrame context
+            self.df[feature_name] = self.df.eval(formula)
+        except Exception as e:
+            raise ValueError(f"Error while evaluating formula: {e}")
 
     def dropna(
         self,

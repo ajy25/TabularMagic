@@ -171,8 +171,8 @@ class DataEmitter:
                 self._drop_vars(**step["kwargs"])
             elif step["step"] == "add_scaler":
                 self._add_scaler(**step["kwargs"])
-            elif step["step"] == "engineer_feature":
-                self._engineer_feature(**step["kwargs"])
+            elif step["step"] == "engineer_numeric_feature":
+                self._engineer_numeric_feature(**step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 
@@ -435,7 +435,7 @@ class DataEmitter:
         """
         self._final_X_vars_subset = predictors
 
-    def _engineer_feature(
+    def _engineer_numeric_feature(
         self,
         feature_name: str,
         formula: str,
@@ -1265,8 +1265,8 @@ class DataEmitter:
                 X = self._drop_vars(X=X, **step["kwargs"])
             elif step["step"] == "add_scaler":
                 X = self._add_scaler(X=X, **step["kwargs"])
-            elif step["step"] == "engineer_feature":
-                X = self._engineer_feature(X=X, **step["kwargs"])
+            elif step["step"] == "engineer_numeric_feature":
+                X = self._engineer_numeric_feature(X=X, **step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 

@@ -595,7 +595,7 @@ def test_datahandler_engineer_feature(setup_data):
     test_data = setup_data["df_house_test"]
     dh = DataHandler(train_data, test_data, verbose=False)
 
-    dh.engineer_feature(
+    dh.engineer_numeric_feature(
         "TotalSF",
         "TotalBsmtSF + 1stFlrSF + 2ndFlrSF",
     )
@@ -642,7 +642,7 @@ def test_datahandler_engineer_feature_transform(setup_data):
     test_data = setup_data["df_house_test"]
     dh = DataHandler(train_data, test_data, verbose=False)
 
-    dh.engineer_feature(
+    dh.engineer_numeric_feature(
         "TotalSF",
         "sqrt(TotalBsmtSF * log(1stFlrSF + 2ndFlrSF))",
     )

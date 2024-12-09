@@ -203,7 +203,7 @@ def engineer_feature_function(
     context.add_code(
         f"analyzer.engineer_feature(feature_name={feature_name}, formula={formula})"
     )
-    context.data_container.analyzer.engineer_feature(
+    context.data_container.analyzer.engineer_numeric_feature(
         feature_name=feature_name, formula=formula
     )
     return f"Feature {feature_name} engineered."

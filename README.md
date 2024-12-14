@@ -16,29 +16,27 @@ and effortlessly compute performance metrics for your favorite machine learning 
 
 ## Installation and dependencies
 
+We recommend installing TableMage in a virtual environment.
+
 To install TableMage:
 ```
 git clone https://github.com/ajy25/TableMage.git
 cd TableMage
-pip install .
-```
-
-To uninstall TableMage:
-```
-pip uninstall TableMage
+pip install .           # low-code API only (few dependencies)
+pip install .\[mage\]   # no-code application (lots of dependencies)
 ```
 
 TableMage is built with the standard Python data science stack (scikit-learn, scipy, statsmodels).
 For additional notes regarding dependencies, check out `./dev_notes/dependencies.md`. 
-TableMage requires Python version 3.10 or later.
+TableMage requires Python version 3.10 through 3.12.
 
-**Note for MacOS:** You'll likely run into an error when installing XGBoost, one of the dependencies for TableMage.
-Specifically, you need to install libomp: `brew install libomp`. This requries Homebrew installation.
+**Note for MacOS users:** You might run into an error involving XGBoost, one of TableMage's dependencies, when using TableMage for the first time.
+To resolve this error, you'll need to install libomp: `brew install libomp`. This requries [Homebrew](https://brew.sh/).
 Then, reinstall XGBoost with `pip uninstall xgboost` followed by `pip install xgboost`.
 
 ## Quick start (low-code)
 
-You'll probably use TableMage for ML model benchmarking. Here's how to do it.
+You'll probably want to use TableMage for machine learning model benchmarking. Here's how to do it.
 
 ```python
 import tablemage as tm

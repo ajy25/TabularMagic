@@ -34,6 +34,9 @@ STATIC_DIR.mkdir(exist_ok=True)
 mage: Mage = None
 
 
+options.set_llm("groq", model_name="llama-3.3-70b-versatile", temperature=0)
+
+
 def chat(msg: str) -> str:
     """
     Chat function that processes natural language queries on the uploaded dataset.

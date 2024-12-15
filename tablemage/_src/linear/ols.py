@@ -2,12 +2,87 @@ import statsmodels.api as sm
 from typing import Literal
 import pandas as pd
 import numpy as np
+from scipy.stats import t
 from ..metrics.regression_scoring import RegressionScorer
 from ..data.datahandler import DataEmitter
 from ..utils import ensure_arg_list_uniqueness
 from ..display.print_utils import suppress_print_output
 from ..display.print_options import print_options
 from .lmutils.score import score_model
+
+
+def bootstrap_coefs_and_pvals(
+    model: sm.regression.linear_model.OLS,
+    X: pd.DataFrame,
+    y: pd.Series,
+    alpha: float = 0.0,
+    l1_weight: float = 0.0,
+    n_bootstraps: int = 5000,
+    random_state: int = 42,
+):
+    """
+    Perform bootstrapping to estimate coefficient standard errors and p-values
+    for a statsmodels regularized regression model.
+
+    Parameters
+    ----------
+    model : statsmodels.regression.linear_model.OLS
+        The regularized model to fit (e.g., sm.OLS(y, X).fit_regularized()).
+
+    X : pd.DataFrame
+        Feature matrix.
+
+    y : pd.Series
+        Target vector.
+
+    alpha : float, default=0.0
+
+    l1_weight : float, default=0.0
+
+    n_bootstraps : int, default=1000
+        Number of bootstrap samples.
+
+    random_state : int, default=None
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing coefficients, standard errors, and p-values.
+    """
+    np.random.seed(random_state)
+    coefs = []
+
+    base_model = model.fit_regularized(alpha=alpha, L1_wt=l1_weight)
+    base_coefs = base_model.params
+
+    for _ in range(n_bootstraps):
+        indices = np.random.choice(len(y), len(y), replace=True)
+        X_bootstrap = X.iloc[indices] if isinstance(X, pd.DataFrame) else X[indices]
+        y_bootstrap = y.iloc[indices] if isinstance(y, pd.Series) else y[indices]
+
+        bootstrap_model = sm.OLS(y_bootstrap, X_bootstrap).fit_regularized(
+            alpha=alpha, L1_wt=l1_weight
+        )
+        coefs.append(bootstrap_model.params)
+
+    coefs = np.array(coefs)
+    standard_errors = np.std(coefs, axis=0)
+
+    t_stats = base_coefs / standard_errors
+    p_values = 2 * (1 - t.cdf(np.abs(t_stats), df=len(y) - X.shape[1]))
+
+    results = pd.DataFrame(
+        {
+            "Coefficient": base_coefs,
+            "Std Error": standard_errors,
+            "t-stat": t_stats,
+            "p-value": p_values,
+        },
+        index=X.columns,
+    )
+
+    return results
 
 
 class OLSLinearModel:
@@ -63,6 +138,8 @@ class OLSLinearModel:
 
         # we force the constant to be included
         X_train = sm.add_constant(X_train, has_constant="add")
+        self._X_train_orig = X_train
+        self._y_train_orig = y_train
 
         if self.alpha == 0:
             self.estimator = sm.OLS(y_train, X_train).fit(cov_type="HC3")
@@ -337,8 +414,18 @@ class OLSLinearModel:
             Default: "coef(se)|pval". The format of the output DataFrame.
         """
         params = self.estimator.params
-        std_err = self.estimator.bse
-        p_values = self.estimator.pvalues
+
+        if self.alpha == 0:
+            std_err = self.estimator.bse
+            p_values = self.estimator.pvalues
+        else:
+            bootstrap_results = bootstrap_coefs_and_pvals(
+                sm.OLS(self._y_train_orig, self._X_train_orig),
+                self._X_train_orig,
+                self._y_train_orig,
+            )
+            std_err = bootstrap_results["Std Error"]
+            p_values = bootstrap_results["p-value"]
 
         two_stdevs = 1.959963984540054
 

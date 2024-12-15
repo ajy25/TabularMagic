@@ -437,7 +437,7 @@ def _clustering_function(
     )
 
     output_str = context.add_figure(
-        fig=report.plot_clusters(
+        fig=report.plot_clusters_2d(
             model_id=clust._name,
             dim_reduction_method="pca" if vis_type == "PCA" else "tsne",
         ),

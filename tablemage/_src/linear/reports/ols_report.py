@@ -622,7 +622,11 @@ class OLSReport:
         new_emitter.select_predictors_pre_onehot(selected_vars)
 
         return OLSReport(
-            OLSLinearModel(),
+            OLSLinearModel(
+                alpha=self._model.alpha,
+                l1_weight=self._model.l1_weight,
+                name=self._model._name + f"__reduced(step_direction={direction})",
+            ),
             self._datahandler,  # only used for y var scaler
             self._target,  # ignored
             selected_vars,  # ignored
@@ -1217,7 +1221,21 @@ class OLSReport:
         divider = "\n" + color_text("-" * max_width, "none") + "\n"
         divider_invisible = "\n" + " " * max_width + "\n"
 
-        title_message = bold_text("Ordinary Least Squares Regression Report")
+        if self._model.alpha == 0:
+            title_message = bold_text("Ordinary Least Squares Regression Report")
+        else:
+            if self._model.l1_weight == 0:
+                title_message = bold_text(
+                    f"Ridge Regression Report (alpha={self._model.alpha})"
+                )
+            elif self._model.l1_weight == 1:
+                title_message = bold_text(
+                    f"Lasso Regression Report (alpha={self._model.alpha})"
+                )
+            else:
+                title_message = bold_text(
+                    f"Elastic Net Regression Report (alpha={self._model.alpha}, l1_ratio={self._model.l1_weight})"
+                )
 
         target_var = "'" + self._target + "'"
         target_message = f"{bold_text('Target variable:')}\n"

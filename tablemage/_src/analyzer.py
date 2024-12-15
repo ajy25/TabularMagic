@@ -157,8 +157,12 @@ class Analyzer:
 
         self._name = name
 
+        if len(self._datahandler.df_train()) == 0:
+            raise ValueError("Train DataFrame is empty.")
+        if len(self._datahandler.df_test()) == 0:
+            raise ValueError("Test DataFrame is empty.")
+
         if self._verbose:
-            shapes_dict = self._datahandler._shapes_str_formatted()
             print_wrapped(
                 "Analyzer initialized for dataset "
                 f"{quote_and_color(self._name, 'yellow')}.",

@@ -24,6 +24,8 @@ dependencies = [
     "xgboost>=2.0.3",
     "statsmodels>=0.14.0",
     "adjustText>=1.1.1",
+    "tableone>=0.9.1",
+    "umap-learn>=0.5.7",
     "optuna>=3.6.1",
     "optuna-integration>=3.6.0"
 ]

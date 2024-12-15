@@ -522,9 +522,9 @@ class EDAReport:
         return result
 
     def tabulate_tableone(
-        self, 
-        vars: list[str], 
-        stratify_by: str, 
+        self,
+        vars: list[str],
+        stratify_by: str | None,
         show_missingness: bool = True,
         show_htest_name: bool = True,
         bonferroni_correction: bool = False,
@@ -538,21 +538,31 @@ class EDAReport:
             List of variables to include in the tableone.
 
         stratify_by : str
-            The variable to group other variables by.
+            Categorical variable to stratify by.
+
+        show_missingness : bool
+            Default: True. If True, includes missingness information in the table.
+
+        show_htest_name : bool
+            Default: True. If True, includes the name of the hypothesis test in the table.
+
+        bonferroni_correction : bool
+            Default: False. If True, applies Bonferroni correction to the p-values.
 
         Returns
         -------
         TableOne
         """
+        pval = stratify_by is not None
         pval_adjust = "bonferroni" if bonferroni_correction else None
         return TableOne(
             data=self._df,
             columns=vars,
             groupby=stratify_by,
-            pval=True,
+            pval=pval,
             pval_adjust=pval_adjust,
             htest_name=show_htest_name,
-            missing=show_missingness
+            missing=show_missingness,
         )
 
     # --------------------------------------------------------------------------
@@ -1347,12 +1357,11 @@ class EDAReport:
             return self.ttest(numeric_var, stratify_by, "auto")
         else:
             return self.anova(numeric_var, stratify_by, "auto")
-        
 
     def test_normality(
-        self, 
-        numeric_var: str, 
-        method: Literal["shapiro", "kstest", "anderson"]
+        self,
+        numeric_var: str,
+        method: Literal["shapiro", "kstest", "anderson"] = "shapiro",
     ) -> StatisticalTestReport:
         """Tests the normality of a numeric variable.
 
@@ -1373,7 +1382,7 @@ class EDAReport:
             raise ValueError(
                 f"Invalid input: {numeric_var}. " "Must be a known numeric variable."
             )
-        
+
         if method == "shapiro":
             stat, pval = stats.shapiro(self._df[numeric_var].dropna())
             return StatisticalTestReport(
@@ -1387,7 +1396,7 @@ class EDAReport:
                 null_hypothesis_description="The data is normally distributed",
                 alternative_hypothesis_description="The data is not normally distributed",
             )
-        
+
         elif method == "kstest":
             stat, pval = stats.kstest(self._df[numeric_var].dropna(), "norm")
             return StatisticalTestReport(
@@ -1401,7 +1410,7 @@ class EDAReport:
                 null_hypothesis_description="The data is normally distributed",
                 alternative_hypothesis_description="The data is not normally distributed",
             )
-        
+
         elif method == "anderson":
             result = stats.anderson(self._df[numeric_var].dropna())
             return StatisticalTestReport(
@@ -1415,91 +1424,88 @@ class EDAReport:
                 null_hypothesis_description="The data is normally distributed",
                 alternative_hypothesis_description="The data is not normally distributed",
             )
-        
+
         else:
             raise ValueError(f"Invalid input: {method}.")
-        
 
-    def test_chi2(
+    def test_categorical_independence(
         self,
         categorical_var_1: str,
         categorical_var_2: str,
-        method: Literal["auto", "chi2", "fisher"] = "auto",
     ) -> StatisticalTestReport:
-        """Tests for independence between two categorical variables.
-        
+        """Tests for independence between two categorical variables using
+        the chi-squared test.
+
         Parameters
         ----------
         categorical_var_1 : str
-            Categorical variable name.
+            Name of the first categorical variable.
 
         categorical_var_2 : str
-            Categorical variable name.
+            Name of the second categorical variable.
 
-        method : Literal['auto', 'chi2', 'fisher']
-            Default: 'auto'. If 'auto', a test is selected as follows:
-            If the data is sparse (i.e. any cell has < 5 observations),
-            then Fisher's exact test is used. Otherwise, the chi-squared test is used.
+        Returns
+        -------
+        StatisticalTestReport
+            A structured report of the statistical test results.
+        """
+        return self.chi2(categorical_var_1, categorical_var_2)
+
+    def chi2(
+        self,
+        categorical_var_1: str,
+        categorical_var_2: str,
+    ) -> StatisticalTestReport:
+        """Tests for independence between two categorical variables using
+        the chi-squared test.
+
+        Parameters
+        ----------
+        categorical_var_1 : str
+            Name of the first categorical variable.
+
+        categorical_var_2 : str
+            Name of the second categorical variable.
+
+        Returns
+        -------
+        StatisticalTestReport
+            A structured report of the statistical test results.
         """
         if categorical_var_1 not in self._categorical_vars:
             raise ValueError(
-                f"Invalid input: {categorical_var_1}. " 
+                f"Invalid input: '{categorical_var_1}'. "
                 "Must be a known categorical variable."
             )
-        
+
         if categorical_var_2 not in self._categorical_vars:
             raise ValueError(
-                f"Invalid input: {categorical_var_2}. " 
+                f"Invalid input: '{categorical_var_2}'. "
                 "Must be a known categorical variable."
             )
-        
+
         contingency_table = pd.crosstab(
             self._df[categorical_var_1], self._df[categorical_var_2]
         )
 
-        long_description = ""
-
-        if method == "auto":
-            if np.any(contingency_table < 5):
-                method = "fisher"
-                long_description = "Fisher's exact test was used because the data was sparse. "
-                "The chi-squared test is not valid when any cell has fewer than 5 observations."
-            else:
-                method = "chi2"
-
-        if method == "chi2":
-            chi2_stat, p_val, _, _ = stats.chi2_contingency(contingency_table)
-            return StatisticalTestReport(
-                description="Chi-squared test",
-                statistic=chi2_stat,
-                pval=p_val,
-                descriptive_statistic=None,
-                degfree=None,
-                statistic_description="Chi^2-statistic",
-                descriptive_statistic_description=None,
-                null_hypothesis_description="The two variables are independent",
-                alternative_hypothesis_description="The two variables are not independent",
+        if np.any(contingency_table.values < 5):
+            raise ValueError(
+                "The chi-squared test is not valid when any cell in the "
+                "contingency table has an expected frequency less than 5."
             )
-        
-        elif method == "fisher":
-            fisher_stat, p_val = stats.fisher_exact(contingency_table)
-            return StatisticalTestReport(
-                description="Fisher's exact test",
-                statistic=fisher_stat,
-                pval=p_val,
-                descriptive_statistic=None,
-                degfree=None,
-                statistic_description="Odds ratio",
-                descriptive_statistic_description=None,
-                null_hypothesis_description="The two variables are independent",
-                alternative_hypothesis_description="The two variables are not independent",
-                long_description=long_description,
-            )
-        
-        else:
-            raise ValueError(f"Invalid input: {method}.")
-        
 
+        chi2_stat, p_val, deg_free, _ = stats.chi2_contingency(contingency_table)
+        return StatisticalTestReport(
+            description="Chi-squared test",
+            statistic=chi2_stat,
+            pval=p_val,
+            descriptive_statistic=None,
+            degfree=deg_free,
+            statistic_description="Chi^2-statistic",
+            descriptive_statistic_description=None,
+            null_hypothesis_description="The two variables are independent",
+            alternative_hypothesis_description="The two variables are not independent",
+        )
 
     def anova(
         self,
@@ -1833,7 +1839,7 @@ class EDAReport:
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
                 assumptions_description=f"Values for {numeric_var} in groups {group_1_str} and "
                 f"{group_2_str} are normally distributed.",
-                long_description=long_description
+                long_description=long_description,
             )
 
         elif test_type == "yuen":
@@ -1853,7 +1859,7 @@ class EDAReport:
                 long_description="Yuen's test is a robust alternative to Welch's "
                 "t-test when the assumption of homogeneity of variance is violated. "
                 "For both groups, 10 percent of the most extreme observations are trimmed "
-                "from each tail." + "\n\n" + long_description
+                "from each tail." + "\n\n" + long_description,
             )
 
         elif test_type == "mann-whitney":
@@ -1873,7 +1879,7 @@ class EDAReport:
                 assumptions_description=f"Var({group_1_full_str}) = Var({group_2_full_str}).",
                 long_description="Mann-Whitney U test is a non-parametric test for "
                 "testing the null hypothesis that the distributions "
-                "of two independent samples are equal." + "\n\n" + long_description
+                "of two independent samples are equal." + "\n\n" + long_description,
             )
 
     # --------------------------------------------------------------------------

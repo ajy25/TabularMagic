@@ -171,6 +171,8 @@ class HyperparameterSearcher:
         self._best_params = self._searcher.best_params_
         return self._best_estimator
 
+    # def _to_dict()
+
     def best_estimator(self) -> BaseEstimator:
         """Returns the best estimator.
 

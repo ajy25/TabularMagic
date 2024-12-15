@@ -7,6 +7,7 @@ from typing import Literal
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
+from tableone import TableOne
 from ..stattests import StatisticalTestReport
 from ..display.print_utils import print_wrapped, format_value
 from ..display.print_options import print_options
@@ -355,11 +356,14 @@ class EDAReport:
         ----------
         numeric_vars : list[str]
             List of numeric variables.
+
         target : str
             The numeric variable to correlate the `numeric_vars` with.
+
         bonferroni_correction : bool, default=False
             If True, applies the Bonferroni correction to the p-values
             (multiplies them by the number of tests).
+
         dropna : bool, default=True
             If True, drops rows with NaN values when computing correlations.
             If False, raises an error if NaN values are present.
@@ -517,7 +521,14 @@ class EDAReport:
 
         return result
 
-    def tabulate_tableone(self, vars: list[str], stratify_by: str) -> pd.DataFrame:
+    def tabulate_tableone(
+        self, 
+        vars: list[str], 
+        stratify_by: str, 
+        show_missingness: bool = True,
+        show_htest_name: bool = True,
+        bonferroni_correction: bool = False,
+    ) -> TableOne:
         """
         Generates a tableone for the given variables stratified by the given variable.
 
@@ -527,12 +538,22 @@ class EDAReport:
             List of variables to include in the tableone.
 
         stratify_by : str
-            The variable to stratify by.
+            The variable to group other variables by.
 
         Returns
         -------
-        pd.DataFrame
+        TableOne
         """
+        pval_adjust = "bonferroni" if bonferroni_correction else None
+        return TableOne(
+            data=self._df,
+            columns=vars,
+            groupby=stratify_by,
+            pval=True,
+            pval_adjust=pval_adjust,
+            htest_name=show_htest_name,
+            missing=show_missingness
+        )
 
     # --------------------------------------------------------------------------
     # PLOTTING
@@ -1326,6 +1347,159 @@ class EDAReport:
             return self.ttest(numeric_var, stratify_by, "auto")
         else:
             return self.anova(numeric_var, stratify_by, "auto")
+        
+
+    def test_normality(
+        self, 
+        numeric_var: str, 
+        method: Literal["shapiro", "kstest", "anderson"]
+    ) -> StatisticalTestReport:
+        """Tests the normality of a numeric variable.
+
+        Parameters
+        ----------
+        numeric_var : str
+            Numeric variable name.
+
+        method : str
+            Default: 'shapiro'. The normality test to use.
+            Options: 'shapiro', 'kstest', 'anderson'.
+
+        Returns
+        -------
+        StatisticalTestResult
+        """
+        if numeric_var not in self._numeric_vars:
+            raise ValueError(
+                f"Invalid input: {numeric_var}. " "Must be a known numeric variable."
+            )
+        
+        if method == "shapiro":
+            stat, pval = stats.shapiro(self._df[numeric_var].dropna())
+            return StatisticalTestReport(
+                description="Shapiro-Wilk test",
+                statistic=stat,
+                pval=pval,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="W-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="The data is normally distributed",
+                alternative_hypothesis_description="The data is not normally distributed",
+            )
+        
+        elif method == "kstest":
+            stat, pval = stats.kstest(self._df[numeric_var].dropna(), "norm")
+            return StatisticalTestReport(
+                description="Kolmogorov-Smirnov test",
+                statistic=stat,
+                pval=pval,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="D-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="The data is normally distributed",
+                alternative_hypothesis_description="The data is not normally distributed",
+            )
+        
+        elif method == "anderson":
+            result = stats.anderson(self._df[numeric_var].dropna())
+            return StatisticalTestReport(
+                description="Anderson-Darling test",
+                statistic=result.statistic,
+                pval=None,
+                descriptive_statistic=result.critical_values,
+                degfree=result.significance_level,
+                statistic_description="A^2-statistic",
+                descriptive_statistic_description="Critical values",
+                null_hypothesis_description="The data is normally distributed",
+                alternative_hypothesis_description="The data is not normally distributed",
+            )
+        
+        else:
+            raise ValueError(f"Invalid input: {method}.")
+        
+
+    def test_chi2(
+        self,
+        categorical_var_1: str,
+        categorical_var_2: str,
+        method: Literal["auto", "chi2", "fisher"] = "auto",
+    ) -> StatisticalTestReport:
+        """Tests for independence between two categorical variables.
+        
+        Parameters
+        ----------
+        categorical_var_1 : str
+            Categorical variable name.
+
+        categorical_var_2 : str
+            Categorical variable name.
+
+        method : Literal['auto', 'chi2', 'fisher']
+            Default: 'auto'. If 'auto', a test is selected as follows:
+            If the data is sparse (i.e. any cell has < 5 observations),
+            then Fisher's exact test is used. Otherwise, the chi-squared test is used.
+        """
+        if categorical_var_1 not in self._categorical_vars:
+            raise ValueError(
+                f"Invalid input: {categorical_var_1}. " 
+                "Must be a known categorical variable."
+            )
+        
+        if categorical_var_2 not in self._categorical_vars:
+            raise ValueError(
+                f"Invalid input: {categorical_var_2}. " 
+                "Must be a known categorical variable."
+            )
+        
+        contingency_table = pd.crosstab(
+            self._df[categorical_var_1], self._df[categorical_var_2]
+        )
+
+        long_description = ""
+
+        if method == "auto":
+            if np.any(contingency_table < 5):
+                method = "fisher"
+                long_description = "Fisher's exact test was used because the data was sparse. "
+                "The chi-squared test is not valid when any cell has fewer than 5 observations."
+            else:
+                method = "chi2"
+
+        if method == "chi2":
+            chi2_stat, p_val, _, _ = stats.chi2_contingency(contingency_table)
+            return StatisticalTestReport(
+                description="Chi-squared test",
+                statistic=chi2_stat,
+                pval=p_val,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="Chi^2-statistic",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="The two variables are independent",
+                alternative_hypothesis_description="The two variables are not independent",
+            )
+        
+        elif method == "fisher":
+            fisher_stat, p_val = stats.fisher_exact(contingency_table)
+            return StatisticalTestReport(
+                description="Fisher's exact test",
+                statistic=fisher_stat,
+                pval=p_val,
+                descriptive_statistic=None,
+                degfree=None,
+                statistic_description="Odds ratio",
+                descriptive_statistic_description=None,
+                null_hypothesis_description="The two variables are independent",
+                alternative_hypothesis_description="The two variables are not independent",
+                long_description=long_description,
+            )
+        
+        else:
+            raise ValueError(f"Invalid input: {method}.")
+        
+
 
     def anova(
         self,
@@ -1386,12 +1560,11 @@ class EDAReport:
 
         auto_alpha = 0.05
         is_normal = True
-        is_homoskedastic = stats.bartlett(*groups)[1] > auto_alpha
+        is_homoskedastic_pval = stats.bartlett(*groups)[1]
+        is_homoskedastic = is_homoskedastic_pval > auto_alpha
 
-        for group in groups:
-            if stats.shapiro(group)[1] <= auto_alpha:
-                is_normal = False
-                break
+        is_normal_pvals = {group: stats.shapiro(group)[1] for group in groups}
+        is_normal = all(pval > auto_alpha for pval in is_normal_pvals)
 
         long_description = ""
 
@@ -1403,7 +1576,10 @@ class EDAReport:
                 "The Bartlett test was used to test for homoskedasticity. "
                 "The Shapiro-Wilk test was used to test for normality. "
                 "Both tests were conducted at a significance level of 0.05. "
-                "Both tests indicated that the assumptions of ANOVA were met."
+                "Both tests indicated that the assumptions of ANOVA were met. "
+                f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
+                "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
+                f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
             else:
                 strategy = "kruskal"
                 long_description = "A Kruskal-Wallis test was conducted. "
@@ -1412,7 +1588,10 @@ class EDAReport:
                 "The Shapiro-Wilk test was used to test for normality. "
                 "Both tests were conducted at a significance level of 0.05. "
                 "At least one of the assumptions of ANOVA was violated. "
-                "Hence, the Kruskal-Wallis test was used instead."
+                "Hence, the Kruskal-Wallis test was used instead. "
+                f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
+                "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
+                f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
 
         if strategy == "kruskal":
             h_stat, p_val = stats.kruskal(*groups)
@@ -1526,8 +1705,10 @@ class EDAReport:
             auto_alpha = 0.05
 
             try:
-                normality1 = stats.shapiro(group_1)[1] > auto_alpha
-                normality2 = stats.shapiro(group_2)[1] > auto_alpha
+                normality1_pval = stats.shapiro(group_1)[1]
+                normality2_pval = stats.shapiro(group_2)[1]
+                normality1 = normality1_pval > auto_alpha
+                normality2 = normality2_pval > auto_alpha
                 is_normal = normality1 and normality2
             except Exception as e:
                 print_wrapped(
@@ -1537,7 +1718,8 @@ class EDAReport:
                 is_normal = False
 
             try:
-                is_equal_var = stats.levene(group_1, group_2).pvalue > auto_alpha
+                is_equal_var_pval = stats.levene(group_1, group_2).pvalue
+                is_equal_var = is_equal_var_pval > auto_alpha
             except Exception as e:
                 print_wrapped(
                     f"Levene test failed; assuming unequal variances: {e}.",
@@ -1553,7 +1735,9 @@ class EDAReport:
                     "The Shapiro-Wilk test was used to test for normality. "
                     "The Levene test was used to test for homoskedasticity. "
                     "Both tests were conducted at a significance level of 0.05. "
-                    "Both tests indicated that the assumptions of Student's t-test were met."
+                    "Both tests indicated that the assumptions of Student's t-test were met. "
+                    f"The Shapiro-Wilk test p-values were {normality1_pval:.4f} for {categories[0]} and {normality2_pval:.4f} for {categories[1]}. "
+                    f"The Levene test p-value was {is_equal_var_pval:.4f}."
 
                 else:
                     test_type = "yuen"
@@ -1565,13 +1749,36 @@ class EDAReport:
                     "The Levene test was used to test for homoskedasticity. "
                     "Both tests were conducted at a significance level of 0.05. "
                     "The Shapiro-Wilk test indicated that the data were not normally distributed. "
-                    "Hence, Yuen's test was used instead, to compare the trimmed means of the groups."
+                    "Hence, Yuen's test was used instead, to compare the trimmed means of the groups. "
+                    f"The Shapiro-Wilk test p-values were {normality1_pval:.4f} for {categories[0]} and {normality2_pval:.4f} for {categories[1]}. "
+                    f"The Levene test p-value was {is_equal_var_pval:.4f}."
 
             else:
                 if is_normal:
                     test_type = "welch"
+
+                    long_description = "Welch's t-test was conducted. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "The Levene test was used to test for homoskedasticity. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "The Shapiro-Wilk test indicated that the data were normally distributed. "
+                    "The Levene test indicated that the variances of the groups were not equal. "
+                    "Hence, Welch's test was used instead, to compare the means of the groups. "
+                    f"The Shapiro-Wilk test p-values were {normality1_pval:.4f} for {categories[0]} and {normality2_pval:.4f} for {categories[1]}. "
+                    f"The Levene test p-value was {is_equal_var_pval:.4f}."
+
                 else:
                     test_type = "mann-whitney"
+
+                    long_description = "Mann-Whitney U test was conducted. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "The Levene test was used to test for homoskedasticity. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "The Shapiro-Wilk test indicated that the data were not normally distributed. "
+                    "The Levene test indicated that the variances of the groups were not equal. "
+                    "Hence, the Mann-Whitney U test was used instead, to compare the distributions of the groups. "
+                    f"The Shapiro-Wilk test p-values were {normality1_pval:.4f} for {categories[0]} and {normality2_pval:.4f} for {categories[1]}. "
+                    f"The Levene test p-value was {is_equal_var_pval:.4f}."
 
         elif strategy in ["student", "welch", "yuen", "mann-whitney"]:
             test_type = strategy
@@ -1607,6 +1814,7 @@ class EDAReport:
                     f"Values for {numeric_var} in groups {group_1_str} and "
                     f"{group_2_str} are normally distributed.",
                 ],
+                long_description=long_description,
             )
 
         elif test_type == "welch":
@@ -1625,6 +1833,7 @@ class EDAReport:
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
                 assumptions_description=f"Values for {numeric_var} in groups {group_1_str} and "
                 f"{group_2_str} are normally distributed.",
+                long_description=long_description
             )
 
         elif test_type == "yuen":
@@ -1642,10 +1851,9 @@ class EDAReport:
                 null_hypothesis_description=f"{mu_1_str} = {mu_2_str}",
                 alternative_hypothesis_description=f"{mu_1_str} != {mu_2_str}",
                 long_description="Yuen's test is a robust alternative to Welch's "
-                "t-test when the assumption of homogeneity of variance "
-                "is violated. "
-                "For both groups, 10% of the most extreme observations are trimmed "
-                "from each tail.",
+                "t-test when the assumption of homogeneity of variance is violated. "
+                "For both groups, 10 percent of the most extreme observations are trimmed "
+                "from each tail." + "\n\n" + long_description
             )
 
         elif test_type == "mann-whitney":
@@ -1665,7 +1873,7 @@ class EDAReport:
                 assumptions_description=f"Var({group_1_full_str}) = Var({group_2_full_str}).",
                 long_description="Mann-Whitney U test is a non-parametric test for "
                 "testing the null hypothesis that the distributions "
-                "of two independent samples are equal.",
+                "of two independent samples are equal." + "\n\n" + long_description
             )
 
     # --------------------------------------------------------------------------

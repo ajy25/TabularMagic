@@ -174,4 +174,4 @@ class App:
         self.app = app
 
     def run(self, debug: bool = False):
-        self.app.run(host="0.0.0.0", debug=debug)
+        self.app.run(host="0.0.0.0", debug=debug, port="5050")

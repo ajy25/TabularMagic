@@ -194,6 +194,9 @@ class ClassificationBinaryScorer:
         """
         return str(self._pos_label)
 
+    def __len__(self) -> int:
+        return len(self._y_true)
+
 
 class ClassificationMulticlassScorer:
     """Class built for scoring of
@@ -631,3 +634,6 @@ class ClassificationMulticlassScorer:
         pd.DataFrame
         """
         return self._cv_stats_by_class_df
+
+    def __len__(self) -> int:
+        return len(self._y_true)

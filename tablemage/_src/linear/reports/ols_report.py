@@ -609,6 +609,15 @@ class OLSReport:
         -------
         OLSReport
         """
+        if direction == "backward":
+            method_name = "Backward selection"
+        elif direction == "both":
+            method_name = "Alternating selection"
+        elif direction == "forward":
+            method_name = "Forward selection"
+        else:
+            raise ValueError(f"Invalid argument: {direction}.")
+
         selected_vars = self._model.step(
             direction=direction,
             criteria=criteria,
@@ -617,6 +626,31 @@ class OLSReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
+
+        if all_vars is None:
+            all_vars = self._model._dataemitter.X_vars()
+        vars_removed = list(set(all_vars) - set(selected_vars))
+        if len(vars_removed) == 0:
+            print_wrapped(
+                f"{method_name} removed 0 predictors.", level="INFO", type="NOTE"
+            )
+            return self
+        elif len(vars_removed) == 1:
+            print_wrapped(
+                text=f"{method_name} removed {len(vars_removed)} predictor: "
+                + list_to_string(vars_removed)
+                + ".",
+                level="INFO",
+                type="UPDATE",
+            )
+        else:
+            print_wrapped(
+                text=f"{method_name} removed {len(vars_removed)} predictors: "
+                + list_to_string(vars_removed)
+                + ".",
+                level="INFO",
+                type="UPDATE",
+            )
 
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors_pre_onehot(selected_vars)
@@ -1234,7 +1268,8 @@ class OLSReport:
                 )
             else:
                 title_message = bold_text(
-                    f"Elastic Net Regression Report (alpha={self._model.alpha}, l1_ratio={self._model.l1_weight})"
+                    f"Elastic Net Regression Report (alpha={self._model.alpha}, "
+                    f"l1_ratio={self._model.l1_weight})"
                 )
 
         target_var = "'" + self._target + "'"
@@ -1246,7 +1281,9 @@ class OLSReport:
             subsequent_indent=2,
         )
 
-        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message = f"{bold_text(
+            f'Predictor variables ({self._model._n_predictors}):'
+        )}\n"
         predictors_message += fill_ignore_format(
             list_to_string(self._predictors),
             width=max_width,
@@ -1257,7 +1294,9 @@ class OLSReport:
         metrics_message = f"{bold_text('Metrics:')}\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                bold_text("Train"), bold_text("Test"), total_len=max_width - 2
+                bold_text(f"Train ({self._model._n_train})"),
+                bold_text(f"Test ({self._model._n_test})"),
+                total_len=max_width - 2,
             ),
             initial_indent=2,
         )

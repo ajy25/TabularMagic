@@ -1,6 +1,5 @@
-import qdrant_client
 from llama_index.core.indices import VectorStoreIndex
-from llama_index.vector_stores.qdrant import QdrantVectorStore
+from llama_index.core.objects import ObjectIndex, SimpleObjectNodeMapping
 from llama_index.core.vector_stores import SimpleVectorStore
 from llama_index.core import StorageContext, Settings
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
@@ -28,8 +27,20 @@ table_store_path.mkdir(exist_ok=True)
 vector_store_path = io_path / "_vector_store"
 vector_store_path.mkdir(exist_ok=True)
 
+obj_vector_store_path = io_path / "_obj_vector_store"
+obj_vector_store_path.mkdir(exist_ok=True)
+
 log_path = io_path / "_log"
 log_path.mkdir(exist_ok=True)
+
+
+class ObjectWrappingNode:
+    def __init__(self, obj: object, description: str):
+        self.obj = obj
+        self.description = description
+
+    def __str__(self):
+        return self.description + "\n" + str(self.obj)
 
 
 class StorageManager:
@@ -52,6 +63,51 @@ class StorageManager:
         else:
             self._multimodal_llm = None
         self.reset()
+
+    def add_obj(self, obj: object, description: str) -> object:
+        """Store an object in the object index.
+
+        Parameters
+        ----------
+        obj : object
+            Object to add to the object index.
+
+        description : str
+            Description of the object.
+
+        Returns
+        -------
+        object
+            The input object, verbatim.
+        """
+        if self._use_vectorstore:
+            print_debug(f"Adding object to object vector store: {obj}")
+            self._obj_index.insert_object(
+                obj=ObjectWrappingNode(obj, description),
+            )
+        return obj
+
+    def retrieve_obj(self, query: str) -> object | None:
+        """Retrieve an object from the object index.
+
+        Parameters
+        ----------
+        query : str
+            Query to retrieve an object from the object index.
+
+        Returns
+        -------
+        object
+            The object retrieved from the object index. If no object is found,
+            returns None.
+        """
+        if self._use_vectorstore:
+            print_debug(f"Retrieving object from object vector store: {query}")
+            retrieved: ObjectWrappingNode = self._obj_index.as_retriever(
+                similarity_top_k=1
+            ).retrieve(query)[0]
+            return retrieved.obj
+        return None
 
     def add_str(self, text: str) -> str:
         """Store text in the vector index.
@@ -193,12 +249,20 @@ class StorageManager:
         (log_path / "_log.log").touch()
 
         if self._use_vectorstore:
-            _, storage_context = self.setup_vector_store("storage_manager_collection")
+            _, storage_context = self.setup_vector_store(path=vector_store_path)
             self._index = VectorStoreIndex.from_documents(
                 documents=[], storage_context=storage_context
             )
             self._retriever = self._index.as_retriever(similarity_top_k=1)
             self._query_engn = self._index.as_query_engine(llm=self._llm)
+
+            _, obj_storage_context = self.setup_vector_store(path=obj_vector_store_path)
+
+            self._obj_index = ObjectIndex.from_objects(
+                objects=[],
+                index_cls=VectorStoreIndex,
+                storage_context=obj_storage_context,
+            )
 
     @property
     def retriever(self):
@@ -213,20 +277,9 @@ class StorageManager:
         return self._query_engn
 
     def setup_vector_store(
-        self,
-        collection_name: str,
-        path: Path = vector_store_path,
-        qdrant: bool = False,
-    ) -> tuple[QdrantVectorStore | SimpleVectorStore, StorageContext]:
-        if qdrant:
-            client = qdrant_client.QdrantClient(path=path)
-            if (path / "collection" / collection_name).exists():
-                client.delete_collection(collection_name)
-            vector_store = QdrantVectorStore(
-                collection_name=collection_name, client=client
-            )
-        else:
-            vector_store = SimpleVectorStore().persist()
+        self, path: Path = vector_store_path
+    ) -> tuple[SimpleVectorStore, StorageContext]:
+        vector_store = SimpleVectorStore().persist(persist_path=path)
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store,
         )

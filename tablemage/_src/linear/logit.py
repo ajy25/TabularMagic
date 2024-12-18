@@ -1,5 +1,4 @@
 import statsmodels.api as sm
-from sklearn.metrics import f1_score, roc_curve
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import pandas as pd
@@ -69,6 +68,11 @@ class LogitLinearModel:
         # Emit all data
         X_train, y_train = self._dataemitter.emit_train_Xy()
         X_test, y_test = self._dataemitter.emit_test_Xy()
+
+        self._predictors = X_train.columns.to_list()
+        self._n_predictors = len(self._predictors)
+        self._n_test = len(X_test)
+        self._n_train = len(X_train)
 
         # we force the constant to be included
         X_train = sm.add_constant(X_train, has_constant="add")
@@ -411,12 +415,12 @@ class LogitLinearModel:
             )
             output_df = output_df[["coef(se)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
+                columns={"coef(se)": "Estimate (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
             output_df = output_df[["coef", "se", "pval"]]
             output_df = output_df.rename(
-                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
+                columns={"coef": "Estimate", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
             output_df["ci_str"] = output_df["coef"] + two_stdevs * output_df["se"]
@@ -425,12 +429,12 @@ class LogitLinearModel:
             )
             output_df = output_df[["coef(ci)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "p-value"}
+                columns={"coef(ci)": "Estimate (95% CI)", "pval": "p-value"}
             )
         elif format == "coef|ci_low|ci_high|pval":
             output_df = output_df.rename(
                 columns={
-                    "coef": "Coefficient",
+                    "coef": "Estimate",
                     "ci_low": "CI Lower Bound",
                     "ci_high": "CI Upper Bound",
                     "pval": "p-value",

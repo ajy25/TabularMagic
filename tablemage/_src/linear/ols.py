@@ -74,7 +74,7 @@ def bootstrap_coefs_and_pvals(
 
     results = pd.DataFrame(
         {
-            "Coefficient": base_coefs,
+            "Estimate": base_coefs,
             "Std Error": standard_errors,
             "t-stat": t_stats,
             "p-value": p_values,
@@ -134,10 +134,16 @@ class OLSLinearModel:
         y_scaler = self._dataemitter.y_scaler()
 
         X_train, y_train = self._dataemitter.emit_train_Xy()
-        n_predictors = X_train.shape[1]
+        X_test, y_test = self._dataemitter.emit_test_Xy()
+
+        self._predictors = X_train.columns.to_list()
+        self._n_predictors = len(self._predictors)
+        self._n_train = len(X_train)
+        self._n_test = len(X_test)
 
         # we force the constant to be included
         X_train = sm.add_constant(X_train, has_constant="add")
+        X_test = sm.add_constant(X_test, has_constant="add")
         self._X_train_orig = X_train
         self._y_train_orig = y_train
 
@@ -156,14 +162,11 @@ class OLSLinearModel:
         self.train_scorer = RegressionScorer(
             y_pred=y_pred_train,
             y_true=y_train.to_numpy(),
-            n_predictors=n_predictors,
+            n_predictors=self._n_predictors,
             name=self._name,
         )
 
-        X_test, y_test = self._dataemitter.emit_test_Xy()
-        X_test = sm.add_constant(X_test, has_constant="add")
-
-        if X_train.shape[1] == n_predictors:
+        if X_train.shape[1] == self._n_predictors:
             exception_vars = set(X_train.columns).symmetric_difference(
                 set(X_test.columns)
             )
@@ -180,7 +183,7 @@ class OLSLinearModel:
         self.test_scorer = RegressionScorer(
             y_pred=y_pred_test,
             y_true=y_test.to_numpy(),
-            n_predictors=n_predictors,
+            n_predictors=self._n_predictors,
             name=self._name,
         )
 
@@ -447,12 +450,12 @@ class OLSLinearModel:
             )
             output_df = output_df[["coef(se)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
+                columns={"coef(se)": "Estimate (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
             output_df = output_df[["coef", "se", "pval"]]
             output_df = output_df.rename(
-                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
+                columns={"coef": "Estimate", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
             output_df["ci_str"] = output_df["coef"] + two_stdevs * output_df["se"]
@@ -461,12 +464,12 @@ class OLSLinearModel:
             )
             output_df = output_df[["coef(ci)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "p-value"}
+                columns={"coef(ci)": "Estimate (95% CI)", "pval": "p-value"}
             )
         elif format == "coef|ci_low|ci_high|pval":
             output_df = output_df.rename(
                 columns={
-                    "coef": "Coefficient",
+                    "coef": "Estimate",
                     "ci_low": "CI Lower Bound",
                     "ci_high": "CI Upper Bound",
                     "pval": "p-value",

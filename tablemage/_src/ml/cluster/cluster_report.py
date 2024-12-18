@@ -4,7 +4,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from umap import UMAP
+
+# from umap import UMAP
 from ...data.datahandler import DataHandler
 from ...display.plot_options import plot_options
 from ...display.print_utils import suppress_print_output, print_wrapped, quote_and_color
@@ -194,12 +195,12 @@ class ClusterReport:
                     X_reduced, columns=["t-SNE1", "t-SNE2"], index=X_df.index
                 )
 
-            elif dim_reduction_method == "umap":
-                umap_reducer = UMAP(n_components=2)
-                X_reduced = umap_reducer.fit_transform(X_df)
-                X_reduced = pd.DataFrame(
-                    X_reduced, columns=["UMAP1", "UMAP2"], index=X_df.index
-                )
+            # elif dim_reduction_method == "umap":
+            #     umap_reducer = UMAP(n_components=2)
+            #     X_reduced = umap_reducer.fit_transform(X_df)
+            #     X_reduced = pd.DataFrame(
+            #         X_reduced, columns=["UMAP1", "UMAP2"], index=X_df.index
+            #     )
 
             else:
                 raise ValueError("dim_reduction_method must be 'pca' or 'tsne'.")

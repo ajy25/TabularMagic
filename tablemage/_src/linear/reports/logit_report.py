@@ -121,7 +121,7 @@ class _SingleDatasetLogitReport:
         ----------
         pd.DataFrame
         """
-        return self.scorer.stats_df()
+        return self.scorer.stats_df().astype(float)
 
     def plot_confusion_matrix(
         self, figsize: tuple[float, float] = (5, 5), ax: plt.Axes | None = None
@@ -543,6 +543,14 @@ class LogitReport:
         -------
         LogitReport
         """
+        if direction == "backward":
+            method_name = "Backward selection"
+        elif direction == "both":
+            method_name = "Alternating selection"
+        elif direction == "forward":
+            method_name = "Forward selection"
+        else:
+            raise ValueError(f"Invalid argument: {direction}.")
         selected_vars = self._model.step(
             direction=direction,
             criteria=criteria,
@@ -551,6 +559,31 @@ class LogitReport:
             start_vars=start_vars,
             max_steps=max_steps,
         )
+
+        if all_vars is None:
+            all_vars = self._model._dataemitter.X_vars()
+        vars_removed = list(set(all_vars) - set(selected_vars))
+        if len(vars_removed) == 0:
+            print_wrapped(
+                f"{method_name} removed 0 predictors.", level="INFO", type="NOTE"
+            )
+            return self
+        elif len(vars_removed) == 1:
+            print_wrapped(
+                text=f"{method_name} removed {len(vars_removed)} predictor: "
+                + list_to_string(vars_removed)
+                + ".",
+                level="INFO",
+                type="UPDATE",
+            )
+        else:
+            print_wrapped(
+                text=f"{method_name} removed {len(vars_removed)} predictors: "
+                + list_to_string(vars_removed)
+                + ".",
+                level="INFO",
+                type="UPDATE",
+            )
 
         new_emitter = self._dataemitter.copy()
         new_emitter.select_predictors_pre_onehot(selected_vars)
@@ -992,7 +1025,9 @@ class LogitReport:
             subsequent_indent=2,
         )
 
-        predictors_message = f"{bold_text('Predictor variables:')}\n"
+        predictors_message = f"{bold_text(
+            f'Predictor variables ({self._model._n_predictors}):'
+        )}\n"
         predictors_message += fill_ignore_format(
             list_to_string(self._predictors),
             width=max_width,
@@ -1003,7 +1038,9 @@ class LogitReport:
         metrics_message = f"{bold_text('Metrics:')}\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                bold_text("Train"), bold_text("Test"), total_len=max_width - 2
+                bold_text(f"Train ({self._model._n_train})"),
+                bold_text(f"Test ({self._model._n_test})"),
+                total_len=max_width - 2,
             ),
             initial_indent=2,
         )
@@ -1011,11 +1048,11 @@ class LogitReport:
         metrics_message += "\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                "F1:    "
+                "F1:     "
                 + color_text(
                     str(np.round(self.metrics("train").at["f1", mstr], n_dec)), "yellow"
                 ),
-                "F1:    "
+                "F1:     "
                 + color_text(
                     str(np.round(self.metrics("test").at["f1", mstr], n_dec)), "yellow"
                 ),
@@ -1026,12 +1063,12 @@ class LogitReport:
         metrics_message += "\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                "Acc:   "
+                "Acc:    "
                 + color_text(
                     str(np.round(self.metrics("train").at["accuracy", mstr], n_dec)),
                     "yellow",
                 ),
-                "Acc:   "
+                "Acc:    "
                 + color_text(
                     str(np.round(self.metrics("test").at["accuracy", mstr], n_dec)),
                     "yellow",
@@ -1043,12 +1080,12 @@ class LogitReport:
         metrics_message += "\n"
         metrics_message += fill_ignore_format(
             format_two_column(
-                "AUROC: "
+                "AUROC:  "
                 + color_text(
                     str(np.round(self.metrics("train").at["roc_auc", mstr], n_dec)),
                     "yellow",
                 ),
-                "AUROC: "
+                "AUROC:  "
                 + color_text(
                     str(np.round(self.metrics("test").at["roc_auc", mstr], n_dec)),
                     "yellow",

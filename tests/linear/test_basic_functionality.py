@@ -79,11 +79,93 @@ def test_output_errorless(setup_data):
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3"],
     )
-
-    lmreport.coefs()
+    lmreport
     lmreport.statsmodels_summary()
     lmreport.metrics("train")
     lmreport.metrics("test")
-    lmreport.plot_diagnostics("train")
-    lmreport.plot_diagnostics("test")
+    lmreport.metrics("both")
+    lmreport.coefs("coef(se)|pval")
+    lmreport.coefs("coef|se|pval")
+    lmreport.coefs("coef(ci)|pval")
+    lmreport.coefs("coef|ci_low|ci_high|pval")
+    lmreport.plot_diagnostics("train", show_outliers=True)
+    lmreport.plot_diagnostics("test", show_outliers=True)
     lmreport.plot_residuals_vs_var("x1", "train")
+
+    df_logistic = setup_data["df_logistic"]
+    analyzer_logistic = tm.Analyzer(df=df_logistic)
+    logit_report = analyzer_logistic.logit(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3"],
+    )
+    logit_report
+    logit_report.statsmodels_summary()
+    logit_report.metrics("train")
+    logit_report.metrics("test")
+    logit_report.metrics("both")
+    logit_report.coefs("coef(se)|pval")
+    logit_report.coefs("coef|se|pval")
+    logit_report.coefs("coef(ci)|pval")
+    logit_report.coefs("coef|ci_low|ci_high|pval")
+    logit_report.plot_diagnostics("train", show_outliers=True)
+    logit_report.plot_diagnostics("test", show_outliers=True)
+
+
+def test_formula_vs_parameter_agreement(setup_data):
+    df = setup_data["df_ols"]
+    analyzer = tm.Analyzer(df=df)
+    lmreport = analyzer.ols(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3"],
+    )
+    lmreport_formula = analyzer.ols(formula="y ~ x1 + x2 + cat1 + cat2 + x3")
+    assert np.allclose(
+        lmreport.metrics("test").values, lmreport_formula.metrics("test").values
+    )
+    assert np.allclose(
+        lmreport.step("forward").metrics("test").values,
+        lmreport_formula.step("forward").metrics("test").values,
+    )
+    analyzer.scale(strategy="minmax")
+    lmreport = analyzer.ols(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3"],
+    )
+    lmreport_formula = analyzer.ols(formula="y ~ x1 + x2 + cat1 + cat2 + x3")
+    assert np.allclose(
+        lmreport.metrics("test").values, lmreport_formula.metrics("test").values
+    )
+    assert np.allclose(
+        lmreport.step("forward").metrics("test").values,
+        lmreport_formula.step("forward").metrics("test").values,
+    )
+
+    df = setup_data["df_logistic"]
+    analyzer = tm.Analyzer(df=df)
+    lmreport = analyzer.logit(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3"],
+    )
+    lmreport_formula = analyzer.logit(formula="y ~ x1 + x2 + cat1 + cat2 + x3")
+    assert np.allclose(
+        lmreport.metrics("test").values, lmreport_formula.metrics("test").values
+    )
+    assert np.allclose(
+        lmreport.step("forward").metrics("test").values,
+        lmreport_formula.step("forward").metrics("test").values,
+    ), (
+        str(lmreport) + "\n" + str(lmreport_formula)
+    )
+    analyzer.scale(strategy="minmax")
+    lmreport = analyzer.logit(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3"],
+    )
+    lmreport_formula = analyzer.logit(formula="y ~ x1 + x2 + cat1 + cat2 + x3")
+    assert np.allclose(
+        lmreport.metrics("test").values, lmreport_formula.metrics("test").values
+    )
+    assert np.allclose(
+        lmreport.step("forward").metrics("test").values,
+        lmreport_formula.step("forward").metrics("test").values,
+    )

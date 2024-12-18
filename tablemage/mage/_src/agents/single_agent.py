@@ -84,7 +84,6 @@ def build_agent(
 
     elif memory == "vector":
         vector_store, _ = context.storage_manager.setup_vector_store(
-            "vector_memory",
             path=io_path / "_vector_memory",
         )
         buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=1000)

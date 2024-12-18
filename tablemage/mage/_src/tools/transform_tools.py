@@ -41,6 +41,7 @@ def impute_function(
         numeric_strategy=numeric_strategy,
         categorical_strategy=categorical_strategy,
     )
+    context.data_container.update_df()
     return "Imputation complete."
 
 
@@ -89,6 +90,8 @@ def drop_highly_missing_vars_function(
 
     dropped_cols = set(cols_before_drop) - set(cols_after_drop)
 
+    context.data_container.update_df()
+
     return (
         "Columns with high missing values have been dropped: "
         + ", ".join(dropped_cols)
@@ -115,6 +118,7 @@ def save_state_function(state_name: str, context: ToolingContext) -> str:
     )
     context.add_code(f"analyzer.save_data_checkpoint({state_name})")
     context.data_container.analyzer.save_data_checkpoint(state_name)
+    context.data_container.update_df()
     return f"State {state_name} saved."
 
 
@@ -137,7 +141,7 @@ def load_state_function(state_name: str, context: ToolingContext) -> str:
     )
     context.add_code(f"analyzer.load_data_checkpoint({state_name})")
     context.data_container.analyzer.load_data_checkpoint(state_name)
-
+    context.data_container.update_df()
     return f"State {state_name} loaded."
 
 
@@ -158,6 +162,7 @@ def revert_to_original_function(context: ToolingContext) -> str:
     context.add_thought("I am going to revert the dataset to its original state.")
     context.add_code("analyzer.load_data_checkpoint()")
     context.data_container.analyzer.load_data_checkpoint()
+    context.data_container.update_df()
     return "Dataset reverted to original state."
 
 
@@ -206,6 +211,7 @@ def engineer_feature_function(
     context.data_container.analyzer.engineer_numeric_feature(
         feature_name=feature_name, formula=formula
     )
+    context.data_container.update_df()
     return f"Feature {feature_name} engineered."
 
 
@@ -236,7 +242,7 @@ def onehot_encode_function(vars: str, dropfirst: bool, context: ToolingContext) 
 
     vars_list = parse_var_list_from_str(vars)
     context.data_container.analyzer.onehot(include_vars=vars_list, dropfirst=dropfirst)
-
+    context.data_container.update_df()
     return "One-hot encoding complete."
 
 
@@ -266,7 +272,7 @@ def drop_na_function(vars: str, context: ToolingContext) -> str:
 
     vars_list = parse_var_list_from_str(vars)
     context.data_container.analyzer.dropna(include_vars=vars_list)
-
+    context.data_container.update_df()
     return "Rows with missing values dropped."
 
 
@@ -294,7 +300,7 @@ def scale_function(vars: str, method: str, context: ToolingContext) -> str:
     context.add_code(f"analyzer.scale(include_vars={vars}, strategy={method})")
     vars_list = parse_var_list_from_str(vars)
     context.data_container.analyzer.scale(include_vars=vars_list, strategy=method)
-
+    context.data_container.update_df()
     return "Scaling complete."
 
 

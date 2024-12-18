@@ -79,6 +79,11 @@ class MNLogitLinearModel:
         X_train = sm.add_constant(X_train, has_constant="add")
         X_test = sm.add_constant(X_test, has_constant="add")
 
+        self._predictors = X_train.columns.to_list()
+        self._n_predictors = len(self._predictors)
+        self._n_train = len(X_train)
+        self._n_test = len(X_test)
+
         # we allow y_train to be categorical, i.e. we encode it with a label encoder
         self._y_label_order = None
         if not is_numerical(y_train):
@@ -398,11 +403,11 @@ class MNLogitLinearModel:
             )
             output_df = output_df[["coef(se)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(se)": "Coefficient (Std. Error)", "pval": "p-value"}
+                columns={"coef(se)": "Estimate (Std. Error)", "pval": "p-value"}
             )
         elif format == "coef|se|pval":
             output_df = output_df.rename(
-                columns={"coef": "Coefficient", "se": "Std. Error", "pval": "p-value"}
+                columns={"coef": "Estimate", "se": "Std. Error", "pval": "p-value"}
             )
         elif format == "coef(ci)|pval":
             output_df["ci_str"] = output_df["coef"] + 1.96 * output_df["se"]
@@ -411,12 +416,12 @@ class MNLogitLinearModel:
             )
             output_df = output_df[["coef(ci)", "pval"]]
             output_df = output_df.rename(
-                columns={"coef(ci)": "Coefficient (95% CI)", "pval": "p-value"}
+                columns={"coef(ci)": "Estimate (95% CI)", "pval": "p-value"}
             )
         elif format == "coef|ci_low|ci_high|pval":
             output_df = output_df.rename(
                 columns={
-                    "coef": "Coefficient",
+                    "coef": "Estimate",
                     "ci_low": "CI Lower Bound",
                     "ci_high": "CI Upper Bound",
                     "pval": "p-value",

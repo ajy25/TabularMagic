@@ -7,7 +7,8 @@ from typing import Literal
 from sklearn.preprocessing import minmax_scale, scale
 from sklearn.decomposition import PCA
 from textwrap import fill
-from tableone import TableOne
+
+# from tableone import TableOne
 from ..stattests import StatisticalTestReport
 from ..display.print_utils import print_wrapped, format_value
 from ..display.print_options import print_options
@@ -521,49 +522,49 @@ class EDAReport:
 
         return result
 
-    def tabulate_tableone(
-        self,
-        vars: list[str],
-        stratify_by: str | None,
-        show_missingness: bool = True,
-        show_htest_name: bool = True,
-        bonferroni_correction: bool = False,
-    ) -> TableOne:
-        """
-        Generates a tableone for the given variables stratified by the given variable.
+    # def tabulate_tableone(
+    #     self,
+    #     vars: list[str],
+    #     stratify_by: str | None,
+    #     show_missingness: bool = True,
+    #     show_htest_name: bool = True,
+    #     bonferroni_correction: bool = False,
+    # ) -> TableOne:
+    #     """
+    #     Generates a tableone for the given variables stratified by the given variable.
 
-        Parameters
-        ----------
-        vars : list[str]
-            List of variables to include in the tableone.
+    #     Parameters
+    #     ----------
+    #     vars : list[str]
+    #         List of variables to include in the tableone.
 
-        stratify_by : str
-            Categorical variable to stratify by.
+    #     stratify_by : str
+    #         Categorical variable to stratify by.
 
-        show_missingness : bool
-            Default: True. If True, includes missingness information in the table.
+    #     show_missingness : bool
+    #         Default: True. If True, includes missingness information in the table.
 
-        show_htest_name : bool
-            Default: True. If True, includes the name of the hypothesis test in the table.
+    #     show_htest_name : bool
+    #         Default: True. If True, includes the name of the hypothesis test in the table.
 
-        bonferroni_correction : bool
-            Default: False. If True, applies Bonferroni correction to the p-values.
+    #     bonferroni_correction : bool
+    #         Default: False. If True, applies Bonferroni correction to the p-values.
 
-        Returns
-        -------
-        TableOne
-        """
-        pval = stratify_by is not None
-        pval_adjust = "bonferroni" if bonferroni_correction else None
-        return TableOne(
-            data=self._df,
-            columns=vars,
-            groupby=stratify_by,
-            pval=pval,
-            pval_adjust=pval_adjust,
-            htest_name=show_htest_name,
-            missing=show_missingness,
-        )
+    #     Returns
+    #     -------
+    #     TableOne
+    #     """
+    #     pval = stratify_by is not None
+    #     pval_adjust = "bonferroni" if bonferroni_correction else None
+    #     return TableOne(
+    #         data=self._df,
+    #         columns=vars,
+    #         groupby=stratify_by,
+    #         pval=pval,
+    #         pval_adjust=pval_adjust,
+    #         htest_name=show_htest_name,
+    #         missing=show_missingness,
+    #     )
 
     # --------------------------------------------------------------------------
     # PLOTTING

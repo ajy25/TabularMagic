@@ -8,7 +8,7 @@ from .llms.ollama.ollama import build_ollama
 from .llms.api_key_utils import key_exists
 
 
-class _WizardOptions:
+class _MageOptions:
 
     def __init__(self):
 
@@ -31,7 +31,7 @@ class _WizardOptions:
             True if self._multimodal_llm_build_function is not None else False
         )
         print_debug(
-            "A new _WizardOptions object has been created "
+            "A new _MageOptions object has been created "
             "with LLM build function: "
             + str(self._llm_build_function)
             + " and multimodal LLM build function: "
@@ -116,4 +116,4 @@ class _WizardOptions:
         return self._multimodal
 
 
-options = _WizardOptions()
+options = _MageOptions()

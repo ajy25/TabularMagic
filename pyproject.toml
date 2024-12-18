@@ -45,6 +45,7 @@ mage = [
     "flask",
     "python-dotenv",
     "llama-index-embeddings-fastembed",
+    "llama-index-llms-ollama",
     "fastembed",
 ]
 

@@ -1281,7 +1281,9 @@ class OLSReport:
             subsequent_indent=2,
         )
 
-        predictors_message = f"{bold_text(f'Predictor variables ({self._model._n_predictors}):')}\n"
+        predictors_message = (
+            f"{bold_text(f'Predictor variables ({self._model._n_predictors}):')}\n"
+        )
         predictors_message += fill_ignore_format(
             list_to_string(self._predictors),
             width=max_width,

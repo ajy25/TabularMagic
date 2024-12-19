@@ -1518,7 +1518,7 @@ class DataHandler:
         underscores.
 
         We remove the following characters from variable names:
-            '.', ',', '[', ']', '{', '}', '+', '-', '*', '/', '\\', '|', '&',
+            '.', '[', ']', '{', '}', '\\', '|', '&',
             '%', '$', '#', '\\n', '\\t'
 
         Parameters

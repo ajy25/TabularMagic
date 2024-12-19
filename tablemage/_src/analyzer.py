@@ -403,6 +403,7 @@ class Analyzer:
             datahandler = DataHandler(
                 y_X_df_combined_train, y_X_df_combined_test, verbose=False
             )
+
             if y_scaler is not None:
                 datahandler.add_scaler(y_scaler, target)
             elif self._datahandler.scaler(target) is not None:

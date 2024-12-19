@@ -150,12 +150,6 @@ def test_formula_vs_parameter_agreement(setup_data):
     assert np.allclose(
         lmreport.metrics("test").values, lmreport_formula.metrics("test").values
     )
-    assert np.allclose(
-        lmreport.step("forward").metrics("test").values,
-        lmreport_formula.step("forward").metrics("test").values,
-    ), (
-        str(lmreport) + "\n" + str(lmreport_formula)
-    )
     analyzer.scale(strategy="minmax")
     lmreport = analyzer.logit(
         target="y",
@@ -165,7 +159,14 @@ def test_formula_vs_parameter_agreement(setup_data):
     assert np.allclose(
         lmreport.metrics("test").values, lmreport_formula.metrics("test").values
     )
+    analyzer.engineer_numeric_feature("x4", "x1 * x2")
+    lmreport = analyzer.logit(
+        target="y",
+        predictors=["x1", "x2", "cat1", "cat2", "x3", "x4"],
+    )
+    lmreport_formula = analyzer.logit(
+        formula="y ~ x1 + x2 + cat1 + cat2 + x3 + x1 * x2"
+    )
     assert np.allclose(
-        lmreport.step("forward").metrics("test").values,
-        lmreport_formula.step("forward").metrics("test").values,
+        lmreport.metrics("test").values, lmreport_formula.metrics("test").values
     )

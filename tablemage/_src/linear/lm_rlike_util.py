@@ -158,11 +158,11 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
 
     # a less efficient multiplication-handling scheme for edge cases, only
     # reaches this point if a transformation is being applied to first term
-    elif ":" in expression:
-        expression_split = expression.split(":")
+    elif "*" in expression:
+        expression_split = expression.split("*")
         for right_cutoff in range(1, len(expression_split)):
-            left_subexpression = ":".join(expression_split[:right_cutoff])
-            right_subexpression = ":".join(expression_split[right_cutoff:])
+            left_subexpression = "*".join(expression_split[:right_cutoff])
+            right_subexpression = "*".join(expression_split[right_cutoff:])
             if not check_all_parentheses([left_subexpression, right_subexpression]):
                 continue
             first_df: pd.DataFrame = recursive_expression_transformer(
@@ -176,7 +176,7 @@ def recursive_expression_transformer(expression: str, df: pd.DataFrame):
             )
             output = dict()
             for var_a, var_b in cartesian_product:
-                output[f"{var_a}:{var_b}"] = (
+                output[f"{var_a}*{var_b}"] = (
                     first_df[var_a].to_numpy() * last_df[var_b].to_numpy()
                 )
             return pd.DataFrame(output, index=df.index)

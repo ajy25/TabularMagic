@@ -32,7 +32,6 @@ TableMage requires Python version 3.10 through 3.12.
 
 **Note for MacOS users:** You might run into an error involving XGBoost, one of TableMage's dependencies, when using TableMage for the first time.
 To resolve this error, you'll need to install libomp: `brew install libomp`. This requries [Homebrew](https://brew.sh/).
-Then, reinstall XGBoost with `pip uninstall xgboost` followed by `pip install xgboost`.
 
 ## Quick start (low-code)
 
@@ -50,7 +49,13 @@ df = ...
 analyzer = tm.Analyzer(df, test_size=0.2)
 
 # preprocess data
-analyzer.dropna(['y']).impute().scale()
+analyzer.dropna(
+    include_vars=['y']
+).impute(
+    exclude_vars=['y']
+).scale(
+    exclude_vars=['y']
+)
 
 # train regressors (hyperparameter tuning is preset and automatic)
 reg_report = analyzer.regress(

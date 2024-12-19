@@ -279,7 +279,9 @@ class StorageManager:
     def setup_vector_store(
         self, path: Path = vector_store_path
     ) -> tuple[SimpleVectorStore, StorageContext]:
-        vector_store = SimpleVectorStore().persist(persist_path=path / "vector_store.json")
+        vector_store = SimpleVectorStore().persist(
+            persist_path=path / "vector_store.json"
+        )
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store,
         )

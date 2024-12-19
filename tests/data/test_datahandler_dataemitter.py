@@ -663,3 +663,42 @@ def test_datahandler_engineer_feature_transform(setup_data):
     assert train_X["TotalSF"].equals(extra_col)
 
     assert len(de._working_df_train) == len(train_X)
+
+
+def test_datahandler_engineer_categorical_feature(setup_data):
+    train_data = setup_data["df_house_train"]
+    test_data = setup_data["df_house_test"]
+    dh = DataHandler(train_data, test_data, verbose=False)
+
+    dh.engineer_categorical_feature(
+        feature_name="1stFlrSF_quartiles",
+        numeric_var="1stFlrSF",
+        level_names=["Q1", "Q2", "Q3", "Q4"],
+        thresholds=[0, 882, 1087, 1391, 4692],
+        leq=True,
+    )
+
+    train_df = dh.df_train()
+    assert "1stFlrSF_quartiles" in train_df.columns
+    test_df = dh.df_test()
+    assert "1stFlrSF_quartiles" in test_df.columns
+
+    de = dh.train_test_emitter("SalePrice", ["LotArea", "1stFlrSF_quartiles"])
+
+    assert "1stFlrSF_quartiles" in de._working_df_train.columns
+    assert "1stFlrSF_quartiles" in de._working_df_test.columns
+
+    train_X, _, test_X, _ = de.emit_train_test_Xy()
+
+    assert len(de._working_df_train) == len(train_X)
+
+    dh.load_data_checkpoint()
+    assert "1stFlrSF_quartiles" not in dh.df_train().columns
+
+    de = dh.train_test_emitter("SalePrice", ["LotArea", "OverallQual"])
+    assert "1stFlrSF_quartiles::Q2" not in de._working_df_train.columns
+
+    train_X, _, test_X, _ = de.emit_train_test_Xy()
+
+    assert len(dh._working_df_train) == len(train_X)
+    assert len(dh._working_df_test) == len(test_X)

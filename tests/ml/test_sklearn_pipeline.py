@@ -211,6 +211,51 @@ def test_pipeline_generation_regression(setup_data):
         output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
     )
 
+    # STEP 6
+    # test the pipeline with categorical feature engineering
+    analyzer.load_data_checkpoint()
+    analyzer.engineer_categorical_feature(
+        feature_name="1stFlrSF_quartiles",
+        numeric_var="1stFlrSF",
+        level_names=["Q1", "Q2", "Q3", "Q4"],
+        thresholds=[0, 882, 1087, 1391, 4692],
+        leq=True,
+    )
+
+    report = analyzer.regress(
+        models=[
+            tm.ml.LinearR(
+                type="l2",
+                n_trials=1,
+            ),
+        ],
+        target="SalePrice",
+        predictors=[
+            "MSZoning",
+            "ExterQual_binary",
+            "LotArea",
+            "1stFlrSF_quartiles",
+        ],
+    )
+    pipeline = report.model("LinearR(l2)").sklearn_pipeline()
+
+    output = pipeline.predict(
+        test_data[
+            [
+                "MSZoning",
+                "ExterQual_binary",
+                "LotArea",
+                "TotalBsmtSF",
+                "1stFlrSF",
+                "2ndFlrSF",
+            ]
+        ]
+    )
+
+    assert np.allclose(
+        output, report.model("LinearR(l2)")._test_scorer._y_pred, atol=1e-5
+    )
+
 
 def test_pipeline_generation_classification(setup_data):
     """Tests pipeline generation for prediction with classification ml models"""
@@ -350,6 +395,52 @@ def test_pipeline_generation_classification(setup_data):
             "LotArea",
             "OverallQual",
             "TotalSF",
+        ],
+    )
+
+    pipeline = report.model("LinearC(l2)").sklearn_pipeline()
+
+    output = pipeline.predict_proba(
+        test_data[
+            [
+                "MSZoning",
+                "LotArea",
+                "OverallQual",
+                "TotalBsmtSF",
+                "1stFlrSF",
+                "2ndFlrSF",
+            ]
+        ]
+    )[:, 1]
+
+    assert np.allclose(
+        output, report.model("LinearC(l2)")._test_scorer._y_pred_score, atol=1e-5
+    )
+
+    # STEP 6
+    # test the pipeline with categorical feature engineering
+    analyzer.load_data_checkpoint()
+    analyzer.engineer_categorical_feature(
+        feature_name="1stFlrSF_quartiles",
+        numeric_var="1stFlrSF",
+        level_names=["Q1", "Q2", "Q3", "Q4"],
+        thresholds=[0, 882, 1087, 1391, 4692],
+        leq=True,
+    )
+
+    report = analyzer.classify(
+        models=[
+            tm.ml.LinearC(
+                type="l2",
+                n_trials=1,
+            ),
+        ],
+        target="ExterQual_binary",
+        predictors=[
+            "MSZoning",
+            "LotArea",
+            "OverallQual",
+            "1stFlrSF_quartiles",
         ],
     )
 

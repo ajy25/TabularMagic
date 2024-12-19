@@ -822,6 +822,53 @@ class Analyzer:
         self._datahandler.engineer_numeric_feature(feature_name, formula)
         return self
 
+    def engineer_categorical_feature(
+        self,
+        feature_name: str,
+        numeric_var: str,
+        level_names: list[str],
+        thresholds: list[float],
+        leq: bool = False,
+    ) -> "Analyzer":
+        """Engineers a new categorical feature based on a list of thresholds.
+
+        Parameters
+        ----------
+        feature_name : str
+            The name of the new variable engineered.
+
+        numeric_var : str
+            The name of the numeric variable.
+
+        level_names : list[str]
+            The names of the levels of the new categorical variable.
+            The first level is the lowest level, and the last level is the highest level.
+
+        thresholds : list[float]
+            The (upper) thresholds for the levels of the new categorical variable.
+            The thresholds must be in ascending order.
+            For example, if thresholds = [0, 10, 20],
+            and level_names = ["Low", "Medium", "High", "Very High"],
+            then the new variable will have the following levels:
+
+            - "Low" for values less than 0,
+            - "Medium" for other values less than 10,
+            - "High" for other values less than 20,
+            - "Very High" for values greater than or equal to 20.
+
+        leq : bool
+            Default: False. If True, the thresholds are inclusive.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        self._datahandler.engineer_categorical_feature(
+            feature_name, numeric_var, level_names, thresholds, leq
+        )
+        return self
+
     @ensure_arg_list_uniqueness()
     def scale(
         self,

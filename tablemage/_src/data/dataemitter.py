@@ -173,6 +173,8 @@ class DataEmitter:
                 self._add_scaler(**step["kwargs"])
             elif step["step"] == "engineer_numeric_feature":
                 self._engineer_numeric_feature(**step["kwargs"])
+            elif step["step"] == "engineer_categorical_feature":
+                self._engineer_categorical_feature(**step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 
@@ -487,6 +489,81 @@ class DataEmitter:
             self._numeric_vars,
             self._categorical_to_categories,
         ) = self._compute_categorical_numeric_vars(self._working_df_train)
+        return None
+
+    def _engineer_categorical_feature(
+        self,
+        feature_name: str,
+        numeric_var: str,
+        level_names: list[str],
+        thresholds: list[float],
+        leq: bool = False,
+        X: pd.DataFrame | None = None,
+    ) -> pd.DataFrame | None:
+        """Engineers a new categorical feature based on a list of thresholds.
+
+        Parameters
+        ----------
+        feature_name : str
+            The name of the new variable engineered.
+
+        numeric_var : str
+            The name of the numeric variable.
+
+        level_names : list[str]
+            The names of the levels of the new categorical variable.
+            The first level is the lowest level, and the last level is the highest level.
+
+        thresholds : list[float]
+            The (upper) thresholds for the levels of the new categorical variable.
+            The thresholds must be in ascending order.
+            For example, if thresholds = [0, 10, 20],
+            and level_names = ["Low", "Medium", "High", "Very High"],
+            then the new variable will have the following levels:
+
+            - "Low" for values less than 0,
+            - "Medium" for other values less than 10,
+            - "High" for other values less than 20,
+            - "Very High" for values greater than or equal to 20.
+
+        leq : bool
+            Default: False. If True, the thresholds are inclusive.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        feature_name = rename_var(feature_name)
+
+        if X is not None:
+            X[feature_name] = pd.cut(
+                X[numeric_var],
+                bins=thresholds,
+                labels=level_names,
+                include_lowest=leq,
+            )
+            return X
+
+        self._working_df_train[feature_name] = pd.cut(
+            self._working_df_train[numeric_var],
+            bins=thresholds,
+            labels=level_names,
+            include_lowest=leq,
+        )
+        self._working_df_test[feature_name] = pd.cut(
+            self._working_df_test[numeric_var],
+            bins=thresholds,
+            labels=level_names,
+            include_lowest=leq,
+        )
+
+        (
+            self._categorical_vars,
+            self._numeric_vars,
+            self._categorical_to_categories,
+        ) = self._compute_categorical_numeric_vars(self._working_df_train)
+
         return None
 
     def _onehot(
@@ -1267,6 +1344,8 @@ class DataEmitter:
                 X = self._add_scaler(X=X, **step["kwargs"])
             elif step["step"] == "engineer_numeric_feature":
                 X = self._engineer_numeric_feature(X=X, **step["kwargs"])
+            elif step["step"] == "engineer_categorical_feature":
+                X = self._engineer_categorical_feature(X=X, **step["kwargs"])
             else:
                 raise ValueError("Invalid step.")
 

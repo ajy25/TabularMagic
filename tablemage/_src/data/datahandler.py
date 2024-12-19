@@ -592,31 +592,47 @@ class DataHandler:
     def engineer_categorical_feature(
         self,
         feature_name: str,
-        formula: str,
+        numeric_var: str,
+        level_names: list[str],
+        thresholds: list[float],
+        leq: bool = False,
     ) -> "DataHandler":
-        """Engineers a new feature based on a formula. The formula
-        can involve both categorical and numeric variables. Yields a new
-        categorical variable.
+        """Engineers a new categorical feature based on a list of thresholds
+        for a single numeric variable. The thresholds must be in ascending order.
 
         Parameters
         ----------
         feature_name : str
             The name of the new variable engineered.
 
-        formula : str
-            A formula for defining the new categorical variable. For example,
-            "'a' if x1 > 0 else 'b'" would create a new feature that is 'a' if the
-            value of x1 is greater than 0 and 'b' otherwise. Or,
-            "'a' if x1 > 0 else 'b' if x2 > 0 else 'c'" would create a new feature
-            that is 'a' if the value of x1 is greater than 0, 'b' if the value
-            of x2 is greater than 0, and 'c' otherwise. Or,
-            "'a' if x2 == yes else 'b' if x2 == maybe else 'c'" would create a new
-            feature that is 'a' if the value of x2 is 'yes', 'b' if the value
-            of x2 is 'maybe', and 'c' otherwise.
-        """
-        raise NotImplementedError("This method is not yet implemented.")
+        numeric_var : str
+            The name of the numeric variable.
 
-        feature_name = rename_var(feature_name)  # rename the variable
+        level_names : list[str]
+            The names of the levels of the new categorical variable.
+            The first level is the lowest level, and the last level is the highest level.
+
+        thresholds : list[float]
+            The (upper) thresholds for the levels of the new categorical variable.
+            The thresholds must be in ascending order.
+            For example, if thresholds = [0, 10, 20],
+            and level_names = ["Low", "Medium", "High", "Very High"],
+            then the new variable will have the following levels:
+
+            - "Low" for values less than 0,
+            - "Medium" for other values less than 10,
+            - "High" for other values less than 20,
+            - "Very High" for values greater than or equal to 20.
+
+        leq : bool
+            Default: False. If True, the thresholds are inclusive.
+
+        Returns
+        -------
+        Analyzer
+            Returns self for method chaining.
+        """
+        feature_name = rename_var(feature_name)
 
         if feature_name in self._working_df_train.columns:
             print_wrapped(
@@ -626,11 +642,46 @@ class DataHandler:
                 level="INFO",
             )
 
-        try:
-            # Use the eval function on the formula with DataFrame context
-            self.df[feature_name] = self.df.eval(formula)
-        except Exception as e:
-            raise ValueError(f"Error while evaluating formula: {e}")
+        self._working_df_train[feature_name] = pd.cut(
+            self._working_df_train[numeric_var],
+            bins=thresholds,
+            labels=level_names,
+            include_lowest=leq,
+        )
+        self._working_df_test[feature_name] = pd.cut(
+            self._working_df_test[numeric_var],
+            bins=thresholds,
+            labels=level_names,
+            include_lowest=leq,
+        )
+
+        if self._verbose:
+            print_wrapped(
+                f"Engineered feature "
+                + quote_and_color(feature_name, "purple")
+                + color_text(" = ", "yellow")
+                + f"{' '.join(level_names)}",
+                type="UPDATE",
+            )
+
+        (
+            self._categorical_vars,
+            self._numeric_vars,
+            self._categorical_to_categories,
+        ) = self._compute_categorical_numeric_vars(self._working_df_train)
+
+        self._preprocess_step_tracer.add_step(
+            "engineer_categorical_feature",
+            {
+                "feature_name": feature_name,
+                "numeric_var": numeric_var,
+                "level_names": level_names,
+                "thresholds": thresholds,
+                "leq": leq,
+            },
+        )
+
+        return self
 
     def dropna(
         self,

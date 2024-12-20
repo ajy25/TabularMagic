@@ -2,8 +2,7 @@ from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
 from .tooling_context import ToolingContext
-
-from .._debug.logger import print_debug
+from .tooling_utils import try_except_decorator
 
 
 # Means test tool
@@ -16,14 +15,10 @@ class _TestEqualMeansInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _test_equal_means_function(
     categorical_var: str, numeric_var: str, context: ToolingContext
 ) -> str:
-    dict_output = (
-        context._data_container.analyzer.eda("all")
-        .test_equal_means(numeric_var=numeric_var, stratify_by=categorical_var)
-        ._to_dict()
-    )
     context.add_thought(
         "I am going to test whether the means of the variable {numeric_var} are equal across the different levels of the variable {categorical_var}.".format(
             numeric_var=numeric_var, categorical_var=categorical_var
@@ -33,6 +28,11 @@ def _test_equal_means_function(
         "analyzer.eda().test_equal_means(numeric_var='{}', stratify_by='{}')".format(
             numeric_var, categorical_var
         )
+    )
+    dict_output = (
+        context._data_container.analyzer.eda("all")
+        .test_equal_means(numeric_var=numeric_var, stratify_by=categorical_var)
+        ._to_dict()
     )
     return context.add_dict(dict_output)
 
@@ -54,12 +54,13 @@ class _PlotDistributionInput(BaseModel):
     var: str = Field(description="The variable to plot the distribution of.")
 
 
+@try_except_decorator
 def _plot_distribution_function(var: str, context: ToolingContext) -> str:
-    fig = context._data_container.analyzer.eda("all").plot_distribution(var)
     context.add_thought(
         "I am going to plot the distribution of the variable: {var}.".format(var=var)
     )
     context.add_code("analyzer.eda().plot_distribution('{}')".format(var))
+    fig = context._data_container.analyzer.eda("all").plot_distribution(var)
     return context.add_figure(
         fig, text_description=f"Distribution plot of variable: {var}."
     )
@@ -82,6 +83,7 @@ class _CorrelationComparisonInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _correlation_comparison_function(
     target: str, numeric_vars: str, context: ToolingContext
 ) -> str:
@@ -122,6 +124,7 @@ class _CorrelationMatrixInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _correlation_matrix_function(numeric_vars: str, context: ToolingContext) -> str:
     df_output = context._data_container.analyzer.eda("all").tabulate_correlation_matrix(
         numeric_vars=[var.strip() for var in numeric_vars.split(",")]
@@ -154,6 +157,7 @@ class _BlankInput(BaseModel):
 
 
 # Numeric summary statistics tool
+@try_except_decorator
 def _numeric_summary_statistics_function(context: ToolingContext) -> str:
     df_output = context._data_container.analyzer.eda("all").numeric_stats()
     context.add_thought(
@@ -187,6 +191,7 @@ def _categorical_summary_statistics_function(context: ToolingContext) -> str:
     return context.add_table(df_output, add_to_vectorstore=True)
 
 
+@try_except_decorator
 def build_categorical_summary_statistics_tool(context: ToolingContext) -> FunctionTool:
     def temp_fn():
         return _categorical_summary_statistics_function(context)

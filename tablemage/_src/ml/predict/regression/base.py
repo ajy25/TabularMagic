@@ -31,6 +31,7 @@ class BaseR(BasePredictModel):
         self._test_scorer = None
         self._feature_selection_report = None
         self._predictors = None
+        self._feature_importance_type_str = "feature importances"
 
         # By default, the first column is NOT dropped. For LinearR,
         # the first column is dropped to avoid multicollinearity.
@@ -388,9 +389,11 @@ class BaseR(BasePredictModel):
         if hasattr(self._best_estimator, "feature_importances_"):
             importances = self._best_estimator.feature_importances_
             type = "Importances"
+            self._feature_importance_type_str = "feature importances"
         elif hasattr(self._best_estimator, "coef_"):
             importances = self._best_estimator.coef_.flatten()
             type = "Coefficients"
+            self._feature_importance_type_str = "coefficients"
         else:
             print_wrapped(
                 "No feature importances or coefficients are available for "
@@ -436,6 +439,6 @@ class BaseR(BasePredictModel):
         return {
             "name": self._name,
             "predictors": self._predictors,
-            "feature_importance": self.feature_importance().to_dict(),
+            self._feature_importance_type_str: self.feature_importance().to_dict(),
             "fitting_details": self._hyperparam_searcher._to_dict(),
         }

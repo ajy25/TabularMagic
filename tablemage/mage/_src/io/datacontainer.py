@@ -135,7 +135,7 @@ class DataContainer:
         self.df = self.analyzer.datahandler().df_all()
         self.variable_info = VariableInfo(vars=self.df.columns.to_list())
         self.pd_query_engine = PandasQueryEngine(
-            df=self.df, llm=options.llm_build_function()
+            df=self.df, llm=options.llm_build_function(), verbose=True
         )
 
     def update_df(self):
@@ -143,5 +143,5 @@ class DataContainer:
         self.df = self.analyzer.datahandler().df_all()
         self.variable_info = VariableInfo(vars=self.df.columns.to_list())
         self.pd_query_engine = PandasQueryEngine(
-            df=self.df, llm=options.llm_build_function()
+            df=self.df, llm=options.llm_build_function(), verbose=True
         )

@@ -51,6 +51,7 @@ class BaseC(BasePredictModel):
         self._is_binary = True
         self._threshold_strategy = threshold_strategy
         self._threshold = None
+        self._feature_importance_type_str = "feature importances"
 
         # By default, the first level is NOT dropped unless binary. For linear models,
         # the first level is dropped to avoid multicollinearity.
@@ -594,9 +595,11 @@ class BaseC(BasePredictModel):
         if hasattr(self._best_estimator, "feature_importances_"):
             importances = self._best_estimator.feature_importances_
             type = "Importances"
+            self._feature_importance_type_str = "feature importances"
         elif hasattr(self._best_estimator, "coef_"):
             importances = self._best_estimator.coef_.flatten()
             type = "Coefficients"
+            self._feature_importance_type_str = "coefficients"
         else:
             print_wrapped(
                 "No feature importances or coefficients are available for "
@@ -621,7 +624,7 @@ class BaseC(BasePredictModel):
         return {
             "name": self._name,
             "predictors": self._predictors,
-            "feature_importance": self.feature_importance().to_dict(),
+            self._feature_importance_type_str: self.feature_importance().to_dict(),
             "fitting_details": self._hyperparam_searcher._to_dict(),
         }
 

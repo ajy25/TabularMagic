@@ -1245,6 +1245,36 @@ class Analyzer:
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
+    def df_train(self) -> pd.DataFrame:
+        """Returns the working train DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            The working train DataFrame.
+        """
+        return self._datahandler.df_train()
+
+    def df_test(self) -> pd.DataFrame:
+        """Returns the working test DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            The working test DataFrame.
+        """
+        return self._datahandler.df_test()
+
+    def df_all(self) -> pd.DataFrame:
+        """Returns the working DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            The working DataFrame.
+        """
+        return self._datahandler.df_all()
+
     # --------------------------------------------------------------------------
     # MAGIC METHODS
     # --------------------------------------------------------------------------

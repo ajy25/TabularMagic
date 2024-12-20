@@ -1,25 +1,29 @@
 from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
+from .tooling_utils import try_except_decorator
 from .tooling_context import ToolingContext
 
 
 # pandas query tool
 class PandasQueryInput(BaseModel):
     query: str = Field(
-        description="Query regarding the dataset. "
+        description="The natural language query. "
         + "For example, 'Show me the top 5 rows with higest miles per gallon'."
     )
 
 
+@try_except_decorator
 def pandas_query_function(query: str, context: ToolingContext) -> str:
     context.add_thought(
-        "I am going to query the dataset with the following natural language query: "
-        f"{query}."
+        f"I am going to write and run Python code to answer the query: {query}."
     )
+    context.add_code("df = analyzer.df_all()")
     response = context._data_container.pd_query_engine.query(query)
     pandas_instructions_str = response.metadata["pandas_instruction_str"]
     context.add_code(pandas_instructions_str)
+    raw_pandas_output = response.metadata["raw_pandas_output"]
+    context.add_thought(f"The output of the query is:\n{raw_pandas_output}.")
     return str(response)
 
 
@@ -27,11 +31,12 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(pandas_query_function, context=context),
         name="pandas_query_tool",
-        description="""Tool for querying the dataset using natural language.
+        description="""Tool for querying the dataset/dataframe using natural language.
         Example use cases:
-        - Filtering rows based on a condition.
+        - Filtering rows based on a condition (e.g. largest, smallest).
         - Selecting specific columns.
         - Finding mean/median/mode of a column.
+        - Any other operation that can be performed using pandas commands.
         """,
         fn_schema=PandasQueryInput,
     )
@@ -42,6 +47,7 @@ class _BlankInput(BaseModel):
     pass
 
 
+@try_except_decorator
 def _dataset_summary_function(context: ToolingContext) -> str:
     context.add_thought(
         "I am going to obtain a summary of the dataset, which includes the shape of the training and test datasets, "
@@ -97,6 +103,7 @@ class _GetVariableDescriptionInput(BaseModel):
     var: str = Field(description="The variable to get the description of.")
 
 
+@try_except_decorator
 def _get_variable_description_function(var: str, context: ToolingContext) -> str:
     return context._data_container.variable_info.get_description(var)
 
@@ -117,6 +124,7 @@ class _SetVariableDescriptionInput(BaseModel):
     description: str = Field(description="The description of the variable.")
 
 
+@try_except_decorator
 def _set_variable_description_function(
     var: str, description: str, context: ToolingContext
 ) -> str:

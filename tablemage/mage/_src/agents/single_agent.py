@@ -1,7 +1,9 @@
 from llama_index.core.agent import FunctionCallingAgent, ReActAgent
 from llama_index.core.llms.function_calling import FunctionCallingLLM
 from llama_index.core import VectorStoreIndex
+from llama_index.core.base.llms.types import ChatMessage, MessageRole
 from llama_index.core.objects import ObjectIndex
+from llama_index.core.schema import QueryBundle
 from llama_index.core.agent import FunctionCallingAgent
 from llama_index.core.memory import (
     ChatMemoryBuffer,
@@ -80,7 +82,7 @@ def build_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     if memory == "buffer":
-        memory = ChatMemoryBuffer.from_defaults(token_limit=1000)
+        memory_obj = ChatMemoryBuffer.from_defaults(token_limit=1000)
 
     elif memory == "vector":
         vector_store, _ = context.storage_manager.setup_vector_store(
@@ -92,13 +94,23 @@ def build_agent(
             embed_model=FastEmbedEmbedding(model_name="BAAI/bge-base-en-v1.5"),
             retriever_kwargs={"similarity_top_k": 1},
         )
-        memory = SimpleComposableMemory(
+        memory_obj = SimpleComposableMemory(
             primary_memory=buffer_memory,
             secondary_memory_sources=[vector_memory],
         )
 
     else:
         raise ValueError("The memory type must be either 'buffer' or 'vector'.")
+
+    dataset_summary_tool = build_dataset_summary_tool(context)
+    memory_obj.put(
+        ChatMessage.from_str(
+            content="I am a helpful data scientist. "
+            + "Here is summary information for the dataset: "
+            + str(dataset_summary_tool.call()),
+            role=MessageRole.SYSTEM,
+        )
+    )
 
     tools = [
         build_feature_selection_tool(context),
@@ -112,7 +124,6 @@ def build_agent(
         build_correlation_matrix_tool(context),
         build_ols_tool(context),
         build_logit_tool(context),
-        build_dataset_summary_tool(context),
         build_drop_highly_missing_vars_tool(context),
         build_drop_na_tool(context),
         build_engineer_feature_tool(context),
@@ -121,13 +132,30 @@ def build_agent(
         build_onehot_encode_tool(context),
         build_revert_to_original_tool(context),
         build_clustering_tool(context),
-        build_pandas_query_tool(context),
+        dataset_summary_tool,
     ]
     obj_index = ObjectIndex.from_objects(
         tools,
         index_cls=VectorStoreIndex,
     )
-    tool_retriever = obj_index.as_retriever(similarity_top_k=3)
+    tool_retriever = obj_index.as_retriever(similarity_top_k=5)
+
+    tools_to_persist = [
+        build_pandas_query_tool(context),
+    ]
+
+    def retrieve_modded(self, str_or_query_bundle: str) -> list:
+        query_bundle = QueryBundle(query_str=str_or_query_bundle)
+        nodes = self._retriever.retrieve(query_bundle)
+        for node_postprocessor in self._node_postprocessors:
+            nodes = node_postprocessor.postprocess_nodes(
+                nodes, query_bundle=query_bundle
+            )
+        return [
+            self._object_node_mapping.from_node(node.node) for node in nodes
+        ] + tools_to_persist
+
+    tool_retriever.retrieve = retrieve_modded.__get__(tool_retriever)
 
     if react:
         agent = ReActAgent.from_tools(
@@ -135,7 +163,8 @@ def build_agent(
             tool_retriever=tool_retriever,
             verbose=True,
             system_prompt=system_prompt,
-            memory=memory,
+            memory=memory_obj,
+            max_iterations=10,
         )
     else:
         agent = FunctionCallingAgent.from_tools(
@@ -143,7 +172,7 @@ def build_agent(
             tool_retriever=tool_retriever,
             verbose=True,
             system_prompt=system_prompt,
-            memory=memory,
+            memory=memory_obj,
         )
     return agent
 

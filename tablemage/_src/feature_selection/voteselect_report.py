@@ -46,6 +46,14 @@ class VotingSelectionReport:
 
         self._y_var = self._emitter.y_var()
         self._predictors = self._emitter.X_vars()
+        X_train_df = self._emitter.emit_train_X(verbose=False)
+        if len(X_train_df) == 0:
+            raise ValueError(
+                "No data was emitted. All rows with missing values were dropped. "
+                + "This may have resulted in an empty dataset. "
+                + "Please consider removing highly missing variables "
+                + "or imputing missing values."
+            )
 
         self._selectors = selectors
 

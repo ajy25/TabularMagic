@@ -2,6 +2,7 @@ from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
 from .tooling_context import ToolingContext
+from .tooling_utils import try_except_decorator
 
 
 def parse_var_list_from_str(var_str: str) -> list[str]:
@@ -24,6 +25,7 @@ class _ImputeInput(BaseModel):
     )
 
 
+@try_except_decorator
 def impute_function(
     vars: str, numeric_strategy: str, categorical_strategy: str, context: ToolingContext
 ) -> str:
@@ -66,6 +68,7 @@ class _DropHighlyMissingVarsInput(BaseModel):
     )
 
 
+@try_except_decorator
 def drop_highly_missing_vars_function(
     threshold: float, ignore_vars: str, context: ToolingContext
 ) -> str:
@@ -112,6 +115,7 @@ class _SaveStateInput(BaseModel):
     state_name: str = Field(description="The name of the state to save.")
 
 
+@try_except_decorator
 def save_state_function(state_name: str, context: ToolingContext) -> str:
     context.add_thought(
         f"I am going to save the current state of the dataset as {state_name}."
@@ -135,6 +139,7 @@ class _LoadStateInput(BaseModel):
     state_name: str = Field(description="The name of the dataset state to load.")
 
 
+@try_except_decorator
 def load_state_function(state_name: str, context: ToolingContext) -> str:
     context.add_thought(
         f"I am going to load the state of the dataset saved as {state_name}."
@@ -158,6 +163,7 @@ class _BlankInput(BaseModel):
     pass
 
 
+@try_except_decorator
 def revert_to_original_function(context: ToolingContext) -> str:
     context.add_thought("I am going to revert the dataset to its original state.")
     context.add_code("analyzer.load_data_checkpoint()")
@@ -199,6 +205,7 @@ formula, then the i-th unit of the new feature will be missing."""
     )
 
 
+@try_except_decorator
 def engineer_feature_function(
     feature_name: str, formula: str, context: ToolingContext
 ) -> str:
@@ -234,6 +241,7 @@ class _OnehotEncodeInput(BaseModel):
     )
 
 
+@try_except_decorator
 def onehot_encode_function(vars: str, dropfirst: bool, context: ToolingContext) -> str:
     context.add_thought(
         "I am going to one-hot encode the following variables: " + vars + "."
@@ -262,6 +270,7 @@ class _DropNaInput(BaseModel):
     )
 
 
+@try_except_decorator
 def drop_na_function(vars: str, context: ToolingContext) -> str:
     context.add_thought(
         "I am going to drop rows with missing values in the following variables: "
@@ -295,6 +304,7 @@ class _ScaleInput(BaseModel):
     )
 
 
+@try_except_decorator
 def scale_function(vars: str, method: str, context: ToolingContext) -> str:
     context.add_thought("I am going to scale the following variables: " + vars + ".")
     context.add_code(f"analyzer.scale(include_vars={vars}, strategy={method})")

@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from functools import partial
 from .tooling_context import ToolingContext
 from .._debug.logger import print_debug
+from .tooling_utils import try_except_decorator
 
 
 def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
@@ -21,6 +22,7 @@ class _OLSToolInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _ols_function(target: str, predictors: str, context: ToolingContext) -> str:
     """Performs ordinary least squares regression."""
     print_debug(f"_ols_function call: " f"predictors: {predictors}, target: {target}")
@@ -69,6 +71,7 @@ class _LogitToolInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _logit_function(target: str, predictors: str, context: ToolingContext) -> str:
     """Performs logistic regression."""
     print_debug(f"_logit_function call: " f"predictors: {predictors}, target: {target}")

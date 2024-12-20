@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from functools import partial
 from typing import Literal
 from .tooling_context import ToolingContext
+from .tooling_utils import try_except_decorator
 from .._debug.logger import print_debug
 from ....ml import (
     LinearC,
@@ -98,6 +99,7 @@ def parse_model_list_from_str(
     return output, output_code
 
 
+@try_except_decorator
 def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
     return [predictor.strip() for predictor in predictors_str.split(",")]
 
@@ -127,6 +129,7 @@ class _MLRegressionInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _ml_regression_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -201,6 +204,7 @@ class _MLClassificationInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _ml_classification_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -275,6 +279,7 @@ class _FeatureSelectionInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _feature_selection_function(
     feature_selector: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -344,7 +349,7 @@ def build_feature_selection_tool(context: ToolingContext) -> FunctionTool:
         fn=partial(_feature_selection_function, context=context),
         name="feature_selection_tool",
         description="""Performs feature selection with a specified method. 
-        Selects the best features from a list of predictor variables to predict the target variable. 
+        Selects the best features/predictors/variables from a list of predictor variables to predict the target variable. 
         Returns a string describing the selected features.
         Categorical variables are one-hot encoded before feature selection.
         If a category is selected, the output would be `<variable_name>::<category>`.
@@ -387,6 +392,7 @@ class _ClusteringInput(BaseModel):
     )
 
 
+@try_except_decorator
 def _clustering_function(
     features: str,
     model: str,

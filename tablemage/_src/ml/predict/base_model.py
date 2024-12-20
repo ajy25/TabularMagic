@@ -66,6 +66,10 @@ class HyperparameterSearcher:
             Key word arguments are passed directly into the intialization of the
             hyperparameter search method.
         """
+        if isinstance(inner_cv, int):
+            self._k_folds = inner_cv
+        else:
+            self._k_folds = None
 
         self._best_estimator = None
         if estimator_name is None:
@@ -209,8 +213,10 @@ class HyperparameterSearcher:
         return {
             "estimator_name": self._estimator_name,
             "hyperparameter_search_strategy": type(self._searcher).__name__,
-            "hyperparameter_cv_num": self.inner_cv,
-            "hyperparameter_grid": self._hyperparam_grid,
+            "hyperparameter_cv_num": self._k_folds,
+            "hyperparameter_grid": {
+                key: str(value) for key, value in self._hyperparam_grid.items()
+            },
             "total_fits": self._total_fits,
             "best_params": self._best_params,
         }

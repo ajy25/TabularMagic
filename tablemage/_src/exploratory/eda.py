@@ -1559,49 +1559,61 @@ class EDAReport:
                 "Must have at least three unique values."
             )
 
-        groups = []
+        groups: list[tuple[str, np.ndarray]] = list()
         for category in categories:
             groups.append(
-                local_df.loc[local_df[stratify_by] == category, numeric_var].to_numpy()
+                (
+                    category,
+                    local_df.loc[
+                        local_df[stratify_by] == category, numeric_var
+                    ].to_numpy(),
+                )
             )
 
         auto_alpha = 0.05
         is_normal = True
-        is_homoskedastic_pval = stats.bartlett(*groups)[1]
+        groups_to_test = [group[1] for group in groups]
+        is_homoskedastic_pval = stats.bartlett(*groups_to_test)[1]
         is_homoskedastic = is_homoskedastic_pval > auto_alpha
 
-        is_normal_pvals = {group: stats.shapiro(group)[1] for group in groups}
-        is_normal = all(pval > auto_alpha for pval in is_normal_pvals)
+        is_normal_pvals = {
+            category: float(stats.shapiro(nparr)[1]) for category, nparr in groups
+        }
+        is_normal = all(pval > auto_alpha for pval in is_normal_pvals.values())
 
         long_description = ""
 
         if strategy == "auto":
             if is_normal and is_homoskedastic:
                 strategy = "anova_oneway"
-                long_description = "A one-way ANOVA test was conducted. "
-                "ANOVA is only somewhat robust to heteroscedasticity and violations of the normality assumption."
-                "The Bartlett test was used to test for homoskedasticity. "
-                "The Shapiro-Wilk test was used to test for normality. "
-                "Both tests were conducted at a significance level of 0.05. "
-                "Both tests indicated that the assumptions of ANOVA were met. "
-                f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
-                "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
-                f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
+                long_description = (
+                    "A one-way ANOVA test was conducted. "
+                    "ANOVA is only somewhat robust to heteroscedasticity and violations of the normality assumption. "
+                    "The Bartlett test was used to test for homoskedasticity. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "Both tests indicated that the assumptions of ANOVA were met. "
+                    f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
+                    "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
+                    f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
+                )
             else:
                 strategy = "kruskal"
-                long_description = "A Kruskal-Wallis test was conducted. "
-                "The Kruskal-Wallis test is a non-parametric test that does not assume normality or homoskedasticity. "
-                "The Bartlett test was used to test for homoskedasticity. "
-                "The Shapiro-Wilk test was used to test for normality. "
-                "Both tests were conducted at a significance level of 0.05. "
-                "At least one of the assumptions of ANOVA was violated. "
-                "Hence, the Kruskal-Wallis test was used instead. "
-                f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
-                "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
-                f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
+                long_description = (
+                    "A Kruskal-Wallis test was conducted. "
+                    "The Kruskal-Wallis test is a non-parametric test that does not assume normality or homoskedasticity. "
+                    "The Bartlett test was used to test for homoskedasticity. "
+                    "The Shapiro-Wilk test was used to test for normality. "
+                    "Both tests were conducted at a significance level of 0.05. "
+                    "At least one of the assumptions of ANOVA was violated. "
+                    "Hence, the Kruskal-Wallis test was used instead. "
+                    f"The Bartlett test had a p-value of {is_homoskedastic_pval:.4f}. "
+                    "The Shapiro-Wilk test was conducted for each group, with the following p-values for each group: "
+                    f"{', '.join([f'{group}: {pval:.4f}' for group, pval in is_normal_pvals.items()])}."
+                )
 
         if strategy == "kruskal":
-            h_stat, p_val = stats.kruskal(*groups)
+            h_stat, p_val = stats.kruskal(*groups_to_test)
             return StatisticalTestReport(
                 description="Kruskal-Wallis test",
                 statistic=h_stat,
@@ -1617,7 +1629,7 @@ class EDAReport:
             )
 
         elif strategy == "anova_oneway":
-            f_stat, p_val = stats.f_oneway(*groups)
+            f_stat, p_val = stats.f_oneway(*groups_to_test)
 
             return StatisticalTestReport(
                 description="One-way ANOVA",

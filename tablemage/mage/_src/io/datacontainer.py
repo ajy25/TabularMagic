@@ -16,6 +16,8 @@ if io_log_path.exists():
     io_log_path.unlink()
     io_log_path.touch()
 else:
+    if not io_log_path.parent.exists():
+        io_log_path.parent.mkdir(parents=True)
     io_log_path.touch()
 
 

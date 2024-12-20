@@ -695,4 +695,5 @@ class MLRegressionReport:
         return {
             "train_metrics": self.metrics("train").to_dict("index"),
             "test_metrics": self.metrics("test").to_dict("index"),
+            "model_info": [model._to_dict() for model in self._models],
         }

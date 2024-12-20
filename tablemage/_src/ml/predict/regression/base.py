@@ -424,3 +424,18 @@ class BaseR(BasePredictModel):
 
     def __str__(self):
         return self._name
+
+    def _to_dict(self):
+        """Returns a dictionary representation of the model.
+
+        Returns
+        -------
+        dict
+            A dictionary representation of the model.
+        """
+        return {
+            "name": self._name,
+            "predictors": self._predictors,
+            "feature_importance": self.feature_importance().to_dict(),
+            "fitting_details": self._hyperparam_searcher._to_dict(),
+        }

@@ -205,17 +205,6 @@ class StatisticalTestReport:
                 initial_indent=2,
                 subsequent_indent=5,
             )
-        if self._long_description is not None:
-            supplementary_message += divider
-            supplementary_message += (
-                fill_ignore_format(bold_text("More info:"), max_width) + "\n"
-            )
-            supplementary_message += fill_ignore_format(
-                color_text(self._long_description, "blue"),
-                max_width,
-                initial_indent=2,
-                subsequent_indent=2,
-            )
 
         if len(supplementary_message) > 0:
             if supplementary_message[0:2] == "\n\n":

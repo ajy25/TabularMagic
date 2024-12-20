@@ -7,7 +7,8 @@ from .tooling_context import ToolingContext
 # pandas query tool
 class PandasQueryInput(BaseModel):
     query: str = Field(
-        description="Natural language query to extract simple information from the dataset."
+        description="Query regarding the dataset. "
+        + "For example, 'Show me the top 5 rows with higest miles per gallon'."
     )
 
 
@@ -17,6 +18,8 @@ def pandas_query_function(query: str, context: ToolingContext) -> str:
         f"{query}."
     )
     response = context._data_container.pd_query_engine.query(query)
+    pandas_instructions_str = response.metadata["pandas_instruction_str"]
+    context.add_code(pandas_instructions_str)
     return str(response)
 
 
@@ -24,8 +27,12 @@ def build_pandas_query_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(pandas_query_function, context=context),
         name="pandas_query_tool",
-        description="""This tool allows you to extract simple information from the dataset via plain English.
-        Useful for obtaining statistics about subsets of examples.""",
+        description="""Tool for querying the dataset using natural language.
+        Example use cases:
+        - Filtering rows based on a condition.
+        - Selecting specific columns.
+        - Finding mean/median/mode of a column.
+        """,
         fn_schema=PandasQueryInput,
     )
 

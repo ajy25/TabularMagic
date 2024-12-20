@@ -83,6 +83,9 @@ class HyperparameterSearcher:
             raise ValueError("Invalid input: inner_cv.")
 
         self._fit_message = ""
+        self._hyperparam_grid = hyperparam_grid
+
+        self._total_fits = 1
 
         if method == "optuna":
             if "n_trials" not in kwargs:
@@ -100,10 +103,12 @@ class HyperparameterSearcher:
                         optuna.logging.set_verbosity(optuna.logging.INFO)
                     else:
                         optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+            self._total_fits = self.inner_cv.get_n_splits() * kwargs["n_trials"]
             self._fit_message = (
                 "Search method: OptunaSearchCV "
                 f'({kwargs["n_trials"]} trials, '
-                f'{self.inner_cv.get_n_splits() * kwargs["n_trials"]} total fits).'
+                f"{self._total_fits} total fits)."
             )
 
             with warnings.catch_warnings():
@@ -127,8 +132,10 @@ class HyperparameterSearcher:
                     raise ValueError("Invalid input: hyperparam_grid.")
                 n_fits *= len(hyperparam_grid[key])
 
+            self._total_fits = self.inner_cv.get_n_splits() * n_fits
+
             self._fit_message = f"Search method: GridSearchCV ({n_fits} fits per fold, "
-            self._fit_message += f"{n_fits * self.inner_cv.get_n_splits()} total fits)."
+            self._fit_message += f"{self._total_fits} total fits)."
             self._searcher = GridSearchCV(
                 estimator=estimator,
                 param_grid=hyperparam_grid,
@@ -171,8 +178,6 @@ class HyperparameterSearcher:
         self._best_params = self._searcher.best_params_
         return self._best_estimator
 
-    # def _to_dict()
-
     def best_estimator(self) -> BaseEstimator:
         """Returns the best estimator.
 
@@ -192,3 +197,20 @@ class HyperparameterSearcher:
             The best set of hyperparameters.
         """
         return self._best_params
+
+    def _to_dict(self) -> dict:
+        """Returns a dictionary representation of the object.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the object.
+        """
+        return {
+            "estimator_name": self._estimator_name,
+            "hyperparameter_search_strategy": type(self._searcher).__name__,
+            "hyperparameter_cv_num": self.inner_cv,
+            "hyperparameter_grid": self._hyperparam_grid,
+            "total_fits": self._total_fits,
+            "best_params": self._best_params,
+        }

@@ -1218,7 +1218,9 @@ class Analyzer:
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 
-    def value_counts(self, var: str, dataset: Literal["train", "test"]) -> pd.Series:
+    def value_counts(
+        self, var: str, dataset: Literal["train", "test", "both"] = "both"
+    ) -> pd.Series:
         """Returns the value counts of a variable in the working train DataFrame.
 
         Parameters
@@ -1238,6 +1240,8 @@ class Analyzer:
             return self._datahandler._working_df_train[var].value_counts()
         elif dataset == "test":
             return self._datahandler._working_df_test[var].value_counts()
+        elif dataset == "both":
+            return self._datahandler.df_all()[var].value_counts()
         else:
             raise ValueError(f"Invalid input: dataset = {dataset}.")
 

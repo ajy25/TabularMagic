@@ -86,11 +86,11 @@ def build_agent(
         vector_store, _ = context.storage_manager.setup_vector_store(
             path=io_path / "_vector_memory",
         )
-        buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=1000)
+        buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=5000)
         vector_memory = VectorMemory.from_defaults(
             vector_store=vector_store,
             embed_model=FastEmbedEmbedding(model_name="BAAI/bge-base-en-v1.5"),
-            retriever_kwargs={"similarity_top_k": 2},
+            retriever_kwargs={"similarity_top_k": 1},
         )
         memory = SimpleComposableMemory(
             primary_memory=buffer_memory,
@@ -113,7 +113,6 @@ def build_agent(
         build_ols_tool(context),
         build_logit_tool(context),
         build_dataset_summary_tool(context),
-        build_pandas_query_tool(context),
         build_drop_highly_missing_vars_tool(context),
         build_drop_na_tool(context),
         build_engineer_feature_tool(context),
@@ -122,12 +121,13 @@ def build_agent(
         build_onehot_encode_tool(context),
         build_revert_to_original_tool(context),
         build_clustering_tool(context),
+        build_pandas_query_tool(context),
     ]
     obj_index = ObjectIndex.from_objects(
         tools,
         index_cls=VectorStoreIndex,
     )
-    tool_retriever = obj_index.as_retriever(similarity_top_k=5)
+    tool_retriever = obj_index.as_retriever(similarity_top_k=3)
 
     if react:
         agent = ReActAgent.from_tools(

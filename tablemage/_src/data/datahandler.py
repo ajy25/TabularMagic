@@ -355,7 +355,19 @@ class DataHandler:
         for var in X_vars:
             if var not in self._working_df_train.columns:
                 raise ValueError(f"Invalid variable name: {var}.")
-        concatinated_df = pd.concat([self._orig_df_train, self._orig_df_test])
+        if self._orig_df_train.index.equals(self._orig_df_test.index):
+            if self._verbose:
+                print_wrapped(
+                    text=(
+                        "Train and test DataFrames have the same index. "
+                        "Assuming Analyzer was initialized with a single DataFrame. "
+                        "Returning a DataEmitter object with only the train DataFrame."
+                    ),
+                    type="WARNING",
+                )
+            concatinated_df = self._orig_df_train
+        else:
+            concatinated_df = pd.concat([self._orig_df_train, self._orig_df_test])
         return DataEmitter(
             concatinated_df,
             concatinated_df,
@@ -713,14 +725,20 @@ class DataHandler:
         if exclude_vars is not None:
             include_vars = list(set(include_vars) - set(exclude_vars))
 
+        orig_len_train = self._working_df_train.shape[0]
+        orig_len_test = self._working_df_test.shape[0]
+
         self._working_df_train = self._working_df_train.dropna(subset=include_vars)
         self._working_df_test = self._working_df_test.dropna(subset=include_vars)
+
+        new_len_train = self._working_df_train.shape[0]
+        new_len_test = self._working_df_test.shape[0]
+
         if self._verbose:
             shapes_dict = self._shapes_str_formatted()
             print_wrapped(
-                "Dropped rows with missing values. "
-                + "Shapes of train, test DataFrames: "
-                + f'{shapes_dict["train"]}, {shapes_dict["test"]}.',
+                f"Dropped {orig_len_train - new_len_train} rows with missing values "
+                + f"from train and {orig_len_test - new_len_test} rows from test.",
                 type="UPDATE",
             )
 

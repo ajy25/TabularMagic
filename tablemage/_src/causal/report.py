@@ -83,7 +83,7 @@ class CausalReport:
         title_message = bold_text("Causal Effect Estimation Report")
 
         estimand = (
-            "Avg Tmt Effect" if self._estimand == "ate" else "Avg Tmt Effect on Treated"
+            "Avg Trmt Effect" if self._estimand == "ate" else "Avg Trmt Effect on Trtd"
         )
         estimate_message = ""
         estimate_message += format_two_column(

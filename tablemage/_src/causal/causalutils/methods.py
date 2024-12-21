@@ -1,6 +1,10 @@
 import pandas as pd
 from typing import Literal
+import numpy as np
+from joblib import Parallel, delayed
 from ...._src.ml.predict.classification import BaseC
+from ...._src.data.dataemitter import DataEmitter, PreprocessStepTracer
+from ...._src.display.print_utils import print_wrapped
 
 
 def compute_weights_from_propensity_scores(
@@ -62,22 +66,111 @@ def compute_weights_from_propensity_scores(
     return output
 
 
-def _bootstrapped_ipw_estimator(
+def _single_ipw_estimator(
+    estimand: Literal["ate", "att"],
+    propensity_score_estimator: BaseC,
+    X_df: pd.DataFrame,
+    Y_series: pd.Series,
+    A_series: pd.Series,
+) -> float:
+    assert len(X_df) == len(Y_series), "Shape mismatch between X and Y"
+    assert len(X_df) == len(A_series), "Shape mismatch between X and A"
+
+    if estimand not in ["ate", "att"]:
+        raise ValueError(f"Estimand {estimand} is not supported.")
+
+    # Compute e_i, probability of treatment assignment given covariates
+    df = X_df.join(A_series)
+    propensity_score_estimator.specify_data(
+        dataemitter=DataEmitter(
+            df_train=df,
+            df_test=df,
+            y_var=A_series.name,
+            X_vars=X_df.columns.to_list(),
+            step_tracer=PreprocessStepTracer(),
+        )
+    )
+    propensity_score_estimator.fit()
+    e_numpy = propensity_score_estimator._train_scorer._y_pred_score
+    Y_numpy = Y_series.to_numpy()
+    A_numpy = A_series.to_numpy()
+
+    assert len(e_numpy) == len(Y_numpy), "Shape mismatch between e and Y"
+    assert len(e_numpy) == len(A_numpy), "Shape mismatch between e and A"
+
+    if estimand == "ate":
+        estimate = (Y_numpy * A_numpy / e_numpy).mean() / (A_numpy / e_numpy).mean() - (
+            Y_numpy * (1 - A_numpy) / (1 - e_numpy)
+        ).mean() / ((1 - A_numpy) / (1 - e_numpy)).mean()
+    else:
+        estimate = (Y_numpy * A_numpy).mean() / A_numpy.mean() - (
+            Y_numpy * (1 - A_numpy) * e_numpy / (1 - e_numpy)
+        ).mean() / ((1 - A_numpy) * e_numpy / (1 - e_numpy)).mean()
+
+    return estimate
+
+
+def compute_bootstrapped_ipw_estimator(
     estimand: Literal["ate", "att"],
     propensity_score_estimator: BaseC,
     n_bootstraps: int,
+    X_df: pd.DataFrame,
+    Y_series: pd.Series,
+    A_series: pd.Series,
 ) -> tuple[float, float]:
-    """Estimates the average treatment effect (ATE) using the IPW estimator with
-    bootstrapping.
+    """Estimates the average treatment effect (ATE) or ATT using the IPW estimator with bootstrapping.
 
     Parameters
     ----------
     estimand : Literal["ate", "att"]
         The estimand of interest. 'ate' for Average Treatment Effect,
         'att' for Average Treatment on the Treated.
-
     propensity_score_estimator : BaseC
-        The propensity score estimator to use.
-    """
+        The propensity score estimator to use. Must have `fit` and `predict` methods.
+    n_bootstraps : int
+        The number of bootstrap samples to use.
+    X_df : pd.DataFrame
+        Covariates used to estimate propensity scores.
+    Y_series : pd.Series
+        Outcome variable.
+    A_series : pd.Series
+        Treatment assignment indicator (0 or 1).
 
-    pass
+    Returns
+    -------
+    tuple[float, float]
+        A tuple containing the estimated effect and its bootstrap standard error.
+    """
+    effect = _single_ipw_estimator(
+        estimand=estimand,
+        propensity_score_estimator=propensity_score_estimator,
+        X_df=X_df,
+        Y_series=Y_series,
+        A_series=A_series,
+    )
+
+    def bootstrap_sample(idx, seed):
+        idx = idx + 1
+        if idx % 20 == 0:
+            print_wrapped(
+                f"IPW estimator bootstrap sample {idx}/{n_bootstraps}", type="UPDATE"
+            )
+        np.random.seed(seed)
+        idx = np.random.choice(X_df.index, size=len(X_df), replace=True)
+        X_indexed = X_df.iloc[idx].reset_index(drop=True)
+        Y_indexed = Y_series.iloc[idx].reset_index(drop=True)
+        A_indexed = A_series.iloc[idx].reset_index(drop=True)
+        return _single_ipw_estimator(
+            estimand=estimand,
+            propensity_score_estimator=propensity_score_estimator,
+            X_df=X_indexed,
+            Y_series=Y_indexed,
+            A_series=A_indexed,
+        )
+
+    seeds = np.random.randint(0, 1000000, size=n_bootstraps)
+    bootstrapped_effects = Parallel(n_jobs=-1)(
+        delayed(bootstrap_sample)(idx, seed) for idx, seed in enumerate(seeds)
+    )
+    bootstrap_std_error = np.std(bootstrapped_effects, ddof=1)
+    return effect, bootstrap_std_error

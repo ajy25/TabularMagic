@@ -269,6 +269,97 @@ def test_onehot(setup_data):
     assert dh_emitter._working_df_train.shape == dh._working_df_train.shape
 
 
+def test_onehot_keep_orig(setup_data):
+    """Test onehot encoding of categorical variables with original columns."""
+    df_simple_train = setup_data["df_simple_train"]
+    df_simple_test = setup_data["df_simple_test"]
+
+    dh = DataHandler(df_simple_train, df_simple_test, verbose=False)
+    dh.onehot(["categorical_var"], dropfirst=False, keep_original=True)
+    assert all(
+        [
+            col in dh._working_df_train.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::A",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+    assert all(
+        [
+            col in dh._working_df_test.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::A",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+
+    dh_emitter = dh.train_test_emitter(
+        "binary_var",
+        [
+            "categorical_var",
+            "categorical_var::A",
+            "categorical_var::B",
+            "categorical_var::C",
+            "numeric_var",
+        ],
+    )
+    assert all(
+        [
+            col in dh_emitter._working_df_test.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::A",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+    assert all(
+        [
+            col in dh_emitter._working_df_train.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::A",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+    assert dh_emitter._working_df_test.shape == dh._working_df_test.shape
+    assert dh_emitter._working_df_train.shape == dh._working_df_train.shape
+
+    dh = DataHandler(df_simple_train, df_simple_test, verbose=False)
+    dh.onehot(["categorical_var", "binary_var"], dropfirst=True, keep_original=True)
+    assert all(
+        [
+            col in dh._working_df_train.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+    assert all(
+        [
+            col in dh._working_df_test.columns
+            for col in [
+                "categorical_var",
+                "categorical_var::B",
+                "categorical_var::C",
+            ]
+        ]
+    )
+    assert "categorical_var::A" not in dh._working_df_train.columns
+    assert "categorical_var::A" not in dh._working_df_test.columns
+
+
 def test_multiple(setup_data):
     """Test multiple preprocessing steps."""
     df_iris_train = setup_data["df_iris_train"]

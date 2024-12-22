@@ -10,10 +10,10 @@ path_to_add = str(ui_path.parent.parent.parent)
 sys.path.append(path_to_add)
 
 
-from tablemage.mage.api import ConversationalAgent
+from tablemage.agents.api import ConversationalAgent
 
 
-from tablemage.mage._src.io.canvas import (
+from tablemage.agents._src.io.canvas import (
     CanvasCode,
     CanvasFigure,
     CanvasTable,

@@ -577,7 +577,7 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f"Engineered variable "
+                f"Engineered numeric variable "
                 + quote_and_color(feature_name, "purple")
                 + color_text(" = ", "yellow")
                 + color_and_quote_formula_vars(formula)
@@ -648,7 +648,7 @@ class DataHandler:
 
         if feature_name in self._working_df_train.columns:
             print_wrapped(
-                f"Feature {quote_and_color(feature_name, 'purple')} already exists. "
+                f"Variable {quote_and_color(feature_name, 'purple')} already exists. "
                 "Overwriting.",
                 type="WARNING",
                 level="INFO",
@@ -673,10 +673,13 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f"Engineered feature "
+                f"Engineered categorical variable "
                 + quote_and_color(feature_name, "purple")
-                + color_text(" = ", "yellow")
-                + f"{' '.join(level_names)}",
+                + " from numeric variable "
+                + quote_and_color(numeric_var, "purple")
+                + " with categories "
+                + list_to_string(level_names, color="purple")
+                + ".",
                 type="UPDATE",
             )
 
@@ -759,6 +762,7 @@ class DataHandler:
         include_vars: list[str] | None = None,
         exclude_vars: list[str] | None = None,
         dropfirst: bool = True,
+        keep_original: bool = False,
     ) -> "DataHandler":
         """One-hot encodes all categorical variables in-place. Encoder is
         fit on train DataFrame and transforms both train and test DataFrames.
@@ -797,10 +801,18 @@ class DataHandler:
             return self
 
         self._working_df_train = self._onehot_helper(
-            self._working_df_train, vars=include_vars, dropfirst=dropfirst, fit=True
+            self._working_df_train,
+            vars=include_vars,
+            dropfirst=dropfirst,
+            fit=True,
+            keep_original=keep_original,
         )
         self._working_df_test = self._onehot_helper(
-            self._working_df_test, vars=include_vars, dropfirst=dropfirst, fit=False
+            self._working_df_test,
+            vars=include_vars,
+            dropfirst=dropfirst,
+            fit=False,
+            keep_original=keep_original,
         )
 
         (
@@ -817,7 +829,12 @@ class DataHandler:
             )
 
         self._preprocess_step_tracer.add_step(
-            "onehot", {"vars": include_vars, "dropfirst": dropfirst}
+            "onehot",
+            {
+                "vars": include_vars,
+                "dropfirst": dropfirst,
+                "keep_original": keep_original,
+            },
         )
         return self
 
@@ -1670,6 +1687,7 @@ class DataHandler:
         vars: list[str] | None = None,
         dropfirst: bool = True,
         fit: bool = True,
+        keep_original: bool = False,
     ) -> pd.DataFrame:
         """One-hot encodes all categorical variables with more than
         two categories.
@@ -1689,6 +1707,10 @@ class DataHandler:
             Default: True.
             If True, fits the encoder on the training data. Otherwise,
             only transforms the test data.
+
+        keep_original : bool
+            Default: False.
+            If True, keeps the original categorical variable in the DataFrame.
 
         Returns
         -------
@@ -1732,7 +1754,12 @@ class DataHandler:
                     encoded, columns=feature_names, index=df.index
                 )
 
-            return pd.concat([df_encoded, df.drop(columns=categorical_vars)], axis=1)
+            if keep_original:
+                return pd.concat([df_encoded, df], axis=1)
+            else:
+                return pd.concat(
+                    [df_encoded, df.drop(columns=categorical_vars)], axis=1
+                )
         else:
             return df
 

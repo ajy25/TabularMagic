@@ -13,10 +13,10 @@ import numpy as np
 
 
 sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
-from tablemage.mage.api import ConversationalAgent
-from tablemage.mage._src.options import options
+from tablemage.agents.api import ConversationalAgent
+from tablemage.agents._src.options import options
 
-from tablemage.mage._src.io.canvas import (
+from tablemage.agents._src.io.canvas import (
     CanvasCode,
     CanvasFigure,
     CanvasTable,

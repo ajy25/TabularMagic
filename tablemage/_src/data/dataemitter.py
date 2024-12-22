@@ -571,6 +571,7 @@ class DataEmitter:
         self,
         vars: list[str] | None = None,
         dropfirst: bool = True,
+        keep_original: bool = False,
         X: pd.DataFrame | None = None,
     ) -> pd.DataFrame | None:
         """One-hot encodes all categorical variables in-place.
@@ -601,10 +602,18 @@ class DataEmitter:
             return self._onehot_helper(X, vars=vars, dropfirst=dropfirst, fit=False)
 
         self._working_df_train = self._onehot_helper(
-            self._working_df_train, vars=vars, dropfirst=dropfirst, fit=True
+            self._working_df_train,
+            vars=vars,
+            dropfirst=dropfirst,
+            fit=True,
+            keep_original=keep_original,
         )
         self._working_df_test = self._onehot_helper(
-            self._working_df_test, vars=vars, dropfirst=dropfirst, fit=False
+            self._working_df_test,
+            vars=vars,
+            dropfirst=dropfirst,
+            fit=False,
+            keep_original=keep_original,
         )
         (
             self._categorical_vars,
@@ -1135,6 +1144,7 @@ class DataEmitter:
         vars: list[str] | None = None,
         dropfirst: bool = True,
         fit: bool = True,
+        keep_original: bool = False,
         use_second_encoder: bool = False,
     ) -> pd.DataFrame:
         """One-hot encodes all categorical variables with more than
@@ -1155,6 +1165,9 @@ class DataEmitter:
             Default: True.
             If True, fits the encoder on the training data. Otherwise,
             only transforms the test data.
+
+        keep_original : bool
+            Default: False. If True, keeps the original variables in the DataFrame.
 
         use_second_encoder : bool
             Default: False. If True, uses a second encoder. The second encoder
@@ -1209,7 +1222,12 @@ class DataEmitter:
             else:
                 self._onehot_encoder = encoder
 
-            return pd.concat([df_encoded, df.drop(columns=categorical_vars)], axis=1)
+            if keep_original:
+                return pd.concat([df_encoded, df], axis=1)
+            else:
+                return pd.concat(
+                    [df_encoded, df.drop(columns=categorical_vars)], axis=1
+                )
         else:
             return df
 

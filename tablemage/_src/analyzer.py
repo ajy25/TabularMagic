@@ -1117,8 +1117,8 @@ class Analyzer:
     @ensure_arg_list_uniqueness()
     def force_binary(
         self,
-        vars: list[str],
-        pos_labels: list[str] | None = None,
+        var: str,
+        pos_label: str | None = None,
         ignore_multiclass: bool = False,
         rename: bool = False,
     ) -> "Analyzer":
@@ -1129,10 +1129,10 @@ class Analyzer:
 
         Parameters
         ----------
-        vars : list[str]
-            Name of variables to force to binary.
+        vars : str
+            Name of variable to force to binary.
 
-        pos_labels : list[str]
+        pos_labels : str
             Default: None. The positive labels.
             If None, the first class for each var is the positive label.
 
@@ -1150,8 +1150,8 @@ class Analyzer:
             Returns self for method chaining.
         """
         self._datahandler.force_binary(
-            vars=vars,
-            pos_labels=pos_labels,
+            vars=[var],
+            pos_labels=[pos_label],
             ignore_multiclass=ignore_multiclass,
             rename=rename,
         )

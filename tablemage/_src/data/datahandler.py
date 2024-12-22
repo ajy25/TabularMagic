@@ -562,7 +562,7 @@ class DataHandler:
 
         if feature_name in self._working_df_train.columns:
             print_wrapped(
-                f"Feature {quote_and_color(feature_name, 'purple')} already exists. "
+                f"Variable {quote_and_color(feature_name, 'purple')} already exists. "
                 "Overwriting.",
                 type="WARNING",
                 level="INFO",
@@ -577,7 +577,7 @@ class DataHandler:
 
         if self._verbose:
             print_wrapped(
-                f"Engineered feature "
+                f"Engineered variable "
                 + quote_and_color(feature_name, "purple")
                 + color_text(" = ", "yellow")
                 + color_and_quote_formula_vars(formula)
@@ -654,17 +654,21 @@ class DataHandler:
                 level="INFO",
             )
 
+        thresholds_with_infs = [-np.inf] + thresholds + [np.inf]
+        if not pd.Index(thresholds_with_infs).is_monotonic_increasing:
+            raise ValueError("Thresholds must be monotonic increasing.")
+
         self._working_df_train[feature_name] = pd.cut(
             self._working_df_train[numeric_var],
-            bins=thresholds,
+            bins=thresholds_with_infs,
             labels=level_names,
-            include_lowest=leq,
+            right=not leq,
         )
         self._working_df_test[feature_name] = pd.cut(
             self._working_df_test[numeric_var],
-            bins=thresholds,
+            bins=thresholds_with_infs,
             labels=level_names,
-            include_lowest=leq,
+            right=not leq,
         )
 
         if self._verbose:
@@ -1487,7 +1491,7 @@ class DataHandler:
         if len(datetime_columns) > 0:
             raise ValueError(
                 f"Variables {list_to_string(datetime_columns)} "
-                "are of type datetime. TabularMagic cannot handle datetime values."
+                "are of type datetime. TableMage cannot handle datetime values."
             )
 
     def _compute_categorical_numeric_vars(

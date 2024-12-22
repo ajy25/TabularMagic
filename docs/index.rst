@@ -1,6 +1,6 @@
-TabularMagic
-============
-TabularMagic is a Python package for rapid exploratory statistical analysis and low-code ML modeling on wide format tabular data. 
+TableMage
+=========
+TableMage is a Python package for low-code data science.
 
 
 

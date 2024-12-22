@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabularmagic._src.ml.predict.classification.mlclass_report &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>tablemage._src.ml.predict.classification.mlclass_report &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="../../../../../../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
@@ -44,7 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started/intro.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../../getting_started/intro.html#introduction-what-is-tabularmagic">Introduction: What is TabularMagic?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../getting_started/intro.html#introduction-what-is-tablemage">Introduction: What is TableMage?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../python_api/api_reference.html">Python API Reference</a><ul>
@@ -94,7 +94,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../../../index.html">TabularMagic</a>
+          <a href="../../../../../../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -103,7 +103,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">tabularmagic._src.ml.predict.classification.mlclass_report</li>
+      <li class="breadcrumb-item active">tablemage._src.ml.predict.classification.mlclass_report</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -112,7 +112,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for tabularmagic._src.ml.predict.classification.mlclass_report</h1><div class="highlight"><pre>
+  <h1>Source code for tablemage._src.ml.predict.classification.mlclass_report</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
@@ -496,7 +496,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">feature_importance</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="MLClassificationReport"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport">[docs]</a><span class="k">class</span> <span class="nc">MLClassificationReport</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport">[docs]</a><span class="k">class</span> <span class="nc">MLClassificationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for evaluating multiple classification models.</span>
 <span class="sd">    Fits the model based on provided DataHandler.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -671,7 +671,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">model_id</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_report</span><span class="p">[</span><span class="n">model_id</span><span class="p">]</span>
 
-<div class="viewcode-block" id="MLClassificationReport.model"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.model">[docs]</a>    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseC</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport.model"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.model">[docs]</a>    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseC</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the model with the specified id.</span>
 
 <span class="sd">        Parameters</span>
@@ -687,7 +687,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">model_id</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_model</span><span class="p">[</span><span class="n">model_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.metrics"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.metrics">[docs]</a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport.metrics"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.metrics">[docs]</a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a DataFrame containing the evaluation metrics for</span>
 <span class="sd">        all models on the specified data.</span>
 
@@ -719,7 +719,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dataset must be either &quot;train&quot; or &quot;test&quot;.&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.cv_metrics"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.cv_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">cv_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">average_across_folds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport.cv_metrics"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.cv_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">cv_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">average_across_folds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a DataFrame containing the evaluation metrics for</span>
 <span class="sd">        all models on the training data. Cross validation must</span>
 <span class="sd">        have been conducted, otherwise None is returned.</span>
@@ -751,7 +751,7 @@
             <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.fs_report"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.fs_report">[docs]</a>    <span class="k">def</span> <span class="nf">fs_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VotingSelectionReport</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport.fs_report"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.fs_report">[docs]</a>    <span class="k">def</span> <span class="nf">fs_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VotingSelectionReport</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the feature selection report. If feature selectors were</span>
 <span class="sd">        specified at the model level or not at all, then this method will return None.</span>
 
@@ -770,7 +770,7 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_selection_report</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.plot_confusion_matrix"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.plot_confusion_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">plot_confusion_matrix</span><span class="p">(</span>
+<div class="viewcode-block" id="MLClassificationReport.plot_confusion_matrix"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.plot_confusion_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">plot_confusion_matrix</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">],</span>
@@ -855,7 +855,7 @@
 
         <span class="k">return</span> <span class="n">fig</span>
 
-<div class="viewcode-block" id="MLClassificationReport.plot_roc_curve"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.plot_roc_curve">[docs]</a>    <span class="k">def</span> <span class="nf">plot_roc_curve</span><span class="p">(</span>
+<div class="viewcode-block" id="MLClassificationReport.plot_roc_curve"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.plot_roc_curve">[docs]</a>    <span class="k">def</span> <span class="nf">plot_roc_curve</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">],</span>
@@ -882,7 +882,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id_to_report</span><span class="p">[</span><span class="n">model_id</span><span class="p">]</span><span class="o">.</span><span class="n">plot_roc_curve</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.metrics_by_class"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.metrics_by_class">[docs]</a>    <span class="k">def</span> <span class="nf">metrics_by_class</span><span class="p">(</span>
+<div class="viewcode-block" id="MLClassificationReport.metrics_by_class"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.metrics_by_class">[docs]</a>    <span class="k">def</span> <span class="nf">metrics_by_class</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a DataFrame containing the evaluation metrics</span>
@@ -924,7 +924,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dataset must be either &quot;train&quot; or &quot;test&quot;.&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.cv_metrics_by_class"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.cv_metrics_by_class">[docs]</a>    <span class="k">def</span> <span class="nf">cv_metrics_by_class</span><span class="p">(</span>
+<div class="viewcode-block" id="MLClassificationReport.cv_metrics_by_class"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.cv_metrics_by_class">[docs]</a>    <span class="k">def</span> <span class="nf">cv_metrics_by_class</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">averaged_across_folds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -964,7 +964,7 @@
             <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="MLClassificationReport.feature_importance"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.MLClassificationReport.feature_importance">[docs]</a>    <span class="k">def</span> <span class="nf">feature_importance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="MLClassificationReport.feature_importance"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_reports.html#tablemage._reports.MLClassificationReport.feature_importance">[docs]</a>    <span class="k">def</span> <span class="nf">feature_importance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the feature importances of the model with the specified id.</span>
 <span class="sd">        If the model does not have feature importances, the coefficients are returned</span>
 <span class="sd">        instead. Otherwise, None is returned.</span>

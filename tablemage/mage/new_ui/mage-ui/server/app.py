@@ -13,7 +13,7 @@ import numpy as np
 
 
 sys.path.append(str(Path(__file__).parent.parent.parent.parent.parent.parent))
-from tablemage.mage.api import Mage
+from tablemage.mage.api import ConversationalAgent
 from tablemage.mage._src.options import options
 
 from tablemage.mage._src.io.canvas import (
@@ -31,7 +31,7 @@ STATIC_DIR = Path(__file__).parent / "static"
 STATIC_DIR.mkdir(exist_ok=True)
 
 # Global variable to store Mage instance
-mage: Mage = None
+mage: ConversationalAgent = None
 
 
 options.set_llm("groq", model_name="llama-3.3-70b-versatile", temperature=0)
@@ -96,7 +96,7 @@ def upload_dataset():
 
         app.logger.info(f"Data shape: {uploaded_data.shape}")
         app.logger.info("Initializing Mage...")
-        mage = Mage(uploaded_data, test_size=test_size)
+        mage = ConversationalAgent(uploaded_data, test_size=test_size)
 
         # Convert preview data to JSON-serializable format
         preview_df = uploaded_data.head()

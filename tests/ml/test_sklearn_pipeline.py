@@ -175,7 +175,7 @@ def test_pipeline_generation_regression(setup_data):
     # STEP 5
     # test the pipeline with feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_numeric_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+    analyzer.engineer_numeric_var("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
 
     report = analyzer.regress(
         models=[
@@ -214,11 +214,11 @@ def test_pipeline_generation_regression(setup_data):
     # STEP 6
     # test the pipeline with categorical feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_categorical_feature(
-        feature_name="1stFlrSF_quartiles",
+    analyzer.engineer_categorical_var(
+        name="1stFlrSF_quartiles",
         numeric_var="1stFlrSF",
         level_names=["Q1", "Q2", "Q3", "Q4"],
-        thresholds=[0, 882, 1087, 1391, 4692],
+        thresholds=[882, 1087, 1391],
         leq=True,
     )
 
@@ -380,7 +380,7 @@ def test_pipeline_generation_classification(setup_data):
     # STEP 5
     # test the pipeline with feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_numeric_feature("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
+    analyzer.engineer_numeric_var("TotalSF", "TotalBsmtSF + 1stFlrSF + 2ndFlrSF")
 
     report = analyzer.classify(
         models=[
@@ -420,11 +420,11 @@ def test_pipeline_generation_classification(setup_data):
     # STEP 6
     # test the pipeline with categorical feature engineering
     analyzer.load_data_checkpoint()
-    analyzer.engineer_categorical_feature(
-        feature_name="1stFlrSF_quartiles",
+    analyzer.engineer_categorical_var(
+        name="1stFlrSF_quartiles",
         numeric_var="1stFlrSF",
         level_names=["Q1", "Q2", "Q3", "Q4"],
-        thresholds=[0, 882, 1087, 1391, 4692],
+        thresholds=[882, 1087, 1391],
         leq=True,
     )
 

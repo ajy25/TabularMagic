@@ -21,10 +21,10 @@ else:
     io_log_path.touch()
 
 
-def build_tabularmagic_analyzer(
+def build_tablemage_analyzer(
     df: pd.DataFrame, df_test: pd.DataFrame | None = None, test_size: float = 0.2
 ) -> Analyzer:
-    """Builds a TabularMagic Analyzer for a DataFrame.
+    """Builds a TableMage Analyzer for a DataFrame.
 
     Parameters
     ----------
@@ -40,7 +40,7 @@ def build_tabularmagic_analyzer(
     Returns
     -------
     tm.Analyzer
-        The TabularMagic Analyzer.
+        The TableMage Analyzer.
     """
     print_options.reset_logger(logging.Logger("Blank"))
     debug_logger = logging.Logger("Analyzer Log")

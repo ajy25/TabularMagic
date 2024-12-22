@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabularmagic._src.linear.reports.poissonglmreg &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>tablemage._src.linear.reports.poissonglmreg &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="../../../../../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
@@ -44,7 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/intro.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../getting_started/intro.html#introduction-what-is-tabularmagic">Introduction: What is TabularMagic?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../getting_started/intro.html#introduction-what-is-tablemage">Introduction: What is TableMage?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../python_api/api_reference.html">Python API Reference</a><ul>
@@ -94,7 +94,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../../index.html">TabularMagic</a>
+          <a href="../../../../../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -103,7 +103,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">tabularmagic._src.linear.reports.poissonglmreg</li>
+      <li class="breadcrumb-item active">tablemage._src.linear.reports.poissonglmreg</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -112,7 +112,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for tabularmagic._src.linear.reports.poissonglmreg</h1><div class="highlight"><pre>
+  <h1>Source code for tablemage._src.linear.reports.poissonglmreg</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -872,7 +872,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_include_pearson_text</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="PoissonRegressionReport"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport">[docs]</a><span class="k">class</span> <span class="nc">PoissonRegressionReport</span><span class="p">:</span>
+<div class="viewcode-block" id="PoissonRegressionReport"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport">[docs]</a><span class="k">class</span> <span class="nc">PoissonRegressionReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;PoissonRegressionReport.</span>
 <span class="sd">    Fits the model based on provided DataHandler.</span>
 <span class="sd">    Wraps train and test SingleDatasetPoisRegReport objects.</span>
@@ -943,7 +943,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>
 
-<div class="viewcode-block" id="PoissonRegressionReport.metrics"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.metrics">[docs]</a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="PoissonRegressionReport.metrics"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.metrics">[docs]</a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a DataFrame containing the goodness-of-fit statistics</span>
 <span class="sd">        for the model.</span>
 
@@ -961,7 +961,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test_report</span><span class="o">.</span><span class="n">metrics</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.step"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.step"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">direction</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="s2">&quot;backward&quot;</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;backward&quot;</span><span class="p">,</span>
         <span class="n">criteria</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;aic&quot;</span><span class="p">,</span> <span class="s2">&quot;bic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;aic&quot;</span><span class="p">,</span>
@@ -1022,7 +1022,7 @@
             <span class="n">new_emitter</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.statsmodels_summary"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.statsmodels_summary">[docs]</a>    <span class="k">def</span> <span class="nf">statsmodels_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PoissonRegressionReport.statsmodels_summary"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.statsmodels_summary">[docs]</a>    <span class="k">def</span> <span class="nf">statsmodels_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the summary of the statsmodels RegressionResultsWrapper for</span>
 <span class="sd">        OLS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1036,7 +1036,7 @@
     <span class="c1"># Move methods in SingleDatasetPoisRegReport up to LinearRegressionReport</span>
     <span class="c1"># to allow useres to call methods from mutliple locations</span>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_obs_vs_pred"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_obs_vs_pred">[docs]</a>    <span class="k">def</span> <span class="nf">plot_obs_vs_pred</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_obs_vs_pred"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_obs_vs_pred">[docs]</a>    <span class="k">def</span> <span class="nf">plot_obs_vs_pred</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">show_outliers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1075,7 +1075,7 @@
                 <span class="n">show_outliers</span><span class="o">=</span><span class="n">show_outliers</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_fitted"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_residuals_vs_fitted">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_fitted</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_fitted"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_residuals_vs_fitted">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_fitted</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">standardized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1123,7 +1123,7 @@
                 <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_var"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_residuals_vs_var">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_var</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_var"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_residuals_vs_var">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_var</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">predictor</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
@@ -1175,7 +1175,7 @@
                 <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_hist"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_residuals_hist">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_hist</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_hist"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_residuals_hist">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_hist</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">standardized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1215,7 +1215,7 @@
                 <span class="n">standardized</span><span class="o">=</span><span class="n">standardized</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="n">density</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_scale_location"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_scale_location">[docs]</a>    <span class="k">def</span> <span class="nf">plot_scale_location</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_scale_location"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_scale_location">[docs]</a>    <span class="k">def</span> <span class="nf">plot_scale_location</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">show_outliers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1252,7 +1252,7 @@
                 <span class="n">show_outliers</span><span class="o">=</span><span class="n">show_outliers</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_leverage"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_residuals_vs_leverage">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_leverage</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_residuals_vs_leverage"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_residuals_vs_leverage">[docs]</a>    <span class="k">def</span> <span class="nf">plot_residuals_vs_leverage</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">standardized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1298,7 +1298,7 @@
                 <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_qq"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_qq">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qq</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_qq"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_qq">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qq</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">standardized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1344,7 +1344,7 @@
                 <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.plot_diagnostics"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.plot_diagnostics">[docs]</a>    <span class="k">def</span> <span class="nf">plot_diagnostics</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.plot_diagnostics"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.plot_diagnostics">[docs]</a>    <span class="k">def</span> <span class="nf">plot_diagnostics</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
         <span class="n">show_outliers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1376,7 +1376,7 @@
                 <span class="n">show_outliers</span><span class="o">=</span><span class="n">show_outliers</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.set_outlier_threshold"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.set_outlier_threshold">[docs]</a>    <span class="k">def</span> <span class="nf">set_outlier_threshold</span><span class="p">(</span>
+<div class="viewcode-block" id="PoissonRegressionReport.set_outlier_threshold"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.set_outlier_threshold">[docs]</a>    <span class="k">def</span> <span class="nf">set_outlier_threshold</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SingleDatasetPoisRegReport&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Standardized residuals threshold for outlier identification.</span>
@@ -1399,7 +1399,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_test_report</span><span class="o">.</span><span class="n">set_outlier_threshold</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PoissonRegressionReport.get_outlier_indices"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tabularmagic._reports.PoissonRegressionReport.get_outlier_indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_outlier_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<div class="viewcode-block" id="PoissonRegressionReport.get_outlier_indices"><a class="viewcode-back" href="../../../../../python_api/classes/tm_reports.html#tablemage._reports.PoissonRegressionReport.get_outlier_indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_outlier_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the indices corresponding to DataFrame examples associated</span>
 <span class="sd">        with standardized residual outliers.</span>
 

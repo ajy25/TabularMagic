@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabularmagic._src.analyzer &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>tablemage._src.analyzer &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="../../../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -91,7 +91,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">TabularMagic</a>
+          <a href="../../../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -100,7 +100,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">tabularmagic._src.analyzer</li>
+      <li class="breadcrumb-item active">tablemage._src.analyzer</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -109,7 +109,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for tabularmagic._src.analyzer</h1><div class="highlight"><pre>
+  <h1>Source code for tablemage._src.analyzer</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
 <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
@@ -141,7 +141,7 @@
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">ensure_arg_list_uniqueness</span>
 
 
-<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyzer is a class designed for conducting exploratory data analysis (EDA),</span>
 <span class="sd">    regression analysis, and machine learning modeling on wide format tabular data.</span>
 
@@ -160,7 +160,7 @@
 <span class="sd">    train dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Analyzer.__init__"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="Analyzer.__init__"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
         <span class="n">df_test</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -248,7 +248,7 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># EDA + FEATURE SELECTION + REGRESSION ANALYSIS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">EDAReport</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer.eda"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.eda">[docs]</a>    <span class="k">def</span> <span class="nf">eda</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">EDAReport</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs an EDAReport object for the working train</span>
 <span class="sd">        DataFrame, the working test DataFrame, or both DataFrames combined.</span>
 
@@ -273,7 +273,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid input: dataset = </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.lm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.lm"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.lm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">lm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -352,7 +352,7 @@
                 <span class="n">OLSLinearModel</span><span class="p">(),</span> <span class="n">datahandler</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">predictors</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.glm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.glm"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.glm">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">glm</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">family</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;binomial&quot;</span><span class="p">,</span> <span class="s2">&quot;negbinomial&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">],</span>
@@ -475,7 +475,7 @@
     <span class="c1"># MACHINE LEARNING</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.regress">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.regress"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.regress">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">regress</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseR</span><span class="p">],</span>
@@ -540,7 +540,7 @@
             <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.classify">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.classify"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.classify">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseC</span><span class="p">],</span>
@@ -611,7 +611,7 @@
     <span class="c1"># --------------------------------------------------------------------------</span>
     <span class="c1"># DATAHANDLER METHODS</span>
     <span class="c1"># --------------------------------------------------------------------------</span>
-<div class="viewcode-block" id="Analyzer.load_data_checkpoint"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.load_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">load_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer.load_data_checkpoint"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.load_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">load_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the original train and test DataFrames.</span>
 
 <span class="sd">        Parameters</span>
@@ -628,7 +628,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">load_data_checkpoint</span><span class="p">(</span><span class="n">checkpoint_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.save_data_checkpoint"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.save_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Analyzer.save_data_checkpoint"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.save_data_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_data_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the current train and test DataFrames.</span>
 
 <span class="sd">        Parameters</span>
@@ -660,7 +660,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">remove_data_checkpoint</span><span class="p">(</span><span class="n">checkpoint_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-<div class="viewcode-block" id="Analyzer.scale"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.scale">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.scale"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.scale">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -694,7 +694,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.impute"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.impute">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.impute"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.impute">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">impute</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -740,7 +740,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.dropna"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.dropna">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.dropna"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.dropna">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -772,7 +772,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.drop_highly_missing_vars"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.drop_highly_missing_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.drop_highly_missing_vars"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.drop_highly_missing_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">drop_highly_missing_vars</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -807,7 +807,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.onehot"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.onehot">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.onehot"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.onehot">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">onehot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -839,7 +839,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.select_vars"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.select_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.select_vars"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.select_vars">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">select_vars</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">include_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -869,7 +869,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">select_vars</span><span class="p">(</span><span class="nb">vars</span><span class="o">=</span><span class="n">include_vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.force_numeric"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.force_numeric">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.force_numeric"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.force_numeric">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">force_numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces specificed variables to numeric (float).</span>
 
@@ -886,7 +886,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">force_numeric</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.force_categorical"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.force_categorical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.force_categorical"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.force_categorical">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">force_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Analyzer&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces specificed variables (columns) to have categorical values.</span>
 <span class="sd">        That is, the variables&#39; values are converted to strings.</span>
@@ -904,7 +904,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datahandler</span><span class="o">.</span><span class="n">force_categorical</span><span class="p">(</span><span class="nb">vars</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Analyzer.force_binary"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.force_binary">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
+<div class="viewcode-block" id="Analyzer.force_binary"><a class="viewcode-back" href="../../../python_api/classes/tm_analyzer.html#tablemage.Analyzer.force_binary">[docs]</a>    <span class="nd">@ensure_arg_list_uniqueness</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">force_binary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>

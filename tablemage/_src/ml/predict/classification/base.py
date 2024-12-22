@@ -28,7 +28,7 @@ from .thresholding_utils import (
 
 class BaseC(BasePredictModel):
     """BaseC is a class that provides a training and evaluation framework that all
-    TabularMagic classificaiton classes inherit (i.e., all ___C classes are children
+    TableMage classificaiton classes inherit (i.e., all ___C classes are children
     of BaseC). The primary purpose of BaseC is to automate the scoring and
     model selection processes.
     """
@@ -427,8 +427,8 @@ class BaseC(BasePredictModel):
         have full control over how the data is being transformed for future
         reproducibility and predictions.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 
@@ -449,8 +449,8 @@ class BaseC(BasePredictModel):
             3. The best model determined from the hyperparameter search process.
 
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 

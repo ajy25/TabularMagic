@@ -776,13 +776,13 @@ class Analyzer:
         self._datahandler.remove_data_checkpoint(checkpoint_name)
         return self
 
-    def engineer_numeric_feature(self, feature_name: str, formula: str) -> "Analyzer":
-        """Engineers a new feature based on a formula. The formula
+    def engineer_numeric_var(self, name: str, formula: str) -> "Analyzer":
+        """Engineers a new variable/feature based on a formula. The formula
         can only involve numeric variables. Creates another numeric variable.
 
         Parameters
         ----------
-        feature_name : str
+        name : str
             The name of the new variable engineered.
 
         formula : str
@@ -790,16 +790,15 @@ class Analyzer:
             a new feature that is the sum of the columns x1 and x2 in the DataFrame.
             All variables used must be numeric.
             Handles the following operations:
-
-                - Addition (+)
-                - Subtraction (-)
-                - Multiplication (*)
-                - Division (/)
-                - Parentheses ()
-                - Exponentiation (**)
-                - Logarithm (log)
-                - Exponential (exp)
-                - Square root (sqrt)
+            - Addition (+)
+            - Subtraction (-)
+            - Multiplication (*)
+            - Division (/)
+            - Parentheses ()
+            - Exponentiation (**)
+            - Logarithm (log)
+            - Exponential (exp)
+            - Square root (sqrt)
 
             If the i-th unit is missing a value in any of the variables used in the
             formula, then the i-th unit of the new feature will be missing.
@@ -819,22 +818,22 @@ class Analyzer:
         Analyzer
             Returns self for method chaining.
         """
-        self._datahandler.engineer_numeric_feature(feature_name, formula)
+        self._datahandler.engineer_numeric_feature(name, formula)
         return self
 
-    def engineer_categorical_feature(
+    def engineer_categorical_var(
         self,
-        feature_name: str,
+        name: str,
         numeric_var: str,
         level_names: list[str],
         thresholds: list[float],
         leq: bool = False,
     ) -> "Analyzer":
-        """Engineers a new categorical feature based on a list of thresholds.
+        """Engineers a new categorical variable/feature based on a list of thresholds.
 
         Parameters
         ----------
-        feature_name : str
+        name : str
             The name of the new variable engineered.
 
         numeric_var : str
@@ -865,7 +864,7 @@ class Analyzer:
             Returns self for method chaining.
         """
         self._datahandler.engineer_categorical_feature(
-            feature_name, numeric_var, level_names, thresholds, leq
+            name, numeric_var, level_names, thresholds, leq
         )
         return self
 

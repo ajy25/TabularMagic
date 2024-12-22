@@ -11,7 +11,7 @@ def build_groq(model: str | None = None, temperature: float = 0.0) -> Groq:
     Parameters
     ----------
     model : str
-        The model to use, by default "llama-3.1-8b-instant".
+        The model to use, by default "llama-3.3-70b-versatile".
         Must support function calling.
 
     temperature : float
@@ -23,7 +23,7 @@ def build_groq(model: str | None = None, temperature: float = 0.0) -> Groq:
         An Groq object from LlamaIndex.
     """
     if model is None:
-        model = "llama-3.1-8b-instant"
+        model = "llama-3.3-70b-versatile"
     api_key = find_key("groq")
     if not api_key:
         raise ValueError("No Groq API key found in .env file")

@@ -8,7 +8,7 @@ from .causalutils.methods import (
     compute_weights_from_propensity_scores,
     compute_bootstrapped_ipw_estimator,
 )
-from .causalutils.models import _SimpleOLS
+from .causalutils.models import SimpleOLS
 
 from ..._src.ml.predict.classification import BaseC, LinearC
 from ..._src.data.datahandler import DataHandler
@@ -99,6 +99,7 @@ class CausalModel:
         propensity_score_estimator: BaseC = LinearC(
             type="no_penalty",
         ),
+        robust_se: Literal["nonrobust", "HC0", "HC1", "HC2", "HC3"] = "nonrobust",
         n_bootstraps: int = 100,
     ) -> CausalReport:
         """Estimates the average treatment effect (ATE).
@@ -114,6 +115,10 @@ class CausalModel:
             by default LinearC(type="no_penalty") (logistic regression).
             Hyperparameters will be selected as specified in the BaseC model.
 
+        robust_se : Literal["nonrobust", "HC0", "HC1", "HC2", "HC3"], optional
+            The type of robust standard errors to use, by default "nonrobust".
+            If "nonrobust", then the standard errors are not robust.
+
         n_bootstraps : int, optional
             The number of bootstraps to use for the IPW estimator, by default 100.
             Ignored if method is not "ipw_estimator".
@@ -121,10 +126,12 @@ class CausalModel:
         if method == "naive":
             return self._naive()
         elif method == "outcome_regression":
-            return self._outcome_regression()
+            return self._outcome_regression(robust_se=robust_se)
         elif method == "ipw_weighted_regression":
             return self._ipw_weighted_regression(
-                estimand="ate", propensity_score_estimator=propensity_score_estimator
+                estimand="ate",
+                propensity_score_estimator=propensity_score_estimator,
+                robust_se=robust_se,
             )
         elif method == "ipw_estimator":
             return self._ipw_estimator(
@@ -141,6 +148,7 @@ class CausalModel:
         propensity_score_estimator: BaseC = LinearC(
             type="no_penalty",
         ),
+        robust_se: Literal["nonrobust", "HC0", "HC1", "HC2", "HC3"] = "nonrobust",
         n_bootstraps: int = 100,
     ) -> CausalReport:
         """Estimates the average treatment effect on the treated (ATT).
@@ -155,13 +163,19 @@ class CausalModel:
             by default LinearC(type="no_penalty") (logistic regression).
             Hyperparameters will be selected as specified in the BaseC model.
 
+        robust_se : Literal["nonrobust", "HC0", "HC1", "HC2", "HC3"], optional
+            The type of robust standard errors to use, by default "nonrobust".
+            If "nonrobust", then the standard errors are not robust.
+
         n_bootstraps : int, optional
             The number of bootstraps to use for the IPW estimator, by default 100.
             Ignored if method is not "ipw_estimator".
         """
         if method == "ipw_weighted_regression":
             return self._ipw_weighted_regression(
-                estimand="att", propensity_score_estimator=propensity_score_estimator
+                estimand="att",
+                propensity_score_estimator=propensity_score_estimator,
+                robust_se=robust_se,
             )
         elif method == "ipw_estimator":
             return self._ipw_estimator(
@@ -177,6 +191,7 @@ class CausalModel:
         method_description = (
             "Naive estimator. "
             "Computes the difference in means between the treated and untreated. "
+            "No adjustment for confounders."
         )
         X_df, y_df = self._X_df, self._y_series
         treated = y_df[X_df[self._treatment] == 1]
@@ -197,7 +212,7 @@ class CausalModel:
             method_description=method_description,
         )
 
-    def _outcome_regression(self) -> CausalReport:
+    def _outcome_regression(self, robust_se: str = "nonrobust") -> CausalReport:
         """Outcome regression with OLS. Confounders are included as predictors.
         Only relevant for estimating the ATE.
         """
@@ -207,9 +222,14 @@ class CausalModel:
             "treatment variable and confounders as predictors."
         )
         df_X, df_y = self._X_df, self._y_series
-        model = _SimpleOLS(y=df_y, X=df_X)
+
+        print(df_X.columns.to_list())
+
+        model = SimpleOLS(y=df_y, X=df_X, robust=robust_se)
+
         estimate = model.get_coef(self._treatment)
         se = model.get_se(self._treatment)
+        p_val = model.get_pvalue(self._treatment)
 
         return CausalReport(
             estimate=estimate,
@@ -222,6 +242,7 @@ class CausalModel:
             estimand="ate",
             method="Outcome Regression",
             method_description=method_description,
+            p_value=p_val,
         )
 
     def _ipw_weighted_regression(
@@ -230,6 +251,7 @@ class CausalModel:
         propensity_score_estimator: BaseC = LinearC(
             type="no_penalty",
         ),
+        robust_se: str = "nonrobust",
     ) -> CausalReport:
         """Inverse probability weighting (IPW)-weighted regression (WLS).
 
@@ -269,10 +291,11 @@ class CausalModel:
             estimand=estimand,
         )
 
-        model = _SimpleOLS(y=y_series, X=X_df, weights=weights)
+        model = SimpleOLS(y=y_series, X=X_df, weights=weights, robust=robust_se)
 
         estimate = model.get_coef(self._treatment)
         se = model.get_se(self._treatment)
+        p_val = model.get_pvalue(self._treatment)
 
         return CausalReport(
             estimate=estimate,
@@ -285,6 +308,7 @@ class CausalModel:
             estimand=estimand,
             method="Inverse Probability Weighting (IPW) Weighted Regression",
             method_description=method_description,
+            p_value=p_val,
         )
 
     def _ipw_estimator(

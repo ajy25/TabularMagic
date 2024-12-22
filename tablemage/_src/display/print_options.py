@@ -4,7 +4,7 @@ import sys
 
 
 def make_default_logger() -> logging.Logger:
-    logger = logging.Logger(name="Default TabularMagic Logger")
+    logger = logging.Logger(name="Default TableMage Logger")
     logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setLevel(logging.INFO)
@@ -17,7 +17,7 @@ def make_secondary_logger() -> logging.Logger:
     Unlike the default logger, this logger does not wrap text and does not
     include color/bold formatting.
     """
-    logger = logging.Logger(name="No format TabularMagic Logger")
+    logger = logging.Logger(name="No format TableMage Logger")
     logger.setLevel(logging.INFO)
     return logger
 

@@ -1,6 +1,6 @@
 from .io.datacontainer import (
     DataContainer,
-    build_tabularmagic_analyzer,
+    build_tablemage_analyzer,
 )
 from .io.storage_manager import StorageManager
 from .io.canvas import CanvasQueue
@@ -10,7 +10,7 @@ from ._debug.logger import print_debug
 
 __all__ = [
     "DataContainer",
-    "build_tabularmagic_analyzer",
+    "build_tablemage_analyzer",
     "StorageManager",
     "CanvasQueue",
     "ToolingContext",

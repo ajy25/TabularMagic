@@ -2,7 +2,7 @@ Analyzer :py:mod:`(tm.Analyzer)`
 ================================
 
 
-.. currentmodule:: tabularmagic
+.. currentmodule:: tablemage
 
 
 The Analyzer class handles data wrangling, exploratory data analysis, 

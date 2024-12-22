@@ -7,6 +7,7 @@ from ..display.print_utils import (
     fill_ignore_format,
     format_two_column,
 )
+from scipy.stats import norm
 
 
 class CausalReport:
@@ -24,6 +25,7 @@ class CausalReport:
         estimand: str,
         method: str,
         method_description: str,
+        p_value: float | None = None,
     ):
         """Initializes a CausalReport object.
 
@@ -71,6 +73,12 @@ class CausalReport:
         self._method = method
         self._method_description = method_description
 
+        if p_value is not None:
+            self._p_value = p_value
+        else:
+            # Calculate p-value from standard error
+            self._p_value = 2 * (1 - norm.cdf(abs(self._estimate) / self._estimate_se))
+
     def __str__(self):
         max_width = print_options._max_line_width
         n_dec = print_options._n_decimals
@@ -83,14 +91,29 @@ class CausalReport:
         title_message = bold_text("Causal Effect Estimation Report")
 
         estimand = (
-            "Avg Trmt Effect" if self._estimand == "ate" else "Avg Trmt Effect on Trtd"
+            "Avg Trmt Effect (ATE)"
+            if self._estimand == "ate"
+            else "Avg Trmt Effect on Trtd (ATT)"
         )
         estimate_message = ""
+        estimate_message += (
+            format_two_column(
+                f"{bold_text('Estimate:')} "
+                f"{color_text(f'{self._estimate:.{n_dec}f}', 'yellow')}",
+                f"{bold_text('Std Err:')} "
+                f"{color_text(f'{self._estimate_se:.{n_dec}f}', 'yellow')}",
+                max_width,
+            )
+            + "\n"
+        )
+        pval_str = f"{self._p_value:.{n_dec}e}"
+        if self._p_value <= 0.05:
+            pval_color = "green"
+        else:
+            pval_color = "red"
         estimate_message += format_two_column(
-            f"{bold_text('Est ' + estimand + ':')} "
-            f"{color_text(f'{self._estimate:.{n_dec}f}', 'yellow')}",
-            f"{bold_text('Std Err:')} "
-            f"{color_text(f'{self._estimate_se:.{n_dec}f}', 'yellow')}",
+            f"{bold_text('Estimand:')} " f"{color_text(estimand, 'blue')}",
+            f"{bold_text('p-value:')} " f"{color_text(pval_str, pval_color)}",
             max_width,
         )
 

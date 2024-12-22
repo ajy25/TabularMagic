@@ -72,8 +72,8 @@ class BaseClust:
         have full control over how the data is being transformed for future
         reproducibility and predictions.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 
@@ -87,8 +87,8 @@ class BaseClust:
         retrieving model predictions directly from data formatted like the original
         train and test data.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 

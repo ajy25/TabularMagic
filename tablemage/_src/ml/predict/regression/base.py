@@ -12,7 +12,7 @@ from ..predict_utils import ColumnSelector, InverseTransformRegressor
 
 class BaseR(BasePredictModel):
     """BaseR is a class that provides a training and evaluation framework that all
-    TabularMagic regression classes inherit (i.e., all ___R classes are children
+    TableMage regression classes inherit (i.e., all ___R classes are children
     of BaseR). The primary purpose of BaseR is to automate the scoring and
     model selection processes.
     """
@@ -239,8 +239,8 @@ class BaseR(BasePredictModel):
         have full control over how the data is being transformed for future
         reproducibility and predictions.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 
@@ -260,8 +260,8 @@ class BaseR(BasePredictModel):
             2. Hyperparameter search object.
             3. The best model determined from the hyperparameter search process.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 

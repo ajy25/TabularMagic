@@ -2,7 +2,7 @@ from llama_index.core.tools import FunctionTool
 from pydantic import BaseModel, Field
 from functools import partial
 from .tooling_context import ToolingContext
-from .tooling_utils import try_except_decorator
+from .tooling_utils import tool_try_except_thought_decorator
 
 
 # Means test tool
@@ -15,7 +15,7 @@ class _TestEqualMeansInput(BaseModel):
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _test_equal_means_function(
     categorical_var: str, numeric_var: str, context: ToolingContext
 ) -> str:
@@ -54,7 +54,7 @@ class _PlotDistributionInput(BaseModel):
     var: str = Field(description="The variable to plot the distribution of.")
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _plot_distribution_function(var: str, context: ToolingContext) -> str:
     context.add_thought(
         "I am going to plot the distribution of the variable: {var}.".format(var=var)
@@ -83,7 +83,7 @@ class _CorrelationComparisonInput(BaseModel):
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _correlation_comparison_function(
     target: str, numeric_vars: str, context: ToolingContext
 ) -> str:
@@ -124,7 +124,7 @@ class _CorrelationMatrixInput(BaseModel):
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _correlation_matrix_function(numeric_vars: str, context: ToolingContext) -> str:
     df_output = context._data_container.analyzer.eda("all").tabulate_correlation_matrix(
         numeric_vars=[var.strip() for var in numeric_vars.split(",")]
@@ -146,8 +146,8 @@ def build_correlation_matrix_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_correlation_matrix_function, context=context),
         name="correlation_matrix_tool",
-        description="""Computes a correlation matrix for the specified numeric variables.
-        Returns a JSON string containing the correlation matrix.""",
+        description="Computes a correlation matrix for the specified numeric variables. "
+        "Returns a JSON string containing the correlation matrix.",
         fn_schema=_CorrelationMatrixInput,
     )
 
@@ -157,7 +157,7 @@ class _BlankInput(BaseModel):
 
 
 # Numeric summary statistics tool
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _numeric_summary_statistics_function(context: ToolingContext) -> str:
     df_output = context._data_container.analyzer.eda("all").numeric_stats()
     context.add_thought(
@@ -191,7 +191,7 @@ def _categorical_summary_statistics_function(context: ToolingContext) -> str:
     return context.add_table(df_output, add_to_vectorstore=True)
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def build_categorical_summary_statistics_tool(context: ToolingContext) -> FunctionTool:
     def temp_fn():
         return _categorical_summary_statistics_function(context)

@@ -7,7 +7,7 @@ They may contain information about model performance, feature importance, or oth
 relevant statistics. They also have methods for plotting relevant diagnostic figures.
 
 
-.. currentmodule:: tabularmagic._reports
+.. currentmodule:: tablemage._reports
 
 
 :py:mod:`tm._reports.MLClassificationReport`

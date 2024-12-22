@@ -674,7 +674,7 @@ def test_datahandler_engineer_categorical_feature(setup_data):
         feature_name="1stFlrSF_quartiles",
         numeric_var="1stFlrSF",
         level_names=["Q1", "Q2", "Q3", "Q4"],
-        thresholds=[0, 882, 1087, 1391, 4692],
+        thresholds=[882, 1087, 1391],
         leq=True,
     )
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabularmagic._src.feature_selection.boruta_feature_selection &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>tablemage._src.feature_selection.boruta_feature_selection &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="../../../../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -44,7 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/intro.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started/intro.html#introduction-what-is-tabularmagic">Introduction: What is TabularMagic?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started/intro.html#introduction-what-is-tablemage">Introduction: What is TableMage?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../python_api/api_reference.html">Python API Reference</a><ul>
@@ -94,7 +94,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">TabularMagic</a>
+          <a href="../../../../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -103,7 +103,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">tabularmagic._src.feature_selection.boruta_feature_selection</li>
+      <li class="breadcrumb-item active">tablemage._src.feature_selection.boruta_feature_selection</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -112,7 +112,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for tabularmagic._src.feature_selection.boruta_feature_selection</h1><div class="highlight"><pre>
+  <h1>Source code for tablemage._src.feature_selection.boruta_feature_selection</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
 <span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="kn">import</span> <span class="n">DecisionTreeClassifier</span><span class="p">,</span> <span class="n">DecisionTreeRegressor</span>
 <span class="kn">from</span> <span class="nn">xgboost</span> <span class="kn">import</span> <span class="n">XGBClassifier</span><span class="p">,</span> <span class="n">XGBRegressor</span>
@@ -125,8 +125,8 @@
 <span class="kn">from</span> <span class="nn">..data.datahandler</span> <span class="kn">import</span> <span class="n">DataEmitter</span>
 
 
-<div class="viewcode-block" id="BorutaFSR"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tabularmagic.fs.BorutaFSR">[docs]</a><span class="k">class</span> <span class="nc">BorutaFSR</span><span class="p">(</span><span class="n">BaseFSR</span><span class="p">):</span>
-<div class="viewcode-block" id="BorutaFSR.__init__"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tabularmagic.fs.BorutaFSR.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="BorutaFSR"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tablemage.fs.BorutaFSR">[docs]</a><span class="k">class</span> <span class="nc">BorutaFSR</span><span class="p">(</span><span class="n">BaseFSR</span><span class="p">):</span>
+<div class="viewcode-block" id="BorutaFSR.__init__"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tablemage.fs.BorutaFSR.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">estimator</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;tree&quot;</span><span class="p">,</span> <span class="s2">&quot;rf&quot;</span><span class="p">,</span> <span class="s2">&quot;xgb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rf&quot;</span><span class="p">,</span>
         <span class="n">n_estimators</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
@@ -206,8 +206,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selected_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_support</span></div>
 
 
-<div class="viewcode-block" id="BorutaFSC"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tabularmagic.fs.BorutaFSC">[docs]</a><span class="k">class</span> <span class="nc">BorutaFSC</span><span class="p">(</span><span class="n">BaseFSC</span><span class="p">):</span>
-<div class="viewcode-block" id="BorutaFSC.__init__"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tabularmagic.fs.BorutaFSC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="BorutaFSC"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tablemage.fs.BorutaFSC">[docs]</a><span class="k">class</span> <span class="nc">BorutaFSC</span><span class="p">(</span><span class="n">BaseFSC</span><span class="p">):</span>
+<div class="viewcode-block" id="BorutaFSC.__init__"><a class="viewcode-back" href="../../../../python_api/classes/tm_fs.html#tablemage.fs.BorutaFSC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">estimator</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;tree&quot;</span><span class="p">,</span> <span class="s2">&quot;rf&quot;</span><span class="p">,</span> <span class="s2">&quot;xgb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rf&quot;</span><span class="p">,</span>
         <span class="n">n_estimators</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>

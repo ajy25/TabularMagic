@@ -1,6 +1,6 @@
 import pandas as pd
 from .._src import (
-    build_tabularmagic_analyzer,
+    build_tablemage_analyzer,
     StorageManager,
     DataContainer,
     CanvasQueue,
@@ -8,11 +8,11 @@ from .._src import (
     print_debug,
 )
 from ..._src.display.print_utils import suppress_logging
-from .._src.agents.single_agent import SingleAgent
+from .._src.agents_src.single_agent import SingleAgent
 from .._src.options import options
 
 
-class Mage:
+class ConversationalAgent:
     """Class for interacting with the LLMs for data analysis on tabular data."""
 
     def __init__(
@@ -21,7 +21,7 @@ class Mage:
         df_test: pd.DataFrame | None = None,
         test_size: float = 0.2,
     ):
-        """Initializes the Mage object.
+        """Initializes the ConversationalAgent object.
 
         Parameters
         ----------
@@ -37,7 +37,7 @@ class Mage:
 
         self._data_container = DataContainer()
         self._data_container.set_analyzer(
-            build_tabularmagic_analyzer(df, df_test=df_test, test_size=test_size)
+            build_tablemage_analyzer(df, df_test=df_test, test_size=test_size)
         )
         print_debug(
             "Data container initialized with the Analyzer built from the "

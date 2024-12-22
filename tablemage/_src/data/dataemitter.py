@@ -535,27 +535,28 @@ class DataEmitter:
             Returns self for method chaining.
         """
         feature_name = rename_var(feature_name)
+        thresholds_with_infs = [-np.inf] + thresholds + [np.inf]
 
         if X is not None:
             X[feature_name] = pd.cut(
                 X[numeric_var],
-                bins=thresholds,
+                bins=thresholds_with_infs,
                 labels=level_names,
-                include_lowest=leq,
+                right=not leq,
             )
             return X
 
         self._working_df_train[feature_name] = pd.cut(
             self._working_df_train[numeric_var],
-            bins=thresholds,
+            bins=thresholds_with_infs,
             labels=level_names,
-            include_lowest=leq,
+            right=not leq,
         )
         self._working_df_test[feature_name] = pd.cut(
             self._working_df_test[numeric_var],
-            bins=thresholds,
+            bins=thresholds_with_infs,
             labels=level_names,
-            include_lowest=leq,
+            right=not leq,
         )
 
         (

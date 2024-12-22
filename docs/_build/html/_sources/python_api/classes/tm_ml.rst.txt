@@ -2,9 +2,9 @@ Machine Learning Models :py:mod:`(tm.ml)`
 =========================================
 
 
-.. currentmodule:: tabularmagic.ml
+.. currentmodule:: tablemage.ml
 
-The `tabularmagic.ml` module contains the machine learning models used by the 
+The `tablemage.ml` module contains the machine learning models used by the 
 :func:`.regress` and :func:`.classify` methods of the :class:`Analyzer` class. 
 These models are designed to be used in a similar way to the models in the `sklearn` 
 package, but with additional functionality for feature selection, 

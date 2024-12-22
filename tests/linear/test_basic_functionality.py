@@ -159,7 +159,7 @@ def test_formula_vs_parameter_agreement(setup_data):
     assert np.allclose(
         lmreport.metrics("test").values, lmreport_formula.metrics("test").values
     )
-    analyzer.engineer_numeric_feature("x4", "x1 * x2")
+    analyzer.engineer_numeric_var("x4", "x1 * x2")
     lmreport = analyzer.logit(
         target="y",
         predictors=["x1", "x2", "cat1", "cat2", "x3", "x4"],

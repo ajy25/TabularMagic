@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tabularmagic._src.ml.predict.regression.svm &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>tablemage._src.ml.predict.regression.svm &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="../../../../../../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
@@ -44,7 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started/intro.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../../getting_started/intro.html#introduction-what-is-tabularmagic">Introduction: What is TabularMagic?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../getting_started/intro.html#introduction-what-is-tablemage">Introduction: What is TableMage?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../../python_api/api_reference.html">Python API Reference</a><ul>
@@ -94,7 +94,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../../../index.html">TabularMagic</a>
+          <a href="../../../../../../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -103,7 +103,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">tabularmagic._src.ml.predict.regression.svm</li>
+      <li class="breadcrumb-item active">tablemage._src.ml.predict.regression.svm</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -112,7 +112,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for tabularmagic._src.ml.predict.regression.svm</h1><div class="highlight"><pre>
+  <h1>Source code for tablemage._src.ml.predict.regression.svm</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVR</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Literal</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseR</span><span class="p">,</span> <span class="n">HyperparameterSearcher</span>
@@ -125,14 +125,14 @@
 <span class="kn">from</span> <span class="nn">....feature_selection</span> <span class="kn">import</span> <span class="n">BaseFSR</span>
 
 
-<div class="viewcode-block" id="SVMR"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_ml.html#tabularmagic.ml.SVMR">[docs]</a><span class="k">class</span> <span class="nc">SVMR</span><span class="p">(</span><span class="n">BaseR</span><span class="p">):</span>
+<div class="viewcode-block" id="SVMR"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_ml.html#tablemage.ml.SVMR">[docs]</a><span class="k">class</span> <span class="nc">SVMR</span><span class="p">(</span><span class="n">BaseR</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Support vector machine regressor.</span>
 
 <span class="sd">    Hyperparameter optimization is performed automatically during training.</span>
 <span class="sd">    The hyperparameter search process can be modified by the user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="SVMR.__init__"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_ml.html#tabularmagic.ml.SVMR.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="SVMR.__init__"><a class="viewcode-back" href="../../../../../../python_api/classes/tm_ml.html#tablemage.ml.SVMR.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="s2">&quot;rbf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rbf&quot;</span><span class="p">,</span>
         <span class="n">hyperparam_search_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;optuna&quot;</span><span class="p">,</span> <span class="s2">&quot;grid&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

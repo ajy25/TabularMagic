@@ -31,7 +31,12 @@ obj_vector_store_path = io_path / "_obj_vector_store"
 obj_vector_store_path.mkdir(exist_ok=True)
 
 log_path = io_path / "_log"
-log_path.mkdir(exist_ok=True)
+if log_path.exists():
+    for log in log_path.iterdir():
+        log.unlink()
+else:
+    log_path.mkdir(exist_ok=True)
+    (log_path / "_log.log").touch()
 
 
 class ObjectWrappingNode:

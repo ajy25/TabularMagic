@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting Started &mdash; TabularMagic 0.0.0 documentation</title>
+  <title>Getting Started &mdash; TableMage 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Python API Reference" href="../python_api/api_reference.html" />
-    <link rel="prev" title="TabularMagic" href="../index.html" /> 
+    <link rel="prev" title="TableMage" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,7 +34,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            TabularMagic
+            TableMage
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -47,7 +47,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#introduction-what-is-tabularmagic">Introduction: What is TabularMagic?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introduction-what-is-tablemage">Introduction: What is TableMage?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api/api_reference.html">Python API Reference</a><ul>
@@ -97,7 +97,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">TabularMagic</a>
+          <a href="../index.html">TableMage</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -117,48 +117,48 @@
              
   <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
-<section id="introduction-what-is-tabularmagic">
-<h2>Introduction: What is TabularMagic?<a class="headerlink" href="#introduction-what-is-tabularmagic" title="Permalink to this heading"></a></h2>
+<section id="introduction-what-is-tablemage">
+<h2>Introduction: What is TableMage?<a class="headerlink" href="#introduction-what-is-tablemage" title="Permalink to this heading"></a></h2>
 <p>Domain expertise is extremely valuable in data science and quantitative research.
 However, experts in fields such as medicine and healthcare often lack the
 necessary statistical and computational experience to analyze data on their own.</p>
-<p>TabularMagic simplifies data science, making it
+<p>TableMage simplifies data science, making it
 accessible to researchers with little to no quantitative background.
-TabularMagic empowers domain experts to perform their own data
+TableMage empowers domain experts to perform their own data
 analysis and machine learning modeling without needing to learn the intricacies
 of data science (Python, pandas, scikit-learn, ML theory).
-TabularMagic’s Python API is designed to be intuitive and easy to use, with
+TableMage’s Python API is designed to be intuitive and easy to use, with
 low-code functions that abstract away the complexity of data science.</p>
 <p>Below, we list the steps of a typical data science workflow and describe
-how TabularMagic can help at each step.</p>
+how TableMage can help at each step.</p>
 <p class="rubric">Data Loading and Cleaning</p>
 <p>Data must be extracted and cleaned prior to analysis.
-Unfortunately, TabularMagic does not handle data loading and cleaning.
-TabularMagic works with wide format tabular data in the form of a pandas DataFrame.
-See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer" title="tabularmagic.Analyzer"><code class="xref py py-class docutils literal notranslate"><span class="pre">tabularmagic.Analyzer</span></code></a> for details.</p>
+Unfortunately, TableMage does not handle data loading and cleaning.
+TableMage works with wide format tabular data in the form of a pandas DataFrame.
+See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer" title="tablemage.Analyzer"><code class="xref py py-class docutils literal notranslate"><span class="pre">tablemage.Analyzer</span></code></a> for details.</p>
 <p class="rubric">Data Exploration</p>
 <p>New datasets need to be explored prior to further processing and modeling.
 Data scientists working with Python typically use pandas and matplotlib/seaborn
 to explore data.</p>
-<p>TabularMagic enhances the data exploration process by providing a
+<p>TableMage enhances the data exploration process by providing a
 comprehensive report object that includes the following:</p>
 <ol class="arabic simple">
 <li><p>Categorical and numeric variable summary statistics</p></li>
 <li><p>Low-code statistical testing</p></li>
 <li><p>Low-code visualizations</p></li>
 </ol>
-<p>See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.eda" title="tabularmagic.Analyzer.eda"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.eda()</span></code></a> for details.</p>
+<p>See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.eda" title="tablemage.Analyzer.eda"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.eda()</span></code></a> for details.</p>
 <p class="rubric">Data Preprocessing</p>
 <p>Before modeling, data must be preprocessed (e.g., missing values imputed,
 categorical variables encoded, etc.).</p>
-<p>TabularMagic streamlines the data preprocessing process, reducing
+<p>TableMage streamlines the data preprocessing process, reducing
 several minutes of documentation reading and 10+ lines of code down to zero minutes of
 documentation reading and one line of code.</p>
-<p>See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.impute" title="tabularmagic.Analyzer.impute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.impute()</span></code></a>,
-<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.scale" title="tabularmagic.Analyzer.scale"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.scale()</span></code></a>,
-<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.drop_highly_missing_vars" title="tabularmagic.Analyzer.drop_highly_missing_vars"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.drop_highly_missing_vars()</span></code></a>,
-<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.dropna" title="tabularmagic.Analyzer.dropna"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.dropna()</span></code></a>,
-and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.onehot" title="tabularmagic.Analyzer.onehot"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.onehot()</span></code></a> for details.</p>
+<p>See <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.impute" title="tablemage.Analyzer.impute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.impute()</span></code></a>,
+<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.scale" title="tablemage.Analyzer.scale"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.scale()</span></code></a>,
+<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.drop_highly_missing_vars" title="tablemage.Analyzer.drop_highly_missing_vars"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.drop_highly_missing_vars()</span></code></a>,
+<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.dropna" title="tablemage.Analyzer.dropna"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.dropna()</span></code></a>,
+and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.onehot" title="tablemage.Analyzer.onehot"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.onehot()</span></code></a> for details.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Categorical variables are automatically one-hot encoded in the modeling process
@@ -168,17 +168,17 @@ are automatically dropped in the modeling process.</p>
 <p class="rubric">Statistical Modeling</p>
 <p>Statistical modeling is sometimes preferred over machine learning modeling
 because it provides interpretable results.</p>
-<p>TabularMagic improves the statistical modeling process by providing low-code
+<p>TableMage improves the statistical modeling process by providing low-code
 functions for linear regression and generalized linear models.</p>
 <p>See
-<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.lm" title="tabularmagic.Analyzer.lm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.lm()</span></code></a> and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.glm" title="tabularmagic.Analyzer.glm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.glm()</span></code></a> for details.</p>
+<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.lm" title="tablemage.Analyzer.lm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.lm()</span></code></a> and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.glm" title="tablemage.Analyzer.glm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.glm()</span></code></a> for details.</p>
 <p class="rubric">Machine Learning Modeling</p>
 <p>Machine learning modeling is often preferred over statistical modeling
 because it can handle more complex relationships in the data.</p>
-<p>TabularMagic simplifies the machine learning modeling process by providing
+<p>TableMage simplifies the machine learning modeling process by providing
 low-code functions for classification and regression models.</p>
 <p>See
-<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.classify" title="tabularmagic.Analyzer.classify"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.classify()</span></code></a> and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tabularmagic.Analyzer.regress" title="tabularmagic.Analyzer.regress"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tabularmagic.Analyzer.regress()</span></code></a> for
+<a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.classify" title="tablemage.Analyzer.classify"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.classify()</span></code></a> and <a class="reference internal" href="../python_api/classes/tm_analyzer.html#tablemage.Analyzer.regress" title="tablemage.Analyzer.regress"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tablemage.Analyzer.regress()</span></code></a> for
 details. The different models available are listed in
 <a class="reference internal" href="../python_api/classes/tm_ml.html"><span class="doc">Machine Learning Models (tm.ml)</span></a>.</p>
 </section>
@@ -188,7 +188,7 @@ details. The different models available are listed in
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="TabularMagic" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="TableMage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../python_api/api_reference.html" class="btn btn-neutral float-right" title="Python API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

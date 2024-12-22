@@ -2,9 +2,9 @@ Feature Selectors :py:mod:`(tm.fs)`
 =========================================
 
 
-.. currentmodule:: tabularmagic.fs
+.. currentmodule:: tablemage.fs
 
-The `tabularmagic.fs` module contains the feature selectors used by the 
+The `tablemage.fs` module contains the feature selectors used by the 
 :func:`.regress` and :func:`.classify` methods of the :class:`Analyzer` class. 
         
 

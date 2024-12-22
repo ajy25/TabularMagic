@@ -35,7 +35,8 @@ from ..tools.data_tools import build_dataset_summary_tool, build_pandas_query_to
 from ..tools.transform_tools import (
     build_drop_highly_missing_vars_tool,
     build_drop_na_tool,
-    build_engineer_feature_tool,
+    build_engineer_numeric_feature_tool,
+    build_engineer_categorical_feature_tool,
     build_impute_tool,
     build_scale_tool,
     build_onehot_encode_tool,
@@ -54,6 +55,8 @@ def build_agent(
     context: ToolingContext,
     system_prompt: str = SINGLE_SYSTEM_PROMPT,
     memory: Literal["buffer", "vector"] = "vector",
+    tool_rag: bool = True,
+    tool_rag_top_k: int = 5,
     react: bool = False,
 ) -> FunctionCallingAgent | ReActAgent:
     """Builds an agent.
@@ -72,6 +75,20 @@ def build_agent(
     memory : Literal["buffer", "vector"]
         Memory type to use. Default is "vector".
 
+    tool_rag : bool
+        If True, uses RAG for tool retrieval. Default is True.
+        Otherwise, includes all tools.
+
+    tool_rag_top_k : int
+        Top k tools to retrieve using RAG. Default is 5.
+        Ignored if tool_rag is False.
+        Tool retreival should be used for the following reasons:
+        - Conserve context window space.
+        - Improve response time.
+        But, tool retrieval results in decreased accuracy,
+        as the relevant tools may not be retrieved. Retrieval is done
+        based on the user query, not the agent's understanding of the context.
+
     react : bool
         If True, a ReActAgent is returned. Otherwise, a FunctionCallingAgent is returned.
         If True, the system prompt is not considered.
@@ -82,7 +99,7 @@ def build_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     if memory == "buffer":
-        memory_obj = ChatMemoryBuffer.from_defaults(token_limit=1000)
+        memory_obj = ChatMemoryBuffer.from_defaults(token_limit=5000)
 
     elif memory == "vector":
         vector_store, _ = context.storage_manager.setup_vector_store(
@@ -116,6 +133,7 @@ def build_agent(
         build_feature_selection_tool(context),
         build_ml_regression_tool(context),
         build_ml_classification_tool(context),
+        build_clustering_tool(context),
         build_test_equal_means_tool(context),
         build_plot_distribution_tool(context),
         build_numeric_summary_statistics_tool(context),
@@ -126,60 +144,87 @@ def build_agent(
         build_logit_tool(context),
         build_drop_highly_missing_vars_tool(context),
         build_drop_na_tool(context),
-        build_engineer_feature_tool(context),
+        build_engineer_numeric_feature_tool(context),
+        build_engineer_categorical_feature_tool(context),
         build_impute_tool(context),
         build_scale_tool(context),
         build_onehot_encode_tool(context),
         build_revert_to_original_tool(context),
-        build_clustering_tool(context),
         dataset_summary_tool,
     ]
-    obj_index = ObjectIndex.from_objects(
-        tools,
-        index_cls=VectorStoreIndex,
-    )
-    tool_retriever = obj_index.as_retriever(similarity_top_k=5)
 
     tools_to_persist = [
         build_pandas_query_tool(context),
     ]
 
-    def retrieve_modded(self, str_or_query_bundle: str) -> list:
-        query_bundle = QueryBundle(query_str=str_or_query_bundle)
-        nodes = self._retriever.retrieve(query_bundle)
-        for node_postprocessor in self._node_postprocessors:
-            nodes = node_postprocessor.postprocess_nodes(
-                nodes, query_bundle=query_bundle
+    if tool_rag:
+        obj_index = ObjectIndex.from_objects(
+            tools,
+            index_cls=VectorStoreIndex,
+        )
+        tool_retriever = obj_index.as_retriever(similarity_top_k=tool_rag_top_k)
+
+        def retrieve_modded(self, str_or_query_bundle: str) -> list:
+            query_bundle = QueryBundle(query_str=str_or_query_bundle)
+            nodes = self._retriever.retrieve(query_bundle)
+            for node_postprocessor in self._node_postprocessors:
+                nodes = node_postprocessor.postprocess_nodes(
+                    nodes, query_bundle=query_bundle
+                )
+            return [
+                self._object_node_mapping.from_node(node.node) for node in nodes
+            ] + tools_to_persist
+
+        tool_retriever.retrieve = retrieve_modded.__get__(tool_retriever)
+        if react:
+            agent = ReActAgent.from_tools(
+                llm=llm,
+                tool_retriever=tool_retriever,
+                verbose=True,
+                system_prompt=system_prompt,
+                memory=memory_obj,
+                max_iterations=10,
             )
-        return [
-            self._object_node_mapping.from_node(node.node) for node in nodes
-        ] + tools_to_persist
-
-    tool_retriever.retrieve = retrieve_modded.__get__(tool_retriever)
-
-    if react:
-        agent = ReActAgent.from_tools(
-            llm=llm,
-            tool_retriever=tool_retriever,
-            verbose=True,
-            system_prompt=system_prompt,
-            memory=memory_obj,
-            max_iterations=10,
-        )
+        else:
+            agent = FunctionCallingAgent.from_tools(
+                llm=llm,
+                tool_retriever=tool_retriever,
+                verbose=True,
+                system_prompt=system_prompt,
+                memory=memory_obj,
+            )
     else:
-        agent = FunctionCallingAgent.from_tools(
-            llm=llm,
-            tool_retriever=tool_retriever,
-            verbose=True,
-            system_prompt=system_prompt,
-            memory=memory_obj,
-        )
+        if react:
+            agent = ReActAgent.from_tools(
+                llm=llm,
+                tools=tools + tools_to_persist,
+                verbose=True,
+                system_prompt=system_prompt,
+                memory=memory_obj,
+                max_iterations=10,
+            )
+        else:
+            agent = FunctionCallingAgent.from_tools(
+                llm=llm,
+                tools=tools + tools_to_persist,
+                verbose=True,
+                system_prompt=system_prompt,
+                memory=memory_obj,
+            )
     return agent
 
 
 class SingleAgent:
 
-    def __init__(self, llm: FunctionCallingLLM, context: ToolingContext, react: bool):
+    def __init__(
+        self,
+        llm: FunctionCallingLLM,
+        context: ToolingContext,
+        react: bool,
+        memory: Literal["buffer", "vector"] = "vector",
+        tool_rag: bool = True,
+        tool_rag_top_k: int = 5,
+    ):
         """Initializes the SingleAgent object."""
         if not isinstance(llm, FunctionCallingLLM):
             raise ValueError("The provided LLM must be a FunctionCallingLLM.")
@@ -187,7 +232,12 @@ class SingleAgent:
         print_debug("Initializing SingleAgent")
 
         self._agent = build_agent(
-            llm=llm, context=context, react=react, memory="vector"
+            llm=llm,
+            context=context,
+            memory=memory,
+            tool_rag=tool_rag,
+            tool_rag_top_k=tool_rag_top_k,
+            react=react,
         )
 
         print_debug("SingleAgent initialized")

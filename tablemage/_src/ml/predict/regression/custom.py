@@ -7,7 +7,7 @@ from ....display.print_utils import print_wrapped, quote_and_color
 
 
 class CustomR(BaseR):
-    """TabularMagic-compatible interface for user-designed scikit-learn
+    """TableMage-compatible interface for user-designed scikit-learn
     estimators/searches/pipelines for regression.
 
     Hyperparameter search is not conducted unless provided by the
@@ -146,8 +146,8 @@ class CustomR(BaseR):
         retrieving model predictions directly from data formatted like the original
         train and test data.
 
-        It is not recommended to use TabularMagic for ML production.
-        We recommend using TabularMagic to quickly identify promising models
+        It is not recommended to use TableMage for ML production.
+        We recommend using TableMage to quickly identify promising models
         and then manually implementing and training
         the best model in a production environment.
 

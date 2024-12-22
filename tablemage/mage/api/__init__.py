@@ -1,1 +1,1 @@
-from .mage import Mage
+from .conversational_agent import ConversationalAgent

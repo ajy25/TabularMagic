@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from functools import partial
 from typing import Literal
 from .tooling_context import ToolingContext
-from .tooling_utils import try_except_decorator
+from .tooling_utils import tool_try_except_thought_decorator
 from .._debug.logger import print_debug
 from ....ml import (
     LinearC,
@@ -99,7 +99,7 @@ def parse_model_list_from_str(
     return output, output_code
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
     return [predictor.strip() for predictor in predictors_str.split(",")]
 
@@ -107,17 +107,17 @@ def parse_predictor_list_from_str(predictors_str: str) -> list[str]:
 class _MLRegressionInput(BaseModel):
     models: str = Field(
         description="""A comma delimited string of machine learning models to evaluate.
-        The available models are (in `Model Name`: Description format)...
+        The available models are (in 'Model Name': Description format)...
 
-        1. `OLS`: Ordinary least squares regression
-        2. `Ridge`: Linear regression with L2 penalty
-        3. `Lasso`: Linear regression with L1 penalty
-        4. `RF`: Random forest regressor
-        5. `XGBoost`: XGBoost regressor
-        6. `SVM`: Support vector machine regressor with radial basis function kernel
-        7. `MLP`: Multilayer perceptron regressor
+        1. 'OLS': Ordinary least squares regression
+        2. 'Ridge': Linear regression with L2 penalty
+        3. 'Lasso': Linear regression with L1 penalty
+        4. 'RF': Random forest regressor
+        5. 'XGBoost': XGBoost regressor
+        6. 'SVM': Support vector machine regressor with radial basis function kernel
+        7. 'MLP': Multilayer perceptron regressor
 
-        An example input (without the quotes) is: `OLS, Lasso, XGBoost`.
+        An example input (without the quotes) is: 'OLS, Lasso, XGBoost'.
         """
     )
     target: str = Field(
@@ -125,11 +125,11 @@ class _MLRegressionInput(BaseModel):
     )
     predictors: str = Field(
         description="A comma delimited string of variables used by the models to predict the target. "
-        "An example input (without the quotes) is: `var1, var2, var3`."
+        "An example input (without the quotes) is: 'var1, var2, var3'."
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _ml_regression_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -171,10 +171,10 @@ def build_ml_regression_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_ml_regression_function, context=context),
         name="ml_regression_tool",
-        description="""Performs regression with a list of machine learning models that you must specify.
-        Predicts the target variable with a list of predictor variables.
-        Returns a string describing the model performances.
-        """,
+        description="Performs regression with a list of machine learning models that you must specify. "
+        "Predicts the target variable with a list of predictor variables. "
+        "Model hyperparameters are optimized automatically using cross-validation and the Optuna library. "
+        "Returns a string describing model performances, feature importances, and hyperparameters (searched and best).",
         fn_schema=_MLRegressionInput,
     )
 
@@ -182,17 +182,17 @@ def build_ml_regression_tool(context: ToolingContext) -> FunctionTool:
 class _MLClassificationInput(BaseModel):
     models: str = Field(
         description="""A comma delimited string of machine learning models to evaluate.
-        The available models are (in `Model Name`: Description format)...
+        The available models are (in 'Model Name': Description format)...
 
-        1. `Logistic`: Logistic regression
-        2. `Ridge`: Logistic regression with L2 penalty
-        3. `Lasso`: Logistic regression with L1 penalty
-        4. `RF`: Random forest classifier
-        5. `XGBoost`: XGBoost classifier
-        6. `SVM`: Support vector machine classifier with radial basis function kernel
-        7. `MLP`: Multilayer perceptron classifier
+        1. 'Logistic': Logistic regression
+        2. 'Ridge': Logistic regression with L2 penalty
+        3. 'Lasso': Logistic regression with L1 penalty
+        4. 'RF': Random forest classifier
+        5. 'XGBoost': XGBoost classifier
+        6. 'SVM': Support vector machine classifier with radial basis function kernel
+        7. 'MLP': Multilayer perceptron classifier
 
-        An example input (without the quotes) is: `Logistic, RF, XGBoost`.
+        An example input (without the quotes) is: 'Logistic, RF, XGBoost'.
         """
     )
     target: str = Field(
@@ -200,11 +200,11 @@ class _MLClassificationInput(BaseModel):
     )
     predictors: str = Field(
         description="A comma delimited string of variables used by the models to predict the target. "
-        "An example input (without the quotes) is: `var1, var2, var3`."
+        "An example input (without the quotes) is: 'var1, var2, var3'."
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _ml_classification_function(
     models: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -249,10 +249,10 @@ def build_ml_classification_tool(context: ToolingContext) -> FunctionTool:
     return FunctionTool.from_defaults(
         fn=partial(_ml_classification_function, context=context),
         name="ml_classification_tool",
-        description="""Performs classification with a list of machine learning models that you must specify. 
-        Predicts the target variable with a list of predictor variables. 
-        Returns a string describing the model performances.
-        """,
+        description="Performs classification with a list of machine learning models that you must specify. "
+        "Predicts the target variable with a list of predictor variables. "
+        "Model hyperparameters are optimized automatically using cross-validation and the Optuna library. "
+        "Returns a string describing model performances, feature importances, and hyperparameters (searched and best).",
         fn_schema=_MLClassificationInput,
     )
 
@@ -261,10 +261,10 @@ class _FeatureSelectionInput(BaseModel):
     feature_selector: str = Field(
         description="""The feature selection method to use. The available methods are...
 
-        1. `Boruta`: Boruta method (automatically selects the number of features)
-        2. `Select{N}Best`: Select N best features based on the F-score, where you replace {N} with the number of features you want to select.
+        1. 'Boruta': Boruta method (automatically selects the number of features)
+        2. 'Select{N}Best': Select N best features based on the F-score, where you replace {N} with the number of features you want to select.
 
-        Two example inputs (without the quotes) are: `Boruta` and `Select5Best`.
+        Two example inputs (without the quotes) are: 'Boruta' and 'Select5Best'.
         """
     )
     target: str = Field(
@@ -274,12 +274,12 @@ class _FeatureSelectionInput(BaseModel):
         description="""A comma delimited string of variables used by the models 
         to predict the target.
 
-        An example input (without the quotes) is: `var1, var2, var3`.
+        An example input (without the quotes) is: 'var1, var2, var3'.
         """
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _feature_selection_function(
     feature_selector: str, target: str, predictors: str, context: ToolingContext
 ) -> str:
@@ -352,7 +352,7 @@ def build_feature_selection_tool(context: ToolingContext) -> FunctionTool:
         Selects the best features/predictors/variables from a list of predictor variables to predict the target variable. 
         Returns a string describing the selected features.
         Categorical variables are one-hot encoded before feature selection.
-        If a category is selected, the output would be `<variable_name>::<category>`.
+        If a category is selected, the output would be '<variable_name>::<category>'.
         """,
         fn_schema=_FeatureSelectionInput,
     )
@@ -361,38 +361,38 @@ def build_feature_selection_tool(context: ToolingContext) -> FunctionTool:
 class _ClusteringInput(BaseModel):
     features: str = Field(
         description="""A comma delimited string of variables to use for clustering.
-        An example input (without the quotes) is: `var1, var2, var3`.
+        An example input (without the quotes) is: 'var1, var2, var3'.
         """
     )
     model: str = Field(
-        description="""The available models are (in `Model Name`: Description format)...
+        description="""The available models are (in 'Model Name': Description format)...
 
-        1. `KMeans`: KMeans clustering
-        2. `GMM`: Gaussian mixture model clustering
+        1. 'KMeans': KMeans clustering
+        2. 'GMM': Gaussian mixture model clustering
 
-        An example input (without the quotes) is: `KMeans`.
+        An example input (without the quotes) is: 'KMeans'.
         """
     )
     n_clusters: int = Field(
-        description="The number of clusters to create. An example input (without the quotes) is: `5`. "
+        description="The number of clusters to create. An example input (without the quotes) is: '5'. "
         "If left blank (empty str), the optimal number of clusters will be automatically determined."
     )
     max_n_clusters: int = Field(
-        description="The maximum number of clusters to test. An example input (without the quotes) is: `10`. "
-        "This is only used if `n_clusters` is left blank (empty str). Leave blank if `n_clusters` is specified."
+        description="The maximum number of clusters to test. An example input (without the quotes) is: '10'. "
+        "This is only used if 'n_clusters' is left blank (empty str). Leave blank if 'n_clusters' is specified."
     )
     vis_type: str = Field(
         description="""The type of visualization to use. The available types are...
 
-        1. `PCA`: Principal component analysis
-        2. `TSNE`: t-distributed stochastic neighbor embedding
+        1. 'PCA': Principal component analysis
+        2. 'TSNE': t-distributed stochastic neighbor embedding
 
-        An example input (without the quotes) is: `PCA`.
+        An example input (without the quotes) is: 'PCA'.
         """
     )
 
 
-@try_except_decorator
+@tool_try_except_thought_decorator
 def _clustering_function(
     features: str,
     model: str,

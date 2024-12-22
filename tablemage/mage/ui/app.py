@@ -10,7 +10,7 @@ path_to_add = str(ui_path.parent.parent.parent)
 sys.path.append(path_to_add)
 
 
-from tablemage.mage.api import Mage
+from tablemage.mage.api import ConversationalAgent
 
 
 from tablemage.mage._src.io.canvas import (
@@ -20,7 +20,7 @@ from tablemage.mage._src.io.canvas import (
     CanvasThought,
 )
 
-mage: Mage = None
+mage: ConversationalAgent = None
 
 
 def chat(msg: str) -> str:
@@ -72,7 +72,7 @@ def upload_dataset():
     try:
         # Read the uploaded CSV file
         uploaded_data = pd.read_csv(file, index_col=0)
-        mage = Mage(uploaded_data, test_size=test_size)
+        mage = ConversationalAgent(uploaded_data, test_size=test_size)
 
         return jsonify({"message": "Dataset uploaded successfully"}), 200
     except Exception as e:

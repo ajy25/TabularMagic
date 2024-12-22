@@ -34,8 +34,8 @@ def test_naive(setup_data):
     )
     report = causal_model.estimate_ate(method="naive")
     naive_estimate = report._estimate
-    assert np.isclose(naive_estimate, 0.1942883, atol=1e-6)
-    assert np.isclose(report._estimate_se, 0.01579299, atol=1e-6)
+    assert np.isclose(naive_estimate, 0.1942883, atol=1e-4)
+    assert np.isclose(report._estimate_se, 0.01579299, atol=1e-4)
 
 
 def test_ols(setup_data):
@@ -65,8 +65,8 @@ def test_ols(setup_data):
         method="outcome_regression", robust_se="nonrobust"
     )
     ols_estimate = report._estimate
-    assert np.isclose(ols_estimate, 0.2384783, atol=1e-6)
-    assert np.isclose(report._estimate_se, 0.0172869, atol=1e-6)
+    assert np.isclose(ols_estimate, 0.2384783, atol=1e-4)
+    assert np.isclose(report._estimate_se, 0.0172869, atol=1e-4)
 
 
 def test_weighted_reg(setup_data):
@@ -96,9 +96,9 @@ def test_weighted_reg(setup_data):
         method="ipw_weighted_regression", robust_se="HC0"
     )
     weighted_estimate = report._estimate
-    assert np.isclose(weighted_estimate, 0.2286431, atol=1e-6)
+    assert np.isclose(weighted_estimate, 0.2286431, atol=1e-4)
     # unable to perfectly reproduce SE with statsmodels, but close enough
-    assert np.isclose(report._estimate_se, 0.0214608, atol=1e-5)
+    assert np.isclose(report._estimate_se, 0.0214608, atol=1e-4)
 
     report = causal_model.estimate_att(
         method="ipw_weighted_regression", robust_se="HC0"

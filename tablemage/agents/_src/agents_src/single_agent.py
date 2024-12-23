@@ -42,6 +42,7 @@ from ..tools.transform_tools import (
     build_onehot_encode_tool,
     build_revert_to_original_tool,
 )
+from ..tools.experimental_tools import build_python_env_code_run_tool
 from ..tools.tooling_context import ToolingContext
 
 from .prompt.single_agent_system_prompt import SINGLE_SYSTEM_PROMPT
@@ -56,7 +57,7 @@ def build_agent(
     system_prompt: str = SINGLE_SYSTEM_PROMPT,
     memory: Literal["buffer", "vector"] = "vector",
     tool_rag: bool = True,
-    tool_rag_top_k: int = 5,
+    tool_rag_top_k: int = 3,
     react: bool = False,
 ) -> FunctionCallingAgent | ReActAgent:
     """Builds an agent.
@@ -99,13 +100,13 @@ def build_agent(
         Either a FunctionCallingAgent or a ReActAgent
     """
     if memory == "buffer":
-        memory_obj = ChatMemoryBuffer.from_defaults(token_limit=5000)
+        memory_obj = ChatMemoryBuffer.from_defaults(token_limit=3000)
 
     elif memory == "vector":
         vector_store, _ = context.storage_manager.setup_vector_store(
             path=io_path / "_vector_memory",
         )
-        buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=5000)
+        buffer_memory = ChatMemoryBuffer.from_defaults(token_limit=3000)
         vector_memory = VectorMemory.from_defaults(
             vector_store=vector_store,
             embed_model=FastEmbedEmbedding(model_name="BAAI/bge-base-en-v1.5"),
@@ -154,7 +155,8 @@ def build_agent(
     ]
 
     tools_to_persist = [
-        build_pandas_query_tool(context),
+        build_python_env_code_run_tool(context),
+        # build_pandas_query_tool(context),
     ]
 
     if tool_rag:
